@@ -1,0 +1,35 @@
+--
+-- cherry
+-- cherry GPR project
+--
+
+project Cherry is
+
+  for Languages    use ("Ada", "C");
+  for Source_Dirs  use ("source/");
+  for Object_Dir   use ".object/";
+  for Exec_Dir     use "binary/";
+  for Main         use ("cherry.adb");
+
+  package Builder is
+
+  --  -O0 - 3.0 sek - Best for hacking
+  --  -O1 - 3.5 sek - Best for debugging
+  --  -O2 - 4.0 sek - Best for production
+
+     for Default_Switches ("Ada") use
+       ("-g",
+        "-O1",
+        "-gnatf",
+        "-gnatwa",
+        "-gnatwj",
+        "-gnat2005",
+        "-gnaty",
+        "-gnatyM99");
+
+     for Executable ("cherry.adb")
+       use "cherry";
+
+  end Builder;
+
+end Cherry;
