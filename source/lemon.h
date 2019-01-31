@@ -10,12 +10,12 @@
 typedef int boolean_t;
 extern boolean_t lemon_show_conflict;
 extern boolean_t lemon_show_version;
-extern boolean_t lemon_rp_flag;
+// extern boolean_t lemon_rp_flag;
 extern boolean_t lemon_basis_flag;
 extern boolean_t lemon_compress;
 extern boolean_t lemon_be_quiet;
 extern boolean_t lemon_statistics;
-//extern boolean_t lemon_mh_flag;
+// extern boolean_t lemon_mh_flag;
 extern boolean_t lemon_no_line_nos;
 extern boolean_t lemon_no_resort;
 extern boolean_t lemon_show_help;
@@ -32,6 +32,30 @@ extern char *lemon_program_name;
 extern char *lemon_input_file;
 extern char *lemon_user_template;
 extern char *lemon_output_dir;
+
+
+/*
+** a few forward declarations...
+*/
+struct rule;
+struct lemon;
+struct action;
+
+/********** From the file "report.h" *************************************/
+void lemon_reprint(struct lemon *);
+void lemon_report_output(struct lemon *);
+void lemon_report_table(struct lemon *);
+void lemon_report_header(struct lemon *);
+void lemon_compress_tables(struct lemon *);
+void lemon_resort_states(struct lemon *);
+
+/********** From the file "build.h" ************************************/
+void lemon_find_rule_precedences(struct lemon*);
+void lemon_find_first_sets(struct lemon*);
+void lemon_find_states(struct lemon*);
+void lemon_find_links(struct lemon*);
+void lemon_find_follow_sets(struct lemon*);
+void lemon_find_actions(struct lemon*);
 
 char*
 lime_get_user_template_name (void);
@@ -262,6 +286,19 @@ lime_write_interface
 
 void lime_write_interface_begin (void);
 void lime_write_interface_end   (void);
+//
+//
+
+void
+lime_report_header
+(const char  *token_prefix,
+ const char  *base_name,
+ const char  *module_name,
+ int          terminal_last);
+//
+//
+
+void lime_generate_reprint_of_grammar (void);
 //
 //
 

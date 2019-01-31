@@ -10,8 +10,6 @@ with Interfaces.C.Strings;
 
 with GNAT.Strings;
 
-with Backend;
-
 package Lime is
 
    Option_Show_Conflict : aliased Boolean;
@@ -43,6 +41,10 @@ package Lime is
    Option_Language : Language_Type := Language_C;
 
 
+   procedure Implementation_Open
+     (File_Name : in Interfaces.C.Strings.chars_ptr);
+--     renames Text_Out_IO.Open;
+
    function Get_Token (Index : in Integer) return String;
    --  Get token for token symbol creation.
 
@@ -58,8 +60,8 @@ package Lime is
       Success       :    out Integer);
    --  Uses Context for File_Template.
 
-   procedure Implementation_Open
-     (File_Name : in chars_ptr);
+--   procedure Implementation_Open
+--     (File_Name : in chars_ptr);
    --  Uses Context for File_implementation.
 
    procedure Template_Transfer
@@ -205,14 +207,6 @@ package Lime is
       Error_Action : in Integer;
       Min_Reduce   : in Integer);
 
-   procedure Put (Item : in chars_ptr);
-   procedure Put_Int (Item : in Integer);
-   procedure Put_Line (Item : in chars_ptr);
-
-   procedure Write_Line_Directive
-     (Line_Number : in Backend.Line_Number_Index;
-      File_Name   : in chars_ptr);
-
    procedure Template_Print_2
      (Line        : in chars_ptr;
       No_Line_Nos : in Integer;
@@ -241,12 +235,50 @@ package Lime is
    procedure Write_Interface_Begin;
    procedure Write_Interface_End;
 
+
+   procedure Report_Header
+     (Token_Prefix  : in chars_ptr;
+      Base_Name     : in chars_ptr;
+      Module_Name   : in chars_ptr;
+      Terminal_Last : in Natural);
+   --  Generate a header file for the Parser.
+
+   type Lemon_Type is private;
+   type Lemon_Access is access Lemon_Type;
+
+   procedure Generate_Reprint_Of_Grammar
+     (Base_Name     : in chars_ptr;
+      Token_Prefix  : in chars_ptr;
+      Terminal_Last : in Natural);
+   --  Generate a reprint of the grammar, if requested on the command line.
+
+   --
+   --  Other way round specs
+   --
+   procedure Reprint (Lemon : in Lemon_Type);
+   procedure Set_Size (Size : in Natural);
+   procedure Find_Rule_Precedences (Lemon : in Lemon_Type);
+   procedure Find_First_Sets (Lemon : in Lemon_Type);
+   procedure Compute_LR_States (Lemon : in Lemon_Type);
+   procedure Find_Links (Lemon : in Lemon_Type);
+   procedure Find_Follow_Sets (Lemon : in Lemon_Type);
+   procedure Find_Actions (Lemon : in Lemon_Type);
+   procedure Compress_Tables (Lemon : in Lemon_Type);
+   procedure Resort_States (Lemon : in Lemon_Type);
+   procedure Report_Output (Lemon : in Lemon_Type);
+   procedure Report_Table (Lemon : in Lemon_Type);
+
 private
+
+   type Lemon_Record is null record;
+   type Lemon_Type is access all Lemon_Record;
+   for Lemon_Type'Storage_Size use 0;
+   pragma Convention (C, Lemon_Type);
 
    --  Option integers
    pragma Export (C, Option_Show_Conflict, "lemon_show_conflict");
    pragma Export (C, Option_Show_Version,  "lemon_show_version");
-   pragma Export (C, Option_RP_Flag,       "lemon_rp_flag");
+--   pragma Export (C, Option_RP_Flag,       "lemon_rp_flag");
    pragma Export (C, Option_Basis_Flag,    "lemon_basis_flag");
    pragma Export (C, Option_Compress,      "lemon_compress");
    pragma Export (C, Option_Be_Quiet,      "lemon_be_quiet");
@@ -289,11 +321,6 @@ private
    pragma Import (C, Get_Default_Reduce,         "lime_get_default_reduce");
    --   pragma Export (C, Write_Fallback_Token,       "lime_write_fallback_token");
 
-   pragma Export (C, Put,            "lime_put");
-   pragma Export (C, Put_Int,        "lime_put_int");
-   pragma Export (C, Put_Line,       "lime_put_line");
-
-   pragma Export (C, Write_Line_Directive, "lime_write_line_directive");
    pragma Export (C, Template_Print_2,    "lime_template_print");
 
    pragma Export (C, Write_Arg_Defines, "lime_write_arg_defines");
@@ -305,5 +332,20 @@ private
 
    pragma Export (C, Write_Interface_Begin, "lime_write_interface_begin");
    pragma Export (C, Write_Interface_End,   "lime_write_interface_end");
+   pragma Export (C, Report_Header,         "lime_report_header");
+   pragma Export (C, Generate_Reprint_Of_Grammar,
+                  "lime_generate_reprint_of_grammar");
 
+   pragma Import (C, Reprint,               "lemon_reprint");
+   pragma Import (C, Set_Size,              "lemon_set_size");
+   pragma Import (C, Find_Rule_Precedences, "lemon_find_rule_precedences");
+   pragma Import (C, Find_First_Sets,       "lemon_find_first_sets");
+   pragma Import (C, Compute_LR_States,     "lemon_compute_LR_states");
+   pragma Import (C, Find_Links,            "lemon_find_links");
+   pragma Import (C, Find_Follow_Sets,      "lemon_find_follow_sets");
+   pragma Import (C, Find_Actions,          "lemon_find_actions");
+   pragma Import (C, Compress_Tables,       "lemon_compress_tables");
+   pragma Import (C, Resort_States,         "lemon_resort_states");
+   pragma Import (C, Report_Output,         "lemon_report_output");
+   pragma Import (C, Report_Table,          "lemon_report_table");
 end Lime;

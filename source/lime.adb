@@ -5,51 +5,29 @@
 --
 
 with Ada.Strings.Unbounded;
-with Ada.Strings.Fixed;
 with Ada.Directories;
 with Ada.IO_Exceptions;
 
 with Generate_Ada;
 with Generate_C;
 with Setup;
-with Auxiliary;
+with Backend;
+with Text_Out;
 
 package body Lime is
 
    use Backend;
 
-   procedure Put (Item : in String);
-   procedure Put_Line (Item : in String);
-   procedure New_Line;
+   procedure Implementation_Open
+     (File_Name : in Interfaces.C.Strings.chars_ptr)
+   is
+      use Text_Out;
+   begin
+      Text_Out.Implementation_Open (File_Name);
+   end Implementation_Open;
+
    function Is_Alpha (C : Character) return Boolean;
    function Default_Template_Name return String;
-
-
---   function Get_MH_Flag
---     return Boolean is
---   begin
---      Ada.Text_IO.Put ("Option_MH_Flag => ");
---      Ada.Text_IO.Put_Line (Boolean'Image (Option_MH_Flag));
---      return Option_MH_Flag;
---   end Get_MH_Flag;
-
-
-   procedure Put (Item : in String) is
-   begin
-      Ada.Text_IO.Put (Context.File_Implementation, Item);
-   end Put;
-
-   procedure Put_Line (Item : in String) is
-   begin
-      Ada.Text_IO.Put_Line (Context.File_Implementation, Item);
-      Context.Line_Number := Context.Line_Number + 1;
-   end Put_Line;
-
-   procedure New_Line is
-   begin
-      Put_Line ("");
-   end New_Line;
-
 
    function Get_Token (Index : in Integer) return String
    is
@@ -184,14 +162,6 @@ package body Lime is
 --   end Make_Filename;
 
 
-   procedure Implementation_Open
-     (File_Name : in chars_ptr)
-   is
-      use Ada.Text_IO;
-   begin
-      Auxiliary.Recreate (Context.File_Implementation, Out_File, Value (File_Name));
-   end Implementation_Open;
-
    function Is_Alpha (C : Character) return Boolean is
    begin
       return (C in 'a' .. 'z') or (C in 'A' .. 'Z');
@@ -225,7 +195,7 @@ package body Lime is
                   if Index > Start then
                      Put (Line (Start .. Index));
                   end if;
-                  Put (Name);
+                  Text_Out.Put_CP (Name);
                   Index := Index + Parse'Length;
                   Start := Index;
                end if;
@@ -247,6 +217,7 @@ package body Lime is
       No_Line_Nos : in Integer;
       Include     : in chars_ptr)
    is
+--      pragma Unreferenced (Out_Name);
 --      use Ada.Text_IO;
    begin
       if Include = Null_Ptr then return; end if;
@@ -255,7 +226,7 @@ package body Lime is
          Line : constant String := Value (Include);
       begin
          --  Transfer line incrementing line numbers on ASCII.LF
-         Put_Line (New_String (Line));
+         Text_Out.Put_Line_CP (New_String (Line));
          --  for I in Line'Range loop
          --  Put (Context.File_Implementation, Line (I));
          --  if Line (I) = ASCII.LF then
@@ -272,7 +243,8 @@ package body Lime is
          Ada.Text_IO.Put ("WLD - ");
          if No_Line_Nos /= 0 then
             Ada.Text_IO.Put_Line ("1");
-            Write_Line_Directive (Context.Line_Number, Out_Name);
+            --  Write_Line_Directive (Line_Number, Out_Name);
+            Text_Out.Put_Line_Directive (Out_Name);
          end if;
       end;
    end Template_Print;
@@ -282,10 +254,11 @@ package body Lime is
      --  (MH_Flag      : in Integer;
      (Include_Name : in chars_ptr)
    is
+      use Text_Out;
    begin
       if Option_MH_Flag then
          Put ("#include <");
-         Put (Include_Name);
+         Put_CP (Include_Name);
          Put_Line (">;");
       end if;
    end Write_Include;
@@ -296,6 +269,7 @@ package body Lime is
       First       : in Integer;
       Last        : in Integer)
    is
+      use Text_Out;
       Prefix : chars_ptr;
    begin
       if Option_MH_Flag then
@@ -316,8 +290,8 @@ package body Lime is
 --                          " " & Integer'Image (I));
 --              Line_Number := Line_Number + 1;
             Put ("#define ");
-            Put (Prefix);
-            Put (Get_Token_Callback (I));
+            Put_CP (Prefix);
+            Put_CP (Get_Token_Callback (I));
             Put (" ");
             Put_Int (I);
             New_Line;
@@ -333,9 +307,10 @@ package body Lime is
       Wildcard       : in     Integer;
       Wildcard_Index : in     chars_ptr)
    is
+      use Text_Out;
    begin
       Put ("#define YYCODETYPE ");
-      Put (YY_Code_Type);
+      Put_CP (YY_Code_Type);
       New_Line;
 
       Put ("#define YYNOCODE ");
@@ -343,12 +318,12 @@ package body Lime is
       New_Line;
 
       Put ("#define YYACTIONTYPE ");
-      Put (YY_Action_Type);
+      Put_CP (YY_Action_Type);
       New_Line;
 
       if Wildcard = 0 then
          Put ("#define YYWILDCARD ");
-         Put (Wildcard_Index);
+         Put_CP (Wildcard_Index);
          Put_Line ("");
       end if;
    end Generate_The_Defines_1;
@@ -356,11 +331,12 @@ package body Lime is
    procedure Generate_The_Defines_2
      (Stack_Size : in chars_ptr)
    is
+      use Text_Out;
    begin
       Put_Line ("#ifndef YYSTACKDEPTH");
       if Stack_Size /= Null_Ptr then
          Put ("#define YYSTACKDEPTH ");
-         Put (Stack_Size);
+         Put_CP (Stack_Size);
          New_Line;
       else
          Put_Line ("#define YYSTACKDEPTH 100");
@@ -374,13 +350,7 @@ package body Lime is
       Struct       : in     Struct_Access;
       Has_Fallback : in     Integer)
    is
---      procedure Put (Item : in String);
-
---      procedure Put (Item : in String) is
---      begin
---         Ada.Text_IO.Put_Line (Context.File_Implementation, Item);
---         Line_Number := Line_Number + 1;
---      end Put;
+      use Text_Out;
    begin
 
       if Error_Sym /= Null_Ptr and Struct.Use_Count /= 0 then
@@ -399,15 +369,6 @@ package body Lime is
 
    end Error_Fallback;
 
-   function Image (Value : in Integer) return String;
-
-   function Image (Value : in Integer) return String is
-      use Ada.Strings;
-   begin
-      return Fixed.Trim (Integer'Image (Value), Left);
-   end Image;
-
-
 
    procedure Render_Constants
      (Render : in Render_Access)
@@ -416,7 +377,9 @@ package body Lime is
                      Value : in Integer);
 
       procedure Put (Item  : in String;
-                     Value : in Integer) is
+                     Value : in Integer)
+      is
+         use Text_Out;
       begin
          Put (Item);
          Put_Int (Value);
@@ -446,6 +409,7 @@ package body Lime is
      (N           : in     Integer;
       No_Action   : in     Integer)
    is
+      use Text_Out;
       J : Integer;
       Action : Integer;
    begin
@@ -477,6 +441,7 @@ package body Lime is
      (N           : in     Integer;
       Nsymbol     : in     Integer)
    is
+      use Text_Out;
       LA : Integer;
       J  : Integer := 0;
    begin
@@ -508,6 +473,7 @@ package body Lime is
       Nactiontab    : in Integer;
       NO_OFFSET     : in Integer)
    is
+      use Text_Out;
       Ofst : Integer;
       J : Integer := 0;
    begin
@@ -544,6 +510,7 @@ package body Lime is
       Min_Size_Type : in chars_ptr;
       NO_OFFSET     : in Integer)
    is
+      use Text_Out;
       J : Integer := 0;
       Ofst : Integer;
    begin
@@ -578,6 +545,7 @@ package body Lime is
       Error_Action : in Integer;
       Min_Reduce   : in Integer)
    is
+      use Text_Out;
       J : Integer := 0;
       IDfltReduce : Integer;
    begin
@@ -603,21 +571,6 @@ package body Lime is
       Put_Line ("};");
    end Write_Default_Action_Table;
 
-   procedure Put (Item : in chars_ptr) is
-   begin
-      Put (Value (Item));
-   end Put;
-
-   procedure Put_Int (Item : in Integer) is
-   begin
-      Put (Image (Item));
-   end Put_Int;
-
-   procedure Put_Line (Item : in chars_ptr) is
-   begin
-      Put_Line (Value (Item));
-   end Put_Line;
-
 --     procedure Write_Fallback_Token
 --       (Is_Fallback    : in Integer;
 --        Name           : in chars_ptr;
@@ -628,26 +581,6 @@ package body Lime is
 
 --     end Write_Fallback_Token;
 
-   procedure Write_Line_Directive
-     (Line_Number : in Line_Number_Index;
-      File_Name   : in chars_ptr)
-   is
-      pragma Unreferenced (Line_Number);
-   begin
-      Ada.Text_IO.Put_Line ("Write_line_directive 616 ca");
-      Put ("#line ");
-      --  Put_Int (Line_Number_Index (Line_Number));
-      Put_Int (Integer (Context.Line_Number));
-      Put (" """);
---  while( *filename ){
---    if( *filename == '\\' ) putc('\\',out);
---    putc(*filename,out);
---    filename++;
---  }
-      Put (File_Name);
-      Put_Line ("""");
-   end Write_Line_Directive;
-
 
    procedure Template_Print_2
      (Line        : in chars_ptr;
@@ -655,12 +588,13 @@ package body Lime is
 --      Line_Number : in Line_Number_Index;
       Out_Name    : in chars_ptr)
    is
+--      pragma Unreferenced (Out_Name);
    begin
       if Line = Null_Ptr then
          Ada.Text_IO.Put_Line ("RETURN");
          return;
       end if;
-      Put_Line (Line);
+      Text_Out.Put_Line_CP (Line);
 
       --  XXX mystisk kode
 --      if( str[-1]!='\n' ){
@@ -672,7 +606,8 @@ package body Lime is
          Ada.Text_IO.Put_Line ("2");
          --  (*lineno)++; tplt_linedir(out,*lineno,lemp->outname);
          --  Write_Line_Directive (Line_Number, Out_Name);
-         Write_Line_Directive (0, Out_Name);
+         --  Write_Line_Directive (0, Out_Name);
+         Text_Out.Put_Line_Directive (Out_Name);
       end if;
 
    end Template_Print_2;
@@ -693,10 +628,12 @@ package body Lime is
       procedure Write (Decl : in String);
 
       procedure Write (Decl : in String) is
+         use Text_Out;
       begin
          Put_Line ("#define " & Ada_Name & Ada_Arg_Ctx & Decl & Ada_Arg & ";");
       end Write;
 
+      use Text_Out;
    begin
       Write ("_SDECL ");
       Write ("_PDECL ,");
@@ -715,7 +652,7 @@ package body Lime is
 
    procedure Close_Out is
    begin
-      Ada.Text_IO.Close (Context.File_Implementation);
+      Text_Out.Close_Out; --   (File_Out);
    end Close_Out;
 
    procedure Close_In is
@@ -728,15 +665,16 @@ package body Lime is
      (Name      : in chars_ptr;
       Tokentype : in chars_ptr)
    is
+      use Text_Out;
    begin
       if Option_MH_Flag then
          Put_Line ("#if INTERFACE");
       end if;
 
       Put ("#define ");
-      Put (Name);
+      Put_CP (Name);
       Put ("TOKENTYPE ");
-      Put (Tokentype);
+      Put_CP (Tokentype);
       New_Line;
 
       if Option_MH_Flag then
@@ -745,7 +683,9 @@ package body Lime is
    end Write_Interface;
 
 
-   procedure Write_Interface_Begin is
+   procedure Write_Interface_Begin
+   is
+      use Text_Out;
    begin
       if Option_MH_Flag then
          Put_Line ("#if INTERFACE");
@@ -753,12 +693,109 @@ package body Lime is
    end Write_Interface_Begin;
 
 
-   procedure Write_Interface_End is
+   procedure Write_Interface_End
+   is
+      use Text_Out;
    begin
       if Option_MH_Flag then
          Put_Line ("#endif");
       end if;
    end Write_Interface_End;
 
+
+   procedure Report_Header
+     (Token_Prefix  : in chars_ptr;
+      Base_Name     : in chars_ptr;
+      Module_Name   : in chars_ptr;
+      Terminal_Last : in Natural)
+   is
+      use Ada.Text_IO;
+      Prefix : chars_ptr := Token_Prefix;
+   begin
+
+      if not Option_MH_Flag then
+         return;
+      end if;
+
+      if Token_Prefix = Null_Ptr then
+         Prefix := New_String ("");
+      end if;
+
+      --  Generate parse.h.ads
+      Generate_Spec (Base_Name, Prefix, Module_Name,
+                     First => 1,
+                     Last  => Terminal_Last);
+   end Report_Header;
+
+   Lemon_Lemp : Lemon_Type;
+
+   procedure Generate_Reprint_Of_Grammar
+     (Base_Name     : in chars_ptr;
+      Token_Prefix  : in chars_ptr;
+      Terminal_Last : in Natural)
+   is
+      use Ada.Text_IO;
+   begin
+      if Option_RP_Flag then
+         Put_Line ("### 1");
+         Reprint (Lemon_Lemp);
+      else
+         Put_Line ("### 2");
+         --  Initialize the size for all follow and first sets
+         Set_Size (Terminal_Last + 1);
+
+         --  Find the precedence for every production rule (that has one)
+         Find_Rule_Precedences (Lemon_Lemp);
+
+         --  Compute the lambda-nonterminals and the first-sets for every
+         --  nonterminal
+         Find_First_Sets (Lemon_Lemp);
+
+         --  Compute all LR(0) states.  Also record follow-set propagation
+         --  links so that the follow-set can be computed later
+         Compute_LR_States (Lemon_Lemp);
+--         Lemon_Lemp->nstate = 0;
+--         FindStates (Lemon_lemp);
+--         Lemon_Lemp->sorted = State_arrayof();
+
+         --  Tie up loose ends on the propagation links
+         Find_Links (Lemon_Lemp);
+
+         --  Compute the follow set of every reducible configuration
+         Find_Follow_Sets (Lemon_Lemp);
+
+         --  Compute the action tables
+         Find_Actions (Lemon_Lemp);
+
+         --  Compress the action tables
+         if not Option_Compress then
+            Compress_Tables (Lemon_Lemp);
+         end if;
+
+         --  Reorder and renumber the states so that states with fewer choices
+         --  occur at the end.  This is an optimization that helps make the
+         --  generated parser tables smaller.
+         if not Option_No_Resort then
+            Resort_States (Lemon_Lemp);
+         end if;
+
+         --   Generate a report of the parser generated.  (the "y.output" file)
+         if not Option_Be_Quiet then
+            Report_Output (Lemon_Lemp);
+         end if;
+
+         --  Generate the source code for the parser
+         Report_Table (Lemon_Lemp);
+
+         --  Produce a header file for use by the scanner.  (This step is
+         --  omitted if the "-m" option is used because makeheaders will
+         --  generate the file for us.)
+         Report_Header
+           (Token_Prefix,
+            Base_Name, -- File_Makename (Lemon_Lemp, ""),
+            New_String ("MODULE XXX"),
+            Terminal_Last);
+      end if;
+   end Generate_Reprint_Of_Grammar;
 
 end Lime;
