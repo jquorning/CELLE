@@ -10,12 +10,10 @@
 typedef int boolean_t;
 extern boolean_t lemon_show_conflict;
 extern boolean_t lemon_show_version;
-// extern boolean_t lemon_rp_flag;
 extern boolean_t lemon_basis_flag;
 extern boolean_t lemon_compress;
 extern boolean_t lemon_be_quiet;
 extern boolean_t lemon_statistics;
-// extern boolean_t lemon_mh_flag;
 extern boolean_t lemon_no_line_nos;
 extern boolean_t lemon_no_resort;
 extern boolean_t lemon_show_help;
@@ -299,6 +297,18 @@ lime_report_header
 //
 
 void lime_generate_reprint_of_grammar (void);
+//
+//
+
+void
+lime_set_out_name
+(const char  *name);
+//
+//
+
+const char*
+lime_get_out_name
+(void);
 //
 //
 

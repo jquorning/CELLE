@@ -400,7 +400,7 @@ struct lemon {
   char *tokendest;         /* Code to execute to destroy token data */
   char *vardest;           /* Code for the default non-terminal destructor */
   char *filename;          /* Name of the input file */
-  char *outname;           /* Name of the current output file */
+  //  char *outname;           /* Name of the current output file */
   char *tokenprefix;       /* A prefix added to token names in the .h file */
   int nconflict;           /* Number of parsing conflicts */
   int nactiontab;          /* Number of entries in the yy_action[] table */
@@ -1644,6 +1644,7 @@ void lemon_main (void)
   struct lemon lem;
   struct rule *rp;
 
+  lemon_lemp = &lem;
   memset(&lem, 0, sizeof(lem));
   lem.errorcnt = 0;
 
@@ -2759,6 +2760,7 @@ void Plink_delete(struct plink *plp)
 /* Open a file with a name based on the name of the input file,
 ** but with a different (specified) suffix, and return a pointer
 ** to the stream */
+
 PRIVATE FILE *file_open(
   struct lemon *lemp,
   const char *suffix,
@@ -2766,16 +2768,21 @@ PRIVATE FILE *file_open(
 ){
   FILE *fp;
 
-  if( lemp->outname ) free(lemp->outname);
-  lemp->outname = file_makename(lemp, suffix);
-  fp = fopen(lemp->outname,mode);
+  //if( lemp->outname ) free(lemp->outname);
+  // if( lime_get_out_name () ) free( lime_get_out_name () );
+  //lemp->outname = file_makename(lemp, suffix);
+  lime_set_out_name (file_makename(lemp, suffix));
+  //fp = fopen(lemp->outname,mode);
+  fp = fopen(lime_get_out_name (), mode);
   if( fp==0 && *mode=='w' ){
-    fprintf(stderr,"Can't open file \"%s\".\n",lemp->outname);
+    //fprintf(stderr,"Can't open file \"%s\".\n",lemp->outname);
+    fprintf(stderr,"Can't open file \"%s\".\n",lime_get_out_name ());
     lemp->errorcnt++;
     return 0;
   }
   return fp;
 }
+
 
 /* Print the text of a rule
 */
@@ -2997,6 +3004,7 @@ int PrintAction(
 }
 
 /* Generate the "*.out" log file */
+
 void lemon_report_output (struct lemon *lemp)
 {
   int i, n;
@@ -3095,6 +3103,7 @@ void lemon_report_output (struct lemon *lemp)
   fclose(fp);
   return;
 }
+
 
 /* Search for the file "name" which is in the same directory as
 ** the exacutable */
@@ -3219,7 +3228,8 @@ PRIVATE void tplt_linedir(FILE *out, int lineno, char *filename)
 }
 
 /* Print a string to the file and keep the linenumber up to date */
-PRIVATE void tplt_print(FILE *out, struct lemon *lemp, char *str, int *lineno)
+/*
+PRIVATE void tplt_print(FILE *out, struct lemoan *lemp, char *str, int *lineno)
 {
   if( str==0 ) return;
   while( *str ){
@@ -3236,11 +3246,13 @@ PRIVATE void tplt_print(FILE *out, struct lemon *lemp, char *str, int *lineno)
   }
   return;
 }
+*/
 
 /*
 ** The following routine emits code for the destructor for the
 ** symbol sp
 */
+
 void emit_destructor_code
 (
  struct symbol *sp,
@@ -3267,7 +3279,7 @@ void emit_destructor_code
 
    lime_put_line ("{");
  }else{
-   assert( 0 );  /* Cannot happen */
+ assert( 0 );  // Cannot happen
  }
  for(; *cp; cp++){
    if( *cp=='$' && cp[1]=='$' ){
@@ -3287,11 +3299,13 @@ void emit_destructor_code
  }
  lime_put_line ("");
  if (!lemp->nolinenosflag) {
-   lime_write_line_directive (0, lemp->outname);
+   //lime_write_line_directive (0, lemp->outname);
+   lime_write_line_directive (0, lime_get_out_name ());
  }
  lime_put_line ("}");
  return;
 }
+
 
 /*
 ** Return TRUE (non-zero) if the given symbol has a destructor.
@@ -3564,6 +3578,7 @@ PRIVATE int translate_code(struct lemon *lemp, struct rule *rp){
 ** Generate code which executes when the rule "rp" is reduced.  Write
 ** the code to "out".  Make sure lineno stays up-to-date.
 */
+
 PRIVATE void emit_code
 (
  //  FILE *out,
@@ -3573,7 +3588,7 @@ PRIVATE void emit_code
 ){
  const char *cp;
 
- /* Setup code prior to the #line directive */
+ // Setup code prior to the #line directive
  if( rp->codePrefix && rp->codePrefix[0] ){
    lime_put ("{");
    lime_put (rp->codePrefix);
@@ -3584,7 +3599,7 @@ PRIVATE void emit_code
      }
  }
 
- /* Generate code to do the reduce action */
+// Generate code to do the reduce action 
  if( rp->code ){
    if( !lemp->nolinenosflag ){
      lime_write_line_directive (rp->line, lemp->filename);
@@ -3599,11 +3614,12 @@ PRIVATE void emit_code
      //(*lineno)++;
      //tplt_linedir(out,*lineno,lemp->outname);  //  XXX
      //lime_write_line_directive (*lineno, lemp->outname);
-     lime_write_line_directive (0, lemp->outname);
+     //lime_write_line_directive (0, lemp->outname);
+     lime_write_line_directive (0, lime_get_out_name ());
    }
  }
 
- /* Generate breakdown code that occurs after the #line directive */
+// Generate breakdown code that occurs after the #line directive
  if( rp->codeSuffix && rp->codeSuffix[0] ){
    lime_put (rp->codeSuffix);
    for(cp=rp->codeSuffix; *cp; cp++); //{ if( *cp=='\n' ) (*lineno)++; }
@@ -3615,6 +3631,7 @@ PRIVATE void emit_code
 
  return;
 }
+
 
 /*
 ** Print the definition of the union used for the parser's data stack.
@@ -3927,7 +3944,8 @@ void lemon_report_table (struct lemon *lemp)
   lime_template_transfer (lemp->name);
 
   /* Generate the include code, if any */
-  lime_print (lemp->outname, lemp->nolinenosflag, lemp->include);
+  //lime_print (lime_get_out_name ()lemp->outname, lemp->nolinenosflag, lemp->include);
+  lime_print (lime_get_out_name (), lemp->nolinenosflag, lemp->include);
   //lime_write_include (lime_get_mh_flag(), file_makename(lemp, ".h"));
   lime_write_include (file_makename(lemp, ".h"));
 
@@ -4294,7 +4312,8 @@ void lemon_report_table (struct lemon *lemp)
   lime_template_transfer (lemp->name);
   
   /* Generate code which executes whenever the parser stack overflows */
-  lime_template_print (lemp->overflow, lemp->nolinenosflag, lemp->outname);
+  //lime_template_print (lemp->overflow, lemp->nolinenosflag, lemp->outname);
+  lime_template_print (lemp->overflow, lemp->nolinenosflag, lime_get_out_name ());
   lime_template_transfer (lemp->name);
 
   /* Generate the tables of rule information.  yyRuleInfoLhs[] and
@@ -4394,23 +4413,27 @@ void lemon_report_table (struct lemon *lemp)
   lime_template_transfer (lemp->name);
   
   /* Generate code which executes if a parse fails */
-  lime_template_print (lemp->failure, lemp->nolinenosflag, lemp->outname);
+  //lime_template_print (lemp->failure, lemp->nolinenosflag, lemp->outname);
+  lime_template_print (lemp->failure, lemp->nolinenosflag, lime_get_out_name ());
   lime_template_transfer (lemp->name);
   
   /* Generate code which executes when a syntax error occurs */
-  lime_template_print (lemp->error, lemp->nolinenosflag, lemp->outname);
+  //lime_template_print (lemp->error, lemp->nolinenosflag, lemp->outname);
+  lime_template_print (lemp->error, lemp->nolinenosflag, lime_get_out_name ());
   lime_template_transfer (lemp->name);
   printf ("### 2-55\n");
 
   /* Generate code which executes when the parser accepts its input */
-  lime_template_print (lemp->accept, lemp->nolinenosflag, lemp->outname);
+  //lime_template_print (lemp->accept, lemp->nolinenosflag, lemp->outname);
+  lime_template_print (lemp->accept, lemp->nolinenosflag, lime_get_out_name ());
   printf ("### 2-56\n");
 
   lime_template_transfer (lemp->name);
   printf ("### 2-57\n");
 
   /* Append any addition code the user desires */
-  lime_template_print (lemp->extracode, lemp->nolinenosflag, lemp->outname);
+  //lime_template_print (lemp->extracode, lemp->nolinenosflag, lemp->outname);
+  lime_template_print (lemp->extracode, lemp->nolinenosflag, lime_get_out_name ());
   printf ("### 2-58\n");
 
   lime_close_in;

@@ -5,6 +5,7 @@
 --
 
 with Ada.Text_IO;
+with Ada.Strings.Unbounded;
 
 with Interfaces.C.Strings;
 
@@ -40,6 +41,15 @@ package Lime is
 
    Option_Language : Language_Type := Language_C;
 
+   use Ada.Strings.Unbounded;
+
+   type Lime_Record is
+      record
+         Out_Name : Unbounded_String;
+      end record;
+
+   procedure Set_Out_Name (Name : in chars_ptr);
+   function Get_Out_Name return chars_ptr;
 
    procedure Implementation_Open
      (File_Name : in Interfaces.C.Strings.chars_ptr);
@@ -243,8 +253,8 @@ package Lime is
       Terminal_Last : in Natural);
    --  Generate a header file for the Parser.
 
-   type Lemon_Type is private;
-   type Lemon_Access is access Lemon_Type;
+   type Lemon_Record is null record; --   type Lemon_Record is private;
+   type Lemon_Type   is access all Lemon_Record;
 
    procedure Generate_Reprint_Of_Grammar
      (Base_Name     : in chars_ptr;
@@ -255,7 +265,7 @@ package Lime is
    --
    --  Other way round specs
    --
-   procedure Reprint (Lemon : in Lemon_Type);
+   procedure Reprint (Lemon : in out Lemon_Type);
    procedure Set_Size (Size : in Natural);
    procedure Find_Rule_Precedences (Lemon : in Lemon_Type);
    procedure Find_First_Sets (Lemon : in Lemon_Type);
@@ -270,8 +280,8 @@ package Lime is
 
 private
 
-   type Lemon_Record is null record;
-   type Lemon_Type is access all Lemon_Record;
+
+--   type Lemon_Type is access all Lemon_Record;
    for Lemon_Type'Storage_Size use 0;
    pragma Convention (C, Lemon_Type);
 
@@ -348,4 +358,8 @@ private
    pragma Import (C, Resort_States,         "lemon_resort_states");
    pragma Import (C, Report_Output,         "lemon_report_output");
    pragma Import (C, Report_Table,          "lemon_report_table");
+
+   pragma Export (C, Set_Out_Name, "lime_set_out_name");
+   pragma Export (C, Get_Out_Name, "lime_get_out_name");
+
 end Lime;

@@ -4,7 +4,7 @@
 --  Ada binding for Lemon
 --
 
-with Ada.Strings.Unbounded;
+--  with Ada.Strings.Unbounded;
 with Ada.Directories;
 with Ada.IO_Exceptions;
 
@@ -15,6 +15,18 @@ with Backend;
 with Text_Out;
 
 package body Lime is
+
+   Lime : Lime_Record;
+
+   procedure Set_Out_Name (Name : in chars_ptr) is
+   begin
+      Lime.Out_Name := To_Unbounded_String (Value (Name));
+   end Set_Out_Name;
+
+   function Get_Out_Name return chars_ptr is
+   begin
+      return New_String (To_String (Lime.Out_Name));
+   end Get_Out_Name;
 
    use Backend;
 
@@ -112,7 +124,6 @@ package body Lime is
       Error_Count   : in out Integer;
       Success       :    out Integer)
    is
-      use Ada.Strings.Unbounded;
       Template     : Unbounded_String := Null_Unbounded_String;
       Open_Success : Boolean;
    begin
@@ -728,6 +739,7 @@ package body Lime is
    end Report_Header;
 
    Lemon_Lemp : Lemon_Type;
+   pragma Import (C, Lemon_Lemp, "lime_lemp");
 
    procedure Generate_Reprint_Of_Grammar
      (Base_Name     : in chars_ptr;
@@ -737,10 +749,11 @@ package body Lime is
       use Ada.Text_IO;
    begin
       if Option_RP_Flag then
-         Put_Line ("### 1");
+         Put_Line ("### 1-1");
          Reprint (Lemon_Lemp);
+         Put_Line ("### 1-2");
       else
-         Put_Line ("### 2");
+         Put_Line ("### 2-1");
          --  Initialize the size for all follow and first sets
          Set_Size (Terminal_Last + 1);
 
