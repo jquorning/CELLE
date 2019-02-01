@@ -4,7 +4,6 @@
 --  Ada binding for Lemon
 --
 
---  with Ada.Strings.Unbounded;
 with Ada.Directories;
 with Ada.IO_Exceptions;
 
@@ -13,6 +12,7 @@ with Generate_C;
 with Setup;
 with Backend;
 with Text_Out;
+with lemon_h;
 
 package body Lime is
 

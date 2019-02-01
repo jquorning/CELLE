@@ -218,6 +218,7 @@ int SetAdd(char*,int);            /* Add element to a set */
 int SetUnion(char *,char *);    /* A <- A U B, thru element N */
 #define SetFind(X,Y) (X[Y])       /* True if Y is in set X */
 
+#if 0
 /********** From the file "struct.h" *************************************/
 /*
 ** Principal data structures for the LEMON parser generator.
@@ -411,6 +412,8 @@ struct lemon {
   int nolinenosflag;       /* True if #line statements should not be printed */
   char *argv0;             /* Name of the program */
 };
+#endif
+
 
 #define MemoryCheck(X) if((X)==0){ \
   extern void memory_error(); \
