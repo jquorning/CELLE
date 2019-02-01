@@ -1,10 +1,6 @@
-Rewrite of lemon parser in Ada
-==============================
+Rewrite of the Lemon parser in Ada
+==================================
 
-The lemon flex/yacc parser from the SQLite3 project is rewritten in Ada.
+The Lemon combined flex/yacc parser from the SQLite3 project is rewritten in Ada.
 
-This work is dedicated to
-
-   Jacob Sparre Andersen
-   
-who passed away recently in a much too young age.
+This work is dedicated to Jacob Sparre Andersen who passed away recently much too soon.
