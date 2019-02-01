@@ -1634,7 +1634,24 @@ PRIVATE char *file_makename(struct lemon *lemp, const char *suffix)
 }
 
 
-struct lemon *lemon_lemp;
+//struct lemon *lemon_lemp;
+struct lemon lem;
+
+void
+power_on_self_test (void)
+{
+  printf ("POWER_ON_SELF_TEST\n");
+  printf ("8*sizeof(lem): %ld\n", 8*sizeof (lem));
+  printf ("nstate  : %ld\n", lem.nstate);
+  printf ("nxstate : %ld\n", lem.nxstate);
+  printf ("nrule   : %ld\n", lem.nrule);
+  printf ("nsymbol : %ld\n", lem.nsymbol);
+  printf ("nterminal : %ld\n", lem.nterminal);
+  printf ("minShiftReduce : %ld\n", lem.minShiftReduce);
+  printf ("\n");
+  printf ("filename : %s\n", lem.filename);
+  printf ("\n");
+}
 
 /*
 ** The main program entry from Ada
@@ -1644,10 +1661,9 @@ void lemon_main (void)
 
   int i;
   int exitcode;
-  struct lemon lem;
   struct rule *rp;
 
-  lemon_lemp = &lem;
+  //  lemon_lemp = &lem;
   memset(&lem, 0, sizeof(lem));
   lem.errorcnt = 0;
 
@@ -1697,7 +1713,10 @@ void lemon_main (void)
   lem.rule      = Rule_sort(lem.rule);
 
   /* Generate a reprint of the grammar, if requested on the command line */
-  lemon_lemp = &lem;   //  needed for callback
+  //lemon_lemp = &lem;   //  needed for callback
+  
+  power_on_self_test ();
+  lime_power_on_self_test ();
   lime_generate_reprint_of_grammar ();
   /*
   if( lemon_rp_flag ){
@@ -4448,7 +4467,8 @@ void lemon_report_table (struct lemon *lemp)
 
 const char *lemon_generate_header_line_callback (int index)
 {
-  return lemon_lemp->symbols [index]->name;
+  //return lemon_lemp->symbols [index]->name;
+  return lem.symbols [index]->name;
 }
 
 

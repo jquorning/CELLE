@@ -35,25 +35,9 @@ extern char *lemon_output_dir;
 /*
 ** a few forward declarations...
 */
-struct rule;
-struct lemon;
-struct action;
-
-/********** From the file "report.h" *************************************/
-void lemon_reprint(struct lemon *);
-void lemon_report_output(struct lemon *);
-void lemon_report_table(struct lemon *);
-void lemon_report_header(struct lemon *);
-void lemon_compress_tables(struct lemon *);
-void lemon_resort_states(struct lemon *);
-
-/********** From the file "build.h" ************************************/
-void lemon_find_rule_precedences(struct lemon*);
-void lemon_find_first_sets(struct lemon*);
-void lemon_find_states(struct lemon*);
-void lemon_find_links(struct lemon*);
-void lemon_find_follow_sets(struct lemon*);
-void lemon_find_actions(struct lemon*);
+//struct rule;
+//struct lemon;
+//struct action;
 
 /********** From the file "struct.h" *************************************/
 /*
@@ -62,6 +46,7 @@ void lemon_find_actions(struct lemon*);
 
 typedef enum {LEMON_FALSE=0, LEMON_TRUE} Boolean;
 
+
 /* Symbols (terminals and nonterminals) of the grammar are stored
 ** in the following: */
 enum symbol_type {
@@ -69,12 +54,15 @@ enum symbol_type {
   NONTERMINAL,
   MULTITERMINAL
 };
+
 enum e_assoc {
     LEFT,
     RIGHT,
     NONE,
     UNK
 };
+
+
 struct symbol {
   const char *name;        /* Name of the symbol */
   int index;               /* Index number for this symbol */
@@ -102,6 +90,7 @@ struct symbol {
   struct symbol **subsym;  /* Array of constituent symbols */
 };
 
+
 /* Each production rule in the grammar is stored in the following
 ** structure.  */
 struct rule {
@@ -126,6 +115,7 @@ struct rule {
   struct rule *nextlhs;    /* Next rule with the same LHS */
   struct rule *next;       /* Next rule in the global list */
 };
+
 
 /* A configuration is a production rule of the grammar together with
 ** a mark (dot) showing how much of that rule has been processed so far.
@@ -162,6 +152,7 @@ enum e_action {
   SHIFTREDUCE              /* Shift first, then reduce */
 };
 
+
 /* Every shift or reduce operation is stored as one of the following */
 struct action {
   struct symbol *sp;       /* The look-ahead symbol */
@@ -174,6 +165,7 @@ struct action {
   struct action *next;     /* Next action for this state */
   struct action *collide;  /* Next action with the same hash */
 };
+
 
 /* Each state of the generated parser's finite state machine
 ** is encoded as an instance of the following structure. */
@@ -189,6 +181,7 @@ struct state {
   int autoReduce;          /* True if this is an auto-reduce state */
 };
 
+
 /* A followset propagation link indicates that the contents of one
 ** configuration followset should be propagated to another whenever
 ** the first changes. */
@@ -196,7 +189,6 @@ struct plink {
   struct config *cfp;      /* The configuration to which linked */
   struct plink *next;      /* The next propagate link */
 };
-
 /* The state vector for the entire parser generator is recorded as
 ** follows.  (LEMON uses no global variables and makes little use of
 ** static variables.  Fields in the following structure can be thought
@@ -249,10 +241,24 @@ struct lemon {
 };
 
 /**********************************************************************/
-//#ifndef NO_OFFSET
 //#define NO_OFFSET (-2147483647)
-//#endif
 const long NO_OFFSET = 2147483647;
+
+/********** From the file "report.h" *************************************/
+void lemon_reprint(struct lemon *);
+void lemon_report_output(struct lemon *);
+void lemon_report_table(struct lemon *);
+void lemon_report_header(struct lemon *);
+void lemon_compress_tables(struct lemon *);
+void lemon_resort_states(struct lemon *);
+
+/********** From the file "build.h" ************************************/
+void lemon_find_rule_precedences(struct lemon*);
+void lemon_find_first_sets(struct lemon*);
+void lemon_find_states(struct lemon*);
+void lemon_find_links(struct lemon*);
+void lemon_find_follow_sets(struct lemon*);
+void lemon_find_actions(struct lemon*);
 
 
 char*
@@ -509,6 +515,11 @@ lime_set_out_name
 const char*
 lime_get_out_name
 (void);
+//
+//
+
+void
+lime_power_on_self_test (void);
 //
 //
 

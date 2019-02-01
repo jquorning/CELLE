@@ -12,7 +12,8 @@ with Generate_C;
 with Setup;
 with Backend;
 with Text_Out;
-with lemon_h;
+--  with lemon_h;
+with Lemon_Sanity;
 
 package body Lime is
 
@@ -27,6 +28,13 @@ package body Lime is
    begin
       return New_String (To_String (Lime.Out_Name));
    end Get_Out_Name;
+
+
+   procedure Power_On_Self_Test is
+      use Lemon_Sanity;
+   begin
+      Dump_Lemon_Record;
+   end Power_On_Self_Test;
 
    use Backend;
 
@@ -738,8 +746,11 @@ package body Lime is
                      Last  => Terminal_Last);
    end Report_Header;
 
-   Lemon_Lemp : Lemon_Type;
-   pragma Import (C, Lemon_Lemp, "lime_lemp");
+   Lemon_Lemp : lemon_h.Lemon_Type;
+   pragma Import (C, Lemon_Lemp, "lem");
+
+--   Lemon_Lemp : Lemon_Type;
+--   pragma Import (C, Lemon_Lemp, "lime_lemp");
 
    procedure Generate_Reprint_Of_Grammar
      (Base_Name     : in chars_ptr;
@@ -749,21 +760,19 @@ package body Lime is
       use Ada.Text_IO;
    begin
       if Option_RP_Flag then
-         Put_Line ("### 1-1");
          Reprint (Lemon_Lemp);
-         Put_Line ("### 1-2");
       else
          Put_Line ("### 2-1");
          --  Initialize the size for all follow and first sets
          Set_Size (Terminal_Last + 1);
-
+         Put_Line ("### 2-2");
          --  Find the precedence for every production rule (that has one)
          Find_Rule_Precedences (Lemon_Lemp);
-
+         Put_Line ("### 2-3");
          --  Compute the lambda-nonterminals and the first-sets for every
          --  nonterminal
          Find_First_Sets (Lemon_Lemp);
-
+         Put_Line ("### 2-4");
          --  Compute all LR(0) states.  Also record follow-set propagation
          --  links so that the follow-set can be computed later
          Compute_LR_States (Lemon_Lemp);

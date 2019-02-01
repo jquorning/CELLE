@@ -11,6 +11,8 @@ with Interfaces.C.Strings;
 
 with GNAT.Strings;
 
+with lemon_h;
+
 package Lime is
 
    Option_Show_Conflict : aliased Boolean;
@@ -40,6 +42,10 @@ package Lime is
    type Language_Type is (Language_Ada, Language_C);
 
    Option_Language : Language_Type := Language_C;
+
+
+   procedure Power_On_Self_Test;
+   pragma Export (C, Power_On_Self_Test, "lime_power_on_self_test");
 
    use Ada.Strings.Unbounded;
 
@@ -253,8 +259,8 @@ package Lime is
       Terminal_Last : in Natural);
    --  Generate a header file for the Parser.
 
-   type Lemon_Record is null record; --   type Lemon_Record is private;
-   type Lemon_Type   is access all Lemon_Record;
+   --  type Lemon_Record is null record; --   type Lemon_Record is private;
+   --  type Lemon_Type   is access all Lemon_Record;
 
    procedure Generate_Reprint_Of_Grammar
      (Base_Name     : in chars_ptr;
@@ -265,6 +271,7 @@ package Lime is
    --
    --  Other way round specs
    --
+   use lemon_h;
    procedure Reprint (Lemon : in out Lemon_Type);
    procedure Set_Size (Size : in Natural);
    procedure Find_Rule_Precedences (Lemon : in Lemon_Type);
@@ -282,8 +289,6 @@ private
 
 
 --   type Lemon_Type is access all Lemon_Record;
-   for Lemon_Type'Storage_Size use 0;
-   pragma Convention (C, Lemon_Type);
 
    --  Option integers
    pragma Export (C, Option_Show_Conflict, "lemon_show_conflict");
