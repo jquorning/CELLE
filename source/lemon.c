@@ -1,4 +1,11 @@
 /*
+**  The author disclaims copyright to this source code.  In place of
+**  a legal notice, here is a blessing:
+**
+**    May you do good and not evil.
+**    May you find forgiveness for yourself and forgive others.
+**    May you share freely, not taking more than you give.
+**
 ** This file contains all sources (including headers) to the LEMON
 ** LALR(1) parser generator.  The sources have been combined into a
 ** single file to make it easy to include LEMON in the source tree
