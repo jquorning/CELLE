@@ -5,7 +5,7 @@
 package Setup is
 
    Program_Name         : constant String := "Cherry";
-   Program_Version      : constant String := "2019-01-25";
+   Program_Version      : constant String := "2019-02-01";
    Default_Template_Ada : constant String := "lempar.adb";
    Default_Template_C   : constant String := "lempar.c";
 
