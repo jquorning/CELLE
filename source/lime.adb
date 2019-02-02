@@ -783,31 +783,32 @@ package body Lime is
          --  Compute all LR(0) states.  Also record follow-set propagation
          --  links so that the follow-set can be computed later
          Compute_LR_States (Lemon_Lemp);
---         Lemon_Lemp->nstate = 0;
+         Put_Line ("### 2-5");
+         --         Lemon_Lemp->nstate = 0;
 --         FindStates (Lemon_lemp);
 --         Lemon_Lemp->sorted = State_arrayof();
 
          --  Tie up loose ends on the propagation links
          Find_Links (Lemon_Lemp);
-
+         Put_Line ("### 2-6");
          --  Compute the follow set of every reducible configuration
          Find_Follow_Sets (Lemon_Lemp);
-
+         Put_Line ("### 2-7");
          --  Compute the action tables
          Find_Actions (Lemon_Lemp);
-
+         Put_Line ("### 2-8");
          --  Compress the action tables
          if not Option_Compress then
             Compress_Tables (Lemon_Lemp);
          end if;
-
+         Put_Line ("### 2-9");
          --  Reorder and renumber the states so that states with fewer choices
          --  occur at the end.  This is an optimization that helps make the
          --  generated parser tables smaller.
          if not Option_No_Resort then
             Resort_States (Lemon_Lemp);
          end if;
-
+         Put_Line ("### 2-10");
          --   Generate a report of the parser generated.  (the "y.output" file)
          if not Option_Be_Quiet then
             Report_Output (Lemon_Lemp);

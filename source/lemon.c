@@ -474,6 +474,27 @@ int Configtable_insert(struct config *);
 struct config *Configtable_find(struct config *);
 void Configtable_clear(int(*)(struct config *));
 
+/****************** Common data structure used as global **********************/
+
+struct lemon lem;
+
+void
+power_on_self_test (void)
+{
+  printf ("POWER_ON_SELF_TEST\n");
+  printf ("8*sizeof(lem): %ld\n", 8*sizeof (lem));
+  printf ("nstate  : %ld\n", lem.nstate);
+  printf ("nxstate : %ld\n", lem.nxstate);
+  printf ("nrule   : %ld\n", lem.nrule);
+  printf ("nsymbol : %ld\n", lem.nsymbol);
+  printf ("nterminal : %ld\n", lem.nterminal);
+  printf ("minShiftReduce : %ld\n", lem.minShiftReduce);
+  printf ("\n");
+  printf ("start : %s\n", lem.start);
+  printf ("filename : %s\n", lem.filename);
+  printf ("\n");
+}
+
 /****************** From the file "action.c" *******************************/
 /*
 ** Routines processing parser actions in the LEMON parser generator.
@@ -898,11 +919,20 @@ void lemon_find_states(struct lemon *lemp)
   struct symbol *sp;
   struct rule *rp;
 
+  printf ("### 4-1\n");
   Configlist_init();
+  printf ("### 4-2\n");
 
   /* Find the start symbol */
+  power_on_self_test ();
+  lime_power_on_self_test ();
+
+  printf ("lemp->start %lx\n", lemp->start);
+
   if( lemp->start ){
+    printf ("### 5-1\n");
     sp = Symbol_find(lemp->start);
+    printf ("### 5-2\n");
     if( sp==0 ){
       ErrorMsg(lemp->filename,0,
 "The specified start symbol \"%s\" is not \
@@ -912,8 +942,15 @@ symbol instead.",lemp->start,lemp->startRule->lhs->name);
       sp = lemp->startRule->lhs;
     }
   }else{
+    printf ("### 5-3\n");
     sp = lemp->startRule->lhs;
+    printf ("lemp %lx\n", lemp);
+    printf ("lemp->startRule %lx\n", lemp->startRule);
+    printf ("lemp->startRule->lhs %lx\n", lemp->startRule->lhs);
+    printf ("sp %lx\n", sp);
+    printf ("### 5-4\n");
   }
+  printf ("### 4-3\n");
 
   /* Make sure the start symbol doesn't occur on the right-hand side of
   ** any rule.  Report an error if it does.  (YACC would generate a new
@@ -930,21 +967,28 @@ does not work properly.",sp->name);
       }
     }
   }
-
+  printf ("### 4-4\n");
   /* The basis configuration set for the first state
   ** is all rules which have the start symbol as their
   ** left-hand side */
+  printf ("sp %x\n", sp);
+  printf ("*sp %x\n", *sp);
+  printf ("sp->rule %lx\n", sp->rule);
   for(rp=sp->rule; rp; rp=rp->nextlhs){
     struct config *newcfp;
     rp->lhsStart = 1;
+    printf ("### 5-1\n");
     newcfp = Configlist_addbasis(rp,0);
+    printf ("### 5-2\n");
     SetAdd(newcfp->fws,0);
+    printf ("### 5-3\n");
   }
-
+  printf ("### 4-5\n");
   /* Compute the first state.  All other states will be
   ** computed automatically during the computation of the first one.
   ** The returned pointer to the first state is not used. */
   (void)getstate(lemp);
+  printf ("### 4-6\n");
   return;
 }
 
@@ -1641,25 +1685,6 @@ PRIVATE char *file_makename(struct lemon *lemp, const char *suffix)
 }
 
 
-//struct lemon *lemon_lemp;
-struct lemon lem;
-
-void
-power_on_self_test (void)
-{
-  printf ("POWER_ON_SELF_TEST\n");
-  printf ("8*sizeof(lem): %ld\n", 8*sizeof (lem));
-  printf ("nstate  : %ld\n", lem.nstate);
-  printf ("nxstate : %ld\n", lem.nxstate);
-  printf ("nrule   : %ld\n", lem.nrule);
-  printf ("nsymbol : %ld\n", lem.nsymbol);
-  printf ("nterminal : %ld\n", lem.nterminal);
-  printf ("minShiftReduce : %ld\n", lem.minShiftReduce);
-  printf ("\n");
-  printf ("filename : %s\n", lem.filename);
-  printf ("\n");
-}
-
 /*
 ** The main program entry from Ada
 */
@@ -1722,8 +1747,8 @@ void lemon_main (void)
   /* Generate a reprint of the grammar, if requested on the command line */
   //lemon_lemp = &lem;   //  needed for callback
   
-  power_on_self_test ();
-  lime_power_on_self_test ();
+  //  power_on_self_test ();
+  //  lime_power_on_self_test ();
   lime_generate_reprint_of_grammar ();
   /*
   if( lemon_rp_flag ){
@@ -4731,10 +4756,13 @@ void SetFree(char *s)
 */
 void lemon_compute_LR_states (struct lemon *lemp)
 {
+  printf ("### 3-1\n");
   lemp->nstate = 0;
+  printf ("### 3-2\n");
   lemon_find_states (lemp);
+  printf ("### 3-3\n");
   lemp->sorted = State_arrayof();
-
+  printf ("### 3-4\n");
 }
   
 

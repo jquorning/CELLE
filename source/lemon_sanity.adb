@@ -36,6 +36,11 @@ package body Lemon_Sanity is
       Put_Line ("minReduce : " & int'Image (Lime_Lemp.minReduce));
       Put_Line ("maxAction : " & int'Image (Lime_Lemp.maxAction));
       New_Line;
+      if Lime_Lemp.start = Null_Ptr then
+         Put_Line ("start    : (null)");
+      else
+         Put_Line ("start    : " & Strings.Value (Lime_Lemp.start));
+      end if;
       Put_Line ("filename : " & Strings.Value (Lime_Lemp.filename));
       New_Line;
    end Dump_Lemon_Record;

@@ -334,47 +334,47 @@ package lemon_h is
 
   -- Table of states sorted by state number
    type Lemon_Type is record
-      sorted : System.Address;  -- lemon.h:199
-      the_rule : access rule;  -- lemon.h:200
+      sorted    : System.Address;  -- lemon.h:199
+      the_rule  : access rule;  -- lemon.h:200
       startRule : access rule;  -- lemon.h:201
-      nstate : aliased int;  -- lemon.h:202
-      nxstate : aliased int;  -- lemon.h:203
-      nrule : aliased int;  -- lemon.h:204
-      nsymbol : aliased int;  -- lemon.h:205
+      nstate    : aliased int;  -- lemon.h:202
+      nxstate   : aliased int;  -- lemon.h:203
+      nrule     : aliased int;  -- lemon.h:204
+      nsymbol   : aliased int;  -- lemon.h:205
       nterminal : aliased int;  -- lemon.h:206
       minShiftReduce : aliased int;  -- lemon.h:207
       errAction : aliased int;  -- lemon.h:208
       accAction : aliased int;  -- lemon.h:209
-      noAction : aliased int;  -- lemon.h:210
+      noAction  : aliased int;  -- lemon.h:210
       minReduce : aliased int;  -- lemon.h:211
       maxAction : aliased int;  -- lemon.h:212
-      symbols : System.Address;  -- lemon.h:213
-      errorcnt : aliased int;  -- lemon.h:214
-      errsym : access symbol;  -- lemon.h:215
-      wildcard : access symbol;  -- lemon.h:216
-      name : Interfaces.C.Strings.chars_ptr;  -- lemon.h:217
-      arg : Interfaces.C.Strings.chars_ptr;  -- lemon.h:218
-      ctx : Interfaces.C.Strings.chars_ptr;  -- lemon.h:219
+      symbols   : System.Address;  -- lemon.h:213
+      errorcnt  : aliased int;  -- lemon.h:214
+      errsym    : access symbol;  -- lemon.h:215
+      wildcard  : access symbol;  -- lemon.h:216
+      name      : Interfaces.C.Strings.chars_ptr;  -- lemon.h:217
+      arg       : Interfaces.C.Strings.chars_ptr;  -- lemon.h:218
+      ctx       : Interfaces.C.Strings.chars_ptr;  -- lemon.h:219
       tokentype : Interfaces.C.Strings.chars_ptr;  -- lemon.h:220
-      vartype : Interfaces.C.Strings.chars_ptr;  -- lemon.h:221
-      start : Interfaces.C.Strings.chars_ptr;  -- lemon.h:222
+      vartype   : Interfaces.C.Strings.chars_ptr;  -- lemon.h:221
+      start     : Interfaces.C.Strings.chars_ptr;  -- lemon.h:222
       stacksize : Interfaces.C.Strings.chars_ptr;  -- lemon.h:223
-      include : Interfaces.C.Strings.chars_ptr;  -- lemon.h:224
-      error : Interfaces.C.Strings.chars_ptr;  -- lemon.h:225
-      overflow : Interfaces.C.Strings.chars_ptr;  -- lemon.h:226
-      failure : Interfaces.C.Strings.chars_ptr;  -- lemon.h:227
-      c_accept : Interfaces.C.Strings.chars_ptr;  -- lemon.h:228
+      include   : Interfaces.C.Strings.chars_ptr;  -- lemon.h:224
+      error     : Interfaces.C.Strings.chars_ptr;  -- lemon.h:225
+      overflow  : Interfaces.C.Strings.chars_ptr;  -- lemon.h:226
+      failure   : Interfaces.C.Strings.chars_ptr;  -- lemon.h:227
+      c_accept  : Interfaces.C.Strings.chars_ptr;  -- lemon.h:228
       extracode : Interfaces.C.Strings.chars_ptr;  -- lemon.h:229
       tokendest : Interfaces.C.Strings.chars_ptr;  -- lemon.h:230
-      vardest : Interfaces.C.Strings.chars_ptr;  -- lemon.h:231
-      filename : Interfaces.C.Strings.chars_ptr;  -- lemon.h:232
+      vardest   : Interfaces.C.Strings.chars_ptr;  -- lemon.h:231
+      filename  : Interfaces.C.Strings.chars_ptr;  -- lemon.h:232
       tokenprefix : Interfaces.C.Strings.chars_ptr;  -- lemon.h:234
-      nconflict : aliased int;  -- lemon.h:235
-      nactiontab : aliased int;  -- lemon.h:236
+      nconflict     : aliased int;  -- lemon.h:235
+      nactiontab    : aliased int;  -- lemon.h:236
       nlookaheadtab : aliased int;  -- lemon.h:237
-      tablesize : aliased int;  -- lemon.h:238
-      basisflag : aliased int;  -- lemon.h:239
-      has_fallback : aliased int;  -- lemon.h:240
+      tablesize     : aliased int;  -- lemon.h:238
+      basisflag     : aliased int;  -- lemon.h:239
+      has_fallback  : aliased int;  -- lemon.h:240
       nolinenosflag : aliased int;  -- lemon.h:241
       argv0 : Interfaces.C.Strings.chars_ptr;  -- lemon.h:242
    end record;
@@ -459,8 +459,8 @@ package lemon_h is
    procedure lemon_find_first_sets (arg1 : access Lemon_Type);  -- lemon.h:259
    pragma Import (C, lemon_find_first_sets, "lemon_find_first_sets");
 
-   procedure lemon_find_states (arg1 : access Lemon_Type);  -- lemon.h:260
-   pragma Import (C, lemon_find_states, "lemon_find_states");
+--   procedure lemon_find_states (arg1 : access Lemon_Type);  -- lemon.h:260
+--   pragma Import (C, lemon_find_states, "lemon_find_states");
 
    procedure lemon_find_links (arg1 : access Lemon_Type);  -- lemon.h:261
    pragma Import (C, lemon_find_links, "lemon_find_links");
