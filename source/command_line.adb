@@ -18,6 +18,8 @@ with GNAT.Strings;
 
 with Lime;
 with Setup;
+with Cherry_Main;
+with Lemon_H;
 
 package body Command_Line is
 
@@ -203,10 +205,13 @@ package body Command_Line is
 
    end Process_Command_Line;
 
+   Lime_Lemp : Lemon_H.Lemon_Record;
+   pragma Import (C, Lime_Lemp, "lem");
 
    procedure Main is
       use Ada.Command_Line;
       Status : Process_Result;
+      Main_Status : Exit_Status;
    begin
       Process_Command_Line (Status);
 
@@ -216,7 +221,9 @@ package body Command_Line is
          when Bailout  =>  Set_Exit_Status (Ada.Command_Line.Success);  return;
       end case;
 
-      Lemon_Entry_Function;
+--      Lemon_Entry_Functaion;
+      Cherry_Main.Main (Lime_Lemp,
+                        Main_Status);
    end Main;
 
 

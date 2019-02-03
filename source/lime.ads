@@ -18,7 +18,7 @@ with Interfaces.C.Strings;
 
 with GNAT.Strings;
 
-with lemon_h;
+with Lemon_H;
 
 package Lime is
 
@@ -278,24 +278,27 @@ package Lime is
    --
    --  Other way round specs
    --
-   use lemon_h;
-   procedure Reprint (Lemon : in out Lemon_Type);
+   use Lemon_H;
+   procedure Reprint (Lemon : in out Lemon_Record);
    procedure Set_Size (Size : in Natural);
-   procedure Find_Rule_Precedences (Lemon : in Lemon_Type);
-   procedure Find_First_Sets (Lemon : in Lemon_Type);
-   procedure Compute_LR_States (Lemon : in Lemon_Type);
-   procedure Find_Links (Lemon : in Lemon_Type);
-   procedure Find_Follow_Sets (Lemon : in Lemon_Type);
-   procedure Find_Actions (Lemon : in Lemon_Type);
-   procedure Compress_Tables (Lemon : in Lemon_Type);
-   procedure Resort_States (Lemon : in Lemon_Type);
-   procedure Report_Output (Lemon : in Lemon_Type);
-   procedure Report_Table (Lemon : in Lemon_Type);
+   procedure Find_Rule_Precedences (Lemon : in Lemon_Record);
+   procedure Find_First_Sets (Lemon : in Lemon_Record);
+   procedure Compute_LR_States (Lemon : in Lemon_Record);
+   procedure Find_Links (Lemon : in Lemon_Record);
+   procedure Find_Follow_Sets (Lemon : in Lemon_Record);
+   procedure Find_Actions (Lemon : in Lemon_Record);
+   procedure Compress_Tables (Lemon : in Lemon_Record);
+   procedure Resort_States (Lemon : in Lemon_Record);
+   procedure Report_Output (Lemon : in Lemon_Record);
+   procedure Report_Table (Lemon : in Lemon_Record);
+
+   procedure Strsafe_Init;
+   procedure State_Init;
 
 private
 
 
---   type Lemon_Type is access all Lemon_Record;
+--   type Lemon_Record is access all Lemon_Record;
 
    --  Option integers
    pragma Export (C, Option_Show_Conflict, "lemon_show_conflict");
@@ -373,5 +376,8 @@ private
 
    pragma Export (C, Set_Out_Name, "lime_set_out_name");
    pragma Export (C, Get_Out_Name, "lime_get_out_name");
+
+   pragma Import (C, Strsafe_Init, "Strsafe_init");
+   pragma Import (C, State_Init,   "State_init");
 
 end Lime;

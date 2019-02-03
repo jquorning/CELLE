@@ -22,4 +22,8 @@ package Auxiliary is
    function To_Ada_Symbol (Text : in String) return String;
    --  Convert into ada symbol
 
+   function Is_Upper (C : in Character) return Boolean;
+   function Is_Lower (C : in Character) return Boolean;
+   function Is_Alpha (C : in Character) return Boolean;
+
 end Auxiliary;

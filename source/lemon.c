@@ -447,7 +447,7 @@ void Strsafe_init(void);
 int Strsafe_insert(const char *);
 const char *Strsafe_find(const char *);
 
-/* Routines for handling symbols of the grammar */
+/* /\* Routines for handling symbols of the grammar *\/ */
 
 struct symbol *Symbol_new(const char *);
 int Symbolcmpp(const void *, const void *);
@@ -931,7 +931,7 @@ void lemon_find_states(struct lemon *lemp)
 
   if( lemp->start ){
     printf ("### 5-1\n");
-    sp = Symbol_find(lemp->start);
+    sp = symbols_symbol_find(lemp->start);
     printf ("### 5-2\n");
     if( sp==0 ){
       ErrorMsg(lemp->filename,0,
@@ -1209,7 +1209,7 @@ void lemon_find_actions(struct lemon *lemp)
 
   /* Add the accepting token */
   if( lemp->start ){
-    sp = Symbol_find(lemp->start);
+    sp = symbols_symbol_find(lemp->start);
     if( sp==0 ) sp = lemp->startRule->lhs;
   }else{
     sp = lemp->startRule->lhs;
@@ -1640,7 +1640,7 @@ static struct rule *Rule_sort(struct rule *rp){
 static const char *minimum_size_type(int lwr, int upr, int *pnByte);
 
 /* Print a single line of the "Parser Stats" output
-*/
+ */
 static void stats_line(const char *zLabel, int iValue){
   int nLabel = lemonStrlen(zLabel);
   printf("  %s%.*s %5d\n", zLabel,
@@ -1688,6 +1688,7 @@ PRIVATE char *file_makename(struct lemon *lemp, const char *suffix)
 /*
 ** The main program entry from Ada
 */
+#ifdef XXXXXYYYZZZZ
 void lemon_main (void)
 {
 
@@ -1827,6 +1828,7 @@ void lemon_main (void)
   exitcode = ((lem.errorcnt > 0) || (lem.nconflict > 0)) ? 1 : 0;
   exit(exitcode);
 }
+#endif
 
 /******************** From the file "msort.c" *******************************/
 /*
@@ -2031,7 +2033,7 @@ static void parseonetoken(struct pstate *psp)
       if( x[0]=='%' ){
         psp->state = WAITING_FOR_DECL_KEYWORD;
       }else if( ISLOWER(x[0]) ){
-        psp->lhs = Symbol_new(x);
+        psp->lhs = symbols_symbol_new(x);
         psp->nrhs = 0;
         psp->lhsalias = 0;
         psp->state = WAITING_FOR_ARROW;
@@ -2075,7 +2077,7 @@ to follow the previous rule.");
 to follow the previous rule.");
         psp->errorcnt++;
       }else{
-        psp->prevrule->precsym = Symbol_new(x);
+        psp->prevrule->precsym = symbols_symbol_new(x);
       }
       psp->state = PRECEDENCE_MARK_2;
       break;
@@ -2180,7 +2182,7 @@ to follow the previous rule.");
           psp->errorcnt++;
           psp->state = RESYNC_AFTER_RULE_ERROR;
         }else{
-          psp->rhs[psp->nrhs] = Symbol_new(x);
+          psp->rhs[psp->nrhs] = symbols_symbol_new(x);
           psp->alias[psp->nrhs] = 0;
           psp->nrhs++;
         }
@@ -2200,7 +2202,7 @@ to follow the previous rule.");
         msp->nsubsym++;
         msp->subsym = (struct symbol **) realloc(msp->subsym,
           sizeof(struct symbol*)*msp->nsubsym);
-        msp->subsym[msp->nsubsym-1] = Symbol_new(&x[1]);
+        msp->subsym[msp->nsubsym-1] = symbols_symbol_new(&x[1]);
         if( ISLOWER(x[1]) || ISLOWER(msp->subsym[0]->name[0]) ){
           ErrorMsg(psp->filename,psp->tokenlineno,
             "Cannot form a compound containing a non-terminal");
@@ -2329,7 +2331,7 @@ to follow the previous rule.");
         psp->errorcnt++;
         psp->state = RESYNC_AFTER_DECL_ERROR;
       }else{
-        struct symbol *sp = Symbol_new(x);
+        struct symbol *sp = symbols_symbol_new(x);
         psp->declargslot = &sp->destructor;
         psp->decllinenoslot = &sp->destLineno;
         psp->insertLineMacro = 1;
@@ -2343,7 +2345,7 @@ to follow the previous rule.");
         psp->errorcnt++;
         psp->state = RESYNC_AFTER_DECL_ERROR;
       }else{
-        struct symbol *sp = Symbol_find(x);
+        struct symbol *sp = symbols_symbol_find(x);
         if((sp) && (sp->datatype)){
           ErrorMsg(psp->filename,psp->tokenlineno,
             "Symbol %%type \"%s\" already defined", x);
@@ -2351,7 +2353,7 @@ to follow the previous rule.");
           psp->state = RESYNC_AFTER_DECL_ERROR;
         }else{
           if (!sp){
-            sp = Symbol_new(x);
+            sp = symbols_symbol_new(x);
           }
           psp->declargslot = &sp->datatype;
           psp->insertLineMacro = 0;
@@ -2364,7 +2366,7 @@ to follow the previous rule.");
         psp->state = WAITING_FOR_DECL_OR_RULE;
       }else if( ISUPPER(x[0]) ){
         struct symbol *sp;
-        sp = Symbol_new(x);
+        sp = symbols_symbol_new(x);
         if( sp->prec>=0 ){
           ErrorMsg(psp->filename,psp->tokenlineno,
             "Symbol \"%s\" has already be given a precedence.",x);
@@ -2446,7 +2448,7 @@ to follow the previous rule.");
           "%%fallback argument \"%s\" should be a token", x);
         psp->errorcnt++;
       }else{
-        struct symbol *sp = Symbol_new(x);
+        struct symbol *sp = symbols_symbol_new(x);
         if( psp->fallback==0 ){
           psp->fallback = sp;
         }else if( sp->fallback ){
@@ -2476,7 +2478,7 @@ to follow the previous rule.");
           "%%token argument \"%s\" should be a token", x);
         psp->errorcnt++;
       }else{
-        (void)Symbol_new(x);
+        (void)symbols_symbol_new(x);
       }
       break;
     case WAITING_FOR_WILDCARD_ID:
@@ -2487,7 +2489,7 @@ to follow the previous rule.");
           "%%wildcard argument \"%s\" should be a token", x);
         psp->errorcnt++;
       }else{
-        struct symbol *sp = Symbol_new(x);
+        struct symbol *sp = symbols_symbol_new(x);
         if( psp->gp->wildcard==0 ){
           psp->gp->wildcard = sp;
         }else{
@@ -2503,13 +2505,13 @@ to follow the previous rule.");
           "%%token_class must be followed by an identifier: ", x);
         psp->errorcnt++;
         psp->state = RESYNC_AFTER_DECL_ERROR;
-     }else if( Symbol_find(x) ){
+     }else if( symbols_symbol_find(x) ){
         ErrorMsg(psp->filename, psp->tokenlineno,
           "Symbol \"%s\" already used", x);
         psp->errorcnt++;
         psp->state = RESYNC_AFTER_DECL_ERROR;
       }else{
-        psp->tkclass = Symbol_new(x);
+        psp->tkclass = symbols_symbol_new(x);
         psp->tkclass->type = MULTITERMINAL;
         psp->state = WAITING_FOR_CLASS_TOKEN;
       }
@@ -2523,7 +2525,7 @@ to follow the previous rule.");
         msp->subsym = (struct symbol **) realloc(msp->subsym,
           sizeof(struct symbol*)*msp->nsubsym);
         if( !ISUPPER(x[0]) ) x++;
-        msp->subsym[msp->nsubsym-1] = Symbol_new(x);
+        msp->subsym[msp->nsubsym-1] = symbols_symbol_new(x);
       }else{
         ErrorMsg(psp->filename, psp->tokenlineno,
           "%%token_class argument \"%s\" should be a token", x);

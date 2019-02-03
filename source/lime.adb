@@ -753,11 +753,8 @@ package body Lime is
                      Last  => Terminal_Last);
    end Report_Header;
 
-   Lemon_Lemp : lemon_h.Lemon_Type;
+   Lemon_Lemp : Lemon_H.Lemon_Record;
    pragma Import (C, Lemon_Lemp, "lem");
-
---   Lemon_Lemp : Lemon_Type;
---   pragma Import (C, Lemon_Lemp, "lime_lemp");
 
    procedure Generate_Reprint_Of_Grammar
      (Base_Name     : in chars_ptr;

@@ -1,0 +1,269 @@
+--
+--  The author disclaims copyright to this source code.  In place of
+--  a legal notice, here is a blessing:
+--
+--    May you do good and not evil.
+--    May you find forgiveness for yourself and forgive others.
+--    May you share freely, not taking more than you give.
+--
+
+with Ada.Text_IO;
+
+with Interfaces.C.Strings;
+
+with Rules;
+with Symbols;
+with Auxiliary;
+with Lime;
+
+package body Cherry_Main is
+
+   use Interfaces.C;
+
+   procedure Main (Lemon  : in out Lemon_H.Lemon_Record;
+                   Status :    out Ada.Command_Line.Exit_Status)
+   is
+      use Interfaces.C.Strings;
+      use Symbols;
+      use Rules;
+
+      Success : Ada.Command_Line.Exit_Status renames Ada.Command_Line.Success;
+      Failure : Ada.Command_Line.Exit_Status renames Ada.Command_Line.Failure;
+
+      --  Exitcode : Ada.Command_Line.Exit_Status;
+      I  : Symbol_Index; --  Int;
+      RP : Rules.Rule_Access;
+   begin
+      --  Exit_
+      Lemon := Lemon_H.Clean_Lemon;
+      Lemon.Error_Cnt := 0;
+
+      --  Initialize the machine
+      Lime.Strsafe_Init;
+      Symbols.Symbol_Init;
+      Lime.State_Init;
+      Lemon.Argv0            := Lemon_H.Lemon_Program_Name;
+      Lemon.File_Name        := Lemon_H.Lemon_Input_File;
+      Lemon.Basis_Flag       := Lemon_H.Lemon_Basis_Flag;
+      Lemon.No_Line_Nos_Flag := Lemon_H.Lemon_No_Line_Nos;
+      Symbols.Symbol_New ("$");
+
+      --  Parse the input file
+      Parse (lem);
+
+      if Lemon.Error_Cnt /= 0 then
+         Status := Failure; --  Lemon.Errorcnt;
+         return;
+      end if;
+
+      if Lemon.N_Rule = 0 then
+         declare
+            use Ada.Text_IO;
+         begin
+            Put_Line (Standard_Error, "Empty grammar.");
+         end;
+         Status := Failure;
+         return;
+      end if;
+
+      Lemon.Err_Sym := Symbols.Symbol_Find ("error");
+
+      --  Count and index the symbols of the grammar
+      Symbols.Symbol_New ("{default}");
+      Lemon.N_Symbol := Symbols.Symbol_Count;  --  ();
+      --  Lemon.symbols := Symbol_Arrayof;  --  ();
+      Lemon.Symbols := new Symbol_Access_Array (0 .. Lemon.N_Symbol - 1);
+      --  Symbol_Arrayof;  --  ();
+
+      for I in 0 .. Lemon.N_Symbol - 1 loop
+         --  Lemon.symbols (I).all.Index := I;
+         Lemon.Symbols.all (I).Index := I;
+      end loop;
+
+--      Qsort (lem.symbols,
+--             lem.nsymbol,
+--             Sizeof (struct symbol*),
+--             Symbolcmpp);
+      Symbols.Sort (Container => Lemon.Symbols.all);
+
+      for I in 0 .. Lemon.N_Symbol - 1 loop
+         Lemon.Symbols.all (I).all.Index := I;
+      end loop;
+
+      while Lemon.Symbols.all (I - 1).all.C_Type = Symbols.MULTITERMINAL loop
+         I := I - 1;
+      end loop;
+
+      pragma Assert (Lemon.Symbols.all (I - 1).Name = New_String ("{default}"));
+      Lemon.N_Symbol := I - 1;
+
+      I := 1;
+      loop
+         declare
+            Text  : constant String    := Value (Lemon.Symbols.all (I).Name);
+            First : constant Character := Text (Text'First);
+         begin
+            exit when Auxiliary.Is_Upper (First);
+            I := I + 1;
+         end;
+      end loop;
+
+      Lemon.N_Terminal := I;
+
+      --  Assign sequential rule numbers.  Start with 0.  Put rules that have no
+      --  reduce action C-code associated with them last, so that the switch()
+      --  statement that selects reduction actions will have a smaller jump table.
+
+      I := 0;
+      RP := Lemon.Rule;
+      loop
+         exit when RP /= null;
+         if RP.code /= Null_Ptr then
+            RP.iRule := int (I);
+            I := I + 1;
+         else
+            RP.iRule := -1;
+         end if;
+         RP := RP.next;
+      end loop;
+
+      I := 0;
+      RP := Lemon.Rule;
+      loop
+         exit when RP = null;
+         RP := RP.next;
+      end loop;
+
+      RP := Lemon.Rule;
+      loop
+         exit when RP = null;
+         if RP.iRule < 0 then
+            RP.iRule := int (I);
+            I := I + 1;
+         end if;
+         RP := RP.next;
+      end loop;
+
+      Lemon.Start_Rule := Lemon.Rule;
+      Lemon.Rule       := Rule_Sort (Lemon.Rule);
+
+      --  Generate a reprint of the grammar, if requested on the command line
+
+      --  power_on_self_test ();
+      --  lime_power_on_self_test ();
+      Lime_Generate_Reprint_Of_Grammar;
+--    /*
+--    if( lemon_rp_flag ){
+--      printf ("### 1\n");
+--      Reprint(&lem);
+--    }else{
+--      printf ("### 2\n");
+--      // Initialize the size for all follow and first sets
+--      SetSize(lem.nterminal+1);
+
+--      // Find the precedence for every production rule (that has one)
+--      FindRulePrecedences(&lem);
+
+--      // Compute the lambda-nonterminals and the first-sets for every
+--      // nonterminal
+--      FindFirstSets(&lem);
+
+--      // Compute all LR(0) states.  Also record follow-set propagation
+--      // links so that the follow-set can be computed later
+--      lem.nstate = 0;
+--      FindStates(&lem);
+--      lem.sorted = State_arrayof();
+
+--      // Tie up loose ends on the propagation links
+--      FindLinks(&lem);
+
+--      // Compute the follow set of every reducible configuration
+--      FindFollowSets(&lem);
+
+--      // Compute the action tables
+--      FindActions(&lem);
+
+--      // Compress the action tables
+--      if( lemon_compress==0 ) CompressTables(&lem);
+
+--      // Reorder and renumber the states so that states with fewer choices
+--      // occur at the end.  This is an optimization that helps make the
+--      // generated parser tables smaller.
+--      if( lemon_no_resort==0 ) ResortStates(&lem);
+
+--      // Generate a report of the parser generated.  (the "y.output" file)
+--      if( !lemon_be_quiet ) ReportOutput(&lem);
+
+--      // Generate the source code for the parser
+--      ReportTable (&lem);
+
+--      // Produce a header file for use by the scanner.  (This step is
+--      // omitted if the "-m" option is used because makeheaders will
+--      // generate the file for us.)
+--      lemon_lemp = &lem;   // needed for callback
+--      lime_report_header
+--        (lem.tokenprefix,
+--         file_makename (&lem, ""),
+--         "MODULE XXX",
+--         lem.nterminal);
+--    }
+
+      if Lemon_H.Lemon_Statistics /= 0 then
+         declare
+            use Ada.Text_IO;
+
+            procedure Stats_Line (Text : in String; Value : in int);
+            procedure Stats_Line (Text : in String; Value : in int) is
+               Line : String (1 .. 35) := (others => '.');
+            begin
+               Line (Line'First .. Text'Last) := Text;
+               Line (Text'Last + 1) := ' ';
+               Put (Line);
+               Put (int'Image (Value));
+               New_Line;
+
+--  int nLabel = lemonStrlen(zLabel);
+--  printf("  %s%.*s %5d\n", zLabel,
+--         35-nLabel, "................................",
+--         iValue);
+            end Stats_Line;
+
+         begin
+            Put_Line ("Parser statistics:");
+            Stats_Line ("terminal symbols", int (Lemon.N_Terminal));
+            Stats_Line ("non-terminal symbols", int (Lemon.N_Symbol - Lemon.N_Terminal));
+            Stats_Line ("total symbols", int (Lemon.N_Symbol));
+            Stats_Line ("rules", Lemon.N_Rule);
+            Stats_Line ("states", Lemon.Nx_State);
+            Stats_Line ("conflicts", Lemon.N_Conflict);
+            Stats_Line ("action table entries", Lemon.N_Action_Tab);
+            Stats_Line ("lookahead table entries", Lemon.N_Lookahead_Tab);
+            Stats_Line ("total table size (bytes)", Lemon.Table_Size);
+         end;
+      end if;
+
+      if Lemon.N_Conflict > 0 then
+         declare
+            use Ada.Text_IO;
+         begin
+            Put_Line
+              (Standard_Error,
+               int'Image (Lemon.N_Conflict) & " parsing conflicts.");
+         end;
+      end if;
+
+      --  return 0 on success, 1 on failure.
+      if
+        Lemon.Error_Cnt > 0 or
+        Lemon.N_Conflict > 0
+      then
+         Status := Failure;
+      else
+         Status := Success;
+      end if;
+      --  exitcode := (if ((lem.errorcnt > 0) or (lem.nconflict > 0)) then 1 else 0);
+      --  Ada.Command_Line.Set_Exit_Status (exitcode);
+
+   end Main;
+
+end Cherry_Main;

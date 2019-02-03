@@ -14,4 +14,6 @@ package Setup is
    Default_Template_Ada : constant String := "lempar.adb";
    Default_Template_C   : constant String := "lempar.c";
 
+   function Get_Build_ISO8601 return String;
+
 end Setup;

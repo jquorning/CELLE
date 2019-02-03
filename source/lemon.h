@@ -528,4 +528,8 @@ lime_power_on_self_test (void);
 //
 //
 
+struct symbol*
+symbols_symbol_new (const char*);
+struct symbol*
+symbols_symbol_find (const char*);
 #endif

@@ -11,9 +11,12 @@ pragma Style_Checks (Off);
 
 with Interfaces.C; use Interfaces.C;
 with Interfaces.C.Strings;
-with System;
+--  with System;
 
-package lemon_h is
+with Symbols;
+with Rules;
+
+package Lemon_H is
 
   --**
   --**  lime.h
@@ -22,29 +25,29 @@ package lemon_h is
 
    subtype boolean_t is int;  -- lemon.h:10
 
-   lemon_show_conflict : aliased boolean_t;  -- lemon.h:11
+   Lemon_Show_Conflict : aliased boolean_t;  -- lemon.h:11
    pragma Import (C, lemon_show_conflict, "lemon_show_conflict");
 
-   lemon_show_version : aliased boolean_t;  -- lemon.h:12
+   Lemon_Show_Version : aliased boolean_t;  -- lemon.h:12
    pragma Import (C, lemon_show_version, "lemon_show_version");
 
-   lemon_basis_flag : aliased boolean_t;  -- lemon.h:13
+   Lemon_Basis_Flag : aliased boolean_t;  -- lemon.h:13
    pragma Import (C, lemon_basis_flag, "lemon_basis_flag");
 
-   lemon_compress : aliased boolean_t;  -- lemon.h:14
+   Lemon_Compress : aliased boolean_t;  -- lemon.h:14
    pragma Import (C, lemon_compress, "lemon_compress");
 
   --extern boolean_t lemon_be_quiet;
-   lemon_statistics : aliased boolean_t;  -- lemon.h:16
+   Lemon_Statistics : aliased boolean_t;  -- lemon.h:16
    pragma Import (C, lemon_statistics, "lemon_statistics");
 
-   lemon_no_line_nos : aliased boolean_t;  -- lemon.h:17
+   Lemon_No_Line_Nos : aliased boolean_t;  -- lemon.h:17
    pragma Import (C, lemon_no_line_nos, "lemon_no_line_nos");
 
-   lemon_no_resort : aliased boolean_t;  -- lemon.h:18
+   Lemon_No_Resort : aliased boolean_t;  -- lemon.h:18
    pragma Import (C, lemon_no_resort, "lemon_no_resort");
 
-   lemon_show_help : aliased boolean_t;  -- lemon.h:19
+   Lemon_Show_Help : aliased boolean_t;  -- lemon.h:19
    pragma Import (C, lemon_show_help, "lemon_show_help");
 
    subtype language_t is int;  -- lemon.h:21
@@ -61,19 +64,19 @@ package lemon_h is
    LANGUAGE_CPP : aliased language_t;  -- lemon.h:25
    pragma Import (C, LANGUAGE_CPP, "LANGUAGE_CPP");
 
-   lemon_language : aliased language_t;  -- lemon.h:27
+   Lemon_Language : aliased language_t;  -- lemon.h:27
    pragma Import (C, lemon_language, "lemon_language");
 
-   lemon_program_name : Interfaces.C.Strings.chars_ptr;  -- lemon.h:29
+   Lemon_Program_Name : Interfaces.C.Strings.chars_ptr;  -- lemon.h:29
    pragma Import (C, lemon_program_name, "lemon_program_name");
 
-   lemon_input_file : Interfaces.C.Strings.chars_ptr;  -- lemon.h:30
+   Lemon_Input_File : Interfaces.C.Strings.chars_ptr;  -- lemon.h:30
    pragma Import (C, lemon_input_file, "lemon_input_file");
 
-   lemon_user_template : Interfaces.C.Strings.chars_ptr;  -- lemon.h:31
+   Lemon_User_Template : Interfaces.C.Strings.chars_ptr;  -- lemon.h:31
    pragma Import (C, lemon_user_template, "lemon_user_template");
 
-   lemon_output_dir : Interfaces.C.Strings.chars_ptr;  -- lemon.h:32
+   Lemon_Output_Dir : Interfaces.C.Strings.chars_ptr;  -- lemon.h:32
    pragma Import (C, lemon_output_dir, "lemon_output_dir");
 
   --** a few forward declarations...
@@ -94,133 +97,136 @@ package lemon_h is
   -- Symbols (terminals and nonterminals) of the grammar are stored
   --** in the following:
 
-   type symbol_type is
-     (TERMINAL,
-      NONTERMINAL,
-      MULTITERMINAL);
-   pragma Convention (C, symbol_type);  -- lemon.h:52
+--     type symbol_type is
+--       (TERMINAL,
+--        NONTERMINAL,
+--        MULTITERMINAL);
+--     pragma Convention (C, symbol_type);  -- lemon.h:52
 
-   type e_assoc is
-     (LEFT,
-      RIGHT,
-      NONE,
-      UNK);
-   pragma Convention (C, e_assoc);  -- lemon.h:58
+--     type e_assoc is
+--       (LEFT,
+--        RIGHT,
+--        NONE,
+--        UNK);
+--     pragma Convention (C, e_assoc);  -- lemon.h:58
 
-  -- Name of the symbol
-   type rule;
-   type symbol is record
-      name : Interfaces.C.Strings.chars_ptr;  -- lemon.h:67
-      index : aliased int;  -- lemon.h:68
-      c_type : aliased symbol_type;  -- lemon.h:69
-      the_rule : access rule;  -- lemon.h:70
-      fallback : access symbol;  -- lemon.h:71
-      prec : aliased int;  -- lemon.h:72
-      assoc : aliased e_assoc;  -- lemon.h:73
-      firstset : Interfaces.C.Strings.chars_ptr;  -- lemon.h:74
-      lambda : aliased Boolean;  -- lemon.h:75
-      useCnt : aliased int;  -- lemon.h:76
-      destructor : Interfaces.C.Strings.chars_ptr;  -- lemon.h:77
-      destLineno : aliased int;  -- lemon.h:79
-      datatype : Interfaces.C.Strings.chars_ptr;  -- lemon.h:81
-      dtnum : aliased int;  -- lemon.h:83
-      bContent : aliased int;  -- lemon.h:86
-      nsubsym : aliased int;  -- lemon.h:89
-      subsym : System.Address;  -- lemon.h:90
-   end record;
-   pragma Convention (C_Pass_By_Copy, symbol);  -- lemon.h:66
+--    -- Name of the symbol
+--     type rule;
+--     type symbol is record
+--        name : Interfaces.C.Strings.chars_ptr;  -- lemon.h:67
+--        index : aliased int;  -- lemon.h:68
+--        c_type : aliased symbol_type;  -- lemon.h:69
+--        the_rule : access rule;  -- lemon.h:70
+--        fallback : access symbol;  -- lemon.h:71
+--        prec : aliased int;  -- lemon.h:72
+--        assoc : aliased e_assoc;  -- lemon.h:73
+--        firstset : Interfaces.C.Strings.chars_ptr;  -- lemon.h:74
+--        lambda : aliased Boolean;  -- lemon.h:75
+--        useCnt : aliased int;  -- lemon.h:76
+--        destructor : Interfaces.C.Strings.chars_ptr;  -- lemon.h:77
+--        destLineno : aliased int;  -- lemon.h:79
+--        datatype : Interfaces.C.Strings.chars_ptr;  -- lemon.h:81
+--        dtnum : aliased int;  -- lemon.h:83
+--        bContent : aliased int;  -- lemon.h:86
+--        nsubsym : aliased int;  -- lemon.h:89
+--        subsym : System.Address;  -- lemon.h:90
+--     end record;
+--     pragma Convention (C_Pass_By_Copy, symbol);  -- lemon.h:66
 
-  -- Index number for this symbol
-  -- Symbols are all either TERMINALS or NTs
-  -- Linked list of rules of this (if an NT)
-  -- fallback token in case this token doesn't parse
-  -- Precedence if defined (-1 otherwise)
-  -- Associativity if precedence is defined
-  -- First-set for all rules of this symbol
-  -- True if NT and can generate an empty string
-  -- Number of times used
-  -- Code which executes whenever this symbol is
-  --                           ** popped from the stack during error processing
+--    -- Index number for this symbol
+--    -- Symbols are all either TERMINALS or NTs
+--    -- Linked list of rules of this (if an NT)
+--    -- fallback token in case this token doesn't parse
+--    -- Precedence if defined (-1 otherwise)
+--    -- Associativity if precedence is defined
+--    -- First-set for all rules of this symbol
+--    -- True if NT and can generate an empty string
+--    -- Number of times used
+--    -- Code which executes whenever this symbol is
+--    --                           ** popped from the stack during error processing
 
-  -- Line number for start of destructor.  Set to
-  --                           ** -1 for duplicate destructors.
+--    -- Line number for start of destructor.  Set to
+--    --                           ** -1 for duplicate destructors.
 
-  -- The data type of information held by this
-  --                           ** object. Only used if type==NONTERMINAL
+--    -- The data type of information held by this
+--    --                           ** object. Only used if type==NONTERMINAL
 
-  -- The data type number.  In the parser, the value
-  --                           ** stack is a union.  The .yy%d element of this
-  --                           ** union is the correct data type for this object
+--    -- The data type number.  In the parser, the value
+--    --                           ** stack is a union.  The .yy%d element of this
+--    --                           ** union is the correct data type for this object
 
-  -- True if this symbol ever carries content - if
-  --                           ** it is ever more than just syntax
+--    -- True if this symbol ever carries content - if
+--    --                           ** it is ever more than just syntax
 
-  -- The following fields are used by MULTITERMINALs only
-  -- Number of constituent symbols in the MULTI
-  -- Array of constituent symbols
-  -- Each production rule in the grammar is stored in the following
-  --** structure.
+--    -- The following fields are used by MULTITERMINALs only
+--    -- Number of constituent symbols in the MULTI
+--    -- Array of constituent symbols
+--    -- Each production rule in the grammar is stored in the following
+--    --** structure.
 
-  -- Left-hand side of the rule
-   type rule is record
-      lhs : access symbol;  -- lemon.h:97
-      lhsalias : Interfaces.C.Strings.chars_ptr;  -- lemon.h:98
-      lhsStart : aliased int;  -- lemon.h:99
-      ruleline : aliased int;  -- lemon.h:100
-      nrhs : aliased int;  -- lemon.h:101
-      rhs : System.Address;  -- lemon.h:102
-      rhsalias : System.Address;  -- lemon.h:103
-      line : aliased int;  -- lemon.h:104
-      code : Interfaces.C.Strings.chars_ptr;  -- lemon.h:105
-      codePrefix : Interfaces.C.Strings.chars_ptr;  -- lemon.h:106
-      codeSuffix : Interfaces.C.Strings.chars_ptr;  -- lemon.h:107
-      noCode : aliased int;  -- lemon.h:108
-      codeEmitted : aliased int;  -- lemon.h:109
-      precsym : access symbol;  -- lemon.h:110
-      index : aliased int;  -- lemon.h:111
-      iRule : aliased int;  -- lemon.h:112
-      canReduce : aliased Boolean;  -- lemon.h:113
-      doesReduce : aliased Boolean;  -- lemon.h:114
-      nextlhs : access rule;  -- lemon.h:115
-      next : access rule;  -- lemon.h:116
-   end record;
-   pragma Convention (C_Pass_By_Copy, rule);  -- lemon.h:96
+   use Symbols;
 
-  -- Alias for the LHS (NULL if none)
-  -- True if left-hand side is the start symbol
-  -- Line number for the rule
-  -- Number of RHS symbols
-  -- The RHS symbols
-  -- An alias for each RHS symbol (NULL if none)
-  -- Line number at which code begins
-  -- The code executed when this rule is reduced
-  -- Setup code before code[] above
-  -- Breakdown code after code[] above
-  -- True if this rule has no associated C code
-  -- True if the code has been emitted already
-  -- Precedence symbol for this rule
-  -- An index number for this rule
-  -- Rule number as used in the generated tables
-  -- True if this rule is ever reduced
-  -- Reduce actions occur after optimization
-  -- Next rule with the same LHS
-  -- Next rule in the global list
-  -- A configuration is a production rule of the grammar together with
-  --** a mark (dot) showing how much of that rule has been processed so far.
-  --** Configurations also contain a follow-set which is a list of terminal
-  --** symbols which are allowed to immediately follow the end of the rule.
-  --** Every configuration is recorded as an instance of the following:
+--    -- Left-hand side of the rule
+--     type rule is record
+--        lhs : access Symbol_type;  -- lemon.h:97
+--        lhsalias : Interfaces.C.Strings.chars_ptr;  -- lemon.h:98
+--        lhsStart : aliased int;  -- lemon.h:99
+--        ruleline : aliased int;  -- lemon.h:100
+--        nrhs : aliased int;  -- lemon.h:101
+--        rhs : System.Address;  -- lemon.h:102
+--        rhsalias : System.Address;  -- lemon.h:103
+--        line : aliased int;  -- lemon.h:104
+--        code : Interfaces.C.Strings.chars_ptr;  -- lemon.h:105
+--        codePrefix : Interfaces.C.Strings.chars_ptr;  -- lemon.h:106
+--        codeSuffix : Interfaces.C.Strings.chars_ptr;  -- lemon.h:107
+--        noCode : aliased int;  -- lemon.h:108
+--        codeEmitted : aliased int;  -- lemon.h:109
+--        precsym : access Symbol_type;  -- lemon.h:110
+--        index : aliased int;  -- lemon.h:111
+--        iRule : aliased int;  -- lemon.h:112
+--        canReduce : aliased Boolean;  -- lemon.h:113
+--        doesReduce : aliased Boolean;  -- lemon.h:114
+--        nextlhs : access rule;  -- lemon.h:115
+--        next : access rule;  -- lemon.h:116
+--     end record;
+--     pragma Convention (C_Pass_By_Copy, rule);  -- lemon.h:96
+
+--    -- Alias for the LHS (NULL if none)
+--    -- True if left-hand side is the start symbol
+--    -- Line number for the rule
+--    -- Number of RHS symbols
+--    -- The RHS symbols
+--    -- An alias for each RHS symbol (NULL if none)
+--    -- Line number at which code begins
+--    -- The code executed when this rule is reduced
+--    -- Setup code before code[] above
+--    -- Breakdown code after code[] above
+--    -- True if this rule has no associated C code
+--    -- True if the code has been emitted already
+--    -- Precedence symbol for this rule
+--    -- An index number for this rule
+--    -- Rule number as used in the generated tables
+--    -- True if this rule is ever reduced
+--    -- Reduce actions occur after optimization
+--    -- Next rule with the same LHS
+--    -- Next rule in the global list
+--    -- A configuration is a production rule of the grammar together with
+--    --** a mark (dot) showing how much of that rule has been processed so far.
+--    --** Configurations also contain a follow-set which is a list of terminal
+--    --** symbols which are allowed to immediately follow the end of the rule.
+--    --** Every configuration is recorded as an instance of the following:
 
    type cfgstatus is
      (COMPLETE,
       INCOMPLETE);
    pragma Convention (C, cfgstatus);  -- lemon.h:125
 
+   use Rules;
   -- The rule upon which the configuration is based
    type plink;
    type state;
    type config is record
-      rp : access rule;  -- lemon.h:130
+      rp : access Rule_Record;  -- lemon.h:130
       dot : aliased int;  -- lemon.h:131
       fws : Interfaces.C.Strings.chars_ptr;  -- lemon.h:132
       fplp : access plink;  -- lemon.h:133
@@ -270,15 +276,15 @@ package lemon_h is
          when 0 =>
             stp : access state;  -- lemon.h:161
          when others =>
-            rp : access rule;  -- lemon.h:162
+            rp : access Rule_Record;  -- lemon.h:162
       end case;
    end record;
    pragma Convention (C_Pass_By_Copy, anon1015_x_union);
    pragma Unchecked_Union (anon1015_x_union);type action is record
-      sp : access symbol;  -- lemon.h:158
+      sp : access Symbol_type;  -- lemon.h:158
       c_type : aliased e_action;  -- lemon.h:159
       x : aliased anon1015_x_union;  -- lemon.h:163
-      spOpt : access symbol;  -- lemon.h:164
+      spOpt : access SymboL_type;  -- lemon.h:164
       next : access action;  -- lemon.h:165
       collide : access action;  -- lemon.h:166
    end record;
@@ -302,7 +308,7 @@ package lemon_h is
       iTknOfst : aliased int;  -- lemon.h:178
       iNtOfst : aliased int;  -- lemon.h:178
       iDfltReduce : aliased int;  -- lemon.h:179
-      pDfltReduce : access rule;  -- lemon.h:180
+      pDfltReduce : access Rule_Record;  -- lemon.h:180
       autoReduce : aliased int;  -- lemon.h:181
    end record;
    pragma Convention (C_Pass_By_Copy, state);  -- lemon.h:172
@@ -332,59 +338,103 @@ package lemon_h is
   --** static variables.  Fields in the following structure can be thought
   --** of as begin global variables in the program.)
 
-  -- Table of states sorted by state number
-   type Lemon_Type is record
-      sorted    : System.Address;  -- lemon.h:199
-      the_rule  : access rule;  -- lemon.h:200
-      startRule : access rule;  -- lemon.h:201
-      nstate    : aliased int;  -- lemon.h:202
-      nxstate   : aliased int;  -- lemon.h:203
-      nrule     : aliased int;  -- lemon.h:204
-      nsymbol   : aliased int;  -- lemon.h:205
-      nterminal : aliased int;  -- lemon.h:206
-      minShiftReduce : aliased int;  -- lemon.h:207
-      errAction : aliased int;  -- lemon.h:208
-      accAction : aliased int;  -- lemon.h:209
-      noAction  : aliased int;  -- lemon.h:210
-      minReduce : aliased int;  -- lemon.h:211
-      maxAction : aliased int;  -- lemon.h:212
-      symbols   : System.Address;  -- lemon.h:213
-      errorcnt  : aliased int;  -- lemon.h:214
-      errsym    : access symbol;  -- lemon.h:215
-      wildcard  : access symbol;  -- lemon.h:216
-      name      : Interfaces.C.Strings.chars_ptr;  -- lemon.h:217
-      arg       : Interfaces.C.Strings.chars_ptr;  -- lemon.h:218
-      ctx       : Interfaces.C.Strings.chars_ptr;  -- lemon.h:219
-      tokentype : Interfaces.C.Strings.chars_ptr;  -- lemon.h:220
-      vartype   : Interfaces.C.Strings.chars_ptr;  -- lemon.h:221
-      start     : Interfaces.C.Strings.chars_ptr;  -- lemon.h:222
-      stacksize : Interfaces.C.Strings.chars_ptr;  -- lemon.h:223
-      include   : Interfaces.C.Strings.chars_ptr;  -- lemon.h:224
-      error     : Interfaces.C.Strings.chars_ptr;  -- lemon.h:225
-      overflow  : Interfaces.C.Strings.chars_ptr;  -- lemon.h:226
-      failure   : Interfaces.C.Strings.chars_ptr;  -- lemon.h:227
-      c_accept  : Interfaces.C.Strings.chars_ptr;  -- lemon.h:228
-      extracode : Interfaces.C.Strings.chars_ptr;  -- lemon.h:229
-      tokendest : Interfaces.C.Strings.chars_ptr;  -- lemon.h:230
-      vardest   : Interfaces.C.Strings.chars_ptr;  -- lemon.h:231
-      filename  : Interfaces.C.Strings.chars_ptr;  -- lemon.h:232
-      tokenprefix : Interfaces.C.Strings.chars_ptr;  -- lemon.h:234
-      nconflict     : aliased int;  -- lemon.h:235
-      nactiontab    : aliased int;  -- lemon.h:236
-      nlookaheadtab : aliased int;  -- lemon.h:237
-      tablesize     : aliased int;  -- lemon.h:238
-      basisflag     : aliased int;  -- lemon.h:239
-      has_fallback  : aliased int;  -- lemon.h:240
-      nolinenosflag : aliased int;  -- lemon.h:241
-      argv0 : Interfaces.C.Strings.chars_ptr;  -- lemon.h:242
-   end record;
-   pragma Convention (C_Pass_By_Copy, Lemon_Type);  -- lemon.h:198
+   -- Table of states sorted by state number
+   type Lemon_Record is
+      record
+         Sorted     : Rule_Access; --  System.Address;  -- lemon.h:199
+         Rule       : Rule_Access;     -- lemon.h:200
+         Start_Rule : Rule_Access;     -- lemon.h:201
+         N_State    : aliased int;  -- lemon.h:202
+         Nx_State   : aliased int;  -- lemon.h:203
+         N_Rule     : aliased int;  -- lemon.h:204
+         N_Symbol   : aliased Symbol_Index;  -- lemon.h:205
+         N_Terminal : aliased Symbol_Index;  -- lemon.h:206
+         Min_Shift_Reduce : aliased int;  -- lemon.h:207
+         Err_Action   : aliased int;  -- lemon.h:208
+         Acc_Action   : aliased int;  -- lemon.h:209
+         No_Action    : aliased int;  -- lemon.h:210
+         Min_Reduce   : aliased int;  -- lemon.h:211
+         Max_Action   : aliased int;  -- lemon.h:212
+         Symbols      : Symbol_Access_Array_Access;  -- System.Address;  -- lemon.h:213
+         Error_Cnt    : aliased int;  -- lemon.h:214
+         Err_Sym      : Symbol_Access;  -- lemon.h:215
+         Wildcard     : Symbol_Access;  -- lemon.h:216
+         Name         : Interfaces.C.Strings.chars_ptr;  -- lemon.h:217
+         Arg          : Interfaces.C.Strings.chars_ptr;  -- lemon.h:218
+         Ctx          : Interfaces.C.Strings.chars_ptr;  -- lemon.h:219
+         Token_Type   : Interfaces.C.Strings.chars_ptr;  -- lemon.h:220
+         Var_Type     : Interfaces.C.Strings.chars_ptr;  -- lemon.h:221
+         Start        : Interfaces.C.Strings.chars_ptr;  -- lemon.h:222
+         Stack_Size   : Interfaces.C.Strings.chars_ptr;  -- lemon.h:223
+         Include      : Interfaces.C.Strings.chars_ptr;  -- lemon.h:224
+         Error        : Interfaces.C.Strings.chars_ptr;  -- lemon.h:225
+         Overflow     : Interfaces.C.Strings.chars_ptr;  -- lemon.h:226
+         Failure      : Interfaces.C.Strings.chars_ptr;  -- lemon.h:227
+         C_Accept     : Interfaces.C.Strings.chars_ptr;  -- lemon.h:228
+         Extra_Code   : Interfaces.C.Strings.chars_ptr;  -- lemon.h:229
+         Token_Dest   : Interfaces.C.Strings.chars_ptr;  -- lemon.h:230
+         Var_Dest     : Interfaces.C.Strings.chars_ptr;  -- lemon.h:231
+         File_Name    : Interfaces.C.Strings.chars_ptr;  -- lemon.h:232
+         Token_Prefix : Interfaces.C.Strings.chars_ptr;  -- lemon.h:234
+         N_Conflict       : aliased int;  -- lemon.h:235
+         N_Action_Tab     : aliased int;  -- lemon.h:236
+         N_Lookahead_Tab  : aliased int;  -- lemon.h:237
+         Table_Size       : aliased int;  -- lemon.h:238
+         Basis_Flag       : aliased int;  -- lemon.h:239
+         Has_Fallback     : aliased int;  -- lemon.h:240
+         No_Line_Nos_Flag : aliased int;  -- lemon.h:241
+         Argv0            : Interfaces.C.Strings.chars_ptr;  -- lemon.h:242
+      end record;
+   pragma Convention (C_Pass_By_Copy, Lemon_Record);  -- lemon.h:198
 
-   Lime_Lemp : Lemon_Type;
-   pragma Import (C, Lime_Lemp, "lem");
-   --  for Lemon_Type'Storage_Size use 0;
-   --  pragma Convention (C, Lemon_Type);
+   use Interfaces.C.Strings;
 
+   Clean_Lemon : Constant Lemon_Record :=
+     (
+         Sorted     => null,
+         Rule       => null,
+         Start_Rule => null,
+         N_State    => 0,
+         Nx_State   => 0,
+         N_Rule     => 0,
+         N_Symbol   => 0,
+         N_Terminal => 0,
+         Min_Shift_Reduce => 0,
+         Err_Action   => 0,
+         Acc_Action   => 0,
+         No_Action    => 0,
+         Min_Reduce   => 0,
+         Max_Action   => 0,
+         Symbols      => null,
+         Error_Cnt    => 0,
+         Err_Sym      => null,
+         Wildcard     => null,
+         Name         => Null_Ptr,
+         Arg          => Null_Ptr,
+         Ctx          => Null_Ptr,
+         Token_Type   => Null_Ptr,
+         Var_Type     => Null_Ptr,
+         Start        => Null_Ptr,
+         Stack_Size   => Null_Ptr,
+         Include      => Null_Ptr,
+         Error        => Null_Ptr,
+         Overflow     => Null_Ptr,
+         Failure      => Null_Ptr,
+         C_Accept     => Null_Ptr,
+         Extra_Code   => Null_Ptr,
+         Token_Dest   => Null_Ptr,
+         Var_Dest     => Null_Ptr,
+         File_Name    => Null_Ptr,
+         Token_Prefix => Null_Ptr,
+         N_Conflict       => 0,
+         N_Action_Tab     => 0,
+         N_Lookahead_Tab  => 0,
+         Table_Size       => 0,
+         Basis_Flag       => 0,
+         Has_Fallback     => 0,
+         No_Line_Nos_Flag => 0,
+         Argv0            => Null_Ptr
+);
   -- List of all rules
   -- First rule
   -- Number of states
@@ -434,41 +484,41 @@ package lemon_h is
    pragma Import (C, NO_OFFSET, "NO_OFFSET");
 
   --********* From the file "report.h" ************************************
-   procedure lemon_reprint (arg1 : access Lemon_Type);  -- lemon.h:250
+   procedure lemon_reprint (arg1 : access Lemon_Record);  -- lemon.h:250
    pragma Import (C, lemon_reprint, "lemon_reprint");
 
-   procedure lemon_report_output (arg1 : access Lemon_Type);  -- lemon.h:251
+   procedure lemon_report_output (arg1 : access Lemon_Record);  -- lemon.h:251
    pragma Import (C, lemon_report_output, "lemon_report_output");
 
-   procedure lemon_report_table (arg1 : access Lemon_Type);  -- lemon.h:252
+   procedure lemon_report_table (arg1 : access Lemon_Record);  -- lemon.h:252
    pragma Import (C, lemon_report_table, "lemon_report_table");
 
-   procedure lemon_report_header (arg1 : access Lemon_Type);  -- lemon.h:253
+   procedure lemon_report_header (arg1 : access Lemon_Record);  -- lemon.h:253
    pragma Import (C, lemon_report_header, "lemon_report_header");
 
-   procedure lemon_compress_tables (arg1 : access Lemon_Type);  -- lemon.h:254
+   procedure lemon_compress_tables (arg1 : access Lemon_Record);  -- lemon.h:254
    pragma Import (C, lemon_compress_tables, "lemon_compress_tables");
 
-   procedure lemon_resort_states (arg1 : access Lemon_Type);  -- lemon.h:255
+   procedure lemon_resort_states (arg1 : access Lemon_Record);  -- lemon.h:255
    pragma Import (C, lemon_resort_states, "lemon_resort_states");
 
   --********* From the file "build.h" ***********************************
-   procedure lemon_find_rule_precedences (arg1 : access Lemon_Type);  -- lemon.h:258
+   procedure lemon_find_rule_precedences (arg1 : access Lemon_Record);  -- lemon.h:258
    pragma Import (C, lemon_find_rule_precedences, "lemon_find_rule_precedences");
 
-   procedure lemon_find_first_sets (arg1 : access Lemon_Type);  -- lemon.h:259
+   procedure lemon_find_first_sets (arg1 : access Lemon_Record);  -- lemon.h:259
    pragma Import (C, lemon_find_first_sets, "lemon_find_first_sets");
 
---   procedure lemon_find_states (arg1 : access Lemon_Type);  -- lemon.h:260
+--   procedure lemon_find_states (arg1 : access Lemon_Record);  -- lemon.h:260
 --   pragma Import (C, lemon_find_states, "lemon_find_states");
 
-   procedure lemon_find_links (arg1 : access Lemon_Type);  -- lemon.h:261
+   procedure lemon_find_links (arg1 : access Lemon_Record);  -- lemon.h:261
    pragma Import (C, lemon_find_links, "lemon_find_links");
 
-   procedure lemon_find_follow_sets (arg1 : access Lemon_Type);  -- lemon.h:262
+   procedure lemon_find_follow_sets (arg1 : access Lemon_Record);  -- lemon.h:262
    pragma Import (C, lemon_find_follow_sets, "lemon_find_follow_sets");
 
-   procedure lemon_find_actions (arg1 : access Lemon_Type);  -- lemon.h:263
+   procedure lemon_find_actions (arg1 : access Lemon_Record);  -- lemon.h:263
    pragma Import (C, lemon_find_actions, "lemon_find_actions");
 
    function lime_get_user_template_name return Interfaces.C.Strings.chars_ptr;  -- lemon.h:267
