@@ -233,7 +233,7 @@ struct lemon {
   char *tokendest;         /* Code to execute to destroy token data */
   char *vardest;           /* Code for the default non-terminal destructor */
   char *filename;          /* Name of the input file */
-  //  char *outname;           /* Name of the current output file */
+  char *outname;           /* Name of the current output file */
   char *tokenprefix;       /* A prefix added to token names in the .h file */
   int nconflict;           /* Number of parsing conflicts */
   int nactiontab;          /* Number of entries in the yy_action[] table */
@@ -492,20 +492,26 @@ void lime_generate_reprint_of_grammar (void);
 //
 //
 
+/*
 void
-lime_set_out_name
-(const char  *name);
+lime_set_out_name (const char  *name);
+*/
 //
 //
 
+ /*
 const char*
-lime_get_out_name
-(void);
+lime_get_out_name (void);
+ */
 //
 //
 
+//void
+//lime_power_on_self_test (void);
+//
+//
 void
-lime_power_on_self_test (void);
+lime_partial_database_dump_ada (void);
 //
 //
 

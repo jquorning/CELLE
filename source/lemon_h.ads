@@ -6,7 +6,7 @@
 --    May you find forgiveness for yourself and forgive others.
 --    May you share freely, not taking more than you give.
 --
-pragma Ada_2005;
+--  pragma Ada_2005;
 pragma Style_Checks (Off);
 
 with Interfaces.C; use Interfaces.C;
@@ -25,47 +25,47 @@ package Lemon_H is
 
    subtype boolean_t is int;  -- lemon.h:10
 
-   Lemon_Show_Conflict : aliased boolean_t;  -- lemon.h:11
-   pragma Import (C, lemon_show_conflict, "lemon_show_conflict");
+--   Lemon_Show_Conflict : aliased boolean_t;  -- lemon.h:11
+--   pragma Import (C, lemon_show_conflict, "lemon_show_conflict");
 
-   Lemon_Show_Version : aliased boolean_t;  -- lemon.h:12
-   pragma Import (C, lemon_show_version, "lemon_show_version");
+--   Lemon_Show_Version : aliased boolean_t;  -- lemon.h:12
+--   pragma Import (C, lemon_show_version, "lemon_show_version");
 
    Lemon_Basis_Flag : aliased boolean_t;  -- lemon.h:13
    pragma Import (C, lemon_basis_flag, "lemon_basis_flag");
 
-   Lemon_Compress : aliased boolean_t;  -- lemon.h:14
-   pragma Import (C, lemon_compress, "lemon_compress");
+--     Lemon_Compress : aliased boolean_t;  -- lemon.h:14
+--     pragma Import (C, lemon_compress, "lemon_compress");
 
-  --extern boolean_t lemon_be_quiet;
+--    --extern boolean_t lemon_be_quiet;
    Lemon_Statistics : aliased boolean_t;  -- lemon.h:16
    pragma Import (C, lemon_statistics, "lemon_statistics");
 
    Lemon_No_Line_Nos : aliased boolean_t;  -- lemon.h:17
    pragma Import (C, lemon_no_line_nos, "lemon_no_line_nos");
 
-   Lemon_No_Resort : aliased boolean_t;  -- lemon.h:18
-   pragma Import (C, lemon_no_resort, "lemon_no_resort");
+--     Lemon_No_Resort : aliased boolean_t;  -- lemon.h:18
+--     pragma Import (C, lemon_no_resort, "lemon_no_resort");
 
-   Lemon_Show_Help : aliased boolean_t;  -- lemon.h:19
-   pragma Import (C, lemon_show_help, "lemon_show_help");
+--     Lemon_Show_Help : aliased boolean_t;  -- lemon.h:19
+--     pragma Import (C, lemon_show_help, "lemon_show_help");
 
-   subtype language_t is int;  -- lemon.h:21
+--     subtype language_t is int;  -- lemon.h:21
 
-   LANGUAGE_DEFAULT : aliased language_t;  -- lemon.h:22
-   pragma Import (C, LANGUAGE_DEFAULT, "LANGUAGE_DEFAULT");
+--     LANGUAGE_DEFAULT : aliased language_t;  -- lemon.h:22
+--     pragma Import (C, LANGUAGE_DEFAULT, "LANGUAGE_DEFAULT");
 
-   LANGUAGE_ADA : aliased language_t;  -- lemon.h:23
-   pragma Import (C, LANGUAGE_ADA, "LANGUAGE_ADA");
+--     LANGUAGE_ADA : aliased language_t;  -- lemon.h:23
+--     pragma Import (C, LANGUAGE_ADA, "LANGUAGE_ADA");
 
-   LANGUAGE_C : aliased language_t;  -- lemon.h:24
-   pragma Import (C, LANGUAGE_C, "LANGUAGE_C");
+--     LANGUAGE_C : aliased language_t;  -- lemon.h:24
+--     pragma Import (C, LANGUAGE_C, "LANGUAGE_C");
 
-   LANGUAGE_CPP : aliased language_t;  -- lemon.h:25
-   pragma Import (C, LANGUAGE_CPP, "LANGUAGE_CPP");
+--     LANGUAGE_CPP : aliased language_t;  -- lemon.h:25
+--     pragma Import (C, LANGUAGE_CPP, "LANGUAGE_CPP");
 
-   Lemon_Language : aliased language_t;  -- lemon.h:27
-   pragma Import (C, lemon_language, "lemon_language");
+--     Lemon_Language : aliased language_t;  -- lemon.h:27
+--     pragma Import (C, lemon_language, "lemon_language");
 
    Lemon_Program_Name : Interfaces.C.Strings.chars_ptr;  -- lemon.h:29
    pragma Import (C, lemon_program_name, "lemon_program_name");
@@ -73,11 +73,11 @@ package Lemon_H is
    Lemon_Input_File : Interfaces.C.Strings.chars_ptr;  -- lemon.h:30
    pragma Import (C, lemon_input_file, "lemon_input_file");
 
-   Lemon_User_Template : Interfaces.C.Strings.chars_ptr;  -- lemon.h:31
-   pragma Import (C, lemon_user_template, "lemon_user_template");
+--     Lemon_User_Template : Interfaces.C.Strings.chars_ptr;  -- lemon.h:31
+--     pragma Import (C, lemon_user_template, "lemon_user_template");
 
-   Lemon_Output_Dir : Interfaces.C.Strings.chars_ptr;  -- lemon.h:32
-   pragma Import (C, lemon_output_dir, "lemon_output_dir");
+--     Lemon_Output_Dir : Interfaces.C.Strings.chars_ptr;  -- lemon.h:32
+--     pragma Import (C, lemon_output_dir, "lemon_output_dir");
 
   --** a few forward declarations...
   --
@@ -484,108 +484,108 @@ package Lemon_H is
    pragma Import (C, NO_OFFSET, "NO_OFFSET");
 
   --********* From the file "report.h" ************************************
-   procedure lemon_reprint (arg1 : access Lemon_Record);  -- lemon.h:250
-   pragma Import (C, lemon_reprint, "lemon_reprint");
+--     procedure lemon_reprint (arg1 : access Lemon_Record);  -- lemon.h:250
+--     pragma Import (C, lemon_reprint, "lemon_reprint");
 
-   procedure lemon_report_output (arg1 : access Lemon_Record);  -- lemon.h:251
-   pragma Import (C, lemon_report_output, "lemon_report_output");
+--     procedure lemon_report_output (arg1 : access Lemon_Record);  -- lemon.h:251
+--     pragma Import (C, lemon_report_output, "lemon_report_output");
 
-   procedure lemon_report_table (arg1 : access Lemon_Record);  -- lemon.h:252
-   pragma Import (C, lemon_report_table, "lemon_report_table");
+--     procedure lemon_report_table (arg1 : access Lemon_Record);  -- lemon.h:252
+--     pragma Import (C, lemon_report_table, "lemon_report_table");
 
-   procedure lemon_report_header (arg1 : access Lemon_Record);  -- lemon.h:253
-   pragma Import (C, lemon_report_header, "lemon_report_header");
+--     procedure lemon_report_header (arg1 : access Lemon_Record);  -- lemon.h:253
+--     pragma Import (C, lemon_report_header, "lemon_report_header");
 
-   procedure lemon_compress_tables (arg1 : access Lemon_Record);  -- lemon.h:254
-   pragma Import (C, lemon_compress_tables, "lemon_compress_tables");
+--     procedure lemon_compress_tables (arg1 : access Lemon_Record);  -- lemon.h:254
+--     pragma Import (C, lemon_compress_tables, "lemon_compress_tables");
 
-   procedure lemon_resort_states (arg1 : access Lemon_Record);  -- lemon.h:255
-   pragma Import (C, lemon_resort_states, "lemon_resort_states");
+--     procedure lemon_resort_states (arg1 : access Lemon_Record);  -- lemon.h:255
+--     pragma Import (C, lemon_resort_states, "lemon_resort_states");
 
-  --********* From the file "build.h" ***********************************
-   procedure lemon_find_rule_precedences (arg1 : access Lemon_Record);  -- lemon.h:258
-   pragma Import (C, lemon_find_rule_precedences, "lemon_find_rule_precedences");
+--    --********* From the file "build.h" ***********************************
+--     procedure lemon_find_rule_precedences (arg1 : access Lemon_Record);  -- lemon.h:258
+--     pragma Import (C, lemon_find_rule_precedences, "lemon_find_rule_precedences");
 
-   procedure lemon_find_first_sets (arg1 : access Lemon_Record);  -- lemon.h:259
-   pragma Import (C, lemon_find_first_sets, "lemon_find_first_sets");
+--     procedure lemon_find_first_sets (arg1 : access Lemon_Record);  -- lemon.h:259
+--     pragma Import (C, lemon_find_first_sets, "lemon_find_first_sets");
 
---   procedure lemon_find_states (arg1 : access Lemon_Record);  -- lemon.h:260
---   pragma Import (C, lemon_find_states, "lemon_find_states");
+--  --   procedure lemon_find_states (arg1 : access Lemon_Record);  -- lemon.h:260
+--  --   pragma Import (C, lemon_find_states, "lemon_find_states");
 
-   procedure lemon_find_links (arg1 : access Lemon_Record);  -- lemon.h:261
-   pragma Import (C, lemon_find_links, "lemon_find_links");
+--     procedure lemon_find_links (arg1 : access Lemon_Record);  -- lemon.h:261
+--     pragma Import (C, lemon_find_links, "lemon_find_links");
 
-   procedure lemon_find_follow_sets (arg1 : access Lemon_Record);  -- lemon.h:262
-   pragma Import (C, lemon_find_follow_sets, "lemon_find_follow_sets");
+--     procedure lemon_find_follow_sets (arg1 : access Lemon_Record);  -- lemon.h:262
+--     pragma Import (C, lemon_find_follow_sets, "lemon_find_follow_sets");
 
-   procedure lemon_find_actions (arg1 : access Lemon_Record);  -- lemon.h:263
-   pragma Import (C, lemon_find_actions, "lemon_find_actions");
+--     procedure lemon_find_actions (arg1 : access Lemon_Record);  -- lemon.h:263
+--     pragma Import (C, lemon_find_actions, "lemon_find_actions");
 
-   function lime_get_user_template_name return Interfaces.C.Strings.chars_ptr;  -- lemon.h:267
-   pragma Import (C, lime_get_user_template_name, "lime_get_user_template_name");
+--     function lime_get_user_template_name return Interfaces.C.Strings.chars_ptr;  -- lemon.h:267
+--     pragma Import (C, lime_get_user_template_name, "lime_get_user_template_name");
 
-  --  lempar.c for C and cherry_parser.adb for Ada.
-   procedure lime_template_open
-     (arg1 : Interfaces.C.Strings.chars_ptr;
-      arg2 : access int;
-      arg3 : access int);  -- lemon.h:271
-   pragma Import (C, lime_template_open, "lime_template_open");
+--    --  lempar.c for C and cherry_parser.adb for Ada.
+--     procedure lime_template_open
+--       (arg1 : Interfaces.C.Strings.chars_ptr;
+--        arg2 : access int;
+--        arg3 : access int);  -- lemon.h:271
+--     pragma Import (C, lime_template_open, "lime_template_open");
 
-  -- User provided template. "" when none.
-  -- Incremented on error
-  -- Success = 0 when no template file is
-  --  Thisk function finds the template file and opens it. File handle
-  --  is located in the context structure.
-   procedure lime_implementation_open (arg1 : Interfaces.C.Strings.chars_ptr);  -- lemon.h:280
-   pragma Import (C, lime_implementation_open, "lime_implementation_open");
+--    -- User provided template. "" when none.
+--    -- Incremented on error
+--    -- Success = 0 when no template file is
+--    --  Thisk function finds the template file and opens it. File handle
+--    --  is located in the context structure.
+--     procedure lime_implementation_open (arg1 : Interfaces.C.Strings.chars_ptr);  -- lemon.h:280
+--     pragma Import (C, lime_implementation_open, "lime_implementation_open");
 
-  --  Open a file for writing then implementaion (parse.adb/parse.c).
-  --  File handler is located in the context structure.
-   procedure lime_template_transfer (arg1 : Interfaces.C.Strings.chars_ptr);  -- lemon.h:286
-   pragma Import (C, lime_template_transfer, "lime_template_transfer");
+--    --  Open a file for writing then implementaion (parse.adb/parse.c).
+--    --  File handler is located in the context structure.
+--     procedure lime_template_transfer (arg1 : Interfaces.C.Strings.chars_ptr);  -- lemon.h:286
+--     pragma Import (C, lime_template_transfer, "lime_template_transfer");
 
-   procedure lime_print
-     (arg1 : Interfaces.C.Strings.chars_ptr;
-      arg2 : int;
-      arg3 : Interfaces.C.Strings.chars_ptr);  -- lemon.h:292
-   pragma Import (C, lime_print, "lime_print");
+--     procedure lime_print
+--       (arg1 : Interfaces.C.Strings.chars_ptr;
+--        arg2 : int;
+--        arg3 : Interfaces.C.Strings.chars_ptr);  -- lemon.h:292
+--     pragma Import (C, lime_print, "lime_print");
 
-   procedure lime_template_linedir (arg1 : access int; arg2 : Interfaces.C.Strings.chars_ptr);  -- lemon.h:301
-   pragma Import (C, lime_template_linedir, "lime_template_linedir");
+--     procedure lime_template_linedir (arg1 : access int; arg2 : Interfaces.C.Strings.chars_ptr);  -- lemon.h:301
+--     pragma Import (C, lime_template_linedir, "lime_template_linedir");
 
-   procedure lime_write_include (arg1 : Interfaces.C.Strings.chars_ptr);  -- lemon.h:308
-   pragma Import (C, lime_write_include, "lime_write_include");
+--     procedure lime_write_include (arg1 : Interfaces.C.Strings.chars_ptr);  -- lemon.h:308
+--     pragma Import (C, lime_write_include, "lime_write_include");
 
-  --(int          mh_flag,
-   procedure lime_generate_tokens
-     (arg1 : Interfaces.C.Strings.chars_ptr;
-      arg2 : int;
-      arg3 : int);  -- lemon.h:315
-   pragma Import (C, lime_generate_tokens, "lime_generate_tokens");
+--    --(int          mh_flag,
+--     procedure lime_generate_tokens
+--       (arg1 : Interfaces.C.Strings.chars_ptr;
+--        arg2 : int;
+--        arg3 : int);  -- lemon.h:315
+--     pragma Import (C, lime_generate_tokens, "lime_generate_tokens");
 
-  --  (int          mh_flag,
-   function lime_get_token_callback (arg1 : int) return Interfaces.C.Strings.chars_ptr;  -- lemon.h:323
-   pragma Import (C, lime_get_token_callback, "lime_get_token_callback");
+--    --  (int          mh_flag,
+--     function lime_get_token_callback (arg1 : int) return Interfaces.C.Strings.chars_ptr;  -- lemon.h:323
+--     pragma Import (C, lime_get_token_callback, "lime_get_token_callback");
 
-   procedure lime_generate_spec
-     (arg1 : Interfaces.C.Strings.chars_ptr;
-      arg2 : Interfaces.C.Strings.chars_ptr;
-      arg3 : Interfaces.C.Strings.chars_ptr;
-      arg4 : int;
-      arg5 : int);  -- lemon.h:329
-   pragma Import (C, lime_generate_spec, "lime_generate_spec");
+--     procedure lime_generate_spec
+--       (arg1 : Interfaces.C.Strings.chars_ptr;
+--        arg2 : Interfaces.C.Strings.chars_ptr;
+--        arg3 : Interfaces.C.Strings.chars_ptr;
+--        arg4 : int;
+--        arg5 : int);  -- lemon.h:329
+--     pragma Import (C, lime_generate_spec, "lime_generate_spec");
 
-  --  Generate spec file (parse.h for parse.y).
-   procedure lime_generate_the_defines_1
-     (arg1 : Interfaces.C.Strings.chars_ptr;
-      arg2 : int;
-      arg3 : Interfaces.C.Strings.chars_ptr;
-      arg4 : int;
-      arg5 : int);  -- lemon.h:339
-   pragma Import (C, lime_generate_the_defines_1, "lime_generate_the_defines_1");
+--    --  Generate spec file (parse.h for parse.y).
+--     procedure lime_generate_the_defines_1
+--       (arg1 : Interfaces.C.Strings.chars_ptr;
+--        arg2 : int;
+--        arg3 : Interfaces.C.Strings.chars_ptr;
+--        arg4 : int;
+--        arg5 : int);  -- lemon.h:339
+--     pragma Import (C, lime_generate_the_defines_1, "lime_generate_the_defines_1");
 
-   procedure lime_generate_the_defines_2 (arg1 : Interfaces.C.Strings.chars_ptr);  -- lemon.h:349
-   pragma Import (C, lime_generate_the_defines_2, "lime_generate_the_defines_2");
+--     procedure lime_generate_the_defines_2 (arg1 : Interfaces.C.Strings.chars_ptr);  -- lemon.h:349
+--     pragma Import (C, lime_generate_the_defines_2, "lime_generate_the_defines_2");
 
    type mystruct is record
       use_count : aliased int;  -- lemon.h:356
@@ -612,96 +612,96 @@ package Lemon_H is
    end record;
    pragma Convention (C_Pass_By_Copy, lime_render_record);  -- lemon.h:370
 
-   procedure lime_render_constants (arg1 : access lime_render_record);  -- lemon.h:383
-   pragma Import (C, lime_render_constants, "lime_render_constants");
+--     procedure lime_render_constants (arg1 : access lime_render_record);  -- lemon.h:383
+--     pragma Import (C, lime_render_constants, "lime_render_constants");
 
-   procedure lime_write_action_table (arg1 : int; arg2 : int);  -- lemon.h:388
-   pragma Import (C, lime_write_action_table, "lime_write_action_table");
+--     procedure lime_write_action_table (arg1 : int; arg2 : int);  -- lemon.h:388
+--     pragma Import (C, lime_write_action_table, "lime_write_action_table");
 
-   procedure lime_write_yy_lookahead (arg1 : int; arg2 : int);  -- lemon.h:395
-   pragma Import (C, lime_write_yy_lookahead, "lime_write_yy_lookahead");
+--     procedure lime_write_yy_lookahead (arg1 : int; arg2 : int);  -- lemon.h:395
+--     pragma Import (C, lime_write_yy_lookahead, "lime_write_yy_lookahead");
 
-   procedure lime_write_yy_shift_offsets
-     (arg1 : int;
-      arg2 : int;
-      arg3 : int;
-      arg4 : Interfaces.C.Strings.chars_ptr;
-      arg5 : int;
-      arg6 : int);  -- lemon.h:402
-   pragma Import (C, lime_write_yy_shift_offsets, "lime_write_yy_shift_offsets");
+--     procedure lime_write_yy_shift_offsets
+--       (arg1 : int;
+--        arg2 : int;
+--        arg3 : int;
+--        arg4 : Interfaces.C.Strings.chars_ptr;
+--        arg5 : int;
+--        arg6 : int);  -- lemon.h:402
+--     pragma Import (C, lime_write_yy_shift_offsets, "lime_write_yy_shift_offsets");
 
-   procedure lime_write_yy_reduce_offsets
-     (arg1 : int;
-      arg2 : int;
-      arg3 : int;
-      arg4 : Interfaces.C.Strings.chars_ptr;
-      arg5 : int);  -- lemon.h:413
-   pragma Import (C, lime_write_yy_reduce_offsets, "lime_write_yy_reduce_offsets");
+--     procedure lime_write_yy_reduce_offsets
+--       (arg1 : int;
+--        arg2 : int;
+--        arg3 : int;
+--        arg4 : Interfaces.C.Strings.chars_ptr;
+--        arg5 : int);  -- lemon.h:413
+--     pragma Import (C, lime_write_yy_reduce_offsets, "lime_write_yy_reduce_offsets");
 
-   procedure lime_write_default_action_table
-     (arg1 : int;
-      arg2 : int;
-      arg3 : int);  -- lemon.h:423
-   pragma Import (C, lime_write_default_action_table, "lime_write_default_action_table");
+--     procedure lime_write_default_action_table
+--       (arg1 : int;
+--        arg2 : int;
+--        arg3 : int);  -- lemon.h:423
+--     pragma Import (C, lime_write_default_action_table, "lime_write_default_action_table");
 
-   procedure lime_put (arg1 : Interfaces.C.Strings.chars_ptr);  -- lemon.h:431
-   pragma Import (C, lime_put, "lime_put");
+--     procedure lime_put (arg1 : Interfaces.C.Strings.chars_ptr);  -- lemon.h:431
+--     pragma Import (C, lime_put, "lime_put");
 
-   procedure lime_put_int (arg1 : int);  -- lemon.h:436
-   pragma Import (C, lime_put_int, "lime_put_int");
+--     procedure lime_put_int (arg1 : int);  -- lemon.h:436
+--     pragma Import (C, lime_put_int, "lime_put_int");
 
-   procedure lime_put_line (arg1 : Interfaces.C.Strings.chars_ptr);  -- lemon.h:441
-   pragma Import (C, lime_put_line, "lime_put_line");
+--     procedure lime_put_line (arg1 : Interfaces.C.Strings.chars_ptr);  -- lemon.h:441
+--     pragma Import (C, lime_put_line, "lime_put_line");
 
-   procedure lime_write_line_directive (arg1 : int; arg2 : Interfaces.C.Strings.chars_ptr);  -- lemon.h:446
-   pragma Import (C, lime_write_line_directive, "lime_write_line_directive");
+--     procedure lime_write_line_directive (arg1 : int; arg2 : Interfaces.C.Strings.chars_ptr);  -- lemon.h:446
+--     pragma Import (C, lime_write_line_directive, "lime_write_line_directive");
 
-   procedure lime_template_print
-     (arg1 : Interfaces.C.Strings.chars_ptr;
-      arg2 : int;
-      arg3 : Interfaces.C.Strings.chars_ptr);  -- lemon.h:453
-   pragma Import (C, lime_template_print, "lime_template_print");
+--     procedure lime_template_print
+--       (arg1 : Interfaces.C.Strings.chars_ptr;
+--        arg2 : int;
+--        arg3 : Interfaces.C.Strings.chars_ptr);  -- lemon.h:453
+--     pragma Import (C, lime_template_print, "lime_template_print");
 
-  -- int          line_number,
-   procedure lime_write_arg_defines
-     (arg1 : Interfaces.C.Strings.chars_ptr;
-      arg2 : Interfaces.C.Strings.chars_ptr;
-      arg3 : int;
-      arg4 : Interfaces.C.Strings.chars_ptr;
-      arg5 : Interfaces.C.Strings.chars_ptr);  -- lemon.h:462
-   pragma Import (C, lime_write_arg_defines, "lime_write_arg_defines");
+--    -- int          line_number,
+--     procedure lime_write_arg_defines
+--       (arg1 : Interfaces.C.Strings.chars_ptr;
+--        arg2 : Interfaces.C.Strings.chars_ptr;
+--        arg3 : int;
+--        arg4 : Interfaces.C.Strings.chars_ptr;
+--        arg5 : Interfaces.C.Strings.chars_ptr);  -- lemon.h:462
+--     pragma Import (C, lime_write_arg_defines, "lime_write_arg_defines");
 
-   procedure lime_close_out;  -- lemon.h:472
-   pragma Import (C, lime_close_out, "lime_close_out");
+--     procedure lime_close_out;  -- lemon.h:472
+--     pragma Import (C, lime_close_out, "lime_close_out");
 
-   procedure lime_close_in;  -- lemon.h:477
-   pragma Import (C, lime_close_in, "lime_close_in");
+--     procedure lime_close_in;  -- lemon.h:477
+--     pragma Import (C, lime_close_in, "lime_close_in");
 
-  --int
-  --lime_get_mh_flag (void);
-   procedure lime_write_interface (arg1 : Interfaces.C.Strings.chars_ptr; arg2 : Interfaces.C.Strings.chars_ptr);  -- lemon.h:487
-   pragma Import (C, lime_write_interface, "lime_write_interface");
+--    --int
+--    --lime_get_mh_flag (void);
+--     procedure lime_write_interface (arg1 : Interfaces.C.Strings.chars_ptr; arg2 : Interfaces.C.Strings.chars_ptr);  -- lemon.h:487
+--     pragma Import (C, lime_write_interface, "lime_write_interface");
 
-   procedure lime_write_interface_begin;  -- lemon.h:493
-   pragma Import (C, lime_write_interface_begin, "lime_write_interface_begin");
+--     procedure lime_write_interface_begin;  -- lemon.h:493
+--     pragma Import (C, lime_write_interface_begin, "lime_write_interface_begin");
 
-   procedure lime_write_interface_end;  -- lemon.h:494
-   pragma Import (C, lime_write_interface_end, "lime_write_interface_end");
+--     procedure lime_write_interface_end;  -- lemon.h:494
+--     pragma Import (C, lime_write_interface_end, "lime_write_interface_end");
 
-   procedure lime_report_header
-     (arg1 : Interfaces.C.Strings.chars_ptr;
-      arg2 : Interfaces.C.Strings.chars_ptr;
-      arg3 : Interfaces.C.Strings.chars_ptr;
-      arg4 : int);  -- lemon.h:499
-   pragma Import (C, lime_report_header, "lime_report_header");
+--     procedure lime_report_header
+--       (arg1 : Interfaces.C.Strings.chars_ptr;
+--        arg2 : Interfaces.C.Strings.chars_ptr;
+--        arg3 : Interfaces.C.Strings.chars_ptr;
+--        arg4 : int);  -- lemon.h:499
+--     pragma Import (C, lime_report_header, "lime_report_header");
 
 --   procedure lime_generate_reprint_of_grammar;  -- lemon.h:507
 --   pragma Import (C, lime_generate_reprint_of_grammar, "lime_generate_reprint_of_grammar");
 
-   procedure lime_set_out_name (arg1 : Interfaces.C.Strings.chars_ptr);  -- lemon.h:512
-   pragma Import (C, lime_set_out_name, "lime_set_out_name");
+--   procedure lime_set_out_name (arg1 : Interfaces.C.Strings.chars_ptr);  -- lemon.h:512
+--   pragma Import (C, lime_set_out_name, "lime_set_out_name");
 
-   function lime_get_out_name return Interfaces.C.Strings.chars_ptr;  -- lemon.h:518
-   pragma Import (C, lime_get_out_name, "lime_get_out_name");
+--   function lime_get_out_name return Interfaces.C.Strings.chars_ptr;  -- lemon.h:518
+--   pragma Import (C, lime_get_out_name, "lime_get_out_name");
 
 end lemon_h;

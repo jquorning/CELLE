@@ -15,6 +15,7 @@ with Rules;
 with Symbols;
 with Auxiliary;
 with Lime;
+with Database;
 
 package body Cherry_Main is
 
@@ -52,6 +53,12 @@ package body Cherry_Main is
 
       --  Parse the input file
       --  Parse (Lemon);
+      Put_Line ("Dumping Ada");
+      Database.Dump (Lemon);
+
+      Put_Line ("Dumping C");
+      Lime_Partial_Database_Dump_C;
+
       Lime.Parse (Lemon);
 
       if Lemon.Error_Cnt /= 0 then
@@ -152,6 +159,8 @@ package body Cherry_Main is
 
       --  power_on_self_test ();
       --  lime_power_on_self_test ();
+      Database.Dump (Lemon);
+
       --  Lime_Generate_Reprint_Of_Grammar;
       declare
          --  procedure Generate_Reprint_Of_Grammar

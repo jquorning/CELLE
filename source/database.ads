@@ -18,6 +18,7 @@ package Database is
    --  Ada mirror of C lem (struct lemon) data structure.
 
    procedure Dump (Lemon : in Lemon_Record);
+   --  pragma Export (C, Dump, "lime_power_on_self_test");
    --  Print out parts of Lemon to standard output.
 
 end Database;

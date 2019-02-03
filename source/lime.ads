@@ -12,7 +12,7 @@
 --
 
 with Ada.Text_IO;
-with Ada.Strings.Unbounded;
+--  with Ada.Strings.Unbounded;
 
 with Interfaces.C.Strings;
 
@@ -51,19 +51,15 @@ package Lime is
 
    Option_Language : Language_Type := Language_C;
 
+--   use Ada.Strings.Unbounded;
 
-   procedure Power_On_Self_Test;
-   pragma Export (C, Power_On_Self_Test, "lime_power_on_self_test");
+--   type Lime_Record is
+--      record
+--         Out_Name : Unbounded_String;
+--      end record;
 
-   use Ada.Strings.Unbounded;
-
-   type Lime_Record is
-      record
-         Out_Name : Unbounded_String;
-      end record;
-
-   procedure Set_Out_Name (Name : in chars_ptr);
-   function Get_Out_Name return chars_ptr;
+--   procedure Set_Out_Name (Name : in chars_ptr);
+--   function Get_Out_Name return chars_ptr;
 
    procedure Implementation_Open
      (File_Name : in Interfaces.C.Strings.chars_ptr);
@@ -234,7 +230,6 @@ package Lime is
    procedure Template_Print_2
      (Line        : in chars_ptr;
       No_Line_Nos : in Integer;
---      Line_Number : in Backend.Line_Number_Index;
       Out_Name    : in chars_ptr);
    --  Print a string to the file and keep the linenumber up to date
 
@@ -267,9 +262,6 @@ package Lime is
       Terminal_Last : in Natural);
    --  Generate a header file for the Parser.
 
-   --  type Lemon_Record is null record; --   type Lemon_Record is private;
-   --  type Lemon_Type   is access all Lemon_Record;
-
    procedure Generate_Reprint_Of_Grammar
      (Base_Name     : in chars_ptr;
       Token_Prefix  : in chars_ptr;
@@ -301,20 +293,18 @@ package Lime is
    function Rule_Sort (Rule : in Rules.Rule_Access)
                       return Rules.Rule_Access;
 
+   procedure Lime_Partial_Database_Dump_Ada;
+   procedure Lime_Partial_Database_Dump_C;
+
 private
-
-
---   type Lemon_Record is access all Lemon_Record;
 
    --  Option integers
    pragma Export (C, Option_Show_Conflict, "lemon_show_conflict");
    pragma Export (C, Option_Show_Version,  "lemon_show_version");
---   pragma Export (C, Option_RP_Flag,       "lemon_rp_flag");
    pragma Export (C, Option_Basis_Flag,    "lemon_basis_flag");
    pragma Export (C, Option_Compress,      "lemon_compress");
    pragma Export (C, Option_Be_Quiet,      "lemon_be_quiet");
    pragma Export (C, Option_Statistics,    "lemon_statistics");
---   pragma Export (C, Option_MH_Flag,       "lemon_mh_flag");
    pragma Export (C, Option_No_Line_Nos,   "lemon_no_line_nos");
    pragma Export (C, Option_No_Resort,     "lemon_no_resort");
 
@@ -350,7 +340,6 @@ private
    pragma Import (C, Get_NT_Offset,           "lime_get_nt_offset");
    pragma Export (C, Write_Default_Action_Table, "lime_write_default_action_table");
    pragma Import (C, Get_Default_Reduce,         "lime_get_default_reduce");
-   --   pragma Export (C, Write_Fallback_Token,       "lime_write_fallback_token");
 
    pragma Export (C, Template_Print_2,    "lime_template_print");
 
@@ -359,8 +348,6 @@ private
    pragma Export (C, Close_In,          "lime_close_in");
 
    pragma Export (C, Write_Interface,   "lime_write_interface");
---   pragma Import (C, Get_MH_Flag, "lime_get_mh_flag");
-
    pragma Export (C, Write_Interface_Begin, "lime_write_interface_begin");
    pragma Export (C, Write_Interface_End,   "lime_write_interface_end");
    pragma Export (C, Report_Header,         "lime_report_header");
@@ -380,14 +367,14 @@ private
    pragma Import (C, Report_Output,         "lemon_report_output");
    pragma Import (C, Report_Table,          "lemon_report_table");
 
-   pragma Export (C, Set_Out_Name, "lime_set_out_name");
-   pragma Export (C, Get_Out_Name, "lime_get_out_name");
-
    pragma Import (C, Strsafe_Init, "Strsafe_init");
    pragma Import (C, State_Init,   "State_init");
 
-   pragma Import (C, Parse,   "lemon_parse");
-
+   pragma Import (C, Parse,     "lemon_parse");
    pragma Import (C, Rule_Sort, "lime_rule_sort");
 
+   pragma Export (C, Lime_Partial_Database_Dump_Ada,
+                  "lime_partial_database_dump_ada");
+   pragma Import (C, Lime_Partial_Database_Dump_C,
+                  "lime_partial_database_dump_c");
 end Lime;

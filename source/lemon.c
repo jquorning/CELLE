@@ -478,21 +478,35 @@ void Configtable_clear(int(*)(struct config *));
 
 struct lemon lem;
 
+/*************** End of common data structure used as global ******************/
+
 void
-power_on_self_test (void)
+lime_partial_database_dump (struct lemon *lemp)
 {
-  printf ("POWER_ON_SELF_TEST\n");
-  printf ("8*sizeof(lem): %ld\n", 8*sizeof (lem));
-  printf ("nstate  : %ld\n", lem.nstate);
-  printf ("nxstate : %ld\n", lem.nxstate);
-  printf ("nrule   : %ld\n", lem.nrule);
-  printf ("nsymbol : %ld\n", lem.nsymbol);
-  printf ("nterminal : %ld\n", lem.nterminal);
-  printf ("minShiftReduce : %ld\n", lem.minShiftReduce);
+  printf ("LIME PARTIAL DATABASE DUMP\n");
+  printf ("--------------------------\n");
+  printf ("8*sizeof(lem): %ld\n", 8*sizeof (*lemp));
+  printf ("nstate  : %ld\n", lemp->nstate);
+  printf ("nxstate : %ld\n", lemp->nxstate);
+  printf ("nrule   : %ld\n", lemp->nrule);
+  printf ("nsymbol : %ld\n", lemp->nsymbol);
+  printf ("nterminal : %ld\n", lemp->nterminal);
+  printf ("minShiftReduce : %ld\n", lemp->minShiftReduce);
+  printf ("errAction : %ld\n", lemp->errAction);
+  printf ("accAction : %ld\n", lemp->accAction);
+  printf ("noAction  : %ld\n", lemp->noAction);
+  printf ("minReduce : %ld\n", lemp->minReduce);
+  printf ("maxAction : %ld\n", lemp->maxAction);
   printf ("\n");
-  printf ("start : %s\n", lem.start);
-  printf ("filename : %s\n", lem.filename);
+  printf ("start : %s\n", lemp->start);
+  printf ("filename : %s\n", lemp->filename);
   printf ("\n");
+}
+
+void
+lime_partial_database_dump_c (void)
+{
+  lime_partial_database_dump (&lem);
 }
 
 /****************** From the file "action.c" *******************************/
@@ -924,8 +938,8 @@ void lemon_find_states(struct lemon *lemp)
   printf ("### 4-2\n");
 
   /* Find the start symbol */
-  power_on_self_test ();
-  lime_power_on_self_test ();
+  lime_partial_database_dump_c ();
+  lime_partial_database_dump_ada ();
 
   printf ("lemp->start %lx\n", lemp->start);
 
@@ -2831,12 +2845,13 @@ PRIVATE FILE *file_open(
   //if( lemp->outname ) free(lemp->outname);
   // if( lime_get_out_name () ) free( lime_get_out_name () );
   //lemp->outname = file_makename(lemp, suffix);
-  lime_set_out_name (file_makename(lemp, suffix));
-  //fp = fopen(lemp->outname,mode);
-  fp = fopen(lime_get_out_name (), mode);
+  //lime_set_out_name (file_makename(lemp, suffix));
+  lemp->outname = file_makename(lemp, suffix);
+  //fp = fopen(lime_get_out_name (), mode);
+  fp = fopen(lemp->outname,mode);
   if( fp==0 && *mode=='w' ){
-    //fprintf(stderr,"Can't open file \"%s\".\n",lemp->outname);
-    fprintf(stderr,"Can't open file \"%s\".\n",lime_get_out_name ());
+    fprintf(stderr,"Can't open file \"%s\".\n",lemp->outname);
+    //fprintf(stderr,"Can't open file \"%s\".\n",lime_get_out_name ());
     lemp->errorcnt++;
     return 0;
   }
@@ -3359,8 +3374,8 @@ void emit_destructor_code
  }
  lime_put_line ("");
  if (!lemp->nolinenosflag) {
-   //lime_write_line_directive (0, lemp->outname);
-   lime_write_line_directive (0, lime_get_out_name ());
+   lime_write_line_directive (0, lemp->outname);
+   //lime_write_line_directive (0, lime_get_out_name ());
  }
  lime_put_line ("}");
  return;
@@ -3674,8 +3689,8 @@ PRIVATE void emit_code
      //(*lineno)++;
      //tplt_linedir(out,*lineno,lemp->outname);  //  XXX
      //lime_write_line_directive (*lineno, lemp->outname);
-     //lime_write_line_directive (0, lemp->outname);
-     lime_write_line_directive (0, lime_get_out_name ());
+     lime_write_line_directive (0, lemp->outname);
+     //lime_write_line_directive (0, lime_get_out_name ());
    }
  }
 
@@ -4004,8 +4019,8 @@ void lemon_report_table (struct lemon *lemp)
   lime_template_transfer (lemp->name);
 
   /* Generate the include code, if any */
-  //lime_print (lime_get_out_name ()lemp->outname, lemp->nolinenosflag, lemp->include);
-  lime_print (lime_get_out_name (), lemp->nolinenosflag, lemp->include);
+  lime_print (lemp->outname, lemp->nolinenosflag, lemp->include);
+  //lime_print (lime_get_out_name (), lemp->nolinenosflag, lemp->include);
   //lime_write_include (lime_get_mh_flag(), file_makename(lemp, ".h"));
   lime_write_include (file_makename(lemp, ".h"));
 
@@ -4372,8 +4387,8 @@ void lemon_report_table (struct lemon *lemp)
   lime_template_transfer (lemp->name);
   
   /* Generate code which executes whenever the parser stack overflows */
-  //lime_template_print (lemp->overflow, lemp->nolinenosflag, lemp->outname);
-  lime_template_print (lemp->overflow, lemp->nolinenosflag, lime_get_out_name ());
+  lime_template_print (lemp->overflow, lemp->nolinenosflag, lemp->outname);
+  //lime_template_print (lemp->overflow, lemp->nolinenosflag, lime_get_out_name ());
   lime_template_transfer (lemp->name);
 
   /* Generate the tables of rule information.  yyRuleInfoLhs[] and
@@ -4473,27 +4488,27 @@ void lemon_report_table (struct lemon *lemp)
   lime_template_transfer (lemp->name);
   
   /* Generate code which executes if a parse fails */
-  //lime_template_print (lemp->failure, lemp->nolinenosflag, lemp->outname);
-  lime_template_print (lemp->failure, lemp->nolinenosflag, lime_get_out_name ());
+  lime_template_print (lemp->failure, lemp->nolinenosflag, lemp->outname);
+  //lime_template_print (lemp->failure, lemp->nolinenosflag, lime_get_out_name ());
   lime_template_transfer (lemp->name);
   
   /* Generate code which executes when a syntax error occurs */
-  //lime_template_print (lemp->error, lemp->nolinenosflag, lemp->outname);
-  lime_template_print (lemp->error, lemp->nolinenosflag, lime_get_out_name ());
+  lime_template_print (lemp->error, lemp->nolinenosflag, lemp->outname);
+  //lime_template_print (lemp->error, lemp->nolinenosflag, lime_get_out_name ());
   lime_template_transfer (lemp->name);
   printf ("### 2-55\n");
 
   /* Generate code which executes when the parser accepts its input */
-  //lime_template_print (lemp->accept, lemp->nolinenosflag, lemp->outname);
-  lime_template_print (lemp->accept, lemp->nolinenosflag, lime_get_out_name ());
+  lime_template_print (lemp->accept, lemp->nolinenosflag, lemp->outname);
+  //lime_template_print (lemp->accept, lemp->nolinenosflag, lime_get_out_name ());
   printf ("### 2-56\n");
 
   lime_template_transfer (lemp->name);
   printf ("### 2-57\n");
 
   /* Append any addition code the user desires */
-  //lime_template_print (lemp->extracode, lemp->nolinenosflag, lemp->outname);
-  lime_template_print (lemp->extracode, lemp->nolinenosflag, lime_get_out_name ());
+  lime_template_print (lemp->extracode, lemp->nolinenosflag, lemp->outname);
+  //lime_template_print (lemp->extracode, lemp->nolinenosflag, lime_get_out_name ());
   printf ("### 2-58\n");
 
   lime_close_in;

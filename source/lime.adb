@@ -11,6 +11,7 @@
 --  Ada binding for Lemon
 --
 
+with Ada.Strings.Unbounded;
 with Ada.Directories;
 with Ada.IO_Exceptions;
 
@@ -18,29 +19,11 @@ with Generate_Ada;
 with Generate_C;
 with Setup;
 with Backend;
-with Database;
 with Text_Out;
+with Auxiliary;
+with Database;
 
 package body Lime is
-
-   Lime : Lime_Record;
-
-   procedure Set_Out_Name (Name : in chars_ptr) is
-   begin
-      Lime.Out_Name := To_Unbounded_String (Value (Name));
-   end Set_Out_Name;
-
-   function Get_Out_Name return chars_ptr is
-   begin
-      return New_String (To_String (Lime.Out_Name));
-   end Get_Out_Name;
-
-
-   procedure Power_On_Self_Test is
-      use Database;
-   begin
-      Dump (Lime_Lemp);
-   end Power_On_Self_Test;
 
    use Backend;
 
@@ -52,7 +35,7 @@ package body Lime is
       Text_Out.Implementation_Open (File_Name);
    end Implementation_Open;
 
-   function Is_Alpha (C : Character) return Boolean;
+--   function Is_Alpha (C : Character) return Boolean;
    function Default_Template_Name return String;
 
    function Get_Token (Index : in Integer) return String
@@ -138,6 +121,7 @@ package body Lime is
       Error_Count   : in out Integer;
       Success       :    out Integer)
    is
+      use Ada.Strings.Unbounded;
       Template     : Unbounded_String := Null_Unbounded_String;
       Open_Success : Boolean;
    begin
@@ -172,25 +156,10 @@ package body Lime is
    end Template_Open;
 
 
---   function Make_Filename
---     (File_Name : in chars_ptr;
---      Suffix    : in String)
---     return String;
---   --  Create file name from File_Name and Suffix;
-
---   function Make_Filename
---     (File_Name : in chars_ptr;
---      Suffix    : in String)
---     return String is
+--   function Is_Alpha (C : Character) return Boolean is
 --   begin
---      return Value (File_Name) & Suffix;
---   end Make_Filename;
-
-
-   function Is_Alpha (C : Character) return Boolean is
-   begin
-      return (C in 'a' .. 'z') or (C in 'A' .. 'Z');
-   end Is_Alpha;
+--      return (C in 'a' .. 'z') or (C in 'A' .. 'Z');
+--   end Is_Alpha;
 
 
    procedure Template_Transfer
@@ -215,7 +184,7 @@ package body Lime is
                if
                  Line (Index) = 'P'              and then
                  Line (Index .. Index + Parse'Length - 1) = Parse and then
-                 (Index = Line'First or else not Is_Alpha (Line (Index - 1)))
+                 (Index = Line'First or else not Auxiliary.Is_Alpha (Line (Index - 1)))
                then
                   if Index > Start then
                      Put (Line (Start .. Index));
@@ -242,8 +211,6 @@ package body Lime is
       No_Line_Nos : in Integer;
       Include     : in chars_ptr)
    is
---      pragma Unreferenced (Out_Name);
---      use Ada.Text_IO;
    begin
       if Include = Null_Ptr then return; end if;
 
@@ -276,7 +243,6 @@ package body Lime is
 
 
    procedure Write_Include
-     --  (MH_Flag      : in Integer;
      (Include_Name : in chars_ptr)
    is
       use Text_Out;
@@ -289,7 +255,6 @@ package body Lime is
    end Write_Include;
 
    procedure Generate_Tokens
---     (MH_Flag     : in Integer;
      (Tokenprefix : in chars_ptr;
       First       : in Integer;
       Last        : in Integer)
@@ -823,5 +788,11 @@ package body Lime is
             Terminal_Last);
       end if;
    end Generate_Reprint_Of_Grammar;
+
+   procedure Lime_Partial_Database_Dump_Ada is
+      use Database;
+   begin
+      Dump (Lime_Lemp);
+   end Lime_Partial_Database_Dump_Ada;
 
 end Lime;
