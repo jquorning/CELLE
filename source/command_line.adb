@@ -167,7 +167,8 @@ package body Command_Line is
             use Ada.Text_IO, Setup;
             Version : constant String :=
               Program_Name & " (" &
-              Get_Program_Version & ")";
+              Get_Program_Version & ") Build timestamp: " &
+              Get_Build_ISO8601;
          begin
             Put_Line (Version);
          end;

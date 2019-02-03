@@ -18,9 +18,8 @@ with Generate_Ada;
 with Generate_C;
 with Setup;
 with Backend;
+with Database;
 with Text_Out;
---  with lemon_h;
-with Lemon_Sanity;
 
 package body Lime is
 
@@ -38,9 +37,9 @@ package body Lime is
 
 
    procedure Power_On_Self_Test is
-      use Lemon_Sanity;
+      use Database;
    begin
-      Dump_Lemon_Record;
+      Dump (Lime_Lemp);
    end Power_On_Self_Test;
 
    use Backend;

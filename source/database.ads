@@ -11,7 +11,13 @@ with Lemon_H;
 
 package Database is
 
-   Lime_Lemp : Lemon_H.Lemon_Record;
+   use Lemon_H;
+
+   Lime_Lemp : Lemon_Record;
    pragma Import (C, Lime_Lemp, "lem");
+   --  Ada mirror of C lem (struct lemon) data structure.
+
+   procedure Dump (Lemon : in Lemon_Record);
+   --  Print out parts of Lemon to standard output.
 
 end Database;
