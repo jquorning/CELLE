@@ -400,6 +400,7 @@ package body Lime is
       No_Action   : in     Integer)
    is
       use Text_Out;
+      use Auxiliary;
       J : Integer;
       Action : Integer;
    begin
@@ -432,6 +433,7 @@ package body Lime is
       Nsymbol     : in     Integer)
    is
       use Text_Out;
+      use Auxiliary;
       LA : Integer;
       J  : Integer := 0;
    begin
@@ -464,6 +466,7 @@ package body Lime is
       NO_OFFSET     : in Integer)
    is
       use Text_Out;
+      use Auxiliary;
       Ofst : Integer;
       J : Integer := 0;
    begin
@@ -501,6 +504,7 @@ package body Lime is
       NO_OFFSET     : in Integer)
    is
       use Text_Out;
+      use Auxiliary;
       J : Integer := 0;
       Ofst : Integer;
    begin
@@ -536,6 +540,7 @@ package body Lime is
       Min_Reduce   : in Integer)
    is
       use Text_Out;
+      use Auxiliary;
       J : Integer := 0;
       IDfltReduce : Integer;
    begin

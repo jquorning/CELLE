@@ -7,6 +7,7 @@
 --    May you share freely, not taking more than you give.
 --
 
+with Ada.Strings.Fixed;
 with Ada.Characters.Handling;
 
 package body Auxiliary is
@@ -53,6 +54,7 @@ package body Auxiliary is
       return Result;
    end To_Ada_Symbol;
 
+
    function Is_Upper (C : in Character) return Boolean is
    begin
       case C is
@@ -60,6 +62,7 @@ package body Auxiliary is
          when others     =>  return False;
       end case;
    end Is_Upper;
+
 
    function Is_Lower (C : in Character) return Boolean is
    begin
@@ -69,6 +72,7 @@ package body Auxiliary is
       end case;
    end Is_Lower;
 
+
    function Is_Alpha (C : in Character) return Boolean is
    begin
       case C is
@@ -77,5 +81,13 @@ package body Auxiliary is
          when others     =>  return False;
       end case;
    end Is_Alpha;
+
+
+   function Image (Value : in Integer) return String is
+      use Ada.Strings;
+   begin
+      return Fixed.Trim (Integer'Image (Value), Left);
+   end Image;
+
 
 end Auxiliary;

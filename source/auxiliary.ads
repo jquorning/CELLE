@@ -26,4 +26,8 @@ package Auxiliary is
    function Is_Lower (C : in Character) return Boolean;
    function Is_Alpha (C : in Character) return Boolean;
 
+   function Image (Value : in Integer)
+                  return String;
+   --  Trimmed image of Value.
+
 end Auxiliary;

@@ -8,7 +8,6 @@
 --
 
 with Ada.Text_IO;
-with Ada.Strings.Fixed;
 
 with Auxiliary;
 
@@ -32,14 +31,6 @@ package body Text_Out is
    end Close_Out;
 
 
-   function Image (Value : in Integer) return String is
-      use Ada.Strings;
-   begin
-      return Fixed.Trim (Integer'Image (Value), Left);
-   end Image;
-
-
-
    procedure Put_CP (Item : in chars_ptr)
    is
 --      use Text_Out;
@@ -50,7 +41,7 @@ package body Text_Out is
 
    procedure Put_Int (Item : in Integer)
    is
---      use Text_Out;
+      use Auxiliary;
    begin
       Put (Image (Item));
    end Put_Int;

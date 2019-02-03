@@ -45,10 +45,10 @@ package body Cherry_Main is
       Lime.Strsafe_Init;
       Symbols.Symbol_Init;
       Lime.State_Init;
-      Lemon.Argv0            := Lemon_H.Lemon_Program_Name;
-      Lemon.File_Name        := Lemon_H.Lemon_Input_File;
-      Lemon.Basis_Flag       := Lemon_H.Lemon_Basis_Flag;
-      Lemon.No_Line_Nos_Flag := Lemon_H.Lemon_No_Line_Nos;
+      Lemon.Argv0            := New_String (Lime.Option_Program_Name.all);
+      Lemon.File_Name        := New_String (Lime.Option_Input_File.all);
+      Lemon.Basis_Flag       := Boolean'Pos (Lime.Option_Basis_Flag);
+      Lemon.No_Line_Nos_Flag := Boolean'Pos (Lime.Option_No_Line_Nos);
       Symbols.Symbol_New_Proc ("$");
 
       --  Parse the input file
@@ -294,7 +294,7 @@ package body Cherry_Main is
 --         lem.nterminal);
 --    }
 
-      if Lemon_H.Lemon_Statistics /= 0 then
+      if Option_Statistics then
          declare
 
             procedure Stats_Line (Text : in String; Value : in int);

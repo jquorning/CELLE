@@ -23,7 +23,7 @@ package Lemon_H is
   --**
   --
 
-   subtype boolean_t is int;  -- lemon.h:10
+--   subtype boolean_t is int;  -- lemon.h:10
 
 --   Lemon_Show_Conflict : aliased boolean_t;  -- lemon.h:11
 --   pragma Import (C, lemon_show_conflict, "lemon_show_conflict");
@@ -31,18 +31,18 @@ package Lemon_H is
 --   Lemon_Show_Version : aliased boolean_t;  -- lemon.h:12
 --   pragma Import (C, lemon_show_version, "lemon_show_version");
 
-   Lemon_Basis_Flag : aliased boolean_t;  -- lemon.h:13
-   pragma Import (C, lemon_basis_flag, "lemon_basis_flag");
+--   Lemon_Basis_Flag : aliased boolean_t;  -- lemon.h:13
+--   pragma Import (C, lemon_basis_flag, "lemon_basis_flag");
 
 --     Lemon_Compress : aliased boolean_t;  -- lemon.h:14
 --     pragma Import (C, lemon_compress, "lemon_compress");
 
 --    --extern boolean_t lemon_be_quiet;
-   Lemon_Statistics : aliased boolean_t;  -- lemon.h:16
-   pragma Import (C, lemon_statistics, "lemon_statistics");
+--   Lemon_Statistics : aliased boolean_t;  -- lemon.h:16
+--   pragma Import (C, lemon_statistics, "lemon_statistics");
 
-   Lemon_No_Line_Nos : aliased boolean_t;  -- lemon.h:17
-   pragma Import (C, lemon_no_line_nos, "lemon_no_line_nos");
+--   Lemon_No_Line_Nos : aliased boolean_t;  -- lemon.h:17
+--   pragma Import (C, lemon_no_line_nos, "lemon_no_line_nos");
 
 --     Lemon_No_Resort : aliased boolean_t;  -- lemon.h:18
 --     pragma Import (C, lemon_no_resort, "lemon_no_resort");
@@ -67,11 +67,11 @@ package Lemon_H is
 --     Lemon_Language : aliased language_t;  -- lemon.h:27
 --     pragma Import (C, lemon_language, "lemon_language");
 
-   Lemon_Program_Name : Interfaces.C.Strings.chars_ptr;  -- lemon.h:29
-   pragma Import (C, lemon_program_name, "lemon_program_name");
+--   Lemon_Program_Name : Interfaces.C.Strings.chars_ptr;  -- lemon.h:29
+--   pragma Import (C, lemon_program_name, "lemon_program_name");
 
-   Lemon_Input_File : Interfaces.C.Strings.chars_ptr;  -- lemon.h:30
-   pragma Import (C, lemon_input_file, "lemon_input_file");
+--   Lemon_Input_File : Interfaces.C.Strings.chars_ptr;  -- lemon.h:30
+--   pragma Import (C, lemon_input_file, "lemon_input_file");
 
 --     Lemon_User_Template : Interfaces.C.Strings.chars_ptr;  -- lemon.h:31
 --     pragma Import (C, lemon_user_template, "lemon_user_template");
@@ -89,10 +89,10 @@ package Lemon_H is
   --** Principal data structures for the LEMON parser generator.
   --
 
-   type Boolean is
-     (LEMON_FALSE,
-      LEMON_TRUE);
-   pragma Convention (C, Boolean);  -- lemon.h:47
+--   type Boolean is
+--     (LEMON_FALSE,
+--      LEMON_TRUE);
+--   pragma Convention (C, Boolean);  -- lemon.h:47
 
   -- Symbols (terminals and nonterminals) of the grammar are stored
   --** in the following:
@@ -163,8 +163,6 @@ package Lemon_H is
 --    -- Array of constituent symbols
 --    -- Each production rule in the grammar is stored in the following
 --    --** structure.
-
-   use Symbols;
 
 --    -- Left-hand side of the rule
 --     type rule is record
@@ -260,16 +258,19 @@ package Lemon_H is
       SHIFTREDUCE);
    pragma Convention (C, e_action);  -- lemon.h:141
 
-  -- A shift/shift conflict
-  -- Was a reduce, but part of a conflict
-  -- Was a reduce, but part of a conflict
-  -- Was a shift.  Precedence resolved conflict
-  -- Was reduce.  Precedence resolved conflict
-  -- Deleted by compression
-  -- Shift first, then reduce
-  -- Every shift or reduce operation is stored as one of the following
-  -- The look-ahead symbol
-  -- The new state, if a shift
+   -- A shift/shift conflict
+   -- Was a reduce, but part of a conflict
+   -- Was a reduce, but part of a conflict
+   -- Was a shift.  Precedence resolved conflict
+   -- Was reduce.  Precedence resolved conflict
+   -- Deleted by compression
+   -- Shift first, then reduce
+   -- Every shift or reduce operation is stored as one of the following
+   -- The look-ahead symbol
+   -- The new state, if a shift
+
+   use Symbols;
+
    type action;
    type anon1015_x_union (discr : unsigned := 0) is record
       case discr is
