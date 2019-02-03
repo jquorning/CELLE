@@ -9,9 +9,6 @@
 
 package Command_Line is
 
-   procedure Main;
-   --  Program entry procedure.
-
    type Process_Result is
      (Success,  --  Command line is processed with success.
       Failure,  --  Failure in command line.

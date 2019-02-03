@@ -9,7 +9,6 @@
 
 with Ada.Command_Line;
 
---  with Lemon_H;
 with Lime;
 
 package Cherry_Main is

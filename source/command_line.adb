@@ -18,8 +18,6 @@ with GNAT.Strings;
 
 with Lime;
 with Setup;
-with Cherry_Main;
-with Database;
 
 package body Command_Line is
 
@@ -133,7 +131,8 @@ package body Command_Line is
                      Argument => "IGNORE");
       Define_Switch (Config, "*", Help => "File to Parse (Typically parse.y).");
 
-      --  Do the whole parsing business
+      --  Do the whole parsing business.
+      --  Actually just the -D= option and file name.
       Getopt (Config, Getopt_Callback'Access);
 
       --  Set language
@@ -205,25 +204,6 @@ package body Command_Line is
          Result := Bailout;
 
    end Process_Command_Line;
-
-
-   procedure Main is
-      use Ada.Command_Line;
-      Status : Process_Result;
-      Main_Status : Exit_Status;
-   begin
-      Process_Command_Line (Status);
-
-      case Status is
-         when Success  =>  Set_Exit_Status (Ada.Command_Line.Success);
-         when Failure  =>  Set_Exit_Status (Ada.Command_Line.Failure);  return;
-         when Bailout  =>  Set_Exit_Status (Ada.Command_Line.Success);  return;
-      end case;
-
---      Lemon_Entry_Functaion;
-      Cherry_Main.Main (Database.Lime_Lemp,
-                        Main_Status);
-   end Main;
 
 
 end Command_Line;

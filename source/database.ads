@@ -7,13 +7,10 @@
 --    May you share freely, not taking more than you give.
 --
 
---  with Lemon_H;
-
 with Lime;
 
 package Database is
 
-   --  use Lemon_H;
    use Lime;
 
    Lime_Lemp : Lemon_Record;

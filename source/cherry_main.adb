@@ -14,7 +14,6 @@ with Interfaces.C.Strings;
 with Rules;
 with Symbols;
 with Auxiliary;
---  with Lime;
 with Database;
 
 package body Cherry_Main is
@@ -33,11 +32,9 @@ package body Cherry_Main is
       Success : Ada.Command_Line.Exit_Status renames Ada.Command_Line.Success;
       Failure : Ada.Command_Line.Exit_Status renames Ada.Command_Line.Failure;
 
-      --  Exitcode : Ada.Command_Line.Exit_Status;
-      I  : Symbol_Index; --  Int;
+      I  : Symbol_Index;
       RP : Rules.Rule_Access;
    begin
-      --  Exit_
       Lemon := Lime.Clean_Lemon;
       Lemon.Error_Cnt := 0;
 
@@ -51,18 +48,19 @@ package body Cherry_Main is
       Lemon.No_Line_Nos_Flag := Boolean'Pos (Lime.Option_No_Line_Nos);
       Symbols.Symbol_New_Proc ("$");
 
-      --  Parse the input file
-      --  Parse (Lemon);
+      --  Dump Ada mirror of lemon structure
       Put_Line ("Dumping Ada");
       Database.Dump (Lemon);
 
+      --  Dump C mirror of lemon structure
       Put_Line ("Dumping C");
       Lime_Partial_Database_Dump_C;
 
+      --  Parse the input file
       Lime.Parse (Lemon);
 
       if Lemon.Error_Cnt /= 0 then
-         Status := Failure; --  Lemon.Errorcnt;
+         Status := Failure;
          return;
       end if;
 
@@ -76,20 +74,13 @@ package body Cherry_Main is
 
       --  Count and index the symbols of the grammar
       Symbols.Symbol_New_Proc ("{default}");
-      Lemon.N_Symbol := Symbols.Symbol_Count;  --  ();
-      --  Lemon.symbols := Symbol_Arrayof;  --  ();
+      Lemon.N_Symbol := Symbols.Symbol_Count;
       Lemon.Symbols := new Symbol_Access_Array (0 .. Lemon.N_Symbol - 1);
-      --  Symbol_Arrayof;  --  ();
 
       for I in 0 .. Lemon.N_Symbol - 1 loop
-         --  Lemon.symbols (I).all.Index := I;
          Lemon.Symbols.all (I).Index := I;
       end loop;
 
---      Qsort (lem.symbols,
---             lem.nsymbol,
---             Sizeof (struct symbol*),
---             Symbolcmpp);
       Symbols.Do_Sort (Container => Lemon.Symbols.all);
 
       for Idx in 0 .. Lemon.N_Symbol - 1 loop
@@ -155,13 +146,11 @@ package body Cherry_Main is
       Lemon.Start_Rule := Lemon.Rule;
       Lemon.Rule       := Rule_Sort (Lemon.Rule);
 
-      --  Generate a reprint of the grammar, if requested on the command line
-
       --  power_on_self_test ();
       --  lime_power_on_self_test ();
-      Database.Dump (Lemon);
+      --  Database.Dump (Lemon);
 
-      --  Lime_Generate_Reprint_Of_Grammar;
+      --  Generate a reprint of the grammar, if requested on the command line
       declare
          --  procedure Generate_Reprint_Of_Grammar
          Base_Name     : constant chars_ptr  := New_String ("XXX"); --  in chars_ptr;
@@ -178,9 +167,11 @@ package body Cherry_Main is
             --  Initialize the size for all follow and first sets
             Set_Size (Terminal_Last + 1);
             Put_Line ("### 2-2");
+
             --  Find the precedence for every production rule (that has one)
             Find_Rule_Precedences (Lemon);
             Put_Line ("### 2-3");
+
             --  Compute the lambda-nonterminals and the first-sets for every
             --  nonterminal
             Find_First_Sets (Lemon);
@@ -233,66 +224,12 @@ package body Cherry_Main is
             --  generate the file for us.)
             Report_Header
               (Token_Prefix,
-               Base_Name, -- File_Makename (Lemon_Lemp, ""),
+               Base_Name,
                New_String ("MODULE XXX"),
                Terminal_Last);
+
          end if;
       end;
-      --    /*
---    if( lemon_rp_flag ){
---      printf ("### 1\n");
---      Reprint(&lem);
---    }else{
---      printf ("### 2\n");
---      // Initialize the size for all follow and first sets
---      SetSize(lem.nterminal+1);
-
---      // Find the precedence for every production rule (that has one)
---      FindRulePrecedences(&lem);
-
---      // Compute the lambda-nonterminals and the first-sets for every
---      // nonterminal
---      FindFirstSets(&lem);
-
---      // Compute all LR(0) states.  Also record follow-set propagation
---      // links so that the follow-set can be computed later
---      lem.nstate = 0;
---      FindStates(&lem);
---      lem.sorted = State_arrayof();
-
---      // Tie up loose ends on the propagation links
---      FindLinks(&lem);
-
---      // Compute the follow set of every reducible configuration
---      FindFollowSets(&lem);
-
---      // Compute the action tables
---      FindActions(&lem);
-
---      // Compress the action tables
---      if( lemon_compress==0 ) CompressTables(&lem);
-
---      // Reorder and renumber the states so that states with fewer choices
---      // occur at the end.  This is an optimization that helps make the
---      // generated parser tables smaller.
---      if( lemon_no_resort==0 ) ResortStates(&lem);
-
---      // Generate a report of the parser generated.  (the "y.output" file)
---      if( !lemon_be_quiet ) ReportOutput(&lem);
-
---      // Generate the source code for the parser
---      ReportTable (&lem);
-
---      // Produce a header file for use by the scanner.  (This step is
---      // omitted if the "-m" option is used because makeheaders will
---      // generate the file for us.)
---      lemon_lemp = &lem;   // needed for callback
---      lime_report_header
---        (lem.tokenprefix,
---         file_makename (&lem, ""),
---         "MODULE XXX",
---         lem.nterminal);
---    }
 
       if Option_Statistics then
          declare
@@ -306,11 +243,6 @@ package body Cherry_Main is
                Put (Line);
                Put (int'Image (Value));
                New_Line;
-
---  int nLabel = lemonStrlen(zLabel);
---  printf("  %s%.*s %5d\n", zLabel,
---         35-nLabel, "................................",
---         iValue);
             end Stats_Line;
 
          begin
@@ -342,9 +274,7 @@ package body Cherry_Main is
       else
          Status := Success;
       end if;
-      --  exitcode := (if ((lem.errorcnt > 0) or (lem.nconflict > 0)) then 1 else 0);
-      --  Ada.Command_Line.Set_Exit_Status (exitcode);
-
    end Main;
+
 
 end Cherry_Main;
