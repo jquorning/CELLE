@@ -280,77 +280,65 @@ lime_template_open
 
 
 void
-lime_implementation_open
-  (const char *file_name);
+lime_implementation_open (const char *file_name);
 //  Open a file for writing then implementaion (parse.adb/parse.c).
 //  File handler is located in the context structure.
 
 void
-lime_template_transfer
-(const char  *name);
+lime_template_transfer (const char  *name);
 //
 //
 
 void
-lime_print
-  (const char  *out_name,
-   int         no_line_nos,
-   const char  *include);
+lime_print (const char  *out_name,
+            int         no_line_nos,
+            const char  *include);
 //
 //
 //
 
 void
-lime_template_linedir
-  (int         *line_number,
-   const char  *file_name);
+lime_template_linedir (int         *line_number,
+                       const char  *file_name);
 //
 //
 
 void
-lime_write_include
-//(int          mh_flag,
-(const char  *include_name);
+lime_write_include (const char  *include_name);
 //
 //
 
 void
-lime_generate_tokens
-//  (int          mh_flag,
-(const char  *tokenprefix,
- int          first,
- int          last);
+lime_generate_tokens (const char  *tokenprefix,
+                      int          first,
+                      int          last);
 //
 //
 
-const char *lime_get_token_callback
-  (int  index);
+const char *lime_get_token_callback (int  index);
 //
 //
 
 void 
-lime_generate_spec
-   (const char  *file_name,
-    const char  *prefix,
-    const char  *module,
-    int          first,
-    int          last);
+lime_generate_spec (const char  *file_name,
+                    const char  *prefix,
+                    const char  *module,
+                    int          first,
+                    int          last);
 //  Generate spec file (parse.h for parse.y).
 
 
 void
-lime_generate_the_defines_1
-  (const char     *yycodetype,
-   int             nsymbol,
-   const char     *yyactiontype,
-   int             wildcard,
-   int             wildcard_index);
+lime_generate_the_defines_1 (const char     *yycodetype,
+                             int             nsymbol,
+                             const char     *yyactiontype,
+                             int             wildcard,
+                             int             wildcard_index);
 //
 //
 
 void
-lime_generate_the_defines_2
-(const char  *stack_size);
+lime_generate_the_defines_2 (const char  *stack_size);
 //
 //
 
@@ -362,11 +350,9 @@ struct mystruct
 };
 
 void
-lime_error_fallback
-(
- const char       *errsym,
- struct mystruct  *my_struct,
- int               has_fallback);
+lime_error_fallback (const char       *errsym,
+                     struct mystruct  *my_struct,
+                     int               has_fallback);
 //
 //
 
@@ -388,45 +374,40 @@ lime_render_constants
 //
 //
 
-void lime_write_action_table
-(int   N,
- int   No_Action);
+void lime_write_action_table (int   N,
+                              int   No_Action);
 //
 //
 
 void
-lime_write_yy_lookahead
-(int   n,
- int   nsymbol);
+lime_write_yy_lookahead (int   n,
+                         int   nsymbol);
 //
 //
 
 void
-lime_write_yy_shift_offsets
-(int          N,
- int          MnTknOfst,
- int          MxTknOfst,
- const char  *Min_Size_Type,
- int          Nactiontab,
- int          NO_OFFSET);
+lime_write_yy_shift_offsets (int          N,
+                             int          MnTknOfst,
+                             int          MxTknOfst,
+                             const char  *Min_Size_Type,
+                             int          Nactiontab,
+                             int          NO_OFFSET);
 //
 //
 
 void
-lime_write_yy_reduce_offsets
-(int          N,
- int          MnNtOfst,
- int          MxNtOfst,
- const char  *Min_Size_Type,
- int          NO_OFFSET);
+lime_write_yy_reduce_offsets (int          N,
+                              int          MnNtOfst,
+                              int          MxNtOfst,
+                              const char  *Min_Size_Type,
+                              int          NO_OFFSET);
 //
 //
 
 void
-lime_write_default_action_table
-(int N,
- int Error_Action,
- int Min_Reduce);
+lime_write_default_action_table (int N,
+                                 int Error_Action,
+                                 int Min_Reduce);
 //
 //
 
@@ -528,8 +509,17 @@ lime_power_on_self_test (void);
 //
 //
 
+struct rule*
+lime_rule_sort (struct rule*);
+//
+//
+
+/*
 struct symbol*
 symbols_symbol_new (const char*);
 struct symbol*
 symbols_symbol_find (const char*);
+*/
+
 #endif
+

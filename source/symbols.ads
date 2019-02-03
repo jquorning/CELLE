@@ -7,7 +7,7 @@
 --    May you share freely, not taking more than you give.
 --
 
-with Ada.Containers.Generic_Array_Sort;
+--  with Ada.Containers.Generic_Array_Sort;
 
 with Interfaces.C;
 with Interfaces.C.Strings;
@@ -22,14 +22,14 @@ package Symbols is
      (TERMINAL,
       NONTERMINAL,
       MULTITERMINAL);
-   pragma Convention (C, symbol_type);  -- lemon.h:52
+   pragma Convention (C, Symbol_Type);  -- lemon.h:52
 
    type E_Assoc is
      (LEFT,
       RIGHT,
       NONE,
       UNK);
-   pragma Convention (C, e_assoc);  -- lemon.h:58
+   pragma Convention (C, E_Assoc);  -- lemon.h:58
 
    use Interfaces.C;
 
@@ -64,7 +64,7 @@ package Symbols is
          The_Rule    : access Rule_Record;  -- lemon.h:70
          Fallback    : access Symbol_Record;  -- lemon.h:71
          Prec        : aliased int;  -- lemon.h:72
-         Assoc       : aliased e_assoc;  -- lemon.h:73
+         Assoc       : aliased E_Assoc;  -- lemon.h:73
          First_Set   : Interfaces.C.Strings.chars_ptr;  -- lemon.h:74
          Lambda      : aliased Boolean;  -- lemon.h:75
          Use_Cnt     : aliased int;  -- lemon.h:76
@@ -110,23 +110,31 @@ package Symbols is
    --  structure.
 
 
-   procedure Sort (Container : in out Symbol_Access_Array);
+   procedure Do_Sort (Container : in out Symbol_Access_Array);
 
    --  Routines for handling symbols of the grammar
 
    function  Symbol_New (Name : in String) return Symbol_Access;
-   procedure Symbol_New (Name : in String);
+   procedure Symbol_New_Proc (Name : in String);
    --  int Symbolcmpp(const void *, const void *);
    procedure Symbol_Init;
    --  int Symbol_insert(struct symbol *, const char *);
    procedure Symbol_Insert (Symbol : in Symbol_Record;
                             Name   : in String);
    function Symbol_Find (Name : in String) return Symbol_Access;
-   pragma Export (C, Symbol_Find, "symbols_symbol_find");
+   --  pragma Export (C, Symbol_Find, "symbols_symbol_find");
 
    function Symbol_Nth (Index : in Symbol_Index) return Symbol_Access;
    function Symbol_Count return Symbol_Index;
    --  struct symbol **Symbol_arrayof(void);
 
+private
+   pragma Import (C, Symbol_New,      "Symbol_new");
+   pragma Import (C, Symbol_New_Proc, "Symbol_new");
+   pragma Import (C, Symbol_Init,     "Symbol_init");
+   pragma Import (C, Symbol_Insert,   "Symbol_insert");
+   pragma Import (C, Symbol_Find,     "Symbol_find");
+   pragma Import (C, Symbol_Nth,      "Symbol_nth");
+   pragma Import (C, Symbol_Count,    "Symbol_count");
 end Symbols;
 

@@ -19,6 +19,7 @@ with Interfaces.C.Strings;
 with GNAT.Strings;
 
 with Lemon_H;
+with Rules;
 
 package Lime is
 
@@ -295,6 +296,11 @@ package Lime is
    procedure Strsafe_Init;
    procedure State_Init;
 
+   procedure Parse (Lemon : in Lemon_Record);
+
+   function Rule_Sort (Rule : in Rules.Rule_Access)
+                      return Rules.Rule_Access;
+
 private
 
 
@@ -379,5 +385,9 @@ private
 
    pragma Import (C, Strsafe_Init, "Strsafe_init");
    pragma Import (C, State_Init,   "State_init");
+
+   pragma Import (C, Parse,   "lemon_parse");
+
+   pragma Import (C, Rule_Sort, "lime_rule_sort");
 
 end Lime;

@@ -71,6 +71,12 @@ package Rules is
   --** Configurations also contain a follow-set which is a list of terminal
   --** symbols which are allowed to immediately follow the end of the rule.
   --** Every configuration is recorded as an instance of the following:
+
+   --  function Rule_Sort (Rule : in Rule_Access) return Rule_Access;
+   --  pragma Import (C, Rule_Sort, "lime_rule_sort");
+
+   procedure Dummy;
+
 private
 
    type Symbol_Proxy_Type;

@@ -24,6 +24,8 @@ package body Cherry_Main is
                    Status :    out Ada.Command_Line.Exit_Status)
    is
       use Interfaces.C.Strings;
+      use Ada.Text_IO;
+      use Lime;
       use Symbols;
       use Rules;
 
@@ -46,10 +48,11 @@ package body Cherry_Main is
       Lemon.File_Name        := Lemon_H.Lemon_Input_File;
       Lemon.Basis_Flag       := Lemon_H.Lemon_Basis_Flag;
       Lemon.No_Line_Nos_Flag := Lemon_H.Lemon_No_Line_Nos;
-      Symbols.Symbol_New ("$");
+      Symbols.Symbol_New_Proc ("$");
 
       --  Parse the input file
-      Parse (lem);
+      --  Parse (Lemon);
+      Lime.Parse (Lemon);
 
       if Lemon.Error_Cnt /= 0 then
          Status := Failure; --  Lemon.Errorcnt;
@@ -57,11 +60,7 @@ package body Cherry_Main is
       end if;
 
       if Lemon.N_Rule = 0 then
-         declare
-            use Ada.Text_IO;
-         begin
-            Put_Line (Standard_Error, "Empty grammar.");
-         end;
+         Put_Line (Standard_Error, "Empty grammar.");
          Status := Failure;
          return;
       end if;
@@ -69,7 +68,7 @@ package body Cherry_Main is
       Lemon.Err_Sym := Symbols.Symbol_Find ("error");
 
       --  Count and index the symbols of the grammar
-      Symbols.Symbol_New ("{default}");
+      Symbols.Symbol_New_Proc ("{default}");
       Lemon.N_Symbol := Symbols.Symbol_Count;  --  ();
       --  Lemon.symbols := Symbol_Arrayof;  --  ();
       Lemon.Symbols := new Symbol_Access_Array (0 .. Lemon.N_Symbol - 1);
@@ -84,11 +83,13 @@ package body Cherry_Main is
 --             lem.nsymbol,
 --             Sizeof (struct symbol*),
 --             Symbolcmpp);
-      Symbols.Sort (Container => Lemon.Symbols.all);
+      Symbols.Do_Sort (Container => Lemon.Symbols.all);
 
-      for I in 0 .. Lemon.N_Symbol - 1 loop
-         Lemon.Symbols.all (I).all.Index := I;
+      for Idx in 0 .. Lemon.N_Symbol - 1 loop
+         Lemon.Symbols.all (Idx).all.Index := Idx;
+         I := Idx;  --  C for loop hack dehacked
       end loop;
+      I := I + 1;   --  C for loop hack dehacked
 
       while Lemon.Symbols.all (I - 1).all.C_Type = Symbols.MULTITERMINAL loop
          I := I - 1;
@@ -151,8 +152,84 @@ package body Cherry_Main is
 
       --  power_on_self_test ();
       --  lime_power_on_self_test ();
-      Lime_Generate_Reprint_Of_Grammar;
---    /*
+      --  Lime_Generate_Reprint_Of_Grammar;
+      declare
+         --  procedure Generate_Reprint_Of_Grammar
+         Base_Name     : constant chars_ptr  := New_String ("XXX"); --  in chars_ptr;
+         Token_Prefix  : constant chars_ptr  := New_String ("XXX"); --  in chars_ptr;
+         Terminal_Last : constant Natural := 999; --  in Natural);
+
+         --  Generate a reprint of the grammar, if requested on the command line.
+      begin
+
+         if Option_RP_Flag then
+            Reprint (Lemon);
+         else
+            Put_Line ("### 2-1");
+            --  Initialize the size for all follow and first sets
+            Set_Size (Terminal_Last + 1);
+            Put_Line ("### 2-2");
+            --  Find the precedence for every production rule (that has one)
+            Find_Rule_Precedences (Lemon);
+            Put_Line ("### 2-3");
+            --  Compute the lambda-nonterminals and the first-sets for every
+            --  nonterminal
+            Find_First_Sets (Lemon);
+            Put_Line ("### 2-4");
+
+            --  Compute all LR(0) states.  Also record follow-set propagation
+            --  links so that the follow-set can be computed later
+            Compute_LR_States (Lemon);
+            Put_Line ("### 2-5");
+            --         Lemon_Lemp->nstate = 0;
+            --         FindStates (Lemon_lemp);
+            --         Lemon_Lemp->sorted = State_arrayof();
+
+            --  Tie up loose ends on the propagation links
+            Find_Links (Lemon);
+            Put_Line ("### 2-6");
+
+            --  Compute the follow set of every reducible configuration
+            Find_Follow_Sets (Lemon);
+            Put_Line ("### 2-7");
+
+            --  Compute the action tables
+            Find_Actions (Lemon);
+            Put_Line ("### 2-8");
+
+            --  Compress the action tables
+            if not Option_Compress then
+               Compress_Tables (Lemon);
+            end if;
+            Put_Line ("### 2-9");
+
+            --  Reorder and renumber the states so that states with fewer choices
+            --  occur at the end.  This is an optimization that helps make the
+            --  generated parser tables smaller.
+            if not Option_No_Resort then
+               Resort_States (Lemon);
+            end if;
+            Put_Line ("### 2-10");
+
+            --   Generate a report of the parser generated.  (the "y.output" file)
+            if not Option_Be_Quiet then
+               Report_Output (Lemon);
+            end if;
+
+            --  Generate the source code for the parser
+            Report_Table (Lemon);
+
+            --  Produce a header file for use by the scanner.  (This step is
+            --  omitted if the "-m" option is used because makeheaders will
+            --  generate the file for us.)
+            Report_Header
+              (Token_Prefix,
+               Base_Name, -- File_Makename (Lemon_Lemp, ""),
+               New_String ("MODULE XXX"),
+               Terminal_Last);
+         end if;
+      end;
+      --    /*
 --    if( lemon_rp_flag ){
 --      printf ("### 1\n");
 --      Reprint(&lem);
@@ -210,7 +287,6 @@ package body Cherry_Main is
 
       if Lemon_H.Lemon_Statistics /= 0 then
          declare
-            use Ada.Text_IO;
 
             procedure Stats_Line (Text : in String; Value : in int);
             procedure Stats_Line (Text : in String; Value : in int) is
@@ -243,13 +319,9 @@ package body Cherry_Main is
       end if;
 
       if Lemon.N_Conflict > 0 then
-         declare
-            use Ada.Text_IO;
-         begin
-            Put_Line
-              (Standard_Error,
-               int'Image (Lemon.N_Conflict) & " parsing conflicts.");
-         end;
+         Put_Line
+           (Standard_Error,
+            int'Image (Lemon.N_Conflict) & " parsing conflicts.");
       end if;
 
       --  return 0 on success, 1 on failure.

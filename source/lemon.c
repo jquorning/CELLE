@@ -931,7 +931,7 @@ void lemon_find_states(struct lemon *lemp)
 
   if( lemp->start ){
     printf ("### 5-1\n");
-    sp = symbols_symbol_find(lemp->start);
+    sp = Symbol_find(lemp->start);
     printf ("### 5-2\n");
     if( sp==0 ){
       ErrorMsg(lemp->filename,0,
@@ -1209,7 +1209,7 @@ void lemon_find_actions(struct lemon *lemp)
 
   /* Add the accepting token */
   if( lemp->start ){
-    sp = symbols_symbol_find(lemp->start);
+    sp = Symbol_find(lemp->start);
     if( sp==0 ) sp = lemp->startRule->lhs;
   }else{
     sp = lemp->startRule->lhs;
@@ -1614,7 +1614,10 @@ static struct rule *Rule_merge(struct rule *pA, struct rule *pB){
 /*
 ** Sort a list of rules in order of increasing iRule value
 */
-static struct rule *Rule_sort(struct rule *rp){
+//static struct rule *Rule_sort(struct rule *rp){
+//static struct rule *lime_rule_sort (struct rule *rp)
+struct rule *lime_rule_sort (struct rule *rp)
+{
   int i;
   struct rule *pNext;
   struct rule *x[32];
@@ -1743,7 +1746,7 @@ void lemon_main (void)
     if( rp->iRule<0 ) rp->iRule = i++;
   }
   lem.startRule = lem.rule;
-  lem.rule      = Rule_sort(lem.rule);
+  lem.rule      = lime_rule_sort (lem.rule);
 
   /* Generate a reprint of the grammar, if requested on the command line */
   //lemon_lemp = &lem;   //  needed for callback
@@ -2033,7 +2036,7 @@ static void parseonetoken(struct pstate *psp)
       if( x[0]=='%' ){
         psp->state = WAITING_FOR_DECL_KEYWORD;
       }else if( ISLOWER(x[0]) ){
-        psp->lhs = symbols_symbol_new(x);
+        psp->lhs = Symbol_new(x);
         psp->nrhs = 0;
         psp->lhsalias = 0;
         psp->state = WAITING_FOR_ARROW;
@@ -2077,7 +2080,7 @@ to follow the previous rule.");
 to follow the previous rule.");
         psp->errorcnt++;
       }else{
-        psp->prevrule->precsym = symbols_symbol_new(x);
+        psp->prevrule->precsym = Symbol_new(x);
       }
       psp->state = PRECEDENCE_MARK_2;
       break;
@@ -2182,7 +2185,7 @@ to follow the previous rule.");
           psp->errorcnt++;
           psp->state = RESYNC_AFTER_RULE_ERROR;
         }else{
-          psp->rhs[psp->nrhs] = symbols_symbol_new(x);
+          psp->rhs[psp->nrhs] = Symbol_new(x);
           psp->alias[psp->nrhs] = 0;
           psp->nrhs++;
         }
@@ -2202,7 +2205,7 @@ to follow the previous rule.");
         msp->nsubsym++;
         msp->subsym = (struct symbol **) realloc(msp->subsym,
           sizeof(struct symbol*)*msp->nsubsym);
-        msp->subsym[msp->nsubsym-1] = symbols_symbol_new(&x[1]);
+        msp->subsym[msp->nsubsym-1] = Symbol_new(&x[1]);
         if( ISLOWER(x[1]) || ISLOWER(msp->subsym[0]->name[0]) ){
           ErrorMsg(psp->filename,psp->tokenlineno,
             "Cannot form a compound containing a non-terminal");
@@ -2331,7 +2334,7 @@ to follow the previous rule.");
         psp->errorcnt++;
         psp->state = RESYNC_AFTER_DECL_ERROR;
       }else{
-        struct symbol *sp = symbols_symbol_new(x);
+        struct symbol *sp = Symbol_new(x);
         psp->declargslot = &sp->destructor;
         psp->decllinenoslot = &sp->destLineno;
         psp->insertLineMacro = 1;
@@ -2345,7 +2348,7 @@ to follow the previous rule.");
         psp->errorcnt++;
         psp->state = RESYNC_AFTER_DECL_ERROR;
       }else{
-        struct symbol *sp = symbols_symbol_find(x);
+        struct symbol *sp = Symbol_find(x);
         if((sp) && (sp->datatype)){
           ErrorMsg(psp->filename,psp->tokenlineno,
             "Symbol %%type \"%s\" already defined", x);
@@ -2353,7 +2356,7 @@ to follow the previous rule.");
           psp->state = RESYNC_AFTER_DECL_ERROR;
         }else{
           if (!sp){
-            sp = symbols_symbol_new(x);
+            sp = Symbol_new(x);
           }
           psp->declargslot = &sp->datatype;
           psp->insertLineMacro = 0;
@@ -2366,7 +2369,7 @@ to follow the previous rule.");
         psp->state = WAITING_FOR_DECL_OR_RULE;
       }else if( ISUPPER(x[0]) ){
         struct symbol *sp;
-        sp = symbols_symbol_new(x);
+        sp = Symbol_new(x);
         if( sp->prec>=0 ){
           ErrorMsg(psp->filename,psp->tokenlineno,
             "Symbol \"%s\" has already be given a precedence.",x);
@@ -2448,7 +2451,7 @@ to follow the previous rule.");
           "%%fallback argument \"%s\" should be a token", x);
         psp->errorcnt++;
       }else{
-        struct symbol *sp = symbols_symbol_new(x);
+        struct symbol *sp = Symbol_new(x);
         if( psp->fallback==0 ){
           psp->fallback = sp;
         }else if( sp->fallback ){
@@ -2478,7 +2481,7 @@ to follow the previous rule.");
           "%%token argument \"%s\" should be a token", x);
         psp->errorcnt++;
       }else{
-        (void)symbols_symbol_new(x);
+        (void)Symbol_new(x);
       }
       break;
     case WAITING_FOR_WILDCARD_ID:
@@ -2489,7 +2492,7 @@ to follow the previous rule.");
           "%%wildcard argument \"%s\" should be a token", x);
         psp->errorcnt++;
       }else{
-        struct symbol *sp = symbols_symbol_new(x);
+        struct symbol *sp = Symbol_new(x);
         if( psp->gp->wildcard==0 ){
           psp->gp->wildcard = sp;
         }else{
@@ -2505,13 +2508,13 @@ to follow the previous rule.");
           "%%token_class must be followed by an identifier: ", x);
         psp->errorcnt++;
         psp->state = RESYNC_AFTER_DECL_ERROR;
-     }else if( symbols_symbol_find(x) ){
+     }else if( Symbol_find(x) ){
         ErrorMsg(psp->filename, psp->tokenlineno,
           "Symbol \"%s\" already used", x);
         psp->errorcnt++;
         psp->state = RESYNC_AFTER_DECL_ERROR;
       }else{
-        psp->tkclass = symbols_symbol_new(x);
+        psp->tkclass = Symbol_new(x);
         psp->tkclass->type = MULTITERMINAL;
         psp->state = WAITING_FOR_CLASS_TOKEN;
       }
@@ -2525,7 +2528,7 @@ to follow the previous rule.");
         msp->subsym = (struct symbol **) realloc(msp->subsym,
           sizeof(struct symbol*)*msp->nsubsym);
         if( !ISUPPER(x[0]) ) x++;
-        msp->subsym[msp->nsubsym-1] = symbols_symbol_new(x);
+        msp->subsym[msp->nsubsym-1] = Symbol_new(x);
       }else{
         ErrorMsg(psp->filename, psp->tokenlineno,
           "%%token_class argument \"%s\" should be a token", x);
@@ -2599,7 +2602,8 @@ static void preprocess_input(char *z){
 ** token is passed to the function "parseonetoken" which builds all
 ** the appropriate data structures in the global state vector "gp".
 */
-void Parse(struct lemon *gp)
+//void Parse(struct lemon *gp)
+void lemon_parse (struct lemon *gp)
 {
   struct pstate ps;
   FILE *fp;
@@ -4976,28 +4980,28 @@ struct symbol *Symbol_new(const char *x)
   return sp;
 }
 
-/* Compare two symbols for sorting purposes.  Return negative,
-** zero, or positive if a is less then, equal to, or greater
-** than b.
-**
-** Symbols that begin with upper case letters (terminals or tokens)
-** must sort before symbols that begin with lower case letters
-** (non-terminals).  And MULTITERMINAL symbols (created using the
-** %token_class directive) must sort at the very end. Other than
-** that, the order does not matter.
-**
-** We find experimentally that leaving the symbols in their original
-** order (the order they appeared in the grammar file) gives the
-** smallest parser tables in SQLite.
-*/
-int Symbolcmpp(const void *_a, const void *_b)
-{
-  const struct symbol *a = *(const struct symbol **) _a;
-  const struct symbol *b = *(const struct symbol **) _b;
-  int i1 = a->type==MULTITERMINAL ? 3 : a->name[0]>'Z' ? 2 : 1;
-  int i2 = b->type==MULTITERMINAL ? 3 : b->name[0]>'Z' ? 2 : 1;
-  return i1==i2 ? a->index - b->index : i1 - i2;
-}
+/* /\* Compare two symbols for sorting purposes.  Return negative, */
+/* ** zero, or positive if a is less then, equal to, or greater */
+/* ** than b. */
+/* ** */
+/* ** Symbols that begin with upper case letters (terminals or tokens) */
+/* ** must sort before symbols that begin with lower case letters */
+/* ** (non-terminals).  And MULTITERMINAL symbols (created using the */
+/* ** %token_class directive) must sort at the very end. Other than */
+/* ** that, the order does not matter. */
+/* ** */
+/* ** We find experimentally that leaving the symbols in their original */
+/* ** order (the order they appeared in the grammar file) gives the */
+/* ** smallest parser tables in SQLite. */
+/* *\/ */
+/* int Symbolcmpp(const void *_a, const void *_b) */
+/* { */
+/*   const struct symbol *a = *(const struct symbol **) _a; */
+/*   const struct symbol *b = *(const struct symbol **) _b; */
+/*   int i1 = a->type==MULTITERMINAL ? 3 : a->name[0]>'Z' ? 2 : 1; */
+/*   int i2 = b->type==MULTITERMINAL ? 3 : b->name[0]>'Z' ? 2 : 1; */
+/*   return i1==i2 ? a->index - b->index : i1 - i2; */
+/* } */
 
 /* There is one instance of the following structure for each
 ** associative array of type "x2".

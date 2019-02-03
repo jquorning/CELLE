@@ -19,7 +19,7 @@ with GNAT.Strings;
 with Lime;
 with Setup;
 with Cherry_Main;
-with Lemon_H;
+with Database;
 
 package body Command_Line is
 
@@ -167,7 +167,7 @@ package body Command_Line is
             use Ada.Text_IO, Setup;
             Version : constant String :=
               Program_Name & " (" &
-              Program_Version & ")";
+              Get_Program_Version & ")";
          begin
             Put_Line (Version);
          end;
@@ -205,8 +205,6 @@ package body Command_Line is
 
    end Process_Command_Line;
 
-   Lime_Lemp : Lemon_H.Lemon_Record;
-   pragma Import (C, Lime_Lemp, "lem");
 
    procedure Main is
       use Ada.Command_Line;
@@ -222,7 +220,7 @@ package body Command_Line is
       end case;
 
 --      Lemon_Entry_Functaion;
-      Cherry_Main.Main (Lime_Lemp,
+      Cherry_Main.Main (Database.Lime_Lemp,
                         Main_Status);
    end Main;
 
