@@ -14,14 +14,14 @@ with Interfaces.C.Strings;
 with Rules;
 with Symbols;
 with Auxiliary;
-with Lime;
+--  with Lime;
 with Database;
 
 package body Cherry_Main is
 
    use Interfaces.C;
 
-   procedure Main (Lemon  : in out Lemon_H.Lemon_Record;
+   procedure Main (Lemon  : in out Lime.Lemon_Record;
                    Status :    out Ada.Command_Line.Exit_Status)
    is
       use Interfaces.C.Strings;
@@ -38,7 +38,7 @@ package body Cherry_Main is
       RP : Rules.Rule_Access;
    begin
       --  Exit_
-      Lemon := Lemon_H.Clean_Lemon;
+      Lemon := Lime.Clean_Lemon;
       Lemon.Error_Cnt := 0;
 
       --  Initialize the machine

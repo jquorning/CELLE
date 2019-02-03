@@ -722,7 +722,7 @@ package body Lime is
                      Last  => Terminal_Last);
    end Report_Header;
 
-   Lemon_Lemp : Lemon_H.Lemon_Record;
+   Lemon_Lemp : Lemon_Record;
    pragma Import (C, Lemon_Lemp, "lem");
 
    procedure Generate_Reprint_Of_Grammar

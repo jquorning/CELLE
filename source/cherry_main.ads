@@ -9,11 +9,12 @@
 
 with Ada.Command_Line;
 
-with Lemon_H;
+--  with Lemon_H;
+with Lime;
 
 package Cherry_Main is
 
-   procedure Main (Lemon  : in out Lemon_H.Lemon_Record;
+   procedure Main (Lemon  : in out Lime.Lemon_Record;
                    Status :    out Ada.Command_Line.Exit_Status);
 
 end Cherry_Main;
