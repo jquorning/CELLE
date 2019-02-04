@@ -304,6 +304,7 @@ lime_partial_database_dump (struct lemon *lemp)
   printf ("start : %s\n", lemp->start);
   printf ("filename : %s\n", lemp->filename);
   printf ("\n");
+  printf ("lemon_input_file : %s\n", lemon_input_file);
 }
 
 void
@@ -2292,7 +2293,7 @@ void lemon_parse (struct lemon *gp)
 
   memset(&ps, '\0', sizeof(ps));
   ps.gp = gp;
-  ps.filename = gp->filename;
+  ps.filename = lemon_input_file; //gp->filename;
   ps.errorcnt = 0;
   ps.state = INITIALIZE;
 

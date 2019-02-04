@@ -50,7 +50,7 @@ package Symbols is
 
    type Symbol_Index_Array_Access  is access all Symbol_Index_Array;
    type Symbol_Access_Array_Access is access all Symbol_Access_Array;
-
+   pragma Convention (C, Symbol_Access_Array_Access);
 
    type Symbol_Record is
       record
@@ -115,6 +115,7 @@ package Symbols is
    function Symbol_Nth (Index : in Symbol_Index) return Symbol_Access;
    function Symbol_Count return Symbol_Index;
    --  struct symbol **Symbol_arrayof(void);
+   function Symbol_Array_Of return Symbol_Access_Array_Access;
 
 private
    pragma Import (C, Symbol_New,      "Symbol_new");
@@ -124,5 +125,7 @@ private
    pragma Import (C, Symbol_Find,     "Symbol_find");
    pragma Import (C, Symbol_Nth,      "Symbol_nth");
    pragma Import (C, Symbol_Count,    "Symbol_count");
+   pragma Import (C, Symbol_Array_Of, "Symbol_arrayof");
+
 end Symbols;
 

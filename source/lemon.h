@@ -6,7 +6,6 @@
 **    May you find forgiveness for yourself and forgive others.
 **    May you share freely, not taking more than you give.
 **
-**  lime.h
 */
 
 #ifndef __LIME_H__
@@ -17,32 +16,13 @@ extern boolean_t lemon_show_conflict;
 extern boolean_t lemon_show_version;
 extern boolean_t lemon_basis_flag;
 extern boolean_t lemon_compress;
-//extern boolean_t lemon_be_quiet;
 extern boolean_t lemon_statistics;
 extern boolean_t lemon_no_line_nos;
 extern boolean_t lemon_no_resort;
 extern boolean_t lemon_show_help;
 
-typedef int language_t;
-const language_t LANGUAGE_DEFAULT = 0;
-const language_t LANGUAGE_ADA     = 1;
-const language_t LANGUAGE_C       = 2;
-const language_t LANGUAGE_CPP     = 3;
-
-extern language_t lemon_language;
-
-extern char *lemon_program_name;
-extern char *lemon_input_file;
-extern char *lemon_user_template;
-extern char *lemon_output_dir;
-
-
-/*
-** a few forward declarations...
-*/
-//struct rule;
-//struct lemon;
-//struct action;
+char *lemon_input_file;
+char *lemon_user_template;
 
 /********** From the file "struct.h" *************************************/
 /*

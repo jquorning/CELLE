@@ -80,7 +80,7 @@ begin
       Symbols.Symbol_Init;
       Lime.State_Init;
       Lemon.Argv0            := New_String (Lime.Option_Program_Name.all);
-      Lemon.File_Name        := New_String (Lime.Option_Input_File.all);
+      Lemon.File_Name        := Lemon_Input_File; --  New_String (Lime.Option_Input_File.all);
       Lemon.Basis_Flag       := Boolean'Pos (Lime.Option_Basis_Flag);
       Lemon.No_Line_Nos_Flag := Boolean'Pos (Lime.Option_No_Line_Nos);
       Symbols.Symbol_New_Proc ("$");
@@ -92,6 +92,9 @@ begin
       --  Dump C mirror of lemon structure
       Put_Line ("Dumping C");
       Lime_Partial_Database_Dump_C;
+
+      --  Dump Ada Lemon_Input_File.
+      Put_Line ("Lemon_Input_File: " & Value (Lemon_Input_File));
 
       --  Parse the input file
       Lime.Parse (Lemon);
@@ -114,21 +117,29 @@ begin
       --  Count and index the symbols of the grammar
       Symbols.Symbol_New_Proc ("{default}");
       Lemon.N_Symbol := Symbols.Symbol_Count;
-      Lemon.Symbols := new Symbol_Access_Array (0 .. Lemon.N_Symbol - 1);
+      Lemon.Symbols  := Symbols.Symbol_Array_Of;
 
-      for I in 0 .. Lemon.N_Symbol - 1 loop
-         Lemon.Symbols.all (I).Index := I;
+      Database.Dump (Lemon);
+      Put_Line (Lemon.N_Symbol'Img);
+      Put_Line ("'First: " & Lemon.Symbols'First'Img);
+      Put_Line ("'Last:  " & Lemon.Symbols'Last'Img);
+
+      for I in Lemon.Symbols'Range loop
+         Put ("I: " & I'Img);
+         Put ("  Index: " & Lemon.Symbols (I).Index'Img);
+         New_Line;
+         --  Lemon.Symbols.all (I).Index := I;
       end loop;
 
       Symbols.Do_Sort (Container => Lemon.Symbols.all);
 
       for Idx in 0 .. Lemon.N_Symbol - 1 loop
-         Lemon.Symbols.all (Idx).all.Index := Idx;
+         Lemon.Symbols (Idx).Index := Idx;
          I := Idx;  --  C for loop hack dehacked
       end loop;
       I := I + 1;   --  C for loop hack dehacked
 
-      while Lemon.Symbols.all (I - 1).all.Kind = Symbols.MULTITERMINAL loop
+      while Lemon.Symbols (I - 1).Kind = Symbols.MULTITERMINAL loop
          I := I - 1;
       end loop;
 
