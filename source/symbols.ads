@@ -7,8 +7,6 @@
 --    May you share freely, not taking more than you give.
 --
 
---  with Ada.Containers.Generic_Array_Sort;
-
 with Interfaces.C;
 with Interfaces.C.Strings;
 
@@ -18,11 +16,15 @@ with Rules;
 
 package Symbols is
 
-   type Symbol_Type is
+   use Interfaces.C;
+   use Rules;
+
+
+   type Symbol_Kind is
      (TERMINAL,
       NONTERMINAL,
       MULTITERMINAL);
-   pragma Convention (C, Symbol_Type);  -- lemon.h:52
+   pragma Convention (C, Symbol_Kind);
 
    type E_Assoc is
      (LEFT,
@@ -31,26 +33,20 @@ package Symbols is
       UNK);
    pragma Convention (C, E_Assoc);  -- lemon.h:58
 
-   use Interfaces.C;
-
-   --  Name of the symbol
-   --  type Rule_Record;
-
-   use Rules;
 
    type Symbol_Record;
    type Symbol_Access is access all Symbol_Record;
 
    type Symbol_Index is new Natural;
-   type Symbol_Array is array (Symbol_Index range <>) of Symbol_Type;
+   type Symbol_Array is array (Symbol_Index range <>) of Symbol_Kind;
 
    type Symbol_Index_Array is
      array (Symbols.Symbol_Index range <>)
-     of Symbol_Index;  --  Symbols.Symbol_Index;
+     of Symbol_Index;
 
    type Symbol_Access_Array is
      array (Symbols.Symbol_Index range <>)
-     of Symbol_Access;  --  Symbols.Symbol_Index;
+     of Symbol_Access;
 
    type Symbol_Index_Array_Access  is access all Symbol_Index_Array;
    type Symbol_Access_Array_Access is access all Symbol_Access_Array;
@@ -58,50 +54,42 @@ package Symbols is
 
    type Symbol_Record is
       record
-         Name        : Interfaces.C.Strings.chars_ptr;  -- lemon.h:67
-         Index       : aliased Symbol_Index; --  Int;         -- lemon.h:68
-         C_Type      : Symbol_Type;       -- lemon.h:69
-         The_Rule    : access Rule_Record;  -- lemon.h:70
-         Fallback    : access Symbol_Record;  -- lemon.h:71
-         Prec        : aliased int;  -- lemon.h:72
-         Assoc       : aliased E_Assoc;  -- lemon.h:73
-         First_Set   : Interfaces.C.Strings.chars_ptr;  -- lemon.h:74
-         Lambda      : aliased Boolean;  -- lemon.h:75
-         Use_Cnt     : aliased int;  -- lemon.h:76
-         Destructor  : Interfaces.C.Strings.chars_ptr;  -- lemon.h:77
-         Dest_Lineno : aliased int;  -- lemon.h:79
-         Data_Type   : Interfaces.C.Strings.chars_ptr;  -- lemon.h:81
-         Dt_Num      : aliased int;  -- lemon.h:83
-         B_Content   : aliased int;  -- lemon.h:86
-         N_Subsym    : aliased int;  -- lemon.h:89
-         Subsym      : System.Address;  -- lemon.h:90
+         Name      : Strings.chars_ptr;
+         Index     : Symbol_Index;      --  Index number for this symbol
+         Kind      : Symbol_Kind;       --  Symbols are all either TERMINALS or NTs
+         The_Rule  : Rule_Access;       --  Linked list of rules of this (if an NT)
+         Fallback  : Symbol_Access;     --  fallback token in case this token doesn't parse
+         Prec      : Integer;           --  Precedence if defined (-1 otherwise)
+         Assoc     : E_Assoc;           --  Associativity if precedence is defined
+         First_Set : Strings.chars_ptr; --  First-set for all rules of this symbol
+         Lambda    : Boolean;           --  True if NT and can generate an empty string
+         Use_Cnt   : Integer;           --  Number of times used
+
+         Destructor  : Strings.chars_ptr;
+         --  Code which executes whenever this symbol is
+         --  popped from the stack during error processing
+
+         Dest_Lineno : aliased int;
+         --  Line number for start of destructor.  Set to
+         --  -1 for duplicate destructors.
+
+         Data_Type   : Strings.chars_ptr;
+         --  The data type of information held by this
+         --  object. Only used if type==NONTERMINAL
+
+         Dt_Num      : aliased int;
+         --  The data type number.  In the parser, the value
+         --  stack is a union.  The .yy%d element of this
+         --  union is the correct data type for this object
+
+         B_Content   : aliased int;
+         --  True if this symbol ever carries content - if
+         --  it is ever more than just syntax
+
+         N_Subsym    : aliased int;
+         Subsym      : System.Address;
       end record;
-   pragma Convention (C_Pass_By_Copy, Symbol_Record);  -- lemon.h:66
-
-  -- Index number for this symbol
-  -- Symbols are all either TERMINALS or NTs
-  -- Linked list of rules of this (if an NT)
-  -- fallback token in case this token doesn't parse
-  -- Precedence if defined (-1 otherwise)
-  -- Associativity if precedence is defined
-  -- First-set for all rules of this symbol
-  -- True if NT and can generate an empty string
-  -- Number of times used
-  -- Code which executes whenever this symbol is
-  --                           ** popped from the stack during error processing
-
-  -- Line number for start of destructor.  Set to
-  --                           ** -1 for duplicate destructors.
-
-  -- The data type of information held by this
-  --                           ** object. Only used if type==NONTERMINAL
-
-  -- The data type number.  In the parser, the value
-  --                           ** stack is a union.  The .yy%d element of this
-  --                           ** union is the correct data type for this object
-
-  -- True if this symbol ever carries content - if
-  --                           ** it is ever more than just syntax
+   pragma Convention (C_Pass_By_Copy, Symbol_Record);
 
    --  The following fields are used by MULTITERMINALs only
    --  Number of constituent symbols in the MULTI

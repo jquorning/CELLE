@@ -89,7 +89,7 @@ package body Cherry_Main is
       end loop;
       I := I + 1;   --  C for loop hack dehacked
 
-      while Lemon.Symbols.all (I - 1).all.C_Type = Symbols.MULTITERMINAL loop
+      while Lemon.Symbols.all (I - 1).all.Kind = Symbols.MULTITERMINAL loop
          I := I - 1;
       end loop;
 
@@ -234,22 +234,22 @@ package body Cherry_Main is
       if Option_Statistics then
          declare
 
-            procedure Stats_Line (Text : in String; Value : in int);
-            procedure Stats_Line (Text : in String; Value : in int) is
+            procedure Stats_Line (Text : in String; Value : in Integer);
+            procedure Stats_Line (Text : in String; Value : in Integer) is
                Line : String (1 .. 35) := (others => '.');
             begin
                Line (Line'First .. Text'Last) := Text;
                Line (Text'Last + 1) := ' ';
                Put (Line);
-               Put (int'Image (Value));
+               Put (Integer'Image (Value));
                New_Line;
             end Stats_Line;
 
          begin
             Put_Line ("Parser statistics:");
-            Stats_Line ("terminal symbols", int (Lemon.N_Terminal));
-            Stats_Line ("non-terminal symbols", int (Lemon.N_Symbol - Lemon.N_Terminal));
-            Stats_Line ("total symbols", int (Lemon.N_Symbol));
+            Stats_Line ("terminal symbols", Integer (Lemon.N_Terminal));
+            Stats_Line ("non-terminal symbols", Integer (Lemon.N_Symbol - Lemon.N_Terminal));
+            Stats_Line ("total symbols", Integer (Lemon.N_Symbol));
             Stats_Line ("rules", Lemon.N_Rule);
             Stats_Line ("states", Lemon.Nx_State);
             Stats_Line ("conflicts", Lemon.N_Conflict);
@@ -262,7 +262,7 @@ package body Cherry_Main is
       if Lemon.N_Conflict > 0 then
          Put_Line
            (Standard_Error,
-            int'Image (Lemon.N_Conflict) & " parsing conflicts.");
+            Integer'Image (Lemon.N_Conflict) & " parsing conflicts.");
       end if;
 
       --  return 0 on success, 1 on failure.

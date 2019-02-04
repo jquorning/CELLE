@@ -23,18 +23,18 @@ package body Database is
    begin
       Put_Line ("PARTIAL DUMP OF LEMON RECORD");
       Put_Line ("----------------------------");
-      Put_Line ("Size    : " & Lemon_Record'Size'Img);
-      Put_Line ("nstate  : " & int'Image (Lemon.N_State));
-      Put_Line ("nxstate : " & int'Image (Lemon.Nx_State));
-      Put_Line ("nrule   : " & int'Image (Lemon.N_Rule));
-      Put_Line ("nsymbol : " & int'Image (int (Lemon.N_Symbol)));
-      Put_Line ("nterminal : " & int'Image (int (Lemon.N_Terminal)));
-      Put_Line ("minShiftReduce : " & int'Image (Lemon.Min_Shift_Reduce));
-      Put_Line ("errAction : " & int'Image (Lemon.Err_Action));
-      Put_Line ("accAction : " & int'Image (Lemon.Acc_Action));
-      Put_Line ("noAction  : " & int'Image (Lemon.No_Action));
-      Put_Line ("minReduce : " & int'Image (Lemon.Min_Reduce));
-      Put_Line ("maxAction : " & int'Image (Lemon.Max_Action));
+      Put_Line ("Size    : "   & Lemon_Record'Size'Img);
+      Put_Line ("nstate  : "   & Integer'Image (Lemon.N_State));
+      Put_Line ("nxstate : "   & Integer'Image (Lemon.Nx_State));
+      Put_Line ("nrule   : "   & Integer'Image (Lemon.N_Rule));
+      Put_Line ("nsymbol : "   & Integer'Image (Integer (Lemon.N_Symbol)));
+      Put_Line ("nterminal : " & Integer'Image (Integer (Lemon.N_Terminal)));
+      Put_Line ("minShiftReduce : " & Integer'Image (Lemon.Min_Shift_Reduce));
+      Put_Line ("errAction : " & Integer'Image (Lemon.Err_Action));
+      Put_Line ("accAction : " & Integer'Image (Lemon.Acc_Action));
+      Put_Line ("noAction  : " & Integer'Image (Lemon.No_Action));
+      Put_Line ("minReduce : " & Integer'Image (Lemon.Min_Reduce));
+      Put_Line ("maxAction : " & Integer'Image (Lemon.Max_Action));
       New_Line;
       if Lemon.Start = Null_Ptr then
          Put_Line ("start    : (null)");

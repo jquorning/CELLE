@@ -11,11 +11,10 @@ with Ada.Containers.Generic_Array_Sort;
 
 package body Symbols is
 
---   function Symbol_Compare (Left, Right : in Symbol_Access) return Boolean;
    function "<" (Left, Right : in Symbol_Access)
                 return Boolean;
 
---  Comparye two symbols for sorting purposes.  Return negative,
+   --  Compare two symbols for sorting purposes.  Return negative,
    --  zero, or positive if a is less then, equal to, or greater
    --  than b.
    --
@@ -33,15 +32,11 @@ package body Symbols is
    function "<" (Left, Right : in Symbol_Access)
                 return Boolean
    is
---  const struct symbol *a = *(const struct symbol **) _a;
---  const struct symbol *b = *(const struct symbol **) _b;
-      subtype Value_Type is Integer;
+      function Value_Of (Item : in Symbol_Access) return Integer;
 
-      function Value_Of (Item : in Symbol_Access) return Value_Type;
-
-      function Value_Of (Item : in Symbol_Access) return Value_Type is
+      function Value_Of (Item : in Symbol_Access) return Integer is
          use Interfaces.C.Strings;
-         Kind : constant Symbol_Type := Item.C_Type;
+         Kind : constant Symbol_Kind := Item.Kind;
          Name : constant String      := Value (Item.Name);
          Char : constant Character   := Name (Name'First);
       begin
@@ -51,8 +46,8 @@ package body Symbols is
          end if;
       end Value_Of;
 
-      I_Left  : constant Value_Type := Value_Of (Left);
-      I_Right : constant Value_Type := Value_Of (Right);
+      I_Left  : constant Integer := Value_Of (Left);
+      I_Right : constant Integer := Value_Of (Right);
    begin
       if I_Left = I_Right then
          return (Left.Index - Right.Index) > 0;
