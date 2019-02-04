@@ -19,25 +19,54 @@ with Rules;
 with Symbols;
 with Auxiliary;
 
-procedure Cherry is
+procedure Cherry_Program is
 
-   procedure Cherry_Main
-     (Lemon  : in out Lime.Lemon_Record;
-      Status :    out Ada.Command_Line.Exit_Status);
+--   procedure Cherry_Main
+--     (Lemon  : in out Lime.Lemon_Record;
+--      Status :    out Ada.Command_Line.Exit_Status);
 
    use Interfaces.C;
 
-   procedure Cherry_Main
-     (Lemon  : in out Lime.Lemon_Record;
-      Status :    out Ada.Command_Line.Exit_Status)
-   is
+
+
+   use Ada.Command_Line;
+   use Command_Line;
+   Status      : Process_Result;
+   --  Main_Status : Exit_Status;
+begin
+   Process_Command_Line (Status);
+
+   case Status is
+
+      when Command_Line.Success  =>
+         Set_Exit_Status (Ada.Command_Line.Success);
+
+      when Command_Line.Failure  =>
+         Set_Exit_Status (Ada.Command_Line.Failure);
+         return;
+
+      when Command_Line.Bailout  =>
+         Set_Exit_Status (Ada.Command_Line.Success);
+         return;
+
+   end case;
+
+--   procedure Cherry_Main
+--     (Lemon  : in out Lime.Lemon_Record;
+
+
+   --       is
+   declare
       use Interfaces.C.Strings;
       use Ada.Text_IO;
       use Lime;
       use Symbols;
       use Rules;
 
-      Success : Ada.Command_Line.Exit_Status renames Ada.Command_Line.Success;
+      Lemon  : Lime.Lemon_Record renames Database.Lime_Lemp;
+      --  Status : Ada.Command_Line.Exit_Status;
+
+      --  Success : Ada.Command_Line.Exit_Status renames Ada.Command_Line.Success;
       Failure : Ada.Command_Line.Exit_Status renames Ada.Command_Line.Failure;
 
       I  : Symbol_Index;
@@ -68,13 +97,15 @@ procedure Cherry is
       Lime.Parse (Lemon);
 
       if Lemon.Error_Cnt /= 0 then
-         Status := Failure;
+         --  Status := Failure;
+         Ada.Command_Line.Set_Exit_Status (Failure);
          return;
       end if;
 
       if Lemon.N_Rule = 0 then
          Put_Line (Standard_Error, "Empty grammar.");
-         Status := Failure;
+         --  Status := Failure;
+         Ada.Command_Line.Set_Exit_Status (Failure);
          return;
       end if;
 
@@ -153,10 +184,6 @@ procedure Cherry is
 
       Lemon.Start_Rule := Lemon.Rule;
       Lemon.Rule       := Rule_Sort (Lemon.Rule);
-
-      --  power_on_self_test ();
-      --  lime_power_on_self_test ();
-      --  Database.Dump (Lemon);
 
       --  Generate a reprint of the grammar, if requested on the command line
       declare
@@ -273,40 +300,14 @@ procedure Cherry is
             Integer'Image (Lemon.N_Conflict) & " parsing conflicts.");
       end if;
 
-      --  return 0 on success, 1 on failure.
       if
-        Lemon.Error_Cnt > 0 or
+        Lemon.Error_Cnt  > 0 or
         Lemon.N_Conflict > 0
       then
-         Status := Failure;
-      else
-         Status := Success;
+         Ada.Command_Line.Set_Exit_Status (Failure);
+         return;
       end if;
-   end Cherry_Main;
+   end;
+   Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Success);
 
-
-   use Ada.Command_Line;
-   use Command_Line;
-   Status      : Process_Result;
-   Main_Status : Exit_Status;
-begin
-   Process_Command_Line (Status);
-
-   case Status is
-
-      when Command_Line.Success  =>
-         Set_Exit_Status (Ada.Command_Line.Success);
-
-      when Command_Line.Failure  =>
-         Set_Exit_Status (Ada.Command_Line.Failure);
-         return;
-
-      when Command_Line.Bailout  =>
-         Set_Exit_Status (Ada.Command_Line.Success);
-         return;
-
-   end case;
-
-   Cherry_Main (Database.Lime_Lemp,
-                Main_Status);
-end Cherry;
+end Cherry_Program;

@@ -166,10 +166,18 @@ package body Command_Line is
             use Ada.Text_IO, Setup;
             Version : constant String :=
               Program_Name & " (" &
-              Get_Program_Version & ") Build timestamp: " &
-              Get_Build_ISO8601;
+              Get_Program_Version & ") Build (" &
+              Get_Build_ISO8601 & ")";
          begin
             Put_Line (Version);
+            New_Line;
+            Put_Line ("The author disclaims copyright to this source code.  In place of");
+            Put_Line ("a legal notice, here is a blessing:");
+            New_Line;
+            Put_Line ("   May you do good and not evil.");
+            Put_Line ("   May you find forgiveness for yourself and forgive others.");
+            Put_Line ("   May you share freely, not taking more than you give.");
+            New_Line;
          end;
          Result := Bailout;
 
