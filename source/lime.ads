@@ -21,6 +21,7 @@ with GNAT.Strings;
 
 with Rules;
 with Symbols;
+--  with Extras;
 
 package Lime is
 
@@ -253,10 +254,10 @@ package Lime is
          No_Action        : Integer;            --  No-op action value
          Min_Reduce       : Integer;            --  Minimum reduce action
          Max_Action       : Integer;            --  Maximum action value of any kind
-         Symbols          : Symbol_Access_Array_Access; --  Sorted array of pointers to symbols
+         Symbols2         : Integer; -- Symbol_Access_Array_Access; --  Sorted array of pointers to symbols
          Error_Cnt        : Integer;            --  Number of errors
-         Err_Sym          : Symbol_Access;      --  The error symbol
-         Wildcard         : Symbol_Access;      --  Token that matches anything
+         Err_Sym          : Integer; --Symbol_Access;      --  The error symbol
+         Wildcard         : Integer; --Symbol_Access;      --  Token that matches anything
          Name             : Strings.chars_ptr;  --  Name of the generated parser
          Arg              : Strings.chars_ptr;  --  Declaration of the 3th argument to parser
          Ctx              : Strings.chars_ptr;  --  Declaration of 2nd argument to constructor
@@ -284,6 +285,8 @@ package Lime is
          Has_Fallback     : Integer;            --  True if any %fallback is seen in the grammar
          No_Line_Nos_Flag : Integer;            --  True if #line statements should not be printed
          Argv0            : Strings.chars_ptr;  --  Name of the program
+
+         Extra            : Symbols.Extra_Access;
       end record;
    --  pragma Convention (C_Pass_By_Copy, Lemon_Record);
 
@@ -292,8 +295,9 @@ package Lime is
       N_State      => 0,        Nx_State     => 0,         N_Rule           => 0,
       N_Symbol     => 0,        N_Terminal   => 0,         Min_Shift_Reduce => 0,
       Err_Action   => 0,        Acc_Action   => 0,         No_Action        => 0,
-      Min_Reduce   => 0,        Max_Action   => 0,         Symbols          => null,
-      Error_Cnt    => 0,        Err_Sym      => null,      Wildcard         => null,
+      Min_Reduce   => 0,        Max_Action   => 0,         Symbols2         => 999, --  null,
+      Error_Cnt    => 0,        Err_Sym      => 999, --  null,
+      Wildcard     => 999, -- null,
       Name         => Null_Ptr, Arg          => Null_Ptr,  Ctx              => Null_Ptr,
       Token_Type   => Null_Ptr, Var_Type     => Null_Ptr,  Start            => Null_Ptr,
       Stack_Size   => Null_Ptr, Include      => Null_Ptr,  Error            => Null_Ptr,
@@ -302,7 +306,7 @@ package Lime is
       File_Name    => Null_Ptr, Token_Prefix => Null_Ptr,
       N_Conflict   => 0,        N_Action_Tab => 0,         N_Lookahead_Tab  => 0,
       Table_Size   => 0,        Basis_Flag   => 0,         Has_Fallback     => 0,
-      No_Line_Nos_Flag => 0,    Argv0        => Null_Ptr);
+      No_Line_Nos_Flag => 0,    Argv0        => Null_Ptr,  Extra            => Symbols.Get_Extra);
 
    ----------------------------------------------------------------------------
    --#define NO_OFFSET (-2147483647)

@@ -15,6 +15,7 @@ with Interfaces.C.Strings;
 with Command_Line;
 with Database;
 with Lime;
+with Extras;
 with Rules;
 with Symbols;
 with Auxiliary;
@@ -77,13 +78,14 @@ begin
 
       --  Initialize the machine
       Lime.Strsafe_Init;
-      Symbols.Symbol_Init;
+      Extras.Symbol_Init;
       Lime.State_Init;
       Lemon.Argv0            := New_String (Lime.Option_Program_Name.all);
       Lemon.File_Name        := New_String (Lime.Option_Input_File.all);
       Lemon.Basis_Flag       := Boolean'Pos (Lime.Option_Basis_Flag);
       Lemon.No_Line_Nos_Flag := Boolean'Pos (Lime.Option_No_Line_Nos);
-      Symbols.Symbol_New_Proc ("$");
+      --  Extras.Symbol_New_Proc (Extras.To_Name ("$"));
+      Extras.Symbol_Append (Key => "$");
 
       --  Dump Ada mirror of lemon structure
       Put_Line ("Dumping Ada");
@@ -109,18 +111,20 @@ begin
          return;
       end if;
 
-      Lemon.Err_Sym := Symbols.Symbol_Find ("error");
+      --  Lemon.Err_Sym := Extras.Symbol_Find (Extras.To_Name ("error"));
+      --  Extra.Error := Extras.Symbol_Find ("error");
+      Extras.Set_Error;
 
       --  Count and index the symbols of the grammar
-      Symbols.Symbol_New_Proc ("{default}");
-      Lemon.N_Symbol := Symbols.Symbol_Count;
-      Lemon.Symbols := new Symbol_Access_Array (0 .. Lemon.N_Symbol - 1);
+      --  Extras.Symbol_New_Proc (Extras.To_Name ("{default}"));
+      Extras.Symbol_Append (Key => "{default}");
+      Lemon.N_Symbol := Extras.Symbol_Count;
+      --  Lemon.Symbols := new Symbol_Access_Array (0 .. Lemon.N_Symbol - 1);
+      Extras.Symbol_Allocate (Integer (Lemon.N_Symbol));
 
-      for I in 0 .. Lemon.N_Symbol - 1 loop
-         Lemon.Symbols.all (I).Index := I;
-      end loop;
+      Extras.Fill_And_Sort;
 
-      Symbols.Do_Sort (Container => Lemon.Symbols.all);
+      Extras.Do_Some_Things;  --  The following
 
       for Idx in 0 .. Lemon.N_Symbol - 1 loop
          Lemon.Symbols.all (Idx).all.Index := Idx;
@@ -128,7 +132,7 @@ begin
       end loop;
       I := I + 1;   --  C for loop hack dehacked
 
-      while Lemon.Symbols.all (I - 1).all.Kind = Symbols.MULTITERMINAL loop
+      while Lemon.Symbols.all (I - 1).all.Kind = Symbols.Multi_Terminal loop
          I := I - 1;
       end loop;
 
