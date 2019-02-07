@@ -8,6 +8,9 @@ Ada parser will follow soon to generate Ada parser from parse.y.
 
 Cherry itself is written in C and Ada. C will be more and more replaced by Ada 2005.
 
+## Status
+Not working
+
 ## Configuring
 **$** cd source-var
 
