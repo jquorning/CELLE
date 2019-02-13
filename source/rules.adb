@@ -7,6 +7,8 @@
 --    May you share freely, not taking more than you give.
 --
 
+with Symbols;
+
 package body Rules is
 
    type Symbol_Proxy_Type is
@@ -14,10 +16,50 @@ package body Rules is
          null;
       end record;
 
-   procedure Dummy is
+   procedure Assing_Sequential_Rule_Numbers
+     (Lemon_Rule : in     Rule_Access;
+      Start_Rule :    out Rule_Access)
+   is
+      use Interfaces.C.Strings;
+      use Symbols;
+      I  : Symbols.Symbol_Index;
+      RP : Rules.Rule_Access;
    begin
-      null;
-   end Dummy;
+      I := 0;
+      RP := Lemon_Rule;
+      loop
+         exit when RP /= null;
+         if RP.Code /= Null_Unbounded_String then
+            RP.Rule := Integer (I);
+            I := I + 1;
+         else
+            RP.Rule := -1;
+         end if;
+         RP := RP.Next;
+      end loop;
+
+      --  Does this section do anything at all ..?
+      I := 0;
+      RP := Lemon_Rule;
+      loop
+         exit when RP = null;
+         RP := RP.Next;
+      end loop;
+
+      --  Assign Rule numbers when Rule < 0 stop when Rule = 0.
+      RP := Lemon_Rule;
+      loop
+         exit when RP = null;
+         if RP.Rule < 0 then
+            RP.Rule := Integer (I);
+            I := I + 1;
+         end if;
+         RP := RP.Next;
+      end loop;
+
+      Start_Rule := Lemon_Rule;
+--      Lemon.Rule       := Rule_Sort (Lemon.Rule);
+   end Assing_Sequential_Rule_Numbers;
 
 end Rules;
 

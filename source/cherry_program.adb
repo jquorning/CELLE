@@ -9,15 +9,17 @@
 
 with Ada.Text_IO;
 with Ada.Command_Line;
+with Ada.Containers;
 
 with Interfaces.C.Strings;
 
 with Command_Line;
 with Database;
 with Lime;
+--  with Extras;
 with Rules;
 with Symbols;
-with Auxiliary;
+--  with Auxiliary;
 
 procedure Cherry_Program is
 
@@ -69,8 +71,8 @@ begin
       --  Success : Ada.Command_Line.Exit_Status renames Ada.Command_Line.Success;
       Failure : Ada.Command_Line.Exit_Status renames Ada.Command_Line.Failure;
 
-      I  : Symbol_Index;
-      RP : Rules.Rule_Access;
+--      I  : Symbol_Index;
+--      RP : Rules.Rule_Access;
    begin
       Lemon := Lime.Clean_Lemon;
       Lemon.Error_Cnt := 0;
@@ -83,7 +85,8 @@ begin
       Lemon.File_Name        := Lemon_Input_File; --  New_String (Lime.Option_Input_File.all);
       Lemon.Basis_Flag       := Boolean'Pos (Lime.Option_Basis_Flag);
       Lemon.No_Line_Nos_Flag := Boolean'Pos (Lime.Option_No_Line_Nos);
-      Symbols.Symbol_New_Proc ("$");
+      --  Extras.Symbol_New_Proc (Extras.To_Name ("$"));
+      Symbols.Symbol_Append (Key => "$");
 
       --  Dump Ada mirror of lemon structure
       Put_Line ("Dumping Ada");
@@ -112,86 +115,89 @@ begin
          return;
       end if;
 
-      Lemon.Err_Sym := Symbols.Symbol_Find ("error");
+      --  Lemon.Err_Sym := Extras.Symbol_Find (Extras.To_Name ("error"));
+      --  Extra.Error := Extras.Symbol_Find ("error");
+      Symbols.Set_Error;
 
       --  Count and index the symbols of the grammar
-      Symbols.Symbol_New_Proc ("{default}");
+      --  Extras.Symbol_New_Proc (Extras.To_Name ("{default}"));
+      Symbols.Symbol_Append (Key => "{default}");
       Lemon.N_Symbol := Symbols.Symbol_Count;
-      Lemon.Symbols  := Symbols.Symbol_Array_Of;
 
-      Database.Dump (Lemon);
-      Put_Line (Lemon.N_Symbol'Img);
-      Put_Line ("'First: " & Lemon.Symbols'First'Img);
-      Put_Line ("'Last:  " & Lemon.Symbols'Last'Img);
+      --  Lemon.Symbols := new Symbol_Access_Array (0 .. Lemon.N_Symbol - 1);
+      Symbols.Symbol_Allocate (Ada.Containers.Count_Type (Lemon.N_Symbol));
 
-      for I in Lemon.Symbols'Range loop
-         Put ("I: " & I'Img);
-         Put ("  Index: " & Lemon.Symbols (I).Index'Img);
-         New_Line;
-         --  Lemon.Symbols.all (I).Index := I;
-      end loop;
+      Symbols.Fill_And_Sort;
 
-      Symbols.Do_Sort (Container => Lemon.Symbols.all);
+      Symbols.Do_Some_Things (Lemon.N_Symbol);  --  The following
 
-      for Idx in 0 .. Lemon.N_Symbol - 1 loop
-         Lemon.Symbols (Idx).Index := Idx;
-         I := Idx;  --  C for loop hack dehacked
-      end loop;
-      I := I + 1;   --  C for loop hack dehacked
+      --  XXX Section XXX
 
-      while Lemon.Symbols (I - 1).Kind = Symbols.MULTITERMINAL loop
-         I := I - 1;
-      end loop;
+--        for Idx in 0 .. Lemon.N_Symbol - 1 loop
+--           Lemon.Symbols.all (Idx).all.Index := Idx;
+--           I := Idx;  --  C for loop hack dehacked
+--        end loop;
+--        I := I + 1;   --  C for loop hack dehacked
 
-      pragma Assert (Lemon.Symbols.all (I - 1).Name = New_String ("{default}"));
-      Lemon.N_Symbol := I - 1;
+--        while Lemon.Symbols.all (I - 1).all.Kind = Symbols.Multi_Terminal loop
+--           I := I - 1;
+--        end loop;
 
-      I := 1;
-      loop
-         declare
-            Text  : constant String    := Value (Lemon.Symbols.all (I).Name);
-            First : constant Character := Text (Text'First);
-         begin
-            exit when Auxiliary.Is_Upper (First);
-            I := I + 1;
-         end;
-      end loop;
+      --  XXX Section End XXX
 
-      Lemon.N_Terminal := I;
+--        pragma Assert (Lemon.Symbols.all (I - 1).Name = New_String ("{default}"));
+--        Lemon.N_Symbol := I - 1;
+
+--        I := 1;
+--        loop
+--           declare
+--              Text  : constant String    := Value (Lemon.Symbols.all (I).Name);
+--              First : constant Character := Text (Text'First);
+--           begin
+--              exit when Auxiliary.Is_Upper (First);
+--              I := I + 1;
+--           end;
+--        end loop;
+
+--        Lemon.N_Terminal := I;
 
       --  Assign sequential rule numbers.  Start with 0.  Put rules that have no
       --  reduce action C-code associated with them last, so that the switch()
       --  statement that selects reduction actions will have a smaller jump table.
 
-      I := 0;
-      RP := Lemon.Rule;
-      loop
-         exit when RP /= null;
-         if RP.code /= Null_Ptr then
-            RP.iRule := int (I);
-            I := I + 1;
-         else
-            RP.iRule := -1;
-         end if;
-         RP := RP.next;
-      end loop;
+      Rules.Assing_Sequential_Rule_Numbers
+        (Lemon.Rule,
+         Lemon.Start_Rule);
 
-      I := 0;
-      RP := Lemon.Rule;
-      loop
-         exit when RP = null;
-         RP := RP.next;
-      end loop;
+--        I := 0;
+--        RP := Lemon.Rule;
+--        loop
+--           exit when RP /= null;
+--           if RP.code /= Null_Ptr then
+--              RP.iRule := int (I);
+--              I := I + 1;
+--           else
+--              RP.iRule := -1;
+--           end if;
+--           RP := RP.next;
+--        end loop;
 
-      RP := Lemon.Rule;
-      loop
-         exit when RP = null;
-         if RP.iRule < 0 then
-            RP.iRule := int (I);
-            I := I + 1;
-         end if;
-         RP := RP.next;
-      end loop;
+--        I := 0;
+--        RP := Lemon.Rule;
+--        loop
+--           exit when RP = null;
+--           RP := RP.next;
+--        end loop;
+
+--        RP := Lemon.Rule;
+--        loop
+--           exit when RP = null;
+--           if RP.iRule < 0 then
+--              RP.iRule := int (I);
+--              I := I + 1;
+--           end if;
+--           RP := RP.next;
+--        end loop;
 
       Lemon.Start_Rule := Lemon.Rule;
       Lemon.Rule       := Rule_Sort (Lemon.Rule);
