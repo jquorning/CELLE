@@ -12,17 +12,20 @@ Cherry itself is written in C and Ada. C will be more and more replaced by Ada 2
 Not working
 
 ## Configuring
-**$** cd source-var
-
-**$** edit PROGRAM_VERSION
-
-**$** ./create-setup-ads.sh
+````sh
+cd source-var
+ed PROGRAM_VERSION
+./create-setup-ads.sh
+```
 
 ## Building
-**$** make
+```sh
+make
+```
 
 or
 
-**$** gprbuild cherry.gpr
-
+```sh
+gprbuild
+```
 
