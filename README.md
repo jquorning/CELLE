@@ -12,7 +12,7 @@ Cherry itself is written in C and Ada. C will be more and more replaced by Ada 2
 Not working
 
 ## Configuring
-````sh
+```sh
 cd source-var
 ed PROGRAM_VERSION
 ./create-setup-ads.sh
