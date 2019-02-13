@@ -7,6 +7,8 @@
 --    May you share freely, not taking more than you give.
 --
 
+with Ada.Strings.Unbounded;
+
 with Interfaces.C.Strings;
 
 with System;
@@ -22,30 +24,31 @@ package Rules is
    type Rule_Access is access all Rule_Record;
 
    --  Left-hand side of the rule
+   use Ada.Strings.Unbounded;
    type Rule_Record is
       record
-         lhs         : Symbol_Proxy_Access;  -- lemon.h:97
-         lhsalias    : Interfaces.C.Strings.chars_ptr;  -- lemon.h:98
-         lhsStart    : aliased int;  -- lemon.h:99
-         ruleline    : aliased int;  -- lemon.h:100
-         nrhs        : aliased int;  -- lemon.h:101
-         rhs         : System.Address;  -- lemon.h:102
-         rhsalias    : System.Address;  -- lemon.h:103
-         line        : aliased int;  -- lemon.h:104
-         code        : Interfaces.C.Strings.chars_ptr;  -- lemon.h:105
-         codePrefix  : Interfaces.C.Strings.chars_ptr;  -- lemon.h:106
-         codeSuffix  : Interfaces.C.Strings.chars_ptr;  -- lemon.h:107
-         noCode      : aliased int;  -- lemon.h:108
-         codeEmitted : aliased int;  -- lemon.h:109
-         precsym     : Symbol_Proxy_Access;
-         index       : aliased int;  -- lemon.h:111
-         iRule       : aliased int;  -- lemon.h:112
-         canReduce   : aliased Boolean;  -- lemon.h:113
-         doesReduce  : aliased Boolean;  -- lemon.h:114
-         nextlhs     : Rule_Access;  -- lemon.h:115
-         next        : Rule_Access;  -- lemon.h:116
+         LHS          : Symbol_Proxy_Access;  -- lemon.h:97
+         LHS_Alias    : Unbounded_String;
+         LHS_Start    : Integer;  -- lemon.h:99
+         Rule_Line    : Integer;  -- lemon.h:100
+         N_RHS        : Integer;  -- lemon.h:101
+         RHS          : System.Address;  -- lemon.h:102
+         RHS_Alias    : System.Address;  -- lemon.h:103
+         Line         : Integer;  -- lemon.h:104
+         Code         : Unbounded_String; --  Interfaces.C.Strings.chars_ptr;  -- lemon.h:105
+         Code_Prefix  : Unbounded_String;
+         Code_Suffix  : Unbounded_String;
+         No_Code      : Integer;  -- lemon.h:108
+         Code_Emitted : Integer;  -- lemon.h:109
+         Prec_Sym     : Symbol_Proxy_Access;
+         Index        : Integer;
+         Rule         : Integer;
+         Can_Reduce   : Boolean;
+         Does_Reduce  : Boolean;
+         Next_LHS     : Rule_Access;  -- lemon.h:115
+         Next         : Rule_Access;  -- lemon.h:116
       end record;
-   pragma Convention (C_Pass_By_Copy, Rule_Record);  -- lemon.h:96
+  --   pragma Convention (C_Pass_By_Copy, Rule_Record);  -- lemon.h:96
 
   -- Alias for the LHS (NULL if none)
   -- True if left-hand side is the start symbol
@@ -75,7 +78,9 @@ package Rules is
    --  function Rule_Sort (Rule : in Rule_Access) return Rule_Access;
    --  pragma Import (C, Rule_Sort, "lime_rule_sort");
 
-   procedure Dummy;
+   procedure Assing_Sequential_Rule_Numbers
+     (Lemon_Rule : in     Rule_Access;
+      Start_Rule :    out Rule_Access);
 
 private
 

@@ -28,7 +28,8 @@ project Cherry is
         "-gnatf",
         "-gnatwa",
         "-gnatwj",
-        "-gnat2005",
+        "-gnat2012",
+--        "-gnat2005",
         "-gnaty",
         "-gnatyM99");
 

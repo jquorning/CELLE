@@ -7,6 +7,7 @@
 --    May you share freely, not taking more than you give.
 --
 
+with Ada.Containers;
 with Ada.Strings.Unbounded;
 
 with Rules;
@@ -29,24 +30,26 @@ package Symbols is
    pragma Convention (C, E_Assoc);
 
    use Ada.Strings.Unbounded;
-   subtype Key_Type is Unbounded_String;
+   type Key_Type is new Unbounded_String;
 
    type Symbol_Index is new Natural;
 
    type Symbol_Record is
       record
-         NameX      : Integer; --  Strings.chars_ptr;
+         Name      : Key_Type; -- Unbounded_String; --  Strings.chars_ptr;
          Index     : Symbol_Index;      --  Index number for this symbol
          Kind      : Symbol_Kind;       --  Symbols are all either TERMINALS or NTs
          The_Rule  : Rule_Access;       --  Linked list of rules of this (if an NT)
-         Fallback  : Integer; -- Symbol_Access;     --  fallback token in case this token doesn't parse
+         Fallback  : Unbounded_String;
+         --  Symbol_Access; --  fallback token in case this token doesn't parse
          Prec      : Integer;           --  Precedence if defined (-1 otherwise)
          Assoc     : E_Assoc;           --  Associativity if precedence is defined
-         First_SetX : Integer; -- Strings.chars_ptr; --  First-set for all rules of this symbol
+         First_Set : Unbounded_String;
+         --  Strings.chars_ptr; --  First-set for all rules of this symbol
          Lambda    : Boolean;           --  True if NT and can generate an empty string
          Use_Cnt   : Integer;           --  Number of times used
 
-         DestructorX  : Integer; -- Strings.chars_ptr;
+         Destructor  : Unbounded_String; -- Strings.chars_ptr;
          --  Code which executes whenever this symbol is
          --  popped from the stack during error processing
 
@@ -54,7 +57,7 @@ package Symbols is
          --  Line number for start of destructor.  Set to
          --  -1 for duplicate destructors.
 
-         Data_TypeX   : Integer; -- Strings.chars_ptr;
+         Data_Type   : Unbounded_String; -- Strings.chars_ptr;
          --  The data type of information held by this
          --  object. Only used if type==NONTERMINAL
 
@@ -68,18 +71,9 @@ package Symbols is
          --  it is ever more than just syntax
 
          N_Subsym    : Integer;
-         SubsymX      : Integer; --  System.Address;
-
-         --  The following are Unbounded string versions of chars_ptr.
-         Name2       : Unbounded_String;
-         First_Set2  : Unbounded_String;
-         Destructor2 : Unbounded_String;
-         Data_Type2  : Unbounded_String;
-         Sub_Sym2    : access Integer;
+         Sub_Sym     : Unbounded_String; --  System.Address;
       end record;
    pragma Convention (C_Pass_By_Copy, Symbol_Record);
-
-   procedure Dummy;
 
    --  The following fields are used by MULTITERMINALs only
    --  Number of constituent symbols in the MULTI
@@ -88,7 +82,6 @@ package Symbols is
    --  structure.
 
 
---   procedure Do_Sort (Container : in out Symbol_Access_Array);
    type Symbol_Cursor is private;
    type Extra_Access  is private;
 
@@ -96,44 +89,58 @@ package Symbols is
 
    subtype Symbol_Name is Ada.Strings.Unbounded.Unbounded_String;
 
-   function To_Name (Item : in String)
-                    return Symbol_Name;
-   --  Make symbol name from plain string.
 
    --
    --  Routines for handling symbols of the grammar
    --
-   use Symbols;
+
+   function To_Key (Item : in String) return Key_Type;
+   --  Make symbol name from plain string.
 
    procedure Set_Error;
    procedure Fill_And_Sort;
-   procedure Do_Some_Things;
+--   procedure Do_Sort (Container : in out Symbol_Access_Array);
+   procedure Do_Some_Things (Lemon_N_Symbol : in out Symbol_Index);
 
-   procedure Symbol_Append (Key      : in Symbol_Name;
+   procedure Symbol_Append (Key      : in Key_Type;
                             New_Item : in Symbol_Record);
    procedure Symbol_Append (Key      : in String);
 
-     --  function Symbol_New (Name : in String) return Symbol_Lists.Cursor;
+   --  function Symbol_New (Name : in String) return Symbol_Lists.Cursor;
    --  function  Symbol_New (Name : in Symbol_Name) return Symbol_Access;
---   procedure Symbol_New_Proc (Name : in Symbol_Name);
+   --   procedure Symbol_New_Proc (Name : in Symbol_Name);
    --  Return a pointer to the (terminal or nonterminal) symbol "x".
    --  Create a new symbol if this is the first time "x" has been seen.
 
    function "<" (Left  : in Symbol_Record;
                  Right : in Symbol_Record)
                 return Boolean;
+   --  Compare two symbols for sorting purposes.  Return negative,
+   --  zero, or positive if a is less then, equal to, or greater
+   --  than b.
+   --
+   --  Symbols that begin with upper case letters (terminals or tokens)
+   --  must sort before symbols that begin with lower case letters
+   --  (non-terminals).  And MULTITERMINAL symbols (created using the
+   --  %token_class directive) must sort at the very end. Other than
+   --  that, the order does not matter.
+   --
+   --  We find experimentally that leaving the symbols in their original
+   --  order (the order they appeared in the grammar file) gives the
+   --  smallest parser tables in SQLite.
+
 
    procedure Symbol_Init;
    --  Allocate a new associative array.
 
    --  int Symbol_insert(struct symbol *, const char *);
---   procedure Symbol_Insert (Symbol : in Symbol_Record;
---                            Name   : in Symbol_Name);
+   --  procedure Symbol_Insert (Symbol : in Symbol_Record;
+   --                            Name   : in Symbol_Name);
    --  Insert a new record into the array.  Return TRUE if successful.
    --  Prior data with the same key is NOT overwritten
 
 
-   function Symbol_Find (Name : in Symbol_Name) return Symbol_Cursor; -- Symbol_Access;
+   function Symbol_Find (Key : in Key_Type) return Symbol_Cursor; -- Symbol_Access;
    function Symbol_Find (Key : in String) return Symbol_Cursor;
    --  Return a pointer to data assigned to the given key.  Return NULL
    --  if no such key.
@@ -145,7 +152,8 @@ package Symbols is
    --  Return the size of the array.
 
    --  function Symbol_Array_Of return Symbol_Access_Array_Access;
-   procedure Symbol_Allocate (Count : in Natural);
+
+   procedure Symbol_Allocate (Count : in Ada.Containers.Count_Type);
    --  Return an array of pointers to all data in the table.
    --  The array is obtained from malloc.  Return NULL if memory allocation
    --  problems, or if the array is empty.
