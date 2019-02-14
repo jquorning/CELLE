@@ -10,6 +10,8 @@
 with Ada.Containers;
 with Ada.Strings.Unbounded;
 
+with Interfaces.C.Strings;
+
 with Rules;
 
 package Symbols is
@@ -33,22 +35,19 @@ package Symbols is
    type Key_Type is new Unbounded_String;
 
    type Symbol_Index is new Natural;
-<<<<<<< HEAD
-   type Symbol_Array is array (Symbol_Index range <>) of Symbol_Kind;
+--     type Symbol_Array is array (Symbol_Index range <>) of Symbol_Kind;
 
-   type Symbol_Index_Array is
-     array (Symbols.Symbol_Index range <>)
-     of Symbol_Index;
+--     type Symbol_Index_Array is
+--       array (Symbols.Symbol_Index range <>)
+--       of Symbol_Index;
 
-   type Symbol_Access_Array is
-     array (Symbols.Symbol_Index range <>)
-     of Symbol_Access;
+--     type Symbol_Access_Array is
+--       array (Symbols.Symbol_Index range <>)
+--       of Symbol_Access;
 
-   type Symbol_Index_Array_Access  is access all Symbol_Index_Array;
-   type Symbol_Access_Array_Access is access all Symbol_Access_Array;
-   pragma Convention (C, Symbol_Access_Array_Access);
-=======
->>>>>>> symbols
+--     type Symbol_Index_Array_Access  is access all Symbol_Index_Array;
+--     type Symbol_Access_Array_Access is access all Symbol_Access_Array;
+--     pragma Convention (C, Symbol_Access_Array_Access);
 
    type Symbol_Record is
       record
@@ -89,7 +88,10 @@ package Symbols is
          N_Subsym    : Integer;
          Sub_Sym     : Unbounded_String; --  System.Address;
       end record;
-   pragma Convention (C_Pass_By_Copy, Symbol_Record);
+   --  pragma Convention (C_Pass_By_Copy, Symbol_Record);
+
+   type Symbol_Access is access all Symbol_Record;
+   pragma Convention (C, Symbol_Access);
 
    --  The following fields are used by MULTITERMINALs only
    --  Number of constituent symbols in the MULTI
@@ -118,18 +120,48 @@ package Symbols is
 --   procedure Do_Sort (Container : in out Symbol_Access_Array);
    procedure Do_Some_Things (Lemon_N_Symbol : in out Symbol_Index);
 
+
+   procedure Symbol_Init;
+   --  Allocate a new associative array.
+
+   --  int Symbol_insert(struct symbol *, const char *);
+   --  procedure Symbol_Insert (Symbol : in Symbol_Record;
+   --                            Name   : in Symbol_Name);
+   --  Insert a new record into the array.  Return TRUE if successful.
+   --  Prior data with the same key is NOT overwritten
+
+   function Symbol_New (Name : in String) return Symbol_Cursor;
+   --  function  Symbol_New (Name : in Symbol_Name) return Symbol_Access;
+--   procedure Symbol_New_Proc (Name : in Symbol_Name);
+   --  Return a pointer to the (terminal or nonterminal) symbol "x".
+   --  Create a new symbol if this is the first time "x" has been seen.
+
+   function Symbol_Find (Key : in Key_Type) return Symbol_Cursor; -- Symbol_Access;
+   function Symbol_Find (Key : in String) return Symbol_Cursor;
+   --  Return a pointer to data assigned to the given key.  Return NULL
+   --  if no such key.
+
+   function Symbol_Nth (Index : in Symbol_Index)
+                       return Symbol_Cursor; -- Symbol_Access;
+   --  Return the n-th data.  Return NULL if n is out of range.
+
+   function Symbol_Count return Symbol_Index;
+   --  Return the size of the array.
+
    procedure Symbol_Append (Key      : in Key_Type;
                             New_Item : in Symbol_Record);
    procedure Symbol_Append (Key      : in String);
 
-   --  function Symbol_New (Name : in String) return Symbol_Lists.Cursor;
-   --  function  Symbol_New (Name : in Symbol_Name) return Symbol_Access;
-   --   procedure Symbol_New_Proc (Name : in Symbol_Name);
-   --  Return a pointer to the (terminal or nonterminal) symbol "x".
-   --  Create a new symbol if this is the first time "x" has been seen.
+   --  struct symbol **Symbol_arrayof(void);
+   --     function Symbol_Array_Of return Symbol_Access_Array_Access;
 
-   function "<" (Left  : in Symbol_Record;
-                 Right : in Symbol_Record)
+   --  function Symbol_Array_Of return Symbol_Access_Array_Access;
+   procedure Symbol_Allocate (Count : in Ada.Containers.Count_Type);
+   --  Return an array of pointers to all data in the table.
+   --  The array is obtained from malloc.  Return NULL if memory allocation
+   --  problems, or if the array is empty.
+
+   function "<" (Left, Right  : in Symbol_Record)
                 return Boolean;
    --  Compare two symbols for sorting purposes.  Return negative,
    --  zero, or positive if a is less then, equal to, or greater
@@ -145,48 +177,13 @@ package Symbols is
    --  order (the order they appeared in the grammar file) gives the
    --  smallest parser tables in SQLite.
 
+   function Lime_Symbol_New
+     (Name : in Interfaces.C.Strings.chars_ptr)
+     return Symbol_Access;
 
-   procedure Symbol_Init;
-   --  Allocate a new associative array.
-
-   --  int Symbol_insert(struct symbol *, const char *);
-   --  procedure Symbol_Insert (Symbol : in Symbol_Record;
-   --                            Name   : in Symbol_Name);
-   --  Insert a new record into the array.  Return TRUE if successful.
-   --  Prior data with the same key is NOT overwritten
-
-
-   function Symbol_Find (Key : in Key_Type) return Symbol_Cursor; -- Symbol_Access;
-   function Symbol_Find (Key : in String) return Symbol_Cursor;
-   --  Return a pointer to data assigned to the given key.  Return NULL
-   --  if no such key.
-
-   function Symbol_Nth (Index : in Symbol_Index) return Symbol_Cursor; -- Symbol_Access;
-   --  Return the n-th data.  Return NULL if n is out of range.
-
-   function Symbol_Count return Symbol_Index;
-<<<<<<< HEAD
-   --  struct symbol **Symbol_arrayof(void);
-   function Symbol_Array_Of return Symbol_Access_Array_Access;
-
-private
-   pragma Import (C, Symbol_New,      "Symbol_new");
-   pragma Import (C, Symbol_New_Proc, "Symbol_new");
-   pragma Import (C, Symbol_Init,     "Symbol_init");
-   pragma Import (C, Symbol_Insert,   "Symbol_insert");
-   pragma Import (C, Symbol_Find,     "Symbol_find");
-   pragma Import (C, Symbol_Nth,      "Symbol_nth");
-   pragma Import (C, Symbol_Count,    "Symbol_count");
-   pragma Import (C, Symbol_Array_Of, "Symbol_arrayof");
-=======
-   --  Return the size of the array.
-
-   --  function Symbol_Array_Of return Symbol_Access_Array_Access;
-
-   procedure Symbol_Allocate (Count : in Ada.Containers.Count_Type);
-   --  Return an array of pointers to all data in the table.
-   --  The array is obtained from malloc.  Return NULL if memory allocation
-   --  problems, or if the array is empty.
+   function Lime_Symbol_Find
+     (Name : in Interfaces.C.Strings.chars_ptr)
+     return Symbol_Access;
 
 private
 
@@ -195,7 +192,15 @@ private
 
    type Cursor_Type;
    type Symbol_Cursor is access Cursor_Type;
->>>>>>> symbols
+
+--   pragma Import (C, Symbol_New,      "lime_symbol_new");
+   pragma Export (C, Lime_Symbol_New,  "lime_symbol_new");
+--     pragma Import (C, Symbol_Init,     "Symbol_init");
+--     pragma Import (C, Symbol_Insert,   "Symbol_insert");
+   pragma Export (C, Lime_Symbol_Find, "lime_symbol_find");
+--     pragma Import (C, Symbol_Nth,      "Symbol_nth");
+--     pragma Import (C, Symbol_Count,    "Symbol_count");
+--     pragma Import (C, Symbol_Array_Of, "Symbol_arrayof");
 
 end Symbols;
 

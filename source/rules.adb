@@ -7,6 +7,8 @@
 --    May you share freely, not taking more than you give.
 --
 
+with Interfaces.C.Strings;
+
 with Symbols;
 
 package body Rules is

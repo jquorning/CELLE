@@ -74,7 +74,7 @@ package body Symbols is
 
    function From_Key (Key : Key_Type) return Unbounded_String
    is
-      use Ada.Strings.Unbounded;
+--      use Ada.Strings.Unbounded;
    begin
       return Null_Unbounded_String;
    end From_Key;
@@ -216,15 +216,14 @@ package body Symbols is
          New_Item => Dummy_Element);
    end Symbol_Append;
 
---   function Symbol_New (Name : in String)
---                        return Symbol_Access
-
---     procedure Symbol_New_Proc (Name : in Symbol_Name)
---     is
---        Element : Symbol_Record;
---     begin
---        Symbol_Append (Name, Element);
---     end Symbol_New_Proc;
+   function Symbol_New (Name : in String)
+                       return Symbol_Cursor
+   is
+      Element : Symbol_Record;
+   begin
+      Symbol_Append (Name);
+      return null;
+   end Symbol_New;
 
 
 --     function "<" (Left, Right : in Symbol_Access)
@@ -373,6 +372,30 @@ package body Symbols is
    end Symbol_Allocate;
 
 
+   function Lime_Symbol_New
+     (Name : in Interfaces.C.Strings.chars_ptr)
+     return Symbol_Access
+   is
+      use Interfaces.C.Strings;
+      Cursor : Symbol_Cursor;
+      Symbol : Symbol_Access;
+   begin
+      Cursor := Symbol_New (Value (Name));
+      return Symbol;
+   end Lime_Symbol_New;
+
+
+   function Lime_Symbol_Find
+     (Name : in Interfaces.C.Strings.chars_ptr)
+     return Symbol_Access
+   is
+      use Interfaces.C.Strings;
+      Cursor : Symbol_Cursor;
+      Symbol : Symbol_Access;
+   begin
+      Cursor := Symbol_Find (Value (Name));
+      return Symbol;
+   end Lime_Symbol_Find;
 
 
 

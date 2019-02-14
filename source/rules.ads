@@ -9,7 +9,8 @@
 
 with Ada.Strings.Unbounded;
 
-with Interfaces.C.Strings;
+--  with Interfaces.C.Strings;
+with Interfaces.C;
 
 with System;
 
