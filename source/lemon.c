@@ -191,24 +191,6 @@ void Configlist_reset(void);
 /********* From the file "error.h" ***************************************/
 void ErrorMsg(const char *, int,const char *, ...);
 
-/****** From the file "option.h" ******************************************/
-/*
-enum option_type { OPT_FLAG=1,  OPT_INT,  OPT_DBL,  OPT_STR,
-         OPT_FFLAG, OPT_FINT, OPT_FDBL, OPT_FSTR};
-struct s_options {
-  enum option_type type;
-  const char *label;
-  char *arg;
-  const char *message;
-};
-
-int    OptInit(char**,struct s_options*,FILE*);
-int    OptNArgs(void);
-char  *OptArg(int);
-void   OptErr(int);
-void   OptPrint(void);
-*/
-
 /******** From the file "parse.h" *****************************************/
 void Parse(struct lemon *lemp);
 
@@ -250,21 +232,6 @@ const char *Strsafe(const char *);
 void Strsafe_init(void);
 int Strsafe_insert(const char *);
 const char *Strsafe_find(const char *);
-
-/*
-**
-** Routines for handling symbols of the grammar
-**
-*/
-/* struct symbol *Symbol_new(const char *); */
-/* void Symbol_new_proc(const char *); */
-/* int Symbolcmpp(const void *, const void *); */
-/* void Symbol_init(void); */
-/* int Symbol_insert(struct symbol *, const char *); */
-/* struct symbol *Symbol_find(const char *); */
-/* struct symbol *Symbol_Nth(int); */
-/* int Symbol_count(void); */
-/* struct symbol **Symbol_arrayof(void); */
 
 /* Routines to manage the state table */
 
@@ -599,13 +566,6 @@ int acttab_insert(acttab *p, int makeItSafe){
     }
   }
   /* Insert transaction set at index i. */
-#if 0
-  printf("Acttab:");
-  for(j=0; j<p->nLookahead; j++){
-    printf(" %d", p->aLookahead[j].lookahead);
-  }
-  printf(" inserted at %d\n", i);
-#endif
   for(j=0; j<p->nLookahead; j++){
     k = p->aLookahead[j].lookahead - p->mnLookahead + i;
     p->aAction[k] = p->aLookahead[j];
@@ -4192,36 +4152,6 @@ const char *lemon_generate_header_line_callback (int index)
   return lem.symbols [index]->name;
 }
 
-
-/*
-** Generate a header file for the parser
- */
-/*
-void ReportHeader(struct lemon *lemp)
-{
-  FILE *out, *in;
-  const char *prefix;
-  char line[LINESIZE];
-  char pattern[LINESIZE];
-  int i;
-  char*  base_name;
-
-  if (!lemon_mh_flag) return;
-
-  if (lemp->tokenprefix)  prefix = lemp->tokenprefix;
-  else                    prefix = "";
-
-  //
-  //  Generate parse.h.ads
-  //
-  base_name = file_makename(lemp, "");
-
-  lemon_lemp = lemp;
-  lime_generate_spec (base_name, prefix, "Module_XXX", 1, lemp->nterminal);
-  return;
-}
-*/
-
 /* Reduce the size of the action tables, if possible, by making use
 ** of defaults.
 **
@@ -4445,13 +4375,9 @@ void SetFree(char *s)
 */
 void lemon_compute_LR_states (struct lemon *lemp)
 {
-  printf ("### 3-1\n");
   lemp->nstate = 0;
-  printf ("### 3-2\n");
   lemon_find_states (lemp);
-  printf ("### 3-3\n");
   lemp->sorted = State_arrayof();
-  printf ("### 3-4\n");
 }
   
 
@@ -4634,208 +4560,6 @@ const char *Strsafe_find(const char *key)
   return np ? np->data : 0;
 }
 
-/* /\* Return a pointer to the (terminal or nonterminal) symbol "x". */
-/* ** Create a new symbol if this is the first time "x" has been seen. */
-/* *\/ */
-/* struct symbol *Symbol_new(const char *x) */
-/* { */
-/*   struct symbol *sp; */
-
-/*   sp = Symbol_find(x); */
-/*   if( sp==0 ){ */
-/*     sp = (struct symbol *)calloc(1, sizeof(struct symbol) ); */
-/*     MemoryCheck(sp); */
-/*     sp->name = Strsafe(x); */
-/*     sp->type = ISUPPER(*x) ? TERMINAL : NONTERMINAL; */
-/*     sp->rule = 0; */
-/*     sp->fallback = 0; */
-/*     sp->prec = -1; */
-/*     sp->assoc = UNK; */
-/*     sp->firstset = 0; */
-/*     sp->lambda = LEMON_FALSE; */
-/*     sp->destructor = 0; */
-/*     sp->destLineno = 0; */
-/*     sp->datatype = 0; */
-/*     sp->useCnt = 0; */
-/*     Symbol_insert(sp,sp->name); */
-/*   } */
-/*   sp->useCnt++; */
-/*   return sp; */
-/* } */
-
-/* /\* /\\* Compare two symbols for sorting purposes.  Return negative, *\/ */
-/* /\* ** zero, or positive if a is less then, equal to, or greater *\/ */
-/* /\* ** than b. *\/ */
-/* /\* ** *\/ */
-/* /\* ** Symbols that begin with upper case letters (terminals or tokens) *\/ */
-/* /\* ** must sort before symbols that begin with lower case letters *\/ */
-/* /\* ** (non-terminals).  And MULTITERMINAL symbols (created using the *\/ */
-/* /\* ** %token_class directive) must sort at the very end. Other than *\/ */
-/* /\* ** that, the order does not matter. *\/ */
-/* /\* ** *\/ */
-/* /\* ** We find experimentally that leaving the symbols in their original *\/ */
-/* /\* ** order (the order they appeared in the grammar file) gives the *\/ */
-/* /\* ** smallest parser tables in SQLite. *\/ */
-/* /\* *\\/ *\/ */
-/* /\* int Symbolcmpp(const void *_a, const void *_b) *\/ */
-/* /\* { *\/ */
-/* /\*   const struct symbol *a = *(const struct symbol **) _a; *\/ */
-/* /\*   const struct symbol *b = *(const struct symbol **) _b; *\/ */
-/* /\*   int i1 = a->type==MULTITERMINAL ? 3 : a->name[0]>'Z' ? 2 : 1; *\/ */
-/* /\*   int i2 = b->type==MULTITERMINAL ? 3 : b->name[0]>'Z' ? 2 : 1; *\/ */
-/* /\*   return i1==i2 ? a->index - b->index : i1 - i2; *\/ */
-/* /\* } *\/ */
-
-/* /\* There is one instance of the following structure for each */
-/* ** associative array of type "x2". */
-/* *\/ */
-/* struct s_x2 { */
-/*   int size;               /\* The number of available slots. *\/ */
-/*                           /\*   Must be a power of 2 greater than or *\/ */
-/*                           /\*   equal to 1 *\/ */
-/*   int count;              /\* Number of currently slots filled *\/ */
-/*   struct s_x2node *tbl;  /\* The data stored here *\/ */
-/*   struct s_x2node **ht;  /\* Hash table for lookups *\/ */
-/* }; */
-
-/* /\* There is one instance of this structure for every data element */
-/* ** in an associative array of type "x2". */
-/* *\/ */
-/* typedef struct s_x2node { */
-/*   struct symbol *data;     /\* The data *\/ */
-/*   const char *key;         /\* The key *\/ */
-/*   struct s_x2node *next;   /\* Next entry with the same hash *\/ */
-/*   struct s_x2node **from;  /\* Previous link *\/ */
-/* } x2node; */
-
-/* /\* There is only one instance of the array, which is the following *\/ */
-/* static struct s_x2 *x2a; */
-
-/* /\* Allocate a new associative array *\/ */
-/* void Symbol_init(void){ */
-/*   if( x2a ) return; */
-/*   x2a = (struct s_x2*)malloc( sizeof(struct s_x2) ); */
-/*   if( x2a ){ */
-/*     x2a->size = 128; */
-/*     x2a->count = 0; */
-/*     x2a->tbl = (x2node*)calloc(128, sizeof(x2node) + sizeof(x2node*)); */
-/*     if( x2a->tbl==0 ){ */
-/*       free(x2a); */
-/*       x2a = 0; */
-/*     }else{ */
-/*       int i; */
-/*       x2a->ht = (x2node**)&(x2a->tbl[128]); */
-/*       for(i=0; i<128; i++) x2a->ht[i] = 0; */
-/*     } */
-/*   } */
-/* } */
-/* /\* Insert a new record into the array.  Return TRUE if successful. */
-/* ** Prior data with the same key is NOT overwritten *\/ */
-/* int Symbol_insert(struct symbol *data, const char *key) */
-/* { */
-/*   x2node *np; */
-/*   unsigned h; */
-/*   unsigned ph; */
-
-/*   if( x2a==0 ) return 0; */
-/*   ph = strhash(key); */
-/*   h = ph & (x2a->size-1); */
-/*   np = x2a->ht[h]; */
-/*   while( np ){ */
-/*     if( strcmp(np->key,key)==0 ){ */
-/*       /\* An existing entry with the same key is found. *\/ */
-/*       /\* Fail because overwrite is not allows. *\/ */
-/*       return 0; */
-/*     } */
-/*     np = np->next; */
-/*   } */
-/*   if( x2a->count>=x2a->size ){ */
-/*     /\* Need to make the hash table bigger *\/ */
-/*     int i,arrSize; */
-/*     struct s_x2 array; */
-/*     array.size = arrSize = x2a->size*2; */
-/*     array.count = x2a->count; */
-/*     array.tbl = (x2node*)calloc(arrSize, sizeof(x2node) + sizeof(x2node*)); */
-/*     if( array.tbl==0 ) return 0;  /\* Fail due to malloc failure *\/ */
-/*     array.ht = (x2node**)&(array.tbl[arrSize]); */
-/*     for(i=0; i<arrSize; i++) array.ht[i] = 0; */
-/*     for(i=0; i<x2a->count; i++){ */
-/*       x2node *oldnp, *newnp; */
-/*       oldnp = &(x2a->tbl[i]); */
-/*       h = strhash(oldnp->key) & (arrSize-1); */
-/*       newnp = &(array.tbl[i]); */
-/*       if( array.ht[h] ) array.ht[h]->from = &(newnp->next); */
-/*       newnp->next = array.ht[h]; */
-/*       newnp->key = oldnp->key; */
-/*       newnp->data = oldnp->data; */
-/*       newnp->from = &(array.ht[h]); */
-/*       array.ht[h] = newnp; */
-/*     } */
-/*     free(x2a->tbl); */
-/*     *x2a = array; */
-/*   } */
-/*   /\* Insert the new data *\/ */
-/*   h = ph & (x2a->size-1); */
-/*   np = &(x2a->tbl[x2a->count++]); */
-/*   np->key = key; */
-/*   np->data = data; */
-/*   if( x2a->ht[h] ) x2a->ht[h]->from = &(np->next); */
-/*   np->next = x2a->ht[h]; */
-/*   x2a->ht[h] = np; */
-/*   np->from = &(x2a->ht[h]); */
-/*   return 1; */
-/* } */
-
-/* /\* Return a pointer to data assigned to the given key.  Return NULL */
-/* ** if no such key. *\/ */
-/* struct symbol *Symbol_find(const char *key) */
-/* { */
-/*   unsigned h; */
-/*   x2node *np; */
-
-/*   if( x2a==0 ) return 0; */
-/*   h = strhash(key) & (x2a->size-1); */
-/*   np = x2a->ht[h]; */
-/*   while( np ){ */
-/*     if( strcmp(np->key,key)==0 ) break; */
-/*     np = np->next; */
-/*   } */
-/*   return np ? np->data : 0; */
-/* } */
-
-/* /\* Return the n-th data.  Return NULL if n is out of range. *\/ */
-/* struct symbol *Symbol_Nth(int n) */
-/* { */
-/*   struct symbol *data; */
-/*   if( x2a && n>0 && n<=x2a->count ){ */
-/*     data = x2a->tbl[n-1].data; */
-/*   }else{ */
-/*     data = 0; */
-/*   } */
-/*   return data; */
-/* } */
-
-/* /\* Return the size of the array *\/ */
-/* int Symbol_count() */
-/* { */
-/*   return x2a ? x2a->count : 0; */
-/* } */
-
-/* /\* Return an array of pointers to all data in the table. */
-/* ** The array is obtained from malloc.  Return NULL if memory allocation */
-/* ** problems, or if the array is empty. *\/ */
-/* struct symbol **Symbol_arrayof() */
-/* { */
-/*   struct symbol **array; */
-/*   int i,arrSize; */
-/*   if( x2a==0 ) return 0; */
-/*   arrSize = x2a->count; */
-/*   array = (struct symbol **)calloc(arrSize, sizeof(struct symbol *)); */
-/*   if( array ){ */
-/*     for(i=0; i<arrSize; i++) array[i] = x2a->tbl[i].data; */
-/*   } */
-/*   return array; */
-/* } */
 
 /* Compare two configurations */
 int Configcmp(const char *_a,const char *_b)
