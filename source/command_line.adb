@@ -150,7 +150,7 @@ package body Command_Line is
          Success := False;
 
       when Exit_From_Command_Line =>
-         Ada.Text_IO.Put_Line ("EXIt_FROM_COMMAND_LINE");
+         Ada.Text_IO.Put_Line ("EXIT_FROM_COMMAND_LINE");
          Success := False;
 
    end Parse;
