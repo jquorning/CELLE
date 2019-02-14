@@ -13,51 +13,69 @@ with Ada.Containers;
 
 with Interfaces.C.Strings;
 
+with Setup;
+with Options;
 with Command_Line;
 with Database;
 with Lime;
---  with Extras;
 with Rules;
 with Symbols;
---  with Auxiliary;
 
 procedure Cherry_Program is
 
---   procedure Cherry_Main
---     (Lemon  : in out Lime.Lemon_Record;
---      Status :    out Ada.Command_Line.Exit_Status);
+   procedure Put_Help;
+   procedure Put_Version;
+
+   procedure Put_Help is
+   begin
+      null;
+   end Put_Help;
+
+   procedure Put_Version
+   is
+      use Ada.Text_IO, Setup;
+      Version : constant String := Get_Program_Name & " (" & Get_Program_Version & ")";
+      Build   : constant String := "Build (" & Get_Build_ISO8601_UTC & ")";
+   begin
+      Put_Line (Version);
+      Put_Line (Build);
+      New_Line;
+      Put_Line ("The author disclaims copyright to this source code.  In place of");
+      Put_Line ("a legal notice, here is a blessing:");
+      New_Line;
+      Put_Line ("   May you do good and not evil.");
+      Put_Line ("   May you find forgiveness for yourself and forgive others.");
+      Put_Line ("   May you share freely, not taking more than you give.");
+      New_Line;
+   end Put_Version;
 
    use Interfaces.C;
-
-
-
    use Ada.Command_Line;
-   use Command_Line;
-   Status      : Process_Result;
-   --  Main_Status : Exit_Status;
+
+   Parse_Success : Boolean;
 begin
-   Process_Command_Line (Status);
+   Command_Line.Parse (Parse_Success);
 
-   case Status is
+   if not Parse_Success then
+      Set_Exit_Status (Ada.Command_Line.Failure);
+      return;
+   end if;
 
-      when Command_Line.Success  =>
-         Set_Exit_Status (Ada.Command_Line.Success);
+   if Options.Show_Version then
+      Put_Version;
+      return;
+   end if;
 
-      when Command_Line.Failure  =>
-         Set_Exit_Status (Ada.Command_Line.Failure);
-         return;
+   if Options.Show_Help then
+      Put_Help;
+      return;
+   end if;
 
-      when Command_Line.Bailout  =>
-         Set_Exit_Status (Ada.Command_Line.Success);
-         return;
+   Options.Set_Language;
 
-   end case;
+   --  Make lemon copy of Ada option strings.
+   Lime.Make_Copy_Of_Ada_Option_Strings;
 
---   procedure Cherry_Main
---     (Lemon  : in out Lime.Lemon_Record;
-
-
-   --       is
    declare
       use Interfaces.C.Strings;
       use Ada.Text_IO;
@@ -81,10 +99,10 @@ begin
       Lime.Strsafe_Init;
       Symbols.Symbol_Init;
       Lime.State_Init;
-      Lemon.Argv0            := New_String (Lime.Option_Program_Name.all);
+      Lemon.Argv0            := New_String (Options.Program_Name.all);
       Lemon.File_Name        := Lemon_Input_File; --  New_String (Lime.Option_Input_File.all);
-      Lemon.Basis_Flag       := Boolean'Pos (Lime.Option_Basis_Flag);
-      Lemon.No_Line_Nos_Flag := Boolean'Pos (Lime.Option_No_Line_Nos);
+      Lemon.Basis_Flag       := Boolean'Pos (Options.Basis_Flag);
+      Lemon.No_Line_Nos_Flag := Boolean'Pos (Options.No_Line_Nos);
       --  Extras.Symbol_New_Proc (Extras.To_Name ("$"));
       Symbols.Symbol_Append (Key => "$");
 
@@ -212,7 +230,7 @@ begin
          --  Generate a reprint of the grammar, if requested on the command line.
       begin
 
-         if Option_RP_Flag then
+         if Options.RP_Flag then
             Reprint (Lemon);
          else
             Put_Line ("### 2-1");
@@ -250,7 +268,7 @@ begin
             Put_Line ("### 2-8");
 
             --  Compress the action tables
-            if not Option_Compress then
+            if not Options.Compress then
                Compress_Tables (Lemon);
             end if;
             Put_Line ("### 2-9");
@@ -258,13 +276,13 @@ begin
             --  Reorder and renumber the states so that states with fewer choices
             --  occur at the end.  This is an optimization that helps make the
             --  generated parser tables smaller.
-            if not Option_No_Resort then
+            if not Options.No_Resort then
                Resort_States (Lemon);
             end if;
             Put_Line ("### 2-10");
 
             --   Generate a report of the parser generated.  (the "y.output" file)
-            if not Option_Be_Quiet then
+            if not Options.Be_Quiet then
                Report_Output (Lemon);
             end if;
 
@@ -283,7 +301,7 @@ begin
          end if;
       end;
 
-      if Option_Statistics then
+      if Options.Statistics then
          declare
 
             procedure Stats_Line (Text : in String; Value : in Integer);

@@ -22,6 +22,7 @@ with Backend;
 with Text_Out;
 with Auxiliary;
 with Database;
+with Options;
 
 package body Lime is
 
@@ -59,9 +60,9 @@ package body Lime is
       Ada_Module    : constant String := Value (Module);
    begin
 
-      case Option_Language is
+      case Options.Language is
 
-         when Language_Ada =>
+         when Options.Language_Ada =>
             Generate_Ada.Generate_Spec
               (Context   => Context,
                Base_Name => Ada_Base_Name,
@@ -70,7 +71,7 @@ package body Lime is
                First     => First,
                Last      => Last);
 
-         when Language_C =>
+         when Options.Language_C =>
             Generate_C.Generate_Spec
               (Context   => Context,
                File_Name => Ada_Base_Name,
@@ -108,9 +109,11 @@ package body Lime is
       end;
    end Open_If_Possible;
 
-   function Default_Template_Name return String is
+   function Default_Template_Name return String
+   is
+      use Options;
    begin
-      case Option_Language is
+      case Language is
          when Language_Ada =>  return Setup.Default_Template_Ada;
          when Language_C   =>  return Setup.Default_Template_C;
       end case;
@@ -247,7 +250,7 @@ package body Lime is
    is
       use Text_Out;
    begin
-      if Option_MH_Flag then
+      if Options.MH_Flag then
          Put ("#include <");
          Put_CP (Include_Name);
          Put_Line (">;");
@@ -262,7 +265,7 @@ package body Lime is
       use Text_Out;
       Prefix : chars_ptr;
    begin
-      if Option_MH_Flag then
+      if Options.MH_Flag then
          --  const char *prefix; */
          Put_Line ("#if INTERFACE");
 --         Line_Number := Line_Number + 1;
@@ -662,7 +665,7 @@ package body Lime is
    is
       use Text_Out;
    begin
-      if Option_MH_Flag then
+      if Options.MH_Flag then
          Put_Line ("#if INTERFACE");
       end if;
 
@@ -672,7 +675,7 @@ package body Lime is
       Put_CP (Tokentype);
       New_Line;
 
-      if Option_MH_Flag then
+      if Options.MH_Flag then
          Put_Line ("#endif");
       end if;
    end Write_Interface;
@@ -682,7 +685,7 @@ package body Lime is
    is
       use Text_Out;
    begin
-      if Option_MH_Flag then
+      if Options.MH_Flag then
          Put_Line ("#if INTERFACE");
       end if;
    end Write_Interface_Begin;
@@ -692,7 +695,7 @@ package body Lime is
    is
       use Text_Out;
    begin
-      if Option_MH_Flag then
+      if Options.MH_Flag then
          Put_Line ("#endif");
       end if;
    end Write_Interface_End;
@@ -708,7 +711,7 @@ package body Lime is
       Prefix : chars_ptr := Token_Prefix;
    begin
 
-      if not Option_MH_Flag then
+      if not Options.MH_Flag then
          return;
       end if;
 
@@ -732,7 +735,7 @@ package body Lime is
    is
       use Ada.Text_IO;
    begin
-      if Option_RP_Flag then
+      if Options.RP_Flag then
          Reprint (Lemon_Lemp);
       else
          Put_Line ("### 2-1");
@@ -764,19 +767,19 @@ package body Lime is
          Find_Actions (Lemon_Lemp);
          Put_Line ("### 2-8");
          --  Compress the action tables
-         if not Option_Compress then
+         if not Options.Compress then
             Compress_Tables (Lemon_Lemp);
          end if;
          Put_Line ("### 2-9");
          --  Reorder and renumber the states so that states with fewer choices
          --  occur at the end.  This is an optimization that helps make the
          --  generated parser tables smaller.
-         if not Option_No_Resort then
+         if not Options.No_Resort then
             Resort_States (Lemon_Lemp);
          end if;
          Put_Line ("### 2-10");
          --   Generate a report of the parser generated.  (the "y.output" file)
-         if not Option_Be_Quiet then
+         if not Options.Be_Quiet then
             Report_Output (Lemon_Lemp);
          end if;
 
@@ -794,10 +797,22 @@ package body Lime is
       end if;
    end Generate_Reprint_Of_Grammar;
 
+
+   procedure Make_Copy_Of_Ada_Option_Strings
+   is
+   begin
+      Lemon_Program_Name  := New_String (Options.Program_Name.all);
+      Lemon_Input_File    := New_String (Options.Input_File.all);
+      Lemon_User_Template := New_String (Options.User_Template.all);
+      Lemon_Output_Dir    := New_String (Options.Output_Dir.all);
+   end Make_Copy_Of_Ada_Option_Strings;
+
+
    procedure Lime_Partial_Database_Dump_Ada is
       use Database;
    begin
       Dump (Lime_Lemp);
    end Lime_Partial_Database_Dump_Ada;
+
 
 end Lime;

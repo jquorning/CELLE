@@ -17,42 +17,16 @@ with Ada.Text_IO;
 with Interfaces.C;
 with Interfaces.C.Strings;
 
-with GNAT.Strings;
-
 with Rules;
 with Symbols;
---  with Extras;
 
 package Lime is
-
-   Option_Show_Conflict : aliased Boolean;
-   Option_Show_Version  : aliased Boolean;
-   Option_RP_Flag       : aliased Boolean;
-   Option_Basis_Flag    : aliased Boolean;
-   Option_Compress      : aliased Boolean;
-   Option_Be_Quiet      : aliased Boolean;
-   Option_Statistics    : aliased Boolean;
-   Option_MH_Flag       : aliased Boolean;
-   Option_No_Line_Nos   : aliased Boolean;
-   Option_No_Resort     : aliased Boolean;
-   Option_Show_Help     : aliased Boolean;
-
-   use GNAT.Strings;
-   Option_Program_Name  : aliased String_Access := new String'("");
-   Option_Input_File    : aliased String_Access := new String'("parse.y");
-   Option_User_Template : aliased String_Access := new String'("");
-   Option_Output_Dir    : aliased String_Access := new String'(".");
 
    use Interfaces.C.Strings;
    Lemon_Program_Name  : aliased chars_ptr := New_String ("");
    Lemon_Input_File    : aliased chars_ptr := New_String ("");
    Lemon_User_Template : aliased chars_ptr := New_String ("");
    Lemon_Output_Dir    : aliased chars_ptr := New_String ("");
-
-   type Language_Type is (Language_Ada, Language_C);
-
-   Option_Language : Language_Type := Language_C;
-
 
    --********* From the file "struct.h" ************************************
    --** Principal data structures for the LEMON parser generator.
@@ -552,20 +526,12 @@ package Lime is
    function Rule_Sort (Rule : in Rules.Rule_Access)
                       return Rules.Rule_Access;
 
+   procedure Make_Copy_Of_Ada_Option_Strings;
+
    procedure Lime_Partial_Database_Dump_Ada;
    procedure Lime_Partial_Database_Dump_C;
 
 private
-
-   --  Option integers
-   pragma Export (C, Option_Show_Conflict, "lemon_show_conflict");
-   pragma Export (C, Option_Show_Version,  "lemon_show_version");
-   pragma Export (C, Option_Basis_Flag,    "lemon_basis_flag");
-   pragma Export (C, Option_Compress,      "lemon_compress");
-   pragma Export (C, Option_Be_Quiet,      "lemon_be_quiet");
-   pragma Export (C, Option_Statistics,    "lemon_statistics");
-   pragma Export (C, Option_No_Line_Nos,   "lemon_no_line_nos");
-   pragma Export (C, Option_No_Resort,     "lemon_no_resort");
 
    --  Option strings has char* brother
    pragma Export (C, Lemon_Program_Name,  "lemon_program_name");
