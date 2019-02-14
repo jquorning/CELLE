@@ -13,9 +13,7 @@
 project Cherry is
 
   for Languages    use ("Ada", "C");
-  for Source_Dirs  use
-    ("source/",
-     "source-var/");
+  for Source_Dirs  use ("source/");
   for Object_Dir   use ".object/";
   for Exec_Dir     use "binary/";
   for Main         use ("cherry_program.adb");

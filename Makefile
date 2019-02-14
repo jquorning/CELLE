@@ -13,3 +13,5 @@ build:
 clean:
 	gprclean -q cherry.gpr
 
+setup:
+	tools/create-setup-adb.sh

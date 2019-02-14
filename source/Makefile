@@ -7,7 +7,7 @@
 ##    May you share freely, not taking more than you give.
 ##
 
-all:
+build:
 	cd ..; make build
 
 clean:
