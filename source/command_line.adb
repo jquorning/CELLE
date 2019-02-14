@@ -135,7 +135,7 @@ package body Command_Line is
       elsif File_Count = 1 then
          Success := True;
       else
-         raise Exit_From_Command_Line
+         raise Parameter_Error
            with "Error: Exactly one source file must be givven.";
       end if;
 
@@ -149,9 +149,9 @@ package body Command_Line is
          Ada.Text_IO.Put_Line ("INVALID_PARAMETER");
          Success := False;
 
-      when Exit_From_Command_Line =>
-         Ada.Text_IO.Put_Line ("EXIT_FROM_COMMAND_LINE");
-         Success := False;
+--      when Exit_From_Command_Line =>
+--         Ada.Text_IO.Put_Line ("EXIT_FROM_COMMAND_LINE");
+--         Success := False;
 
    end Parse;
 

@@ -9,6 +9,8 @@
 
 package Command_Line is
 
+   Parameter_Error : exception;
+
    procedure Parse
      (Success : out Boolean);
    --  Parse command line setting variables.

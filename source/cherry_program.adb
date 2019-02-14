@@ -20,6 +20,7 @@ with Database;
 with Lime;
 with Rules;
 with Symbols;
+with Exceptions;
 
 procedure Cherry_Program is
 
@@ -344,5 +345,11 @@ begin
       end if;
    end;
    Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Success);
+
+exception
+
+   when OCC : Command_Line.Parameter_Error =>
+      Exceptions.Put_Message (OCC);
+
 
 end Cherry_Program;
