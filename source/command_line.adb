@@ -115,7 +115,7 @@ package body Command_Line is
                      Help => "Specify a template file.",
                      Long_Switch => Long_Switch_Template_File & '=',
                      Argument    => "FILE");
-      Define_Switch (Config, Options.Show_Version'Access, "-v",
+      Define_Switch (Config, Options.Show_Version'Access,
                      Help        => "Show program name and version.",
                      Long_Switch => Long_Switch_Show_Version);
       Define_Switch (Config, Options.Placeholder_Dummy'Access, "-W=",
