@@ -22,6 +22,7 @@
 
 #include "lemon.h"   /* Binding to C from Ada */
 #include "lime.h"    /* Binding to Ada from C */
+#include "cherry.h"
 
 #define ISSPACE(X) isspace((unsigned char)(X))
 #define ISDIGIT(X) isdigit((unsigned char)(X))
@@ -914,12 +915,8 @@ void lemon_find_actions(struct lemon *lemp)
   }
 
   /* Add the accepting token */
-  if( lemp->start ){
-    sp = lime_symbol_find(lemp->start);
-    if( sp==0 ) sp = lemp->startRule->lhs;
-  }else{
-    sp = lemp->startRule->lhs;
-  }
+  cherry_add_the_accepting_token (lemp, sp);
+
   /* Add to the first state (which is always the starting state of the
   ** finite state machine) an action to ACCEPT if the lookahead is the
   ** start nonterminal.  */

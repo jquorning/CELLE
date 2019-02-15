@@ -9,7 +9,6 @@
 
 with Interfaces.C.Strings;
 
-with Symbols;
 with Rules;
 with Errors;
 with Lemon_Bind;
@@ -81,5 +80,24 @@ package body Cherry is
       Get_State (Lemp);
 
    end Find_States;
+
+
+   procedure Add_The_Accepting_Token
+     (Lemp : in out Lime.Lemon_Record;
+      SP   : in out Symbols.Symbol_Access)
+   is
+      use Interfaces.C.Strings;
+      use Symbols;
+   begin
+      if Lemp.Start /= Null_Ptr then
+         SP := Lime_Symbol_Find (Lemp.Start);
+         if SP = null then
+            SP := Symbol_Access (Lemp.Start_Rule.LHS);
+         end if;
+      else
+         SP := Symbol_Access (Lemp.Start_Rule.LHS);
+      end if;
+   end Add_The_Accepting_Token;
+
 
 end Cherry;

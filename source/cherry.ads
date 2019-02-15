@@ -8,6 +8,7 @@
 --
 
 with Lime;
+with Symbols;
 
 package Cherry is
 
@@ -18,8 +19,15 @@ package Cherry is
    --  between some states so that the LR(1) follow sets can be
    --  computed later.
 
+   procedure Add_The_Accepting_Token
+     (Lemp : in out Lime.Lemon_Record;
+      SP   : in out Symbols.Symbol_Access);
+   --  Add the accepting Token.
+
 private
 
    pragma Export (C, Find_States, "lime_find_states");
+   pragma Export (C, Add_The_Accepting_Token,
+                  "cherry_add_the_accepting_token");
 
 end Cherry;
