@@ -9,22 +9,9 @@
 
 with Ada.Text_IO;
 
+with Auxiliary.Errors;
+
 package body Errors is
-
-
-   procedure Error (File_Name   : in String;
-                    Line_Number : in Natural;
-                    Message     : in String)
-   is
-      use Ada.Text_IO;
-   begin
-      Put (Standard_Error, File_Name);
-      Put (Standard_Error, ":");
-      Put (Standard_Error, Natural'Image (Line_Number));
-      Put (Standard_Error, ": ");
-      Put (Standard_Error, Message);
-      New_Line (Standard_Error);
-   end Error;
 
 
    procedure Error_1 (File_Name : in String;
@@ -32,7 +19,7 @@ package body Errors is
                       Name      : in String)
    is
    begin
-      Error
+      Auxiliary.Errors.Error
         (File_Name, 0,
          "The specified start symbol '" & Start &
            "' is not in a nonterminal of the grammar.  '" &
@@ -45,7 +32,7 @@ package body Errors is
                       Name        : in String)
    is
    begin
-      Error
+      Auxiliary.Errors.Error
         (File_Name, 0,
          "The start symbol '" & Name & "' occurs on " &
            "the right-hand side of a rule. This will " &

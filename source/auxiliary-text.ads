@@ -7,15 +7,14 @@
 --    May you share freely, not taking more than you give.
 --
 
-package Errors is
+with Ada.Strings;
 
+package Auxiliary.Text is
 
-   procedure Error_1 (File_Name : in String;
-                      Start     : in String;
-                      Name      : in String);
+   procedure Trim
+     (Item  : in     String;
+      First : in out Natural;
+      Last  : in out Natural;
+      Side  : in     Ada.Strings.Trim_End);
 
-
-   procedure Error_2 (File_Name : in String;
-                      Name      : in String);
-
-end Errors;
+end Auxiliary.Text;

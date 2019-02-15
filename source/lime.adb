@@ -811,7 +811,7 @@ package body Lime is
    procedure Lime_Partial_Database_Dump_Ada is
       use Database;
    begin
-      Dump (Lime_Lemp);
+      Dump (Lemon);
    end Lime_Partial_Database_Dump_Ada;
 
 

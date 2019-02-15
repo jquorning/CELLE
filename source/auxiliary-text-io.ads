@@ -7,15 +7,10 @@
 --    May you share freely, not taking more than you give.
 --
 
-package Errors is
+package Auxiliary.Text.IO is
 
+   Line_Number : Natural := Natural'First;
 
-   procedure Error_1 (File_Name : in String;
-                      Start     : in String;
-                      Name      : in String);
+   function Line_Get (File : File_Type) return String;
 
-
-   procedure Error_2 (File_Name : in String;
-                      Name      : in String);
-
-end Errors;
+end Auxiliary.Text.IO;

@@ -7,15 +7,10 @@
 --    May you share freely, not taking more than you give.
 --
 
-package Errors is
+package Auxiliary.Text.Utility is
 
+   procedure Strip_End_Of_Line (From  : in     String;
+                                Strip : in     String  := "--";
+                                Last  : in out Natural);
 
-   procedure Error_1 (File_Name : in String;
-                      Start     : in String;
-                      Name      : in String);
-
-
-   procedure Error_2 (File_Name : in String;
-                      Name      : in String);
-
-end Errors;
+end Auxiliary.Text.Utility;

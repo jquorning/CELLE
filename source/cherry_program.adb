@@ -21,6 +21,7 @@ with Lime;
 with Cherry;
 with Rules;
 with Symbols;
+with Parser;
 with Exceptions;
 
 procedure Cherry_Program is
@@ -85,7 +86,7 @@ begin
       use Symbols;
       use Rules;
 
-      Lemon  : Lime.Lemon_Record renames Database.Lime_Lemp;
+      Lemon : Lime.Lemon_Record renames Database.Lemon;
       --  Status : Ada.Command_Line.Exit_Status;
 
       --  Success : Ada.Command_Line.Exit_Status renames Ada.Command_Line.Success;
@@ -120,7 +121,7 @@ begin
       Put_Line ("Lemon_Input_File: " & Value (Lemon_Input_File));
 
       --  Parse the input file
-      Lime.Parse (Lemon);
+      Parser.Parse (Lemon'Access);
 
       if Lemon.Error_Cnt /= 0 then
          --  Status := Failure;

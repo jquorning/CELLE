@@ -198,14 +198,18 @@ private
    type Cursor_Type;
    type Symbol_Cursor is access Cursor_Type;
 
---   pragma Import (C, Symbol_New,      "lime_symbol_new");
-   pragma Export (C, Lime_Symbol_New,  "lime_symbol_new");
---     pragma Import (C, Symbol_Init,     "Symbol_init");
---     pragma Import (C, Symbol_Insert,   "Symbol_insert");
-   pragma Export (C, Lime_Symbol_Find, "lime_symbol_find");
---     pragma Import (C, Symbol_Nth,      "Symbol_nth");
---     pragma Import (C, Symbol_Count,    "Symbol_count");
---     pragma Import (C, Symbol_Array_Of, "Symbol_arrayof");
+   --   pragma Import (C, Symbol_New,      "lime_symbol_new");
+
+--   pragma Export (C, Lime_Symbol_New,  "lime_symbol_new");
+
+   --     pragma Import (C, Symbol_Init,     "Symbol_init");
+   --     pragma Import (C, Symbol_Insert,   "Symbol_insert");
+
+--   pragma Export (C, Lime_Symbol_Find, "lime_symbol_find");
+
+   --     pragma Import (C, Symbol_Nth,      "Symbol_nth");
+   --     pragma Import (C, Symbol_Count,    "Symbol_count");
+   --     pragma Import (C, Symbol_Array_Of, "Symbol_arrayof");
 
 end Symbols;
 

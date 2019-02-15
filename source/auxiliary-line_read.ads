@@ -7,15 +7,14 @@
 --    May you share freely, not taking more than you give.
 --
 
-package Errors is
+with Ada.Text_IO;
 
+package Auxiliary.Line_Read is
 
-   procedure Error_1 (File_Name : in String;
-                      Start     : in String;
-                      Name      : in String);
+   Line_Number   : Natural  := 0;
 
+   function Line_Get (File : File_Type)
+                     return String;
+   --
 
-   procedure Error_2 (File_Name : in String;
-                      Name      : in String);
-
-end Errors;
+end Auxiliary.Line_Read;
