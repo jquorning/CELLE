@@ -65,15 +65,15 @@ package body Parser is
 --    int nrhs;                  --  Number of right-hand side symbols seen
 --    struct symbol *rhs[MAXRHS];  --  RHS symbols
 --    const char *alias[MAXRHS]; --  Aliases for each RHS symbol (or NULL)
---    struct rule *prevrule;     --  Previous rule parsed
+         Prev_Rule : access Rules.Rule_Record;     --  Previous rule parsed
 --    const char *declkeyword;   --  Keyword of a declaration
 --    char **declargslot;        --  Where the declaration argument should be put
 --    int insertLineMacro;       --  Add #line before declaration insert
 --    int *decllinenoslot;       --  Where to write declaration line number
 --    enum e_assoc declassoc;    --  Assign this association to decl arguments
---    int preccounter;           --  Assign this precedence to decl arguments
-         First_Rule : access Rules.Rule_Record;    --  Pointer to first rule in the grammar
---    struct rule *lastrule;     --  Pointer to the most recently parsed rule
+         Prec_Counter : Integer;           --  Assign this precedence to decl arguments
+         First_Rule   : access Rules.Rule_Record; --  Pointer to first rule in the grammar
+         Last_Rule    : access Rules.Rule_Record; --  Pointer to the most recently parsed rule
       end record;
 
    procedure Preprocess_Input (File_Name : in     String;
@@ -84,7 +84,7 @@ package body Parser is
    --  and "%ifndef" and "%endif" and comments them out.  Text in
    --  between is also commented out as appropriate.
 
-   procedure Parse_One_Token (Psp : in out Pstate_Record);
+   procedure Parse_One_Token (PSP : in out Pstate_Record);
    --  Parse a single Token.
 
    procedure Preprocess_Input (File_Name : in     String;
@@ -354,8 +354,19 @@ package body Parser is
 
    end Parse;
 
-   procedure Parse_One_Token (Psp : in out Pstate_Record)
+   procedure Parse_One_Token (PSP : in out Pstate_Record)
    is
+      procedure Do_Initialize;
+
+      procedure Do_Initialize is
+      begin
+         PSP.Prev_Rule    := null;
+         PSP.Prec_Counter := 0;
+         PSP.First_Rule   := null;
+         PSP.Last_Rule    := null;
+         PSP.GP.N_Rule    := 0;
+      end Do_Initialize;
+
    begin
 
 --  {
@@ -365,14 +376,13 @@ package body Parser is
 --    printf("%s:%d: Token=[%s] state=%d\n",psp->filename,psp->tokenlineno,
 --      x,psp->state);
 --  #endif
---    switch( psp->state ){
---      case INITIALIZE:
---        psp->prevrule = 0;
---        psp->preccounter = 0;
---        psp->firstrule = psp->lastrule = 0;
---        psp->gp->nrule = 0;
---        /* Fall thru to next case */
---      case WAITING_FOR_DECL_OR_RULE:
+      case PSP.State is
+
+         when INITIALIZE =>
+            Do_Initialize;
+
+         when WAITING_FOR_DECL_OR_RULE =>
+            Do_Initialize;
 --        if( x[0]=='%' ){
 --          psp->state = WAITING_FOR_DECL_KEYWORD;
 --        }else if( ISLOWER(x[0]) ){
@@ -404,8 +414,9 @@ package body Parser is
 --            x);
 --          psp->errorcnt++;
 --        }
---        break;
---      case PRECEDENCE_MARK_1:
+            null;
+
+         when PRECEDENCE_MARK_1 =>
 --        if( !ISUPPER(x[0]) ){
 --          ErrorMsg(psp->filename,psp->tokenlineno,
 --            "The precedence symbol must be a terminal.");
@@ -423,16 +434,18 @@ package body Parser is
 --          psp->prevrule->precsym = lime_symbol_new(x);
 --        }
 --        psp->state = PRECEDENCE_MARK_2;
---        break;
---      case PRECEDENCE_MARK_2:
+            null;
+
+         when PRECEDENCE_MARK_2 =>
 --        if( x[0]!=']' ){
 --          ErrorMsg(psp->filename,psp->tokenlineno,
 --            "Missing \"]\" on precedence mark.");
 --          psp->errorcnt++;
 --        }
 --        psp->state = WAITING_FOR_DECL_OR_RULE;
---        break;
---      case WAITING_FOR_ARROW:
+            null;
+
+         when WAITING_FOR_ARROW =>
 --        if( x[0]==':' && x[1]==':' && x[2]=='=' ){
 --          psp->state = IN_RHS;
 --        }else if( x[0]=='(' ){
@@ -444,8 +457,9 @@ package body Parser is
 --          psp->errorcnt++;
 --          psp->state = RESYNC_AFTER_RULE_ERROR;
 --        }
---        break;
---      case LHS_ALIAS_1:
+            null;
+
+         when LHS_ALIAS_1 =>
 --        if( ISALPHA(x[0]) ){
 --          psp->lhsalias = x;
 --          psp->state = LHS_ALIAS_2;
@@ -456,8 +470,9 @@ package body Parser is
 --          psp->errorcnt++;
 --          psp->state = RESYNC_AFTER_RULE_ERROR;
 --        }
---        break;
---      case LHS_ALIAS_2:
+            null;
+
+         when LHS_ALIAS_2 =>
 --        if( x[0]==')' ){
 --          psp->state = LHS_ALIAS_3;
 --        }else{
@@ -466,8 +481,9 @@ package body Parser is
 --          psp->errorcnt++;
 --          psp->state = RESYNC_AFTER_RULE_ERROR;
 --        }
---        break;
---      case LHS_ALIAS_3:
+            null;
+
+         when LHS_ALIAS_3 =>
 --        if( x[0]==':' && x[1]==':' && x[2]=='=' ){
 --          psp->state = IN_RHS;
 --        }else{
@@ -477,8 +493,8 @@ package body Parser is
 --          psp->errorcnt++;
 --          psp->state = RESYNC_AFTER_RULE_ERROR;
 --        }
---        break;
---      case IN_RHS:
+            null;
+         when IN_RHS =>
 --        if( x[0]=='.' ){
 --          struct rule *rp;
 --          rp = (struct rule *)calloc( sizeof(struct rule) +
@@ -559,8 +575,8 @@ package body Parser is
 --          psp->errorcnt++;
 --          psp->state = RESYNC_AFTER_RULE_ERROR;
 --        }
---        break;
---      case RHS_ALIAS_1:
+            null;
+         when RHS_ALIAS_1 =>
 --        if( ISALPHA(x[0]) ){
 --          psp->alias[psp->nrhs-1] = x;
 --          psp->state = RHS_ALIAS_2;
@@ -571,8 +587,8 @@ package body Parser is
 --          psp->errorcnt++;
 --          psp->state = RESYNC_AFTER_RULE_ERROR;
 --        }
---        break;
---      case RHS_ALIAS_2:
+            null;
+         when RHS_ALIAS_2 =>
 --        if( x[0]==')' ){
 --          psp->state = IN_RHS;
 --        }else{
@@ -581,8 +597,8 @@ package body Parser is
 --          psp->errorcnt++;
 --          psp->state = RESYNC_AFTER_RULE_ERROR;
 --        }
---        break;
---      case WAITING_FOR_DECL_KEYWORD:
+            null;
+         when WAITING_FOR_DECL_KEYWORD =>
 --        if( ISALPHA(x[0]) ){
 --          psp->declkeyword = x;
 --          psp->declargslot = 0;
@@ -666,8 +682,9 @@ package body Parser is
 --          psp->errorcnt++;
 --          psp->state = RESYNC_AFTER_DECL_ERROR;
 --        }
---        break;
---      case WAITING_FOR_DESTRUCTOR_SYMBOL:
+            null;
+
+         when WAITING_FOR_DESTRUCTOR_SYMBOL =>
 --        if( !ISALPHA(x[0]) ){
 --          ErrorMsg(psp->filename,psp->tokenlineno,
 --            "Symbol name missing after %%destructor keyword");
@@ -680,8 +697,8 @@ package body Parser is
 --          psp->insertLineMacro = 1;
 --          psp->state = WAITING_FOR_DECL_ARG;
 --        }
---        break;
---      case WAITING_FOR_DATATYPE_SYMBOL:
+            null;
+         when WAITING_FOR_DATATYPE_SYMBOL =>
 --        if( !ISALPHA(x[0]) ){
 --          ErrorMsg(psp->filename,psp->tokenlineno,
 --            "Symbol name missing after %%type keyword");
@@ -703,8 +720,8 @@ package body Parser is
 --            psp->state = WAITING_FOR_DECL_ARG;
 --          }
 --        }
---        break;
---      case WAITING_FOR_PRECEDENCE_SYMBOL:
+            null;
+         when WAITING_FOR_PRECEDENCE_SYMBOL =>
 --        if( x[0]=='.' ){
 --          psp->state = WAITING_FOR_DECL_OR_RULE;
 --        }else if( ISUPPER(x[0]) ){
@@ -723,8 +740,8 @@ package body Parser is
 --            "Can't assign a precedence to \"%s\".",x);
 --          psp->errorcnt++;
 --        }
---        break;
---      case WAITING_FOR_DECL_ARG:
+            null;
+         when WAITING_FOR_DECL_ARG =>
 --        if( x[0]=='{' || x[0]=='\"' || ISALNUM(x[0]) ){
 --          const char *zOld, *zNew;
 --          char *zBuf, *z;
@@ -782,8 +799,8 @@ package body Parser is
 --          psp->errorcnt++;
 --          psp->state = RESYNC_AFTER_DECL_ERROR;
 --        }
---        break;
---      case WAITING_FOR_FALLBACK_ID:
+            null;
+         when WAITING_FOR_FALLBACK_ID =>
 --        if( x[0]=='.' ){
 --          psp->state = WAITING_FOR_DECL_OR_RULE;
 --        }else if( !ISUPPER(x[0]) ){
@@ -803,8 +820,8 @@ package body Parser is
 --            psp->gp->has_fallback = 1;
 --          }
 --        }
---        break;
---      case WAITING_FOR_TOKEN_NAME:
+            null;
+         when WAITING_FOR_TOKEN_NAME =>
 --        /* Tokens do not have to be declared before use.  But they can be
 --        ** in order to control their assigned integer number.  The number for
 --        ** each token is assigned when it is first seen.  So by including
@@ -823,8 +840,8 @@ package body Parser is
 --        }else{
 --          (void)lime_symbol_new(x);
 --        }
---        break;
---      case WAITING_FOR_WILDCARD_ID:
+            null;
+         when WAITING_FOR_WILDCARD_ID =>
 --        if( x[0]=='.' ){
 --          psp->state = WAITING_FOR_DECL_OR_RULE;
 --        }else if( !ISUPPER(x[0]) ){
@@ -841,8 +858,8 @@ package body Parser is
 --            psp->errorcnt++;
 --          }
 --        }
---        break;
---      case WAITING_FOR_CLASS_ID:
+            null;
+         when WAITING_FOR_CLASS_ID =>
 --        if( !ISLOWER(x[0]) ){
 --          ErrorMsg(psp->filename, psp->tokenlineno,
 --            "%%token_class must be followed by an identifier: ", x);
@@ -858,8 +875,8 @@ package body Parser is
 --          psp->tkclass->type = MULTITERMINAL;
 --          psp->state = WAITING_FOR_CLASS_TOKEN;
 --        }
---        break;
---      case WAITING_FOR_CLASS_TOKEN:
+            null;
+         when WAITING_FOR_CLASS_TOKEN =>
 --        if( x[0]=='.' ){
 --          psp->state = WAITING_FOR_DECL_OR_RULE;
 --        }else if( ISUPPER(x[0]) || ((x[0]=='|' || x[0]=='/') && ISUPPER(x[1])) ){
@@ -875,16 +892,18 @@ package body Parser is
 --          psp->errorcnt++;
 --          psp->state = RESYNC_AFTER_DECL_ERROR;
 --        }
---        break;
---      case RESYNC_AFTER_RULE_ERROR:
+            null;
+         when RESYNC_AFTER_RULE_ERROR =>
 --  /*      if( x[0]=='.' ) psp->state = WAITING_FOR_DECL_OR_RULE;
 --  **      break; */
---      case RESYNC_AFTER_DECL_ERROR:
+            null;
+
+         when RESYNC_AFTER_DECL_ERROR =>
 --        if( x[0]=='.' ) psp->state = WAITING_FOR_DECL_OR_RULE;
 --        if( x[0]=='%' ) psp->state = WAITING_FOR_DECL_KEYWORD;
---        break;
---    }
-      null;
+            null;
+      end case;
+
    end Parse_One_Token;
 
 
