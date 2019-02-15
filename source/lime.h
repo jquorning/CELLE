@@ -183,7 +183,6 @@ void
 lime_template_print
 (const char  *line,
  int          no_line_nos,
- // int          line_number,
  const char  *out_name);
 //
 //
@@ -208,10 +207,6 @@ lime_close_in (void);
 //
 //
 
-//int
-//lime_get_mh_flag (void);
-//
-//
 
 void
 lime_write_interface
@@ -238,24 +233,6 @@ void lime_generate_reprint_of_grammar (void);
 //
 //
 
-/*
-void
-lime_set_out_name (const char  *name);
-*/
-//
-//
-
- /*
-const char*
-lime_get_out_name (void);
- */
-//
-//
-
-//void
-//lime_power_on_self_test (void);
-//
-//
 void
 lime_partial_database_dump_ada (void);
 //
