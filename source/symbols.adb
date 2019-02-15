@@ -114,10 +114,16 @@ package body Symbols is
 
    function To_Key (Item : in String) return Key_Type
    is
---      use Ada.Strings.Unbounded;
    begin
       return To_Unbounded_String (Item);
    end To_Key;
+
+
+   function From_Key (Key : in Key_Type) return String
+   is
+   begin
+      return To_String (Key);
+   end From_Key;
 
 
    procedure Set_Error is

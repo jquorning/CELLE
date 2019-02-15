@@ -9,47 +9,53 @@
 
 with Ada.Strings.Unbounded;
 
---  with Interfaces.C.Strings;
 with Interfaces.C;
 
 with System;
+limited with Symbols;
 
 package Rules is
 
    use Interfaces.C;
 
 --   type Symbol_Proxy_Record is private;
-   type Symbol_Proxy_Access is private;
+--   type Symbol_Proxy_Access is private;
 
    type Rule_Record;
-   type Rule_Access is access all Rule_Record;
+   type Rule_1_Access is access all Rule_Record;
 
    --  Left-hand side of the rule
    use Ada.Strings.Unbounded;
+
+   type RHS_Array_Access is access all Symbols.Symbol_Access_Array;
+
    type Rule_Record is
       record
-         LHS          : Symbol_Proxy_Access;  -- lemon.h:97
+         LHS          : access Symbols.Symbol_Record;  -- lemon.h:97
          LHS_Alias    : Unbounded_String;
          LHS_Start    : Integer;  -- lemon.h:99
          Rule_Line    : Integer;  -- lemon.h:100
-         N_RHS        : Integer;  -- lemon.h:101
-         RHS          : System.Address;  -- lemon.h:102
+--         N_RHS        : Integer;  -- lemon.h:101
+--         RHS          : System.Address;  -- lemon.h:102
+         RHS          : RHS_Array_Access;
          RHS_Alias    : System.Address;  -- lemon.h:103
          Line         : Integer;  -- lemon.h:104
-         Code         : Unbounded_String; --  Interfaces.C.Strings.chars_ptr;  -- lemon.h:105
+         Code         : Unbounded_String;  -- lemon.h:105
          Code_Prefix  : Unbounded_String;
          Code_Suffix  : Unbounded_String;
          No_Code      : Integer;  -- lemon.h:108
          Code_Emitted : Integer;  -- lemon.h:109
-         Prec_Sym     : Symbol_Proxy_Access;
+         Prec_Sym     : access Symbols.Symbol_Record;
          Index        : Integer;
          Rule         : Integer;
          Can_Reduce   : Boolean;
          Does_Reduce  : Boolean;
-         Next_LHS     : Rule_Access;  -- lemon.h:115
-         Next         : Rule_Access;  -- lemon.h:116
+         Next_LHS     : access Rule_Record;  -- lemon.h:115
+         Next         : access Rule_Record;  -- lemon.h:116
       end record;
   --   pragma Convention (C_Pass_By_Copy, Rule_Record);  -- lemon.h:96
+
+   type Rule_Access is access all Rule_Record;
 
   -- Alias for the LHS (NULL if none)
   -- True if left-hand side is the start symbol
@@ -82,11 +88,6 @@ package Rules is
    procedure Assing_Sequential_Rule_Numbers
      (Lemon_Rule : in     Rule_Access;
       Start_Rule :    out Rule_Access);
-
-private
-
-   type Symbol_Proxy_Type;
-   type Symbol_Proxy_Access is access all Symbol_Proxy_Type;
 
 end Rules;
 

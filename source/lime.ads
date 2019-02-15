@@ -113,15 +113,15 @@ package Lime is
 
    type Config_Record is
       record
-         rp     : access Rule_Record;   --  The rule upon which the configuration is based
-         dot    : aliased int;          --  The parse point
-         fws    : Strings.chars_ptr;    --  Follow-set for this configuration only
-         fplp   : Plink_Access;         --  Follow-set forward propagation links
-         bplp   : Plink_Access;         --  Follow-set backwards propagation links
-         stp    : access State_Record;  --  Pointer to state which contains this
-         status : aliased cfgstatus;    --  used during followset and shift computations
-         next   : Config_Access;        --  Next configuration in the state
-         bp     : Config_Access;        --  The next basis configuration
+         RP          : access Rule_Record;   --  The rule upon which the configuration is based
+         DOT         : aliased int;          --  The parse point
+         Follow_Set  : Strings.chars_ptr;  --  FWS, Follow-set for this configuration only
+         FS_Forward  : Plink_Access;       --  fplp, forward propagation links
+         FS_Backward : Plink_Access;       --  bplp; Follow-set backwards propagation links
+         stp         : access State_Record;  --  Pointer to state which contains this
+         status      : aliased cfgstatus;    --  used during followset and shift computations
+         Next        : Config_Access;        --  Next configuration in the state
+         Basis       : Config_Access;        --  bp, The next basis configuration
       end record;
    pragma Convention (C_Pass_By_Copy, Config_Record);
 
