@@ -177,10 +177,8 @@ static struct action *Action_new(void);
 static struct action *Action_sort(struct action *);
 
 /********* From the file "configlist.h" *********************************/
-// void Configlist_init(void);
 void lemon_configlist_init(void);
 struct config *Configlist_add(struct rule *, int);
-//  struct config *Configlist_addbasis(struct rule *, int);
 struct config *lemon_configlist_add_basis(struct rule *, int);
 void Configlist_closure(struct lemon *);
 void Configlist_sort(void);
@@ -206,7 +204,6 @@ void Plink_delete(struct plink *);
 void  SetSize(int);             /* All sets will be of size N */
 char *SetNew(void);               /* A new set for element 0..N */
 void  SetFree(char*);             /* Deallocate a set */
-//int SetAdd(char*,int);            /* Add element to a set */
 int lemon_set_add(char*,int);            /* Add element to a set */
 int SetUnion(char *,char *);    /* A <- A U B, thru element N */
 #define SetFind(X,Y) (X[Y])       /* True if Y is in set X */
@@ -700,85 +697,6 @@ void lemon_find_first_sets (struct lemon *lemp)
 */
 PRIVATE struct state *lemon_get_state(struct lemon *);  /* forward reference */
 
-#if 0
-void lemon_find_states(struct lemon *lemp)
-{
-  struct symbol *sp;
-  struct rule *rp;
-
-  printf ("### 4-1\n");
-  Configlist_init();
-  printf ("### 4-2\n");
-
-  /* Find the start symbol */
-  lime_partial_database_dump_c ();
-  lime_partial_database_dump_ada ();
-
-  printf ("lemp->start %lx\n", lemp->start);
-
-  if( lemp->start ){
-    printf ("### 5-1\n");
-    sp = lime_symbol_find(lemp->start);
-    printf ("### 5-2\n");
-    if( sp==0 ){
-      ErrorMsg(lemp->filename,0,
-"The specified start symbol \"%s\" is not \
-in a nonterminal of the grammar.  \"%s\" will be used as the start \
-symbol instead.",lemp->start,lemp->startRule->lhs->name);
-      lemp->errorcnt++;
-      sp = lemp->startRule->lhs;
-    }
-  }else{
-    printf ("### 5-3\n");
-    sp = lemp->startRule->lhs;
-    printf ("lemp %lx\n", lemp);
-    printf ("lemp->startRule %lx\n", lemp->startRule);
-    printf ("lemp->startRule->lhs %lx\n", lemp->startRule->lhs);
-    printf ("sp %lx\n", sp);
-    printf ("### 5-4\n");
-  }
-  printf ("### 4-3\n");
-
-  /* Make sure the start symbol doesn't occur on the right-hand side of
-  ** any rule.  Report an error if it does.  (YACC would generate a new
-  ** start symbol in this case.) */
-  for(rp=lemp->rule; rp; rp=rp->next){
-    int i;
-    for(i=0; i<rp->nrhs; i++){
-      if( rp->rhs[i]==sp ){   /* FIX ME:  Deal with multiterminals */
-        ErrorMsg(lemp->filename,0,
-"The start symbol \"%s\" occurs on the \
-right-hand side of a rule. This will result in a parser which \
-does not work properly.",sp->name);
-        lemp->errorcnt++;
-      }
-    }
-  }
-  printf ("### 4-4\n");
-  /* The basis configuration set for the first state
-  ** is all rules which have the start symbol as their
-  ** left-hand side */
-  printf ("sp %x\n", sp);
-  printf ("*sp %x\n", *sp);
-  printf ("sp->rule %lx\n", sp->rule);
-  for(rp=sp->rule; rp; rp=rp->nextlhs){
-    struct config *newcfp;
-    rp->lhsStart = 1;
-    printf ("### 5-1\n");
-    newcfp = Configlist_addbasis(rp,0);
-    printf ("### 5-2\n");
-    SetAdd(newcfp->fws,0);
-    printf ("### 5-3\n");
-  }
-  printf ("### 4-5\n");
-  /* Compute the first state.  All other states will be
-  ** computed automatically during the computation of the first one.
-  ** The returned pointer to the first state is not used. */
-  (void)getstate(lemp);
-  printf ("### 4-6\n");
-  return;
-}
-#endif
 
 /* Return a pointer to a state which is described by the configuration
 ** list which has been built from calls to Configlist_add.
