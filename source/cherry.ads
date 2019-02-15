@@ -26,7 +26,7 @@ package Cherry is
 
 private
 
-   pragma Export (C, Find_States, "lime_find_states");
+   pragma Export (C, Find_States, "cherry_find_states");
    pragma Export (C, Add_The_Accepting_Token,
                   "cherry_add_the_accepting_token");
 

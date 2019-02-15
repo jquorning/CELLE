@@ -4296,7 +4296,7 @@ void SetFree(char *s)
 void lemon_compute_LR_states (struct lemon *lemp)
 {
   lemp->nstate = 0;
-  lime_find_states (lemp);
+  cherry_find_states (lemp);
   lemp->sorted = State_arrayof();
 }
   
