@@ -50,7 +50,7 @@ package body Cherry is
       RP := Lemp.Rule;
       loop
          exit when RP = null;
-         for I in 0 .. RP.N_RHS - 1 loop
+         for I in RP.RHS'Range loop
             if RP.RHS (I) = SP then   --  FIX ME:  Deal with multiterminals XXX
                Errors.Error_2 (Value (Lemp.File_Name), From_Key (SP.Name));
                Lemp.Error_Cnt := Lemp.Error_Cnt + 1;

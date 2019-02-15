@@ -26,14 +26,20 @@ package Rules is
 
    --  Left-hand side of the rule
    use Ada.Strings.Unbounded;
+
+   type RHS_Array is
+     array (Natural range <>) of Symbols.Symbol_Access;
+   type RHS_Array_Access is access all RHS_Array;
+
    type Rule_Record is
       record
          LHS          : Symbols.Symbol_Access;  -- lemon.h:97
          LHS_Alias    : Unbounded_String;
          LHS_Start    : Integer;  -- lemon.h:99
          Rule_Line    : Integer;  -- lemon.h:100
-         N_RHS        : Integer;  -- lemon.h:101
-         RHS          : System.Address;  -- lemon.h:102
+--         N_RHS        : Integer;  -- lemon.h:101
+--         RHS          : System.Address;  -- lemon.h:102
+         RHS          : RHS_Array_Access;
          RHS_Alias    : System.Address;  -- lemon.h:103
          Line         : Integer;  -- lemon.h:104
          Code         : Unbounded_String; --  Interfaces.C.Strings.chars_ptr;  -- lemon.h:105
