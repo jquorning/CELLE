@@ -18,6 +18,7 @@ with Options;
 with Command_Line;
 with Database;
 with Lime;
+with Cherry;
 with Rules;
 with Symbols;
 with Exceptions;
@@ -29,7 +30,7 @@ procedure Cherry_Program is
 
    procedure Put_Help is
    begin
-      null;
+      Cherry.Dummy;  -- XXX
    end Put_Help;
 
    procedure Put_Version

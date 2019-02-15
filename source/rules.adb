@@ -13,10 +13,10 @@ with Symbols;
 
 package body Rules is
 
-   type Symbol_Proxy_Type is
-      record
-         null;
-      end record;
+--   type Symbol_Proxy_Type is
+--      record
+--         Symbol : sySymbol_Access;
+--      end record;
 
    procedure Assing_Sequential_Rule_Numbers
      (Lemon_Rule : in     Rule_Access;

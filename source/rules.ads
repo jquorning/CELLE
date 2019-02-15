@@ -9,17 +9,17 @@
 
 with Ada.Strings.Unbounded;
 
---  with Interfaces.C.Strings;
 with Interfaces.C;
 
 with System;
+with Symbols;
 
 package Rules is
 
    use Interfaces.C;
 
 --   type Symbol_Proxy_Record is private;
-   type Symbol_Proxy_Access is private;
+--   type Symbol_Proxy_Access is private;
 
    type Rule_Record;
    type Rule_Access is access all Rule_Record;
@@ -28,7 +28,7 @@ package Rules is
    use Ada.Strings.Unbounded;
    type Rule_Record is
       record
-         LHS          : Symbol_Proxy_Access;  -- lemon.h:97
+         LHS          : Symbols.Symbol_Access;  -- lemon.h:97
          LHS_Alias    : Unbounded_String;
          LHS_Start    : Integer;  -- lemon.h:99
          Rule_Line    : Integer;  -- lemon.h:100
@@ -41,7 +41,7 @@ package Rules is
          Code_Suffix  : Unbounded_String;
          No_Code      : Integer;  -- lemon.h:108
          Code_Emitted : Integer;  -- lemon.h:109
-         Prec_Sym     : Symbol_Proxy_Access;
+         Prec_Sym     : Symbols.Symbol_Access;
          Index        : Integer;
          Rule         : Integer;
          Can_Reduce   : Boolean;
@@ -82,11 +82,6 @@ package Rules is
    procedure Assing_Sequential_Rule_Numbers
      (Lemon_Rule : in     Rule_Access;
       Start_Rule :    out Rule_Access);
-
-private
-
-   type Symbol_Proxy_Type;
-   type Symbol_Proxy_Access is access all Symbol_Proxy_Type;
 
 end Rules;
 

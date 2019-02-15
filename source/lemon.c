@@ -737,6 +737,7 @@ void lemon_find_first_sets (struct lemon *lemp)
 */
 PRIVATE struct state *getstate(struct lemon *);  /* forward reference */
 
+#if 0
 void lemon_find_states(struct lemon *lemp)
 {
   struct symbol *sp;
@@ -814,6 +815,7 @@ does not work properly.",sp->name);
   printf ("### 4-6\n");
   return;
 }
+#endif
 
 /* Return a pointer to a state which is described by the configuration
 ** list which has been built from calls to Configlist_add.
@@ -4445,13 +4447,11 @@ void SetFree(char *s)
 */
 void lemon_compute_LR_states (struct lemon *lemp)
 {
-  printf ("### 3-1\n");
   lemp->nstate = 0;
-  printf ("### 3-2\n");
-  lemon_find_states (lemp);
-  printf ("### 3-3\n");
+  lime_find_states (lemp);
+  //lemon_find_states (lemp);
+  lime_find_states (lemp);
   lemp->sorted = State_arrayof();
-  printf ("### 3-4\n");
 }
   
 

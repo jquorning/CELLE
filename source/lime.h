@@ -11,6 +11,8 @@
 #ifndef __LIME_H__
 #define __LIME_H__
 
+void lime_find_states(struct lemon*);
+
 char*
 lime_get_user_template_name (void);
 //  lempar.c for C and cherry_parser.adb for Ada.
