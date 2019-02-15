@@ -177,9 +177,11 @@ static struct action *Action_new(void);
 static struct action *Action_sort(struct action *);
 
 /********* From the file "configlist.h" *********************************/
-void Configlist_init(void);
+// void Configlist_init(void);
+void lemon_configlist_init(void);
 struct config *Configlist_add(struct rule *, int);
-struct config *Configlist_addbasis(struct rule *, int);
+//  struct config *Configlist_addbasis(struct rule *, int);
+struct config *lemon_configlist_add_basis(struct rule *, int);
 void Configlist_closure(struct lemon *);
 void Configlist_sort(void);
 void Configlist_sortbasis(void);
@@ -222,7 +224,8 @@ void Plink_delete(struct plink *);
 void  SetSize(int);             /* All sets will be of size N */
 char *SetNew(void);               /* A new set for element 0..N */
 void  SetFree(char*);             /* Deallocate a set */
-int SetAdd(char*,int);            /* Add element to a set */
+//int SetAdd(char*,int);            /* Add element to a set */
+int lemon_set_add(char*,int);            /* Add element to a set */
 int SetUnion(char *,char *);    /* A <- A U B, thru element N */
 #define SetFind(X,Y) (X[Y])       /* True if Y is in set X */
 
@@ -712,11 +715,11 @@ void lemon_find_first_sets (struct lemon *lemp)
       for(i=0; i<rp->nrhs; i++){
         s2 = rp->rhs[i];
         if( s2->type==TERMINAL ){
-          progress += SetAdd(s1->firstset,s2->index);
+          progress += lemon_set_add(s1->firstset,s2->index);
           break;
         }else if( s2->type==MULTITERMINAL ){
           for(j=0; j<s2->nsubsym; j++){
-            progress += SetAdd(s1->firstset,s2->subsym[j]->index);
+            progress += lemon_set_add(s1->firstset,s2->subsym[j]->index);
           }
           break;
         }else if( s1==s2 ){
@@ -735,7 +738,7 @@ void lemon_find_first_sets (struct lemon *lemp)
 ** are added to between some states so that the LR(1) follow sets
 ** can be computed later.
 */
-PRIVATE struct state *getstate(struct lemon *);  /* forward reference */
+PRIVATE struct state *lemon_get_state(struct lemon *);  /* forward reference */
 
 #if 0
 void lemon_find_states(struct lemon *lemp)
@@ -821,7 +824,7 @@ does not work properly.",sp->name);
 ** list which has been built from calls to Configlist_add.
 */
 PRIVATE void buildshifts(struct lemon *, struct state *); /* Forwd ref */
-PRIVATE struct state *getstate(struct lemon *lemp)
+PRIVATE struct state *lemon_get_state(struct lemon *lemp)
 {
   struct config *cfp, *bp;
   struct state *stp;
@@ -910,13 +913,13 @@ PRIVATE void buildshifts(struct lemon *lemp, struct state *stp)
       bsp = bcfp->rp->rhs[bcfp->dot];           /* Get symbol after dot */
       if( !same_symbol(bsp,sp) ) continue;      /* Must be same as for "cfp" */
       bcfp->status = COMPLETE;                  /* Mark this config as used */
-      newcfg = Configlist_addbasis(bcfp->rp,bcfp->dot+1);
+      newcfg = lemon_configlist_add_basis(bcfp->rp,bcfp->dot+1);
       Plink_add(&newcfg->bplp,bcfp);
     }
 
     /* Get a pointer to the state described by the basis configuration set
     ** constructed in the preceding loop */
-    newstp = getstate(lemp);
+    newstp = lemon_get_state(lemp);
 
     /* The state "newstp" is reached from the state "stp" by a shift action
     ** on the symbol "sp" */
@@ -1187,7 +1190,7 @@ PRIVATE void deleteconfig(struct config *old)
 }
 
 /* Initialized the configuration list builder */
-void Configlist_init(void){
+void lemon_configlist_init(void){
   current = 0;
   currentend = &current;
   basis = 0;
@@ -1234,7 +1237,7 @@ struct config *Configlist_add(
 }
 
 /* Add a basis configuration to the configuration list */
-struct config *Configlist_addbasis(struct rule *rp, int dot)
+struct config *lemon_configlist_add_basis(struct rule *rp, int dot)
 {
   struct config *cfp, model;
 
@@ -1286,12 +1289,12 @@ void Configlist_closure(struct lemon *lemp)
         for(i=dot+1; i<rp->nrhs; i++){
           xsp = rp->rhs[i];
           if( xsp->type==TERMINAL ){
-            SetAdd(newcfp->fws,xsp->index);
+            lemon_set_add(newcfp->fws,xsp->index);
             break;
           }else if( xsp->type==MULTITERMINAL ){
             int k;
             for(k=0; k<xsp->nsubsym; k++){
-              SetAdd(newcfp->fws, xsp->subsym[k]->index);
+              lemon_set_add(newcfp->fws, xsp->subsym[k]->index);
             }
             break;
           }else{
@@ -4457,7 +4460,7 @@ void lemon_compute_LR_states (struct lemon *lemp)
 
 /* Add a new element to the set.  Return TRUE if the element was added
 ** and FALSE if it was already there. */
-int SetAdd(char *s, int e)
+int lemon_set_add(char *s, int e)
 {
   int rv;
   assert( e>=0 && e<size );
