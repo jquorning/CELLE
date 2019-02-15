@@ -38,10 +38,10 @@ package body Cherry is
             Errors.Error_1 (Value (Lemp.File_Name), Value (Lemp.Start),
                             From_Key (Lemp.Start_Rule.LHS.all.Name));
             Lemp.Error_Cnt := Lemp.Error_Cnt + 1;
-            SP := Lemp.Start_Rule.LHS;
+            SP := Symbol_Access (Lemp.Start_Rule.LHS);
          end if;
       else
-         SP := Lemp.Start_Rule.LHS;
+         SP := Symbol_Access (Lemp.Start_Rule.LHS);
       end if;
 
       --  Make sure the start symbol doesn't occur on the right-hand side of
@@ -62,7 +62,7 @@ package body Cherry is
       --  The basis configuration set for the first state
       --  is all rules which have the start symbol as their
       --  left-hand side
-      RP := SP.Rule;
+      RP := Rule_Access (SP.Rule);
       loop
          exit when RP = null;
          declare

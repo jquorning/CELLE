@@ -29,28 +29,25 @@ package body Errors is
 
    procedure Error_1 (File_Name : in String;
                       Start     : in String;
-                      Name      : in Key_Type)
+                      Name      : in String)
    is
-      Name_Image : constant String := Symbols.From_Key (Name);
    begin
       Error
         (File_Name, 0,
          "The specified start symbol '" & Start &
            "' is not in a nonterminal of the grammar.  '" &
-           Name_Image & "' will be used as the start " &
+           Name & "' will be used as the start " &
            "symbol instead.");
    end Error_1;
-   
+
 
    procedure Error_2 (File_Name   : in String;
-                      Line_Number : in Natural;
-                      Name        : in Key_Type)
+                      Name        : in String)
    is
-      Name_Image : constant String := To_String (Name);
    begin
       Error
         (File_Name, 0,
-         "The start symbol '" & Name_Image & "' occurs on " &
+         "The start symbol '" & Name & "' occurs on " &
            "the right-hand side of a rule. This will " &
            "result in a parser which does not work properly.");
    end Error_2;

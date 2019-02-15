@@ -54,7 +54,7 @@ package Symbols is
          Name      : Key_Type; -- Unbounded_String; --  Strings.chars_ptr;
          Index     : Symbol_Index;      --  Index number for this symbol
          Kind      : Symbol_Kind;       --  Symbols are all either TERMINALS or NTs
-         Rule      : Integer;  -- Rules.Rule_Access;  --  Linked list of rules of this (if an NT)
+         Rule      : access Rules.Rule_Record;  --  Linked list of rules of this (if an NT)
          Fallback  : Unbounded_String;
          --  Symbol_Access; --  fallback token in case this token doesn't parse
          Prec      : Integer;           --  Precedence if defined (-1 otherwise)
@@ -92,6 +92,9 @@ package Symbols is
 
    type Symbol_Access is access all Symbol_Record;
    --  pragma Convention (C, Symbol_Access);
+
+   type Symbol_Access_Array is
+     array (Natural range <>) of Symbols.Symbol_Access;
 
    --  The following fields are used by MULTITERMINALs only
    --  Number of constituent symbols in the MULTI
