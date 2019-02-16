@@ -23,6 +23,7 @@
 #include "lemon.h"   /* Binding to C from Ada */
 #include "lime.h"    /* Binding to Ada from C */
 #include "cherry.h"
+#include "symbols.h"
 
 #define ISSPACE(X) isspace((unsigned char)(X))
 #define ISDIGIT(X) isdigit((unsigned char)(X))
@@ -3336,7 +3337,7 @@ lemon_compress_tables
       if( ap->type==REDUCE && ap->x.rp==rbest ) break;
     }
     assert( ap );
-    ap->sp = lime_symbol_new("{default}");
+    ap->sp = symbols_symbol_new("{default}");
     for(ap=ap->next; ap; ap=ap->next){
       if( ap->type==REDUCE && ap->x.rp==rbest ) ap->type = NOT_USED;
     }

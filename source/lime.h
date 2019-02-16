@@ -243,12 +243,4 @@ lime_rule_sort (struct rule*);
 //
 //
 
-
-struct symbol*
-lime_symbol_new (const char*);
-
-struct symbol*
-lime_symbol_find (const char*);
-
-
 #endif /* __LIME_H__ */
