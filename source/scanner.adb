@@ -19,7 +19,7 @@ with Auxiliary.Errors;
 
 with Rules;
 
-package body Parser is
+package body Scanner is
 
    --
    --  The state of the parser
@@ -886,4 +886,4 @@ package body Parser is
    end Parse_One_Token;
 
 
-end Parser;
+end Scanner;

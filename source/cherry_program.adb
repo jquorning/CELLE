@@ -21,7 +21,7 @@ with Lime;
 with Cherry;
 with Rules;
 with Symbols;
-with Parser;
+with Scanner;
 with Exceptions;
 
 procedure Cherry_Program is
@@ -121,7 +121,7 @@ begin
       Put_Line ("Lemon_Input_File: " & Value (Lemon_Input_File));
 
       --  Parse the input file
-      Parser.Parse (Lemon'Access);
+      Scanner.Parse (Lemon'Access);
 
       if Lemon.Error_Cnt /= 0 then
          --  Status := Failure;

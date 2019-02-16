@@ -12,7 +12,7 @@
 
 with Lime;
 
-package Parser is
+package Scanner is
 
 
    procedure Parse (GP : access Lime.Lemon_Record);
@@ -24,6 +24,6 @@ package Parser is
 
 private
 
-   pragma Export (C, Parse, "parser_parse");
+   pragma Export (C, Parse, "scanner_parse");
 
-end Parser;
+end Scanner;
