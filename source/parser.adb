@@ -242,23 +242,6 @@ package body Parser is
          Auxiliary.Text.Trim (Line.Line, Line.First, Line.Last,
                               Side => Ada.Strings.Left);
 
-            --  for(cp=filebuf; (c= *cp)!=0; ){
---    if( c=='\n' ) lineno++;              /* Keep track of the line number */
---    if( ISSPACE(c) ){ cp++; continue; }  /* Skip all white space */
---      if( c=='/' && cp[1]=='/' ){          /* Skip C++ style comments */
---        cp+=2;
---        while( (c= *cp)!=0 && c!='\n' ) cp++;
---        continue;
---      }
---      if( c=='/' && cp[1]=='*' ){          /* Skip C style comments */
---        cp+=2;
---        while( (c= *cp)!=0 && (c!='/' || cp[-1]!='*') ){
---          if( c=='\n' ) lineno++;
---          cp++;
---        }
---        if( c ) cp++;
---        continue;
---      }
          PS.Token_Start  := Line.First;       --  Mark the beginning of the token
          PS.Token_Lineno := IO.Line_Number;   --  Linenumber on which token begins
 
