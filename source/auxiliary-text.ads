@@ -17,4 +17,9 @@ package Auxiliary.Text is
       Last  : in out Natural;
       Side  : in     Ada.Strings.Trim_End);
 
+   function In_First_Part
+     (From : in String;
+      Item : in String) return Boolean;
+   --  Return True when Item is first part of From.
+
 end Auxiliary.Text;

@@ -24,7 +24,7 @@ package body Scanner is
    --
    --  The state of the parser
    --
-   type E_State is
+   type State_Scanner is
      (INITIALIZE,
       WAITING_FOR_DECL_OR_RULE,
       WAITING_FOR_DECL_KEYWORD,
@@ -55,19 +55,33 @@ package body Scanner is
 
    type Line_Record is
       record
-         First            : Line_Pos;
-         Last             : Line_Pos;
-         Line             : String (Line_Pos);
+         First : Line_Pos;
+         Next  : Line_Pos;
+         Last  : Line_Pos;
+         Item  : String (Line_Pos);
       end record;
 
+   type State_Preproc is
+     (Root,
+      Ifdef,
+      Ifndef);
+
+   type State_Identifier is
+     (Root,
+      String_Literal,
+      C_Code_Block,
+      Identifier);
+
    use Ada.Strings.Unbounded;
-   type Pstate_Record is
+   type Scanner_Record is
       record
          Token_Start  : Line_Pos;            --  Text of current token
          Token_Lineno : Natural;             --  Linenumber at which current token starts
          Error_Count  : Natural;             --  Number of errors so far
          GP : access Lime.Lemon_Record;      --  Global state vector
-         State : E_State;        --  The state of the parser
+         Preproc_State : State_Preproc;
+         Iden_State    : State_Identifier;
+         Scan_State    : State_Scanner;      --  The state of the parser
 --    struct symbol *fallback;   --  The fallback token
 --    struct symbol *tkclass;    --  Token class symbol
 --    struct symbol *lhs;        --  Left-hand side of current rule
@@ -87,97 +101,16 @@ package body Scanner is
          File_Name    : Unbounded_String;    --  Name of the input file
       end record;
 
---   procedure Preprocess_Input (File_Name : in     String;
---                               Success   :    out Boolean);
    --  Run the preprocessor over the input file text.  The global
    --  variables azDefine[0] through azDefine[nDefine-1] contains the
    --  names of all defined macros.  This routine looks for "%ifdef"
    --  and "%ifndef" and "%endif" and comments them out.  Text in
    --  between is also commented out as appropriate.
 
-   procedure Parse_One_Token (PSP  : in out Pstate_Record;
+   procedure Parse_One_Token (PSP  : in out Scanner_Record;
                               Line : in     Line_Record);
    --  Parse a single Token.
 
---     procedure Preprocess_Input (File_Name : in     String;
---                                 Success   :    out Boolean)
---     is
---        use Ada.Text_IO;
---  --        i, j, k, N : integer;
---  --        exclude : Integer := 0;
---  --        start : Integer := 0;
---  --        lineno : Integer := 1;
---        Start_Lineno : Natural := 1;
---  --     begin
---  --        for i=0; z[i]; i++ loop
---  --        if z[i]=='\n' then lineno++; end if;
---  --        if z[i]!='%' or (i>0 && z[i-1]!='\n') then continue; end if;
---  --        if strncmp(&z[i],"%endif",6)==0 and ISSPACE(z[i+6]) then
---  --           if exclude then
---  --              Exclude := Exclude - 1;
---  --              if Exclude = 0 then
---  --                 for j=start; j<i; j++ loop if z[j]!='\n' then z[j] = ' ';
---  --                 end if; end loop;
---  --              end if;
---  --           end if;
---  --           for j=i; z[j] && z[j]!='\n'; j++ then z[j] = ' '; end if;
---  --        elsif (strncmp(&z[i],"%ifdef",6)==0 and ISSPACE(z[i+6]))
---  --          or (strncmp(&z[i],"%ifndef",7)==0 and ISSPACE(z[i+7]))
---  --        then
---  --           if exclude then
---  --              exclude++;
---  --           else
---  --              for j=i+7; ISSPACE(z[j]); j++ loop null; end loop;
---  --              for n=0; z[j+n] && !ISSPACE(z[j+n]); n++ loop null; end loop;
---  --              exclude := 1;
---  --              for k=0; k<nDefine; k++ loop
---  --              if strncmp(azDefine[k],&z[j],n)==0 and lemonStrlen(azDefine[k])==n then
---  --                 exclude := 0;
---  --                 exit;
---  --              end if;
---  --              end loop;
---  --              if z[i+3]=='n' then exclude = !exclude; end if;
---  --              if exclude then
---  --                 start := i;
---  --                 start_lineno := lineno;
---  --              end if;
---  --           end if;
---  --           for j=i; z[j] && z[j]!='\n'; j++ loop z[j] = ' '; end loop;
---  --        end if;
---  --     end loop;
---  --        if Exclude /= 0 then
---  --           Error ("XXX", Start_lineno, "unterminated %%ifdef starting on line.");
---  --           Success := False;
---  --        end if;
---        Ifdef  : constant String := "%ifdef";
---        Ifndef : constant String := "%ifndef";
---        Endif  : constant String := "%endif";
---        File : File_Type;
---        Exclude : Natural := 0;
---     begin
---        Open (File, In_File, File_Name);
---        loop
---           declare
---              Line : constant String := Get_Line (File);
---           begin
---              --  Skip comments
---              --  Endif
---              --  ifdef or ifndef
-
---              null;
---           exception when End_Error => exit;
---           end;
---        end loop;
---        Close (File);
---        Success := True;
-
---        if Exclude /= 0 then
---           Auxiliary.Errors.Error
---             (File_Name, Start_Lineno,
---              "unterminated %%ifdef starting on line.");
---           Success := False;
---        end if;
---     end Preprocess_Input;
 
    procedure Parse (GP : access Lime.Lemon_Record)
    is
@@ -186,23 +119,27 @@ package body Scanner is
       Comment_C_Begin : constant String := "/*";
       Comment_C_End   : constant String := "*/";
 
+      Preproc_Ifdef   : constant String := "%ifdef";
+      Preproc_Ifndef  : constant String := "%ifndef";
+      Preproc_Endif   : constant String := "%endif";
+
       File : File_Type;
       Line : Line_Record;
-      PS   : Pstate_Record;
+      PS   : Scanner_Record;
       Start_Line : Integer := 0;
 
-      procedure Get_Line (Line : out Line_Record);
+      procedure Get_Line_Without_EOL_Comment (Line : out Line_Record);
 
-      procedure Get_Line (Line : out Line_Record)
+      procedure Get_Line_Without_EOL_Comment (Line : out Line_Record)
       is
          use Auxiliary.Text;
       begin
-         Ada.Text_IO.Get_Line (Line.Line, Line.Last);
-         Line.First := Line.Line'First;
-         Utility.Strip_End_Of_Line (From  => Line.Line,
+         Ada.Text_IO.Get_Line (Line.Item, Line.Last);
+         Line.First := Line.Item'First;
+         Utility.Strip_End_Of_Line (From  => Line.Item,
                                     Strip => Comment_CPP,
                                     Last  => Line.Last);
-      end Get_Line;
+      end Get_Line_Without_EOL_Comment;
 
       Comment_C_Start : Natural;
       Comment_C_Stop  : Natural;
@@ -214,7 +151,7 @@ package body Scanner is
       PS.File_Name   :=
         To_Unbounded_String (Interfaces.C.Strings.Value (GP.File_Name));
       PS.Error_Count := 0;
-      PS.State       := INITIALIZE;
+      PS.Scan_State  := INITIALIZE;
 
       --  Begin by opening the input file
       Open (File, In_File, To_String (PS.File_Name));
@@ -224,28 +161,45 @@ package body Scanner is
 
       --  Now scan the text of the input file.
       loop
-         Get_Line (Line);
-         Comment_C_Start := Index (Line.Line (Line.First .. Line.Last), Comment_C_Begin);
+         Get_Line_Without_EOL_Comment (Line);
+
+         --  Preprocess
+         if Line.First = Line.Item'First then
+            if In_First_Part (Line.Item, Preproc_Ifdef) then
+               null;
+            elsif In_First_Part (Line.Item, Preproc_Ifndef) then
+               null;
+            elsif In_First_Part (Line.Item, Preproc_Endif) then
+               null;
+            else
+               null;
+            end if;
+         end if;
+
+         Comment_C_Start := Index (Line.Item (Line.First .. Line.Last), Comment_C_Begin);
          exit when Comment_C_Start = 0;
 
          Filter_C_Comments :
          loop
-            Get_Line (Line);
+            Get_Line_Without_EOL_Comment (Line);
             Comment_C_Stop :=
-              Index (Line.Line (Line.First .. Line.Last), Comment_C_End);
+              Index (Line.Item (Line.First .. Line.Last), Comment_C_End);
             if Comment_C_Stop /= 0 then
                Line.First := Comment_C_Stop + Comment_C_End'Length;
                exit Filter_C_Comments;
             end if;
          end loop Filter_C_Comments;
 
-         Auxiliary.Text.Trim (Line.Line, Line.First, Line.Last,
+         Auxiliary.Text.Trim (Line.Item, Line.First, Line.Last,
                               Side => Ada.Strings.Left);
 
          PS.Token_Start  := Line.First;       --  Mark the beginning of the token
          PS.Token_Lineno := IO.Line_Number;   --  Linenumber on which token begins
 
---      if( c=='\"' ){                     /* String literals */
+         case Line.Item (Line.First) is
+
+            when '"' =>                     --   String literals
+--      if( c=='\"' ){
 --        cp++;
 --        while( (c= *cp)!=0 && c!='\"' ){
 --          if( c=='\n' ) lineno++;
@@ -259,6 +213,8 @@ package body Scanner is
 --        }else{
 --          nextcp = cp+1;
 --        }
+               null;
+            when '{' =>
 --      }else if( c=='{' ){               /* A block of C code */
 --        int level;
 --        cp++;
@@ -299,22 +255,37 @@ package body Scanner is
 --          nextcp = cp+1;
 --        }
 --      }else if( ISALNUM(c) ){          /* Identifiers */
+               null;
+
+            when 'a' .. 'z' | 'A' .. 'Z' =>
 --        while( (c= *cp)!=0 && (ISALNUM(c) || c=='_') ) cp++;
 --        nextcp = cp;
 --      }else if( c==':' && cp[1]==':' && cp[2]=='=' ){ /* The operator "::=" */
+               null;
+
+            when ':' =>
 --        cp += 3;
 --        nextcp = cp;
 --      }else if( (c=='/' || c=='|') && ISALPHA(cp[1]) ){
---        cp += 2;
+               null;
+
+            when '/' =>
+      --        cp += 2;
 --        while( (c = *cp)!=0 && (ISALNUM(c) || c=='_') ) cp++;
 --        nextcp = cp;
 --      }else{                          /* All other (one character) operators */
---        cp++;
+               null;
+
+            when others =>
+               --        cp++;
 --        nextcp = cp;
 --      }
+               null;
+
+         end case;
 --      c = *cp;
 --      *cp = 0;                        /* Null terminate the token */
---      Parse_One_Token (&ps);             --  Parse the token
+         Parse_One_Token (PS, Line);       --  Parse the token
 --    *cp = (char)c;                  /* Restore the buffer */
 --    cp = nextcp;
       end loop;
@@ -333,7 +304,7 @@ package body Scanner is
 
    end Parse;
 
-   procedure Parse_One_Token (PSP  : in out Pstate_Record;
+   procedure Parse_One_Token (PSP  : in out Scanner_Record;
                               Line : in     Line_Record)
    is
       procedure Do_Initialize;
@@ -347,7 +318,7 @@ package body Scanner is
          PSP.GP.N_Rule    := 0;
       end Do_Initialize;
 
-      X : constant String := Line.Line (PSP.Token_Start .. Line.Last);
+      X : constant String := Line.Item (PSP.Token_Start .. Line.Last);
    begin
 --    const char *x;
 --    x = Strsafe(psp->tokenstart);     /* Save the token permanently */
@@ -355,7 +326,7 @@ package body Scanner is
 --    printf("%s:%d: Token=[%s] state=%d\n",psp->filename,psp->tokenlineno,
 --      x,psp->state);
 --  #endif
-      case PSP.State is
+      case PSP.Scan_State is
 
          when INITIALIZE =>
             Do_Initialize;

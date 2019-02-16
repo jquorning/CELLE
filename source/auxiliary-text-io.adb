@@ -11,7 +11,7 @@ package body Auxiliary.Text.IO is
 
    function Line_Get (File : File_Type) return String
    is
-      Line : constant String := Get_Line;
+      Line : constant String := Get_Line (File);
    begin
       Line_Number := Line_Number + 1;
       return Line;

@@ -53,7 +53,7 @@ package Rules is
          Next_LHS     : access Rule_Record;  -- lemon.h:115
          Next         : access Rule_Record;  -- lemon.h:116
       end record;
-  --   pragma Convention (C_Pass_By_Copy, Rule_Record);  -- lemon.h:96
+   --   pragma Convention (C_Pass_By_Copy, Rule_Record);  -- lemon.h:96
 
    type Rule_Access is access all Rule_Record;
 

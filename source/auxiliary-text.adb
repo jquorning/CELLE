@@ -25,4 +25,19 @@ package body Auxiliary.Text is
       end loop;
    end Trim;
 
+   function In_First_Part
+     (From : in String;
+      Item : in String) return Boolean
+   is
+   begin
+      if
+        From'Length >= Item'Length and then
+        From (From'First .. From'First + Item'Length - 1) = Item
+      then
+         return True;
+      else
+         return False;
+      end if;
+   end In_First_Part;
+
 end Auxiliary.Text;

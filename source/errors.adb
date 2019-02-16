@@ -7,8 +7,6 @@
 --    May you share freely, not taking more than you give.
 --
 
-with Ada.Text_IO;
-
 with Auxiliary.Errors;
 
 package body Errors is
