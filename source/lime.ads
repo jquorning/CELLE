@@ -230,8 +230,8 @@ package Lime is
          Max_Action       : Integer;            --  Maximum action value of any kind
          Symbols2         : Integer; -- XXX delme --  Sorted array of pointers to symbols
          Error_Cnt        : Integer;            --  Number of errors
-         Err_Sym2          : Integer; --  Symbol_Access;      --  The error symbol
-         Wildcard2         : Integer; --  Symbol_Access;      --  Token that matches anything
+         Err_Sym2         : Integer; --  Symbol_Access;      --  The error symbol
+         Wildcard2        : Integer; --  Symbol_Access;      --  Token that matches anything
          Name             : Strings.chars_ptr;  --  Name of the generated parser
          Arg              : Strings.chars_ptr;  --  Declaration of the 3th argument to parser
          Ctx              : Strings.chars_ptr;  --  Declaration of 2nd argument to constructor
@@ -265,12 +265,12 @@ package Lime is
    --  pragma Convention (C_Pass_By_Copy, Lemon_Record);
 
    Clean_Lemon : constant Lemon_Record :=
-     (Sorted       => null,     Rule         => null,      Start_Rule       => null,
-      N_State      => 0,        Nx_State     => 0,         N_Rule           => 0,
-      N_Symbol     => 0,        N_Terminal   => 0,         Min_Shift_Reduce => 0,
-      Err_Action   => 0,        Acc_Action   => 0,         No_Action        => 0,
-      Min_Reduce   => 0,        Max_Action   => 0,         Symbols2         => 999, --  null,
-      Error_Cnt    => 0,        Err_Sym2     => 999, --  null,
+     (Sorted       => null,       Rule         => null,      Start_Rule       => null,
+      N_State      => 0,          Nx_State     => 0,         N_Rule           => 0,
+      N_Symbol     => 0,          N_Terminal   => 0,         Min_Shift_Reduce => 0,
+      Err_Action   => 0,          Acc_Action   => 0,         No_Action        => 0,
+      Min_Reduce   => 0,          Max_Action   => 0,         Symbols2         => 999, --  null,
+      Error_Cnt    => 0,          Err_Sym2     => 999, --  null,
       Wildcard2    => 999, -- null,
       Name         => Null_Ptr, Arg          => Null_Ptr,  Ctx              => Null_Ptr,
       Token_Type   => Null_Ptr, Var_Type     => Null_Ptr,  Start            => Null_Ptr,

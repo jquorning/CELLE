@@ -49,14 +49,24 @@ package body Parser is
       WAITING_FOR_CLASS_TOKEN,
       WAITING_FOR_TOKEN_NAME);
 
+   Max_Line_Length : constant := 250;   --  Should do for the most
+   subtype Extended_Pos is Natural      range 0 .. Max_Line_Length;
+   subtype Line_Pos     is Extended_Pos range 1 .. Extended_Pos'Last;
+
+   type Line_Record is
+      record
+         First            : Line_Pos;
+         Last             : Line_Pos;
+         Line             : String (Line_Pos);
+      end record;
+
    use Ada.Strings.Unbounded;
    type Pstate_Record is
       record
-         File_Name    : Unbounded_String; --  Name of the input file
-         Token_Lineno : Natural;          --  Linenumber at which current token starts
-         Error_Count  : Natural;          --  Number of errors so far
-         Token_Start  : Natural;          --  Text of current token
-         GP : access Lime.Lemon_Record;   --  Global state vector
+         Token_Start  : Line_Pos;            --  Text of current token
+         Token_Lineno : Natural;             --  Linenumber at which current token starts
+         Error_Count  : Natural;             --  Number of errors so far
+         GP : access Lime.Lemon_Record;      --  Global state vector
          State : E_State;        --  The state of the parser
 --    struct symbol *fallback;   --  The fallback token
 --    struct symbol *tkclass;    --  Token class symbol
@@ -74,132 +84,132 @@ package body Parser is
          Prec_Counter : Integer;           --  Assign this precedence to decl arguments
          First_Rule   : access Rules.Rule_Record; --  Pointer to first rule in the grammar
          Last_Rule    : access Rules.Rule_Record; --  Pointer to the most recently parsed rule
+         File_Name    : Unbounded_String;    --  Name of the input file
       end record;
 
-   procedure Preprocess_Input (File_Name : in     String;
-                               Success   :    out Boolean);
+--   procedure Preprocess_Input (File_Name : in     String;
+--                               Success   :    out Boolean);
    --  Run the preprocessor over the input file text.  The global
    --  variables azDefine[0] through azDefine[nDefine-1] contains the
    --  names of all defined macros.  This routine looks for "%ifdef"
    --  and "%ifndef" and "%endif" and comments them out.  Text in
    --  between is also commented out as appropriate.
 
-   procedure Parse_One_Token (PSP : in out Pstate_Record);
+   procedure Parse_One_Token (PSP  : in out Pstate_Record;
+                              Line : in     Line_Record);
    --  Parse a single Token.
 
-   procedure Preprocess_Input (File_Name : in     String;
-                               Success   :    out Boolean)
-   is
-      use Ada.Text_IO;
---        i, j, k, N : integer;
---        exclude : Integer := 0;
---        start : Integer := 0;
---        lineno : Integer := 1;
-      Start_Lineno : Natural := 1;
+--     procedure Preprocess_Input (File_Name : in     String;
+--                                 Success   :    out Boolean)
+--     is
+--        use Ada.Text_IO;
+--  --        i, j, k, N : integer;
+--  --        exclude : Integer := 0;
+--  --        start : Integer := 0;
+--  --        lineno : Integer := 1;
+--        Start_Lineno : Natural := 1;
+--  --     begin
+--  --        for i=0; z[i]; i++ loop
+--  --        if z[i]=='\n' then lineno++; end if;
+--  --        if z[i]!='%' or (i>0 && z[i-1]!='\n') then continue; end if;
+--  --        if strncmp(&z[i],"%endif",6)==0 and ISSPACE(z[i+6]) then
+--  --           if exclude then
+--  --              Exclude := Exclude - 1;
+--  --              if Exclude = 0 then
+--  --                 for j=start; j<i; j++ loop if z[j]!='\n' then z[j] = ' ';
+--  --                 end if; end loop;
+--  --              end if;
+--  --           end if;
+--  --           for j=i; z[j] && z[j]!='\n'; j++ then z[j] = ' '; end if;
+--  --        elsif (strncmp(&z[i],"%ifdef",6)==0 and ISSPACE(z[i+6]))
+--  --          or (strncmp(&z[i],"%ifndef",7)==0 and ISSPACE(z[i+7]))
+--  --        then
+--  --           if exclude then
+--  --              exclude++;
+--  --           else
+--  --              for j=i+7; ISSPACE(z[j]); j++ loop null; end loop;
+--  --              for n=0; z[j+n] && !ISSPACE(z[j+n]); n++ loop null; end loop;
+--  --              exclude := 1;
+--  --              for k=0; k<nDefine; k++ loop
+--  --              if strncmp(azDefine[k],&z[j],n)==0 and lemonStrlen(azDefine[k])==n then
+--  --                 exclude := 0;
+--  --                 exit;
+--  --              end if;
+--  --              end loop;
+--  --              if z[i+3]=='n' then exclude = !exclude; end if;
+--  --              if exclude then
+--  --                 start := i;
+--  --                 start_lineno := lineno;
+--  --              end if;
+--  --           end if;
+--  --           for j=i; z[j] && z[j]!='\n'; j++ loop z[j] = ' '; end loop;
+--  --        end if;
+--  --     end loop;
+--  --        if Exclude /= 0 then
+--  --           Error ("XXX", Start_lineno, "unterminated %%ifdef starting on line.");
+--  --           Success := False;
+--  --        end if;
+--        Ifdef  : constant String := "%ifdef";
+--        Ifndef : constant String := "%ifndef";
+--        Endif  : constant String := "%endif";
+--        File : File_Type;
+--        Exclude : Natural := 0;
 --     begin
---        for i=0; z[i]; i++ loop
---        if z[i]=='\n' then lineno++; end if;
---        if z[i]!='%' or (i>0 && z[i-1]!='\n') then continue; end if;
---        if strncmp(&z[i],"%endif",6)==0 and ISSPACE(z[i+6]) then
---           if exclude then
---              Exclude := Exclude - 1;
---              if Exclude = 0 then
---                 for j=start; j<i; j++ loop if z[j]!='\n' then z[j] = ' ';
---                 end if; end loop;
---              end if;
---           end if;
---           for j=i; z[j] && z[j]!='\n'; j++ then z[j] = ' '; end if;
---        elsif (strncmp(&z[i],"%ifdef",6)==0 and ISSPACE(z[i+6]))
---          or (strncmp(&z[i],"%ifndef",7)==0 and ISSPACE(z[i+7]))
---        then
---           if exclude then
---              exclude++;
---           else
---              for j=i+7; ISSPACE(z[j]); j++ loop null; end loop;
---              for n=0; z[j+n] && !ISSPACE(z[j+n]); n++ loop null; end loop;
---              exclude := 1;
---              for k=0; k<nDefine; k++ loop
---              if strncmp(azDefine[k],&z[j],n)==0 and lemonStrlen(azDefine[k])==n then
---                 exclude := 0;
---                 exit;
---              end if;
---              end loop;
---              if z[i+3]=='n' then exclude = !exclude; end if;
---              if exclude then
---                 start := i;
---                 start_lineno := lineno;
---              end if;
---           end if;
---           for j=i; z[j] && z[j]!='\n'; j++ loop z[j] = ' '; end loop;
---        end if;
---     end loop;
+--        Open (File, In_File, File_Name);
+--        loop
+--           declare
+--              Line : constant String := Get_Line (File);
+--           begin
+--              --  Skip comments
+--              --  Endif
+--              --  ifdef or ifndef
+
+--              null;
+--           exception when End_Error => exit;
+--           end;
+--        end loop;
+--        Close (File);
+--        Success := True;
+
 --        if Exclude /= 0 then
---           Error ("XXX", Start_lineno, "unterminated %%ifdef starting on line.");
+--           Auxiliary.Errors.Error
+--             (File_Name, Start_Lineno,
+--              "unterminated %%ifdef starting on line.");
 --           Success := False;
 --        end if;
-      Ifdef  : constant String := "%ifdef";
-      Ifndef : constant String := "%ifndef";
-      Endif  : constant String := "%endif";
-      File : File_Type;
-      Exclude : Natural := 0;
-   begin
-      Open (File, In_File, File_Name);
-      loop
-         declare
-            Line : constant String := Get_Line (File);
-         begin
-            --  Skip comments
-            --  Endif
-            --  ifdef or ifndef
-
-            null;
-         exception when End_Error => exit;
-         end;
-      end loop;
-      Close (File);
-      Success := True;
-
-      if Exclude /= 0 then
-         Auxiliary.Errors.Error
-           (File_Name, Start_Lineno,
-            "unterminated %%ifdef starting on line.");
-         Success := False;
-      end if;
-   end Preprocess_Input;
-
+--     end Preprocess_Input;
 
    procedure Parse (GP : access Lime.Lemon_Record)
    is
       use Ada.Text_IO;
-      CPP_Comment     : constant String := "//";
+      Comment_CPP     : constant String := "//";
       Comment_C_Begin : constant String := "/*";
       Comment_C_End   : constant String := "*/";
 
       File : File_Type;
-
-      function Get_Line return String;
-      function Get_Line return String is
-         use Auxiliary.Text;
-         Line : constant String := Get_Line (File);
-         Last : Natural;
-      begin
-         Utility.Strip_End_Of_Line (From  => Line,
-                                    Strip => "//",
-                                    Last  => Last);
-         return Line (Line'First .. Last);
-      end Get_Line;
-
-      PS : Pstate_Record;
+      Line : Line_Record;
+      PS   : Pstate_Record;
       Start_Line : Integer := 0;
 
-      use Ada.Strings.Unbounded;
+      procedure Get_Line (Line : out Line_Record);
+
+      procedure Get_Line (Line : out Line_Record)
+      is
+         use Auxiliary.Text;
+      begin
+         Ada.Text_IO.Get_Line (Line.Line, Line.Last);
+         Line.First := Line.Line'First;
+         Utility.Strip_End_Of_Line (From  => Line.Line,
+                                    Strip => Comment_CPP,
+                                    Last  => Line.Last);
+      end Get_Line;
+
+      Comment_C_Start : Natural;
+      Comment_C_Stop  : Natural;
+
       use Ada.Strings.Fixed;
       use Auxiliary.Text;
-      Unbounded : Unbounded_String;
-      First : Natural;
-      Last  : Natural;
    begin
-      --  memset(&ps, '\0', sizeof(ps));
       PS.GP          := GP;
       PS.File_Name   :=
         To_Unbounded_String (Interfaces.C.Strings.Value (GP.File_Name));
@@ -214,38 +224,24 @@ package body Parser is
 
       --  Now scan the text of the input file.
       loop
-         declare
-            Line_No_CPP     : constant String  := Get_Line;
-            Comment_C_Start : constant Natural :=
-              Index (Line_No_CPP, Comment_C_Begin);
-         begin
-            First := Line_No_CPP'First;
-            Last  := Line_No_CPP'Last;
+         Get_Line (Line);
+         Comment_C_Start := Index (Line.Line (Line.First .. Line.Last), Comment_C_Begin);
+         exit when Comment_C_Start = 0;
 
-            if Comment_C_Start /= 0 then
-               loop
-                  declare
-                     Line_No_C : constant String := Get_Line;
-                     Pos_Stop : Natural;
-                  begin
-                     Pos_Stop := Index (Line_No_C, Comment_C_End);
-                     if Pos_Stop /= 0 then
-                        Unbounded := To_Unbounded_String
-                          (Line_No_C (Line_No_C'First .. Pos_Stop +
-                                        Comment_C_End'Length - 1));
-                     end if;
-                  end;
-               end loop;
-            else
-               First := Line_No_CPP'First;
-               Unbounded := To_Unbounded_String (Line_No_CPP);
+         Filter_C_Comments :
+         loop
+            Get_Line (Line);
+            Comment_C_Stop :=
+              Index (Line.Line (Line.First .. Line.Last), Comment_C_End);
+            if Comment_C_Stop /= 0 then
+               Line.First := Comment_C_Stop + Comment_C_End'Length;
+               exit Filter_C_Comments;
             end if;
-            First := Line_No_CPP'First;
-            Auxiliary.Text.Trim (Line_No_CPP, First, Last, Side => Ada.Strings.Left);
---            while Is_Space (Line (Pos)) loop
---               Pos := Pos + 1;
---            end loop;
-         end;
+         end loop Filter_C_Comments;
+
+         Auxiliary.Text.Trim (Line.Line, Line.First, Line.Last,
+                              Side => Ada.Strings.Left);
+
             --  for(cp=filebuf; (c= *cp)!=0; ){
 --    if( c=='\n' ) lineno++;              /* Keep track of the line number */
 --    if( ISSPACE(c) ){ cp++; continue; }  /* Skip all white space */
@@ -263,7 +259,7 @@ package body Parser is
 --        if( c ) cp++;
 --        continue;
 --      }
-         PS.Token_Start  := First;            --  Mark the beginning of the token
+         PS.Token_Start  := Line.First;       --  Mark the beginning of the token
          PS.Token_Lineno := IO.Line_Number;   --  Linenumber on which token begins
 
 --      if( c=='\"' ){                     /* String literals */
@@ -354,7 +350,8 @@ package body Parser is
 
    end Parse;
 
-   procedure Parse_One_Token (PSP : in out Pstate_Record)
+   procedure Parse_One_Token (PSP  : in out Pstate_Record;
+                              Line : in     Line_Record)
    is
       procedure Do_Initialize;
 
@@ -367,9 +364,8 @@ package body Parser is
          PSP.GP.N_Rule    := 0;
       end Do_Initialize;
 
+      X : constant String := Line.Line (PSP.Token_Start .. Line.Last);
    begin
-
---  {
 --    const char *x;
 --    x = Strsafe(psp->tokenstart);     /* Save the token permanently */
 --  #if 0
