@@ -123,139 +123,85 @@ package body Scanner is
    --  Parse a single Token.
 
 
-   procedure Parse (GP : access Lime.Lemon_Record)
+   procedure Get_Line_Without_EOL_Comment (Line : out Line_Record);
+
+   procedure Error ( --  PS   : in out Scanner_Record;
+                    Text : in     String);
+
+
+   Comment_CPP     : constant String := "//";
+   Comment_C_Begin : constant String := "/*";
+   Comment_C_End   : constant String := "*/";
+
+   Preproc_Ifdef   : constant String := "%ifdef";
+   Preproc_Ifndef  : constant String := "%ifndef";
+   Preproc_Endif   : constant String := "%endif";
+
+   use Ada.Text_IO;
+   File : File_Type;
+   Line : Line_Record;
+   PS   : Scanner_Record;
+   Start_Line : Integer := 0;
+
+
+   procedure Get_Line_Without_EOL_Comment (Line : out Line_Record)
    is
-      use Ada.Text_IO;
-      Comment_CPP     : constant String := "//";
-      Comment_C_Begin : constant String := "/*";
-      Comment_C_End   : constant String := "*/";
-
-      Preproc_Ifdef   : constant String := "%ifdef";
-      Preproc_Ifndef  : constant String := "%ifndef";
-      Preproc_Endif   : constant String := "%endif";
-
-      File : File_Type;
-      Line : Line_Record;
-      PS   : Scanner_Record;
-      Start_Line : Integer := 0;
-
-      procedure Get_Line_Without_EOL_Comment (Line : out Line_Record);
-
-      procedure Get_Line_Without_EOL_Comment (Line : out Line_Record)
-      is
-         use DK8543.Text;
-      begin
-         Ada.Text_IO.Get_Line (Line.Item, Line.Last);
-         Line.First := Line.Item'First;
-         Utility.Strip_End_Of_Line (From  => Line.Item,
-                                    Strip => Comment_CPP,
-                                    Last  => Line.Last);
-      end Get_Line_Without_EOL_Comment;
-
-
-      procedure Error (Text : in String);
-
-      procedure Error (Text : in String) is
-         use DK8543.Errors;
-      begin
-         Error (To_String (PS.File_Name), Start_Line, Text);
-         PS.Error_Count := PS.Error_Count + 1;
-      end Error;
-
-      Comment_C_Start : Natural;
-      Comment_C_Stop  : Natural;
-
-      use Ada.Strings.Fixed;
       use DK8543.Text;
    begin
-      PS.GP          := GP;
-      PS.File_Name   :=
-        To_Unbounded_String (Interfaces.C.Strings.Value (GP.File_Name));
-      PS.Error_Count := 0;
-      PS.Scan_State  := INITIALIZE;
+      Ada.Text_IO.Get_Line (Line.Item, Line.Last);
+      Line.First := Line.Item'First;
+      Utility.Strip_End_Of_Line (From  => Line.Item,
+                                 Strip => Comment_CPP,
+                                 Last  => Line.Last);
+   end Get_Line_Without_EOL_Comment;
 
-      --  Begin by opening the input file
-      Open (File, In_File, To_String (PS.File_Name));
 
-      --  Make an initial pass through the file to handle %ifdef and %ifndef.
-      --  Preprocess_Input (filebuf);
+   procedure Error ( --  PS   : in out Scanner_Record;
+                    Text : in     String)
+   is
+      use DK8543.Errors;
+   begin
+      Error (To_String (PS.File_Name), Start_Line, Text);
+      PS.Error_Count := PS.Error_Count + 1;
+   end Error;
 
-      --  Now scan the text of the input file.
+
+   procedure Comment_C_Filter (Line : in out Line_Record);
+
+   Comment_C_Start : Natural;
+   Comment_C_Stop  : Natural;
+
+   procedure Comment_C_Filter (Line : in out Line_Record)
+   is
+      use Ada.Strings.Fixed;
+   begin
       loop
          Get_Line_Without_EOL_Comment (Line);
-
-         --  Preprocess
-         if Line.First = Line.Item'First then
-            if In_First_Part (Line.Item, Preproc_Ifdef) then
-               null;
-            elsif In_First_Part (Line.Item, Preproc_Ifndef) then
-               null;
-            elsif In_First_Part (Line.Item, Preproc_Endif) then
-               null;
-            else
-               null;
-            end if;
+         Comment_C_Stop :=
+           Index (Line.Item (Line.First .. Line.Last), Comment_C_End);
+         if Comment_C_Stop /= 0 then
+            Line.First := Comment_C_Stop + Comment_C_End'Length;
+            exit;
          end if;
+      end loop;
+   end Comment_C_Filter;
 
-         Comment_C_Start := Index (Line.Item (Line.First .. Line.Last), Comment_C_Begin);
-         exit when Comment_C_Start = 0;
+   procedure Parse_Current_Character
+     (Line    : in out Line_Record;
+      Current : in     Character);
 
-         Filter_C_Comments :
-         loop
-            Get_Line_Without_EOL_Comment (Line);
-            Comment_C_Stop :=
-              Index (Line.Item (Line.First .. Line.Last), Comment_C_End);
-            if Comment_C_Stop /= 0 then
-               Line.First := Comment_C_Stop + Comment_C_End'Length;
-               exit Filter_C_Comments;
-            end if;
-         end loop Filter_C_Comments;
+   procedure Parse_Current_Character
+     (Line    : in out Line_Record;
+      Current : in     Character)
+   is
+   begin
+      case Current is
 
-         DK8543.Text.Trim (Line.Item, Line.First, Line.Last,
-                           Side => Ada.Strings.Left);
+         when '"' =>                     --   String literals
+            Line.Mode   := Quoted_Identifier;
+            Line.Buffer := Null_Unbounded_String;
 
-         PS.Token_Start  := Line.First;       --  Mark the beginning of the token
-         PS.Token_Lineno := IO.Line_Number;   --  Linenumber on which token begins
-
-         loop
-            declare
-               Current : Character renames Line.Item (Line.Current);
-            begin
-               case Line.Mode is
-
-                  when String_Literal => null;
-
-                  when Identifier =>  null;
-                  when C_Code_Block =>  null;
-
-                  when Quoted_Identifier =>
-                     if Current = '"' then
-                        Line.Mode := Root;
-                     else
-                        Line.Buffer := Line.Buffer & Current;
-                     end if;
-
---                 Mark := Line.First + 1;
---                 while Line.Item (Mark) /= '"' loop
---                    Mark := Line.First + 1;
---                 end loop;
---        if( c==0 ){
---          ErrorMsg(ps.filename,startline,
---  "String starting on this line is not terminated before the end of the file.");
---          ps.errorcnt++;
---          nextcp = cp;
---        }else{
---          nextcp = cp+1;
---        }
-
-                  when Root =>
-                     case Current is
-
-                        when '"' =>                     --   String literals
-                           Line.Mode   := Quoted_Identifier;
-                           Line.Buffer := Null_Unbounded_String;
-
-                        when '{' =>
+         when '{' =>
 --      }else if( c=='{' ){               /* A block of C code */
 --        int level;
 --        cp++;
@@ -296,57 +242,153 @@ package body Scanner is
 --          nextcp = cp+1;
 --        }
 --      }else if( ISALNUM(c) ){          /* Identifiers */
-                           null;
+            null;
 
-                        when 'a' .. 'z' | 'A' .. 'Z' =>
+         when 'a' .. 'z' | 'A' .. 'Z' =>
 --        while( (c= *cp)!=0 && (ISALNUM(c) || c=='_') ) cp++;
 --        nextcp = cp;
 --      }else if( c==':' && cp[1]==':' && cp[2]=='=' ){ /* The operator "::=" */
-                           null;
+            null;
 
-                        when ':' =>
+         when ':' =>
 --        cp += 3;
 --        nextcp = cp;
 --      }else if( (c=='/' || c=='|') && ISALPHA(cp[1]) ){
-                           null;
+            null;
 
-                        when '/' =>
+         when '/' =>
       --        cp += 2;
 --        while( (c = *cp)!=0 && (ISALNUM(c) || c=='_') ) cp++;
 --        nextcp = cp;
 --      }else{                          /* All other (one character) operators */
-                           null;
+            null;
 
-                        when others =>
+         when others =>
                --        cp++;
 --        nextcp = cp;
 --      }
-                           null;
+            null;
 
-                     end case;
+      end case;
 --      c = *cp;
 --      *cp = 0;                        /* Null terminate the token */
-                     Parse_One_Token (PS, Line);       --  Parse the token
+      Parse_One_Token (PS, Line);       --  Parse the token
 --    *cp = (char)c;                  /* Restore the buffer */
 --    cp = nextcp;
-               end case;
+   end Parse_Current_Character;
 
-            exception
+   procedure Parse_On_Mode (Line  : in out Line_Record;
+                            Break :    out Boolean);
 
-               when Constraint_Error =>
-                  case Line.Mode is
 
-                     when Quoted_Identifier =>
-                        Error ("String starting on this line is not " &
-                                 "terminated before the end of the " &
-                                 "file.");
+   procedure Parse_On_Mode (Line  : in out Line_Record;
+                            Break :    out Boolean)
+   is
+      Current : Character renames Line.Item (Line.Current);
+   begin
+      case Line.Mode is
 
-                     when others =>
-                        raise;
+         when String_Literal => null;
 
-                  end case;
+         when Identifier =>  null;
+         when C_Code_Block =>  null;
 
-            end;
+         when Quoted_Identifier =>
+            if Current = '"' then
+               Line.Mode := Root;
+            else
+               Line.Buffer := Line.Buffer & Current;
+            end if;
+
+--                 Mark := Line.First + 1;
+--                 while Line.Item (Mark) /= '"' loop
+--                    Mark := Line.First + 1;
+--                 end loop;
+--        if( c==0 ){
+--          ErrorMsg(ps.filename,startline,
+--  "String starting on this line is not terminated before the end of the file.");
+--          ps.errorcnt++;
+--          nextcp = cp;
+--        }else{
+--          nextcp = cp+1;
+--        }
+
+         when Root =>
+            Parse_Current_Character (Line, Current);
+
+      end case;
+
+   exception
+
+      when Constraint_Error =>
+         case Line.Mode is
+
+            when Quoted_Identifier =>
+               Error ("String starting on this line is not " &
+                        "terminated before the end of the " &
+                        "file.");
+
+            when others =>
+               raise;
+
+         end case;
+
+   end Parse_On_Mode;
+
+
+   procedure Parse (GP : access Lime.Lemon_Record)
+   is
+
+      use Ada.Strings.Fixed;
+      use DK8543.Text;
+
+      Break_Out : Boolean;
+   begin
+      PS.GP          := GP;
+      PS.File_Name   :=
+        To_Unbounded_String (Interfaces.C.Strings.Value (GP.File_Name));
+      PS.Error_Count := 0;
+      PS.Scan_State  := INITIALIZE;
+
+      --  Begin by opening the input file
+      Open (File, In_File, To_String (PS.File_Name));
+
+      --  Make an initial pass through the file to handle %ifdef and %ifndef.
+      --  Preprocess_Input (filebuf);
+
+      --  Now scan the text of the input file.
+      loop
+         Get_Line_Without_EOL_Comment (Line);
+
+         --  Preprocess
+         if Line.First = Line.Item'First then
+            if In_First_Part (Line.Item, Preproc_Ifdef) then
+               null;
+            elsif In_First_Part (Line.Item, Preproc_Ifndef) then
+               null;
+            elsif In_First_Part (Line.Item, Preproc_Endif) then
+               null;
+            else
+               null;
+            end if;
+         end if;
+
+         Comment_C_Start := Index (Line.Item (Line.First .. Line.Last), Comment_C_Begin);
+         exit when Comment_C_Start = 0;
+
+         --  Skip C comments
+         Comment_C_Filter (Line);
+
+         --  Trim leading spaces
+         DK8543.Text.Trim (Line.Item, Line.First, Line.Last,
+                           Side => Ada.Strings.Left);
+
+         PS.Token_Start  := Line.First;       --  Mark the beginning of the token
+         PS.Token_Lineno := IO.Line_Number;   --  Linenumber on which token begins
+
+         loop
+            Parse_On_Mode (Line, Break_Out);
+            exit when Break_Out;
          end loop;
 
       end loop;
@@ -355,7 +397,7 @@ package body Scanner is
 
       when End_Error =>
          Close (File);
-         GP.Rule      := PS.First_Rule;
+         GP.Rule      := Rules.Rule_Access (PS.First_Rule);
          GP.Error_Cnt := PS.Error_Count;
 
       when others =>
