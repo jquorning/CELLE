@@ -53,26 +53,38 @@ package body Scanner is
    subtype Extended_Pos is Natural      range 0 .. Max_Line_Length;
    subtype Line_Pos     is Extended_Pos range 1 .. Extended_Pos'Last;
 
+   --
+   --  Line_Record
+   --
+
+   type Mode_Identifier is
+     (Root,             --  On outer level
+      String_Literal,
+      C_Code_Block,
+      Identifier,       --  Identifier
+      Quoted_Identifier --  Identifier in quortes
+     );
+
+   use Ada.Strings.Unbounded;
    type Line_Record is
       record
-         First : Line_Pos;
-         Next  : Line_Pos;
-         Last  : Line_Pos;
-         Item  : String (Line_Pos);
+         Current : Line_Pos;          --  Position in Item of examined character
+         First   : Line_Pos;          --  First position in Item
+         Last    : Line_Pos;          --  Last position in Item
+         Item    : String (Line_Pos); --  Full line read from input
+         Mode    : Mode_Identifier;   --  Mode
+         Buffer  : Unbounded_String;  --  Holder for identifiers etc.
       end record;
+
+   --
+   --  Scanner_Record
+   --
 
    type State_Preproc is
      (Root,
       Ifdef,
       Ifndef);
 
-   type State_Identifier is
-     (Root,
-      String_Literal,
-      C_Code_Block,
-      Identifier);
-
-   use Ada.Strings.Unbounded;
    type Scanner_Record is
       record
          Token_Start  : Line_Pos;            --  Text of current token
@@ -80,7 +92,6 @@ package body Scanner is
          Error_Count  : Natural;             --  Number of errors so far
          GP : access Lime.Lemon_Record;      --  Global state vector
          Preproc_State : State_Preproc;
-         Iden_State    : State_Identifier;
          Scan_State    : State_Scanner;      --  The state of the parser
 --    struct symbol *fallback;   --  The fallback token
 --    struct symbol *tkclass;    --  Token class symbol
@@ -141,6 +152,16 @@ package body Scanner is
                                     Last  => Line.Last);
       end Get_Line_Without_EOL_Comment;
 
+
+      procedure Error (Text : in String);
+
+      procedure Error (Text : in String) is
+         use Auxiliary.Errors;
+      begin
+         Error (To_String (PS.File_Name), Start_Line, Text);
+         PS.Error_Count := PS.Error_Count + 1;
+      end Error;
+
       Comment_C_Start : Natural;
       Comment_C_Stop  : Natural;
 
@@ -196,15 +217,28 @@ package body Scanner is
          PS.Token_Start  := Line.First;       --  Mark the beginning of the token
          PS.Token_Lineno := IO.Line_Number;   --  Linenumber on which token begins
 
-         case Line.Item (Line.First) is
+         loop
+            declare
+               Current : Character renames Line.Item (Line.Current);
+            begin
+               case Line.Mode is
 
-            when '"' =>                     --   String literals
---      if( c=='\"' ){
---        cp++;
---        while( (c= *cp)!=0 && c!='\"' ){
---          if( c=='\n' ) lineno++;
---          cp++;
---        }
+                  when String_Literal => null;
+
+                  when Identifier =>  null;
+                  when C_Code_Block =>  null;
+
+                  when Quoted_Identifier =>
+                     if Current = '"' then
+                        Line.Mode := Root;
+                     else
+                        Line.Buffer := Line.Buffer & Current;
+                     end if;
+
+--                 Mark := Line.First + 1;
+--                 while Line.Item (Mark) /= '"' loop
+--                    Mark := Line.First + 1;
+--                 end loop;
 --        if( c==0 ){
 --          ErrorMsg(ps.filename,startline,
 --  "String starting on this line is not terminated before the end of the file.");
@@ -213,8 +247,15 @@ package body Scanner is
 --        }else{
 --          nextcp = cp+1;
 --        }
-               null;
-            when '{' =>
+
+                  when Root =>
+                     case Current is
+
+                        when '"' =>                     --   String literals
+                           Line.Mode   := Quoted_Identifier;
+                           Line.Buffer := Null_Unbounded_String;
+
+                        when '{' =>
 --      }else if( c=='{' ){               /* A block of C code */
 --        int level;
 --        cp++;
@@ -255,39 +296,59 @@ package body Scanner is
 --          nextcp = cp+1;
 --        }
 --      }else if( ISALNUM(c) ){          /* Identifiers */
-               null;
+                           null;
 
-            when 'a' .. 'z' | 'A' .. 'Z' =>
+                        when 'a' .. 'z' | 'A' .. 'Z' =>
 --        while( (c= *cp)!=0 && (ISALNUM(c) || c=='_') ) cp++;
 --        nextcp = cp;
 --      }else if( c==':' && cp[1]==':' && cp[2]=='=' ){ /* The operator "::=" */
-               null;
+                           null;
 
-            when ':' =>
+                        when ':' =>
 --        cp += 3;
 --        nextcp = cp;
 --      }else if( (c=='/' || c=='|') && ISALPHA(cp[1]) ){
-               null;
+                           null;
 
-            when '/' =>
+                        when '/' =>
       --        cp += 2;
 --        while( (c = *cp)!=0 && (ISALNUM(c) || c=='_') ) cp++;
 --        nextcp = cp;
 --      }else{                          /* All other (one character) operators */
-               null;
+                           null;
 
-            when others =>
+                        when others =>
                --        cp++;
 --        nextcp = cp;
 --      }
-               null;
+                           null;
 
-         end case;
+                     end case;
 --      c = *cp;
 --      *cp = 0;                        /* Null terminate the token */
-         Parse_One_Token (PS, Line);       --  Parse the token
+                     Parse_One_Token (PS, Line);       --  Parse the token
 --    *cp = (char)c;                  /* Restore the buffer */
 --    cp = nextcp;
+               end case;
+
+            exception
+
+               when Constraint_Error =>
+                  case Line.Mode is
+
+                     when Quoted_Identifier =>
+                        Error ("String starting on this line is not " &
+                                 "terminated before the end of the " &
+                                 "file.");
+
+                     when others =>
+                        raise;
+
+                  end case;
+
+            end;
+         end loop;
+
       end loop;
 
    exception
@@ -298,11 +359,13 @@ package body Scanner is
          GP.Error_Cnt := PS.Error_Count;
 
       when others =>
-         Auxiliary.Errors.Error
-           (To_String (PS.File_Name), 0, "Can't open this file for reading.");
-         GP.Error_Cnt := GP.Error_Cnt + 1;
+--           Auxiliary.Errors.Error
+--             (To_String (PS.File_Name), 0, "Can't open this file for reading.");
+--           GP.Error_Cnt := GP.Error_Cnt + 1;
+         Error ("Can't open this file for reading.");
 
    end Parse;
+
 
    procedure Parse_One_Token (PSP  : in out Scanner_Record;
                               Line : in     Line_Record)
