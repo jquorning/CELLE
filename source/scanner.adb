@@ -13,9 +13,9 @@ with Ada.Strings.Unbounded;
 
 with Interfaces.C.Strings;
 
-with Auxiliary.Text.IO;
-with Auxiliary.Text.Utility;
-with Auxiliary.Errors;
+with DK8543.Text.IO;
+with DK8543.Text.Utility;
+with DK8543.Errors;
 
 with Rules;
 
@@ -143,7 +143,7 @@ package body Scanner is
 
       procedure Get_Line_Without_EOL_Comment (Line : out Line_Record)
       is
-         use Auxiliary.Text;
+         use DK8543.Text;
       begin
          Ada.Text_IO.Get_Line (Line.Item, Line.Last);
          Line.First := Line.Item'First;
@@ -156,7 +156,7 @@ package body Scanner is
       procedure Error (Text : in String);
 
       procedure Error (Text : in String) is
-         use Auxiliary.Errors;
+         use DK8543.Errors;
       begin
          Error (To_String (PS.File_Name), Start_Line, Text);
          PS.Error_Count := PS.Error_Count + 1;
@@ -166,7 +166,7 @@ package body Scanner is
       Comment_C_Stop  : Natural;
 
       use Ada.Strings.Fixed;
-      use Auxiliary.Text;
+      use DK8543.Text;
    begin
       PS.GP          := GP;
       PS.File_Name   :=
@@ -211,8 +211,8 @@ package body Scanner is
             end if;
          end loop Filter_C_Comments;
 
-         Auxiliary.Text.Trim (Line.Item, Line.First, Line.Last,
-                              Side => Ada.Strings.Left);
+         DK8543.Text.Trim (Line.Item, Line.First, Line.Last,
+                           Side => Ada.Strings.Left);
 
          PS.Token_Start  := Line.First;       --  Mark the beginning of the token
          PS.Token_Lineno := IO.Line_Number;   --  Linenumber on which token begins

@@ -7,7 +7,7 @@
 --    May you share freely, not taking more than you give.
 --
 
-with Auxiliary.Errors;
+with DK8543.Errors;
 
 package body Errors is
 
@@ -16,8 +16,9 @@ package body Errors is
                       Start     : in String;
                       Name      : in String)
    is
+      use DK8543.Errors;
    begin
-      Auxiliary.Errors.Error
+      Error
         (File_Name, 0,
          "The specified start symbol '" & Start &
            "' is not in a nonterminal of the grammar.  '" &
@@ -29,8 +30,9 @@ package body Errors is
    procedure Error_2 (File_Name   : in String;
                       Name        : in String)
    is
+      use DK8543.Errors;
    begin
-      Auxiliary.Errors.Error
+      Error
         (File_Name, 0,
          "The start symbol '" & Name & "' occurs on " &
            "the right-hand side of a rule. This will " &

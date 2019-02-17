@@ -20,7 +20,7 @@ with Generate_C;
 with Setup;
 with Backend;
 with Text_Out;
-with Auxiliary;
+with DK8543;
 with Database;
 with Options;
 
@@ -187,7 +187,7 @@ package body Lime is
                if
                  Line (Index) = 'P'              and then
                  Line (Index .. Index + Parse'Length - 1) = Parse and then
-                 (Index = Line'First or else not Auxiliary.Is_Alpha (Line (Index - 1)))
+                 (Index = Line'First or else not DK8543.Is_Alpha (Line (Index - 1)))
                then
                   if Index > Start then
                      Put (Line (Start .. Index));
@@ -403,7 +403,7 @@ package body Lime is
       No_Action   : in     Integer)
    is
       use Text_Out;
-      use Auxiliary;
+      use DK8543;
       J : Integer;
       Action : Integer;
    begin
@@ -436,7 +436,7 @@ package body Lime is
       Nsymbol     : in     Integer)
    is
       use Text_Out;
-      use Auxiliary;
+      use DK8543;
       LA : Integer;
       J  : Integer := 0;
    begin
@@ -469,7 +469,7 @@ package body Lime is
       NO_OFFSET     : in Integer)
    is
       use Text_Out;
-      use Auxiliary;
+      use DK8543;
       Ofst : Integer;
       J : Integer := 0;
    begin
@@ -507,7 +507,7 @@ package body Lime is
       NO_OFFSET     : in Integer)
    is
       use Text_Out;
-      use Auxiliary;
+      use DK8543;
       J : Integer := 0;
       Ofst : Integer;
    begin
@@ -543,7 +543,7 @@ package body Lime is
       Min_Reduce   : in Integer)
    is
       use Text_Out;
-      use Auxiliary;
+      use DK8543;
       J : Integer := 0;
       IDfltReduce : Integer;
    begin

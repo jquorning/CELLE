@@ -8,7 +8,7 @@
 ##
 
 build:
-	gprbuild -k -p cherry.gpr
+	gprbuild -k cherry.gpr
 
 clean:
 	gprclean -q cherry.gpr
