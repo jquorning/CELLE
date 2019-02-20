@@ -473,34 +473,32 @@ package body Scanner is
                Error ("Token '" & X & "' should be either '%%' or a nonterminal name.");
             end if;
 
+
          when PRECEDENCE_MARK_1 =>
---        if( !ISUPPER(x[0]) ){
---          ErrorMsg(psp->filename,psp->tokenlineno,
---            "The precedence symbol must be a terminal.");
---          psp->errorcnt++;
---        }else if( psp->prevrule==0 ){
---          ErrorMsg(psp->filename,psp->tokenlineno,
---            "There is no prior rule to assign precedence \"[%s]\".",x);
---          psp->errorcnt++;
---        }else if( psp->prevrule->precsym!=0 ){
---          ErrorMsg(psp->filename,psp->tokenlineno,
---  "Precedence mark on this line is not the first \
---  to follow the previous rule.");
---          psp->errorcnt++;
---        }else{
---          psp->prevrule->precsym = lime_symbol_new(x);
---        }
---        psp->state = PRECEDENCE_MARK_2;
-            null;
+
+            if X (0) not in 'A' .. 'Z' then
+               Error ("The precedence symbol must be a terminal.");
+
+            elsif PSP.Prev_Rule = null then
+               Error ("There is no prior rule to assign precedence '[" & X & "]'.");
+
+            elsif PSP.Prev_Rule.Prec_Sym /= null then
+               Error ("Precedence mark on this line is not the first " &
+                        "to follow the previous rule.");
+
+            else
+               PSP.Prev_Rule.Prec_Sym :=
+                 Symbols.Lime_Symbol_New (Interfaces.C.Strings.New_String (X));
+            end if;
+            PSP.Scan_State := PRECEDENCE_MARK_2;
+
 
          when PRECEDENCE_MARK_2 =>
---        if( x[0]!=']' ){
---          ErrorMsg(psp->filename,psp->tokenlineno,
---            "Missing \"]\" on precedence mark.");
---          psp->errorcnt++;
---        }
---        psp->state = WAITING_FOR_DECL_OR_RULE;
-            null;
+            if X (0) /= ']' then
+               Error ("Missing ']' on precedence mark.");
+            end if;
+            PSP.Scan_State := WAITING_FOR_DECL_OR_RULE;
+
 
          when WAITING_FOR_ARROW =>
 --        if( x[0]==':' && x[1]==':' && x[2]=='=' ){
