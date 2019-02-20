@@ -7,6 +7,7 @@
 --    May you share freely, not taking more than you give.
 --
 
+with Interfaces.C;
 with Interfaces.C.Strings;
 
 with Symbols;
@@ -31,7 +32,7 @@ package body Rules is
       RP := Lemon_Rule;
       loop
          exit when RP /= null;
-         if RP.Code /= Null_Unbounded_String then
+         if RP.Code /= null then
             RP.Rule := Integer (I);
             I := I + 1;
          else

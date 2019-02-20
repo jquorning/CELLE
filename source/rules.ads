@@ -9,26 +9,19 @@
 
 with Ada.Strings.Unbounded;
 
-with Interfaces.C;
-
 with System;
 limited with Symbols;
 
 package Rules is
 
-   use Interfaces.C;
-
---   type Symbol_Proxy_Record is private;
---   type Symbol_Proxy_Access is private;
-
    type Rule_Record;
    type Rule_1_Access is access all Rule_Record;
 
    --  Left-hand side of the rule
-   use Ada.Strings.Unbounded;
 
    type RHS_Array_Access is access all Symbols.Symbol_Access_Array;
 
+   use Ada.Strings.Unbounded;
    type Rule_Record is
       record
          LHS          : access Symbols.Symbol_Record;  -- lemon.h:97
@@ -39,11 +32,11 @@ package Rules is
 --         RHS          : System.Address;  -- lemon.h:102
          RHS          : RHS_Array_Access;
          RHS_Alias    : System.Address;  -- lemon.h:103
-         Line         : Integer;  -- lemon.h:104
-         Code         : Unbounded_String;  -- lemon.h:105
-         Code_Prefix  : Unbounded_String;
-         Code_Suffix  : Unbounded_String;
-         No_Code      : Integer;  -- lemon.h:108
+         Line         : Natural;  -- lemon.h:104
+         Code         : access Unbounded_String;
+         Code_Prefix  : access Unbounded_String;
+         Code_Suffix  : access Unbounded_String;
+         No_Code      : Boolean;
          Code_Emitted : Integer;  -- lemon.h:109
          Prec_Sym     : access Symbols.Symbol_Record;
          Index        : Integer;

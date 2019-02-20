@@ -18,6 +18,7 @@ with DK8543.Text.Utility;
 with DK8543.Errors;
 
 with Rules;
+with Symbols;
 
 package body Scanner is
 
@@ -85,6 +86,10 @@ package body Scanner is
       Ifdef,
       Ifndef);
 
+   MAX_RHS : constant := 1000;
+
+   type RHS_Array is array (0 .. MAX_RHS - 1) of Symbols.Symbol_Access;
+
    type Scanner_Record is
       record
          Token_Start  : Line_Pos;            --  Text of current token
@@ -95,10 +100,12 @@ package body Scanner is
          Scan_State    : State_Scanner;      --  The state of the parser
 --    struct symbol *fallback;   --  The fallback token
 --    struct symbol *tkclass;    --  Token class symbol
---    struct symbol *lhs;        --  Left-hand side of current rule
---    const char *lhsalias;      --  Alias for the LHS
---    int nrhs;                  --  Number of right-hand side symbols seen
---    struct symbol *rhs[MAXRHS];  --  RHS symbols
+         LHS       : Symbols.Symbol_Access;           --  Left-hand side of current rule
+         LHS_Alias : Interfaces.C.Strings.chars_ptr;  --  Alias for the LHS
+         N_RHS     : Natural;                         --  Number of right-hand side symbols seen
+
+         --    struct symbol *rhs[MAXRHS];  --  RHS symbols
+         RHS : RHS_Array;
 --    const char *alias[MAXRHS]; --  Aliases for each RHS symbol (or NULL)
          Prev_Rule : access Rules.Rule_Record;     --  Previous rule parsed
 --    const char *declkeyword;   --  Keyword of a declaration
@@ -156,8 +163,7 @@ package body Scanner is
    end Get_Line_Without_EOL_Comment;
 
 
-   procedure Error ( --  PS   : in out Scanner_Record;
-                    Text : in     String)
+   procedure Error (Text : in String)
    is
       use DK8543.Errors;
    begin
@@ -433,38 +439,39 @@ package body Scanner is
 
          when WAITING_FOR_DECL_OR_RULE =>
             Do_Initialize;
---        if( x[0]=='%' ){
---          psp->state = WAITING_FOR_DECL_KEYWORD;
---        }else if( ISLOWER(x[0]) ){
---          psp->lhs = lime_symbol_new(x);
---          psp->nrhs = 0;
---          psp->lhsalias = 0;
---          psp->state = WAITING_FOR_ARROW;
---        }else if( x[0]=='{' ){
---          if( psp->prevrule==0 ){
---            ErrorMsg(psp->filename,psp->tokenlineno,
---  "There is no prior rule upon which to attach the code \
---  fragment which begins on this line.");
---            psp->errorcnt++;
---          }else if( psp->prevrule->code!=0 ){
---            ErrorMsg(psp->filename,psp->tokenlineno,
---  "Code fragment beginning on this line is not the first \
---  to follow the previous rule.");
---            psp->errorcnt++;
---          }else{
---            psp->prevrule->line = psp->tokenlineno;
---            psp->prevrule->code = &x[1];
---            psp->prevrule->noCode = 0;
---          }
---        }else if( x[0]=='[' ){
---          psp->state = PRECEDENCE_MARK_1;
---        }else{
---          ErrorMsg(psp->filename,psp->tokenlineno,
---            "Token \"%s\" should be either \"%%\" or a nonterminal name.",
---            x);
---          psp->errorcnt++;
---        }
-            null;
+
+            if X (0) = '%' then
+               PSP.Scan_State := WAITING_FOR_DECL_KEYWORD;
+
+            elsif X (0) in 'a' .. 'z' then
+               PSP.LHS        := Symbols.Lime_Symbol_New (Interfaces.C.Strings.New_String (X));
+               PSP.N_RHS      := 0;
+               PSP.LHS_Alias  := Interfaces.C.Strings.Null_Ptr;
+               PSP.Scan_State := WAITING_FOR_ARROW;
+
+            elsif X (0) = '{' then
+
+               if PSP.Prev_Rule = null then
+                  Error ("There is no prior rule upon which to attach the code " &
+                           "fragment which begins on this line.");
+
+               elsif PSP.Prev_Rule.Code /= null then
+                  Error ("Code fragment beginning on this line is not the first " &
+                           "to follow the previous rule.");
+
+               else
+                  PSP.Prev_Rule.Line    := PSP.Token_Lineno;
+                  PSP.Prev_Rule.Code    :=
+                    new Unbounded_String'(To_Unbounded_String (X (X'First + 1 .. X'Last)));
+                  PSP.Prev_Rule.No_Code := False;
+               end if;
+
+            elsif X (0) = '[' then
+               PSP.Scan_State := PRECEDENCE_MARK_1;
+
+            else
+               Error ("Token '" & X & "' should be either '%%' or a nonterminal name.");
+            end if;
 
          when PRECEDENCE_MARK_1 =>
 --        if( !ISUPPER(x[0]) ){
