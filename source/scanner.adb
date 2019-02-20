@@ -186,14 +186,13 @@ package body Scanner is
       end loop;
    end Comment_C_Filter;
 
-   procedure Parse_Current_Character
-     (Line    : in out Line_Record;
-      Current : in     Character);
 
-   procedure Parse_Current_Character
-     (Line    : in out Line_Record;
-      Current : in     Character)
+   procedure Parse_Current_Character (Line : in out Line_Record);
+   procedure Parse_Quoted_Identifier (Line : in out Line_Record);
+
+   procedure Parse_Current_Character (Line : in out Line_Record)
    is
+      Current : constant Character := Line.Item (Line.Current);
    begin
       case Current is
 
@@ -277,6 +276,22 @@ package body Scanner is
 --    cp = nextcp;
    end Parse_Current_Character;
 
+
+   procedure Parse_Quoted_Identifier (Line : in out Line_Record)
+   is
+      Current : Character renames Line.Item (Line.Current);
+   begin
+      if Current = '"' then
+         Line.Mode := Root;
+      else
+         Line.Buffer := Line.Buffer & Current;
+      end if;
+   exception
+      when Constraint_Error =>
+         Error
+           ("String starting on this line is not terminated before the end of the file.");
+   end Parse_Quoted_Identifier;
+
    procedure Parse_On_Mode (Line  : in out Line_Record;
                             Break :    out Boolean);
 
@@ -293,28 +308,8 @@ package body Scanner is
          when Identifier =>  null;
          when C_Code_Block =>  null;
 
-         when Quoted_Identifier =>
-            if Current = '"' then
-               Line.Mode := Root;
-            else
-               Line.Buffer := Line.Buffer & Current;
-            end if;
-
---                 Mark := Line.First + 1;
---                 while Line.Item (Mark) /= '"' loop
---                    Mark := Line.First + 1;
---                 end loop;
---        if( c==0 ){
---          ErrorMsg(ps.filename,startline,
---  "String starting on this line is not terminated before the end of the file.");
---          ps.errorcnt++;
---          nextcp = cp;
---        }else{
---          nextcp = cp+1;
---        }
-
-         when Root =>
-            Parse_Current_Character (Line, Current);
+         when Quoted_Identifier =>  Parse_Quoted_Identifier (Line);
+         when Root              =>  Parse_Current_Character (Line);
 
       end case;
 
