@@ -501,18 +501,23 @@ package body Scanner is
 
 
          when WAITING_FOR_ARROW =>
---        if( x[0]==':' && x[1]==':' && x[2]=='=' ){
---          psp->state = IN_RHS;
---        }else if( x[0]=='(' ){
---          psp->state = LHS_ALIAS_1;
---        }else{
---          ErrorMsg(psp->filename,psp->tokenlineno,
---            "Expected to see a \":\" following the LHS symbol \"%s\".",
---            psp->lhs->name);
---          psp->errorcnt++;
---          psp->state = RESYNC_AFTER_RULE_ERROR;
---        }
-            null;
+
+            if X (0 .. 2) = "::=" then
+               PSP.Scan_State := IN_RHS;
+
+            elsif X (0) = '(' then
+               PSP.Scan_State := LHS_ALIAS_1;
+
+            else
+               declare
+                  use Symbols;
+               begin
+                  Error ("Expected to see a ':' following the LHS symbol '" &
+                           From_Key (PSP.LHS.Name) & "'.");
+                  PSP.Scan_State := RESYNC_AFTER_RULE_ERROR;
+               end;
+            end if;
+
 
          when LHS_ALIAS_1 =>
 --        if( ISALPHA(x[0]) ){
