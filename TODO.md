@@ -1,2 +1,5 @@
-* Create Scanner_Parser package to break up Parse_Token into procedures
 * Complete scanner package
+* Get rid of lemon.c
+* SPARK
+* Multilingual errors
+* UTF-8
