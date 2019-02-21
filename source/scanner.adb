@@ -531,27 +531,25 @@ package body Scanner is
             end if;
 
          when LHS_ALIAS_2 =>
---        if( x[0]==')' ){
---          psp->state = LHS_ALIAS_3;
---        }else{
---          ErrorMsg(psp->filename,psp->tokenlineno,
---            "Missing \")\" following LHS alias name \"%s\".",psp->lhsalias);
---          psp->errorcnt++;
---          psp->state = RESYNC_AFTER_RULE_ERROR;
---        }
-            null;
+            if X (0)  = ')' then
+               PSP.Scan_State := LHS_ALIAS_3;
+            else
+               Error ("Missing ')' following LHS alias name '" &
+                        Interfaces.C.Strings.Value (PSP.LHS_Alias) & "'.");
+               PSP.Scan_State := RESYNC_AFTER_RULE_ERROR;
+            end if;
+
 
          when LHS_ALIAS_3 =>
---        if( x[0]==':' && x[1]==':' && x[2]=='=' ){
---          psp->state = IN_RHS;
---        }else{
---          ErrorMsg(psp->filename,psp->tokenlineno,
---            "Missing \"->\" following: \"%s(%s)\".",
---             psp->lhs->name,psp->lhsalias);
---          psp->errorcnt++;
---          psp->state = RESYNC_AFTER_RULE_ERROR;
---        }
-            null;
+            if X (0 .. 2) = "::=" then
+               PSP.Scan_State := IN_RHS;
+            else
+               Error ("Missing '->' following: '" & Symbols.From_Key (PSP.LHS.Name) &
+                        "(" & Interfaces.C.Strings.Value (PSP.LHS_Alias) & ")'.");
+               PSP.Scan_State := RESYNC_AFTER_RULE_ERROR;
+            end if;
+
+
          when IN_RHS =>
 --        if( x[0]=='.' ){
 --          struct rule *rp;
