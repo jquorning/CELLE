@@ -40,4 +40,36 @@ package body Errors is
    end Error_2;
 
 
+   type String_Access is access all String;
+
+   function "-" (Item : String) return String_Access;
+   function "-" (Item : String) return String_Access is
+   begin
+      return new String'(Item);
+   end "-";
+
+   Table : constant array (K_Error_Parse_One_Token) of String_Access :=
+     (E001 => -("There is no prior rule upon which to attach the code fragment which " &
+                  "begins on this line."),
+      E002 => -("Code fragment beginning on this line is not the first to follow the " &
+                  "previous rule."),
+      E003 => -"Token 'XXX' should be either '%%' or a nonterminal name.",
+      E004 => -"The precedence symbol must be a terminal.",
+      E005 => -"There is no prior rule to assign precedence '[XXX]'.",
+      E006 => -"Precedence mark on this line is not the first to follow the previous rule.",
+      E007 => -"Missing ']' on precedence mark."
+     );
+
+   procedure Error (File_Name   : String;
+                    Line_Number : Natural;
+                    Kind        : K_Error_Parse_One_Token)
+   is
+      use DK8543.Errors;
+   begin
+      Error
+        (File_Name, Line_Number,
+         Kind'Image & Table (Kind).all);
+   end Error;
+
+
 end Errors;

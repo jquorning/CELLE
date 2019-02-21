@@ -20,6 +20,7 @@ with DK8543.Interfaces.C.Strings;
 
 with Rules;
 with Symbols;
+with Errors;
 
 package body Scanner is
 
@@ -410,10 +411,20 @@ package body Scanner is
 
    end Parse;
 
+   use Errors;
+   procedure Error (Kind : K_Error_Parse_One_Token);
+
+   procedure Error (Kind : K_Error_Parse_One_Token) is
+   begin
+      Error (To_String (PS.File_Name), Start_Line, Kind);
+      PS.Error_Count := PS.Error_Count + 1;
+   end Error;
 
    procedure Parse_One_Token (PSP  : in out Scanner_Record;
                               Line : in     Line_Record)
    is
+      use Errors;
+
       procedure Do_Initialize;
 
       procedure Do_Initialize is
@@ -453,12 +464,14 @@ package body Scanner is
             elsif X (0) = '{' then
 
                if PSP.Prev_Rule = null then
-                  Error ("There is no prior rule upon which to attach the code " &
-                           "fragment which begins on this line.");
+                  Error (E001);
+--                  Error ("There is no prior rule upon which to attach the code " &
+--                           "fragment which begins on this line.");
 
                elsif PSP.Prev_Rule.Code /= null then
-                  Error ("Code fragment beginning on this line is not the first " &
-                           "to follow the previous rule.");
+                  Error (E002);
+--                  Error ("Code fragment beginning on this line is not the first " &
+--                           "to follow the previous rule.");
 
                else
                   PSP.Prev_Rule.Line    := PSP.Token_Lineno;
@@ -471,21 +484,25 @@ package body Scanner is
                PSP.Scan_State := PRECEDENCE_MARK_1;
 
             else
-               Error ("Token '" & X & "' should be either '%%' or a nonterminal name.");
+               Error (E003);
+--               Error ("Token '" & X & "' should be either '%%' or a nonterminal name.");
             end if;
 
 
          when PRECEDENCE_MARK_1 =>
 
             if X (0) not in 'A' .. 'Z' then
-               Error ("The precedence symbol must be a terminal.");
+               Error (E004);
+--               Error ("The precedence symbol must be a terminal.");
 
             elsif PSP.Prev_Rule = null then
-               Error ("There is no prior rule to assign precedence '[" & X & "]'.");
+               Error (E005); --  , X
+--               Error ("There is no prior rule to assign precedence '[" & X & "]'.");
 
             elsif PSP.Prev_Rule.Prec_Sym /= null then
-               Error ("Precedence mark on this line is not the first " &
-                        "to follow the previous rule.");
+               Error (E006);
+--               Error ("Precedence mark on this line is not the first " &
+--                        "to follow the previous rule.");
 
             else
                PSP.Prev_Rule.Prec_Sym :=
@@ -496,7 +513,8 @@ package body Scanner is
 
          when PRECEDENCE_MARK_2 =>
             if X (0) /= ']' then
-               Error ("Missing ']' on precedence mark.");
+               --  Error ("Missing ']' on precedence mark.");
+               Error (E007);
             end if;
             PSP.Scan_State := WAITING_FOR_DECL_OR_RULE;
 
