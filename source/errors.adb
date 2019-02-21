@@ -7,37 +7,51 @@
 --    May you share freely, not taking more than you give.
 --
 
+--  with Ada.Strings.Unbounded;
+
 with DK8543.Errors;
 
 package body Errors is
 
 
-   procedure Error_1 (File_Name : in String;
-                      Start     : in String;
-                      Name      : in String)
+   procedure Error_Plain (File_Name   : in Unbounded_String;
+                          Line_Number : in Natural;
+                          Text        : in String;
+                          Arguments   : in Argument_List)
    is
+      pragma Unreferenced (Arguments);
       use DK8543.Errors;
    begin
-      Error
-        (File_Name, 0,
-         "The specified start symbol '" & Start &
-           "' is not in a nonterminal of the grammar.  '" &
-           Name & "' will be used as the start " &
-           "symbol instead.");
-   end Error_1;
+      DK8543.Errors.Error
+        (Ada.Strings.Unbounded.To_String (File_Name), Line_Number, Text);
+   end Error_Plain;
+
+--     procedure Error_X1 (File_Name : in String;
+--                         Start     : in String;
+--                         Name      : in String)
+--     is
+--        use DK8543.Errors;
+--     begin
+--        Error
+--          (File_Name, 0,
+--           "The specified start symbol '" & Start &
+--             "' is not in a nonterminal of the grammar.  '" &
+--             Name & "' will be used as the start " &
+--             "symbol instead.");
+--     end Error_X1;
 
 
-   procedure Error_2 (File_Name   : in String;
-                      Name        : in String)
-   is
-      use DK8543.Errors;
-   begin
-      Error
-        (File_Name, 0,
-         "The start symbol '" & Name & "' occurs on " &
-           "the right-hand side of a rule. This will " &
-           "result in a parser which does not work properly.");
-   end Error_2;
+--     procedure Error_X2 (File_Name   : in String;
+--                         Name        : in String)
+--     is
+--        use DK8543.Errors;
+--     begin
+--        Error
+--          (File_Name, 0,
+--           "The start symbol '" & Name & "' occurs on " &
+--             "the right-hand side of a rule. This will " &
+--             "result in a parser which does not work properly.");
+--     end Error_X2;
 
 
    type String_Access is access all String;
@@ -60,16 +74,50 @@ package body Errors is
       E007 => -"Missing ']' on precedence mark."
      );
 
-   procedure Error (File_Name   : String;
-                    Line_Number : Natural;
-                    Kind        : K_Error_Parse_One_Token)
+
+   procedure Error
+     (Kind        : in K_Error_Parse_One_Token;
+      Line_Number : in Natural;
+--      Text        : in String;
+      Arguments   : in Argument_List := Null_Argument_List)
+
+--   procedure Error (Kind        : in K_Error_Parse_One_Token;
+--                    Line_Number : in Natural)
    is
-      use DK8543.Errors;
+      pragma Unreferenced (Arguments);
    begin
-      Error
-        (File_Name, Line_Number,
-         Kind'Image & Table (Kind).all);
+--      Default_File_Name := File_Name;
+      DK8543.Errors.Error (File_Name   => To_String (Default_File_Name),
+                           Line_Number => Line_Number,
+                           Message     => Kind'Image & Table (Kind).all);
    end Error;
+
+
+--     procedure Error (Kind        : in K_Error_Parse_One_Token;
+--                      Line_Number : in Natural)
+--     is
+--     begin
+--        Error_2 (Kind, "", "", Line_Number);
+--     end Error;
+
+
+--     procedure Error_1 (Kind        : in K_Error_Parse_One_Token;
+--                        Argument    : in String;
+--                        Line_Number : in Natural)
+--     is
+--     begin
+--        Error_2 (Kind, Argument, "", Line_Number);
+--     end Error_1;
+
+
+--     procedure Error_2 (Kind        : in K_Error_Parse_One_Token;
+--                        Argument_1  : in String;
+--                        Argument_2  : in String;
+--                        Line_Number : in Natural)
+--     is
+--     begin
+--        Error (To_String (Default_File_Name), Kind, Argument_1, Argument_2, Line_Number);
+--     end Error_2;
 
 
 end Errors;
