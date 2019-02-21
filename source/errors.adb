@@ -71,22 +71,27 @@ package body Errors is
       E004 => -"The precedence symbol must be a terminal.",
       E005 => -"There is no prior rule to assign precedence '[XXX]'.",
       E006 => -"Precedence mark on this line is not the first to follow the previous rule.",
-      E007 => -"Missing ']' on precedence mark."
+      E007 => -"Missing ']' on precedence mark.",
+      E008 => -"Expected to see a ':' following the LHS symbol '%1'.",
+      E009 => -"'%1' is not a valid alias for the LHS '%2'",
+      E010 => -"Missing ')' following LHS alias name '%1'.",
+      E011 => -"Missing '->' following: '%1(%2)'.",
+      E012 => -"'%1' is not a valid alias for the RHS symbol '%2'",
+      E013 => -"Missing ')' following LHS alias name '%1'.",
+
+      E101 => -"String starting on this line is not terminated before the end of the file.",
+      E102 => -"String starting on this line is not terminated before the end of the file.",
+      E103 => -"Can't open this file for reading."
      );
 
 
    procedure Error
      (Kind        : in K_Error_Parse_One_Token;
       Line_Number : in Natural;
---      Text        : in String;
       Arguments   : in Argument_List := Null_Argument_List)
-
---   procedure Error (Kind        : in K_Error_Parse_One_Token;
---                    Line_Number : in Natural)
    is
       pragma Unreferenced (Arguments);
    begin
---      Default_File_Name := File_Name;
       DK8543.Errors.Error (File_Name   => To_String (Default_File_Name),
                            Line_Number => Line_Number,
                            Message     => Kind'Image & Table (Kind).all);

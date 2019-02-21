@@ -11,7 +11,6 @@
 --  Ada binding for Lemon
 --
 
-with Ada.Strings.Unbounded;
 with Ada.Directories;
 with Ada.IO_Exceptions;
 

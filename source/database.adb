@@ -8,6 +8,7 @@
 --
 
 with Ada.Text_IO;
+with Ada.Strings.Unbounded;
 
 with Interfaces.C;
 with Interfaces.C.Strings;
@@ -17,6 +18,7 @@ package body Database is
    procedure Dump (Lemon : in Lemon_Record)
    is
       use Ada.Text_IO;
+      use Ada.Strings.Unbounded;
       use Interfaces.C;
       use Interfaces.C.Strings;
       use Database;
@@ -41,7 +43,7 @@ package body Database is
       else
          Put_Line ("start    : " & Strings.Value (Lemon.Start));
       end if;
-      Put_Line ("filename : " & Strings.Value (Lemon.File_Name));
+      Put_Line ("filename : " & To_String (Lemon.File_Name));
       New_Line;
    end Dump;
 

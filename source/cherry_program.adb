@@ -8,6 +8,7 @@
 --
 
 with Ada.Text_IO;
+with Ada.Strings.Unbounded;
 with Ada.Command_Line;
 with Ada.Containers;
 
@@ -80,6 +81,7 @@ begin
    Lime.Make_Copy_Of_Ada_Option_Strings;
 
    declare
+      use Ada.Strings.Unbounded;
       use Interfaces.C.Strings;
       use Ada.Text_IO;
       use Lime;
@@ -103,7 +105,7 @@ begin
       Symbols.Symbol_Init;
       Lime.State_Init;
       Lemon.Argv0            := New_String (Options.Program_Name.all);
-      Lemon.File_Name        := Lemon_Input_File; --  New_String (Lime.Option_Input_File.all);
+      Lemon.File_Name        := Unbounded_String'(To_Unbounded_String (Options.Input_File.all));
       Lemon.Basis_Flag       := Boolean'Pos (Options.Basis_Flag);
       Lemon.No_Line_Nos_Flag := Boolean'Pos (Options.No_Line_Nos);
       --  Extras.Symbol_New_Proc (Extras.To_Name ("$"));

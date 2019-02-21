@@ -15,7 +15,7 @@ with Interfaces.C.Strings;
 
 with DK8543.Text.IO;
 with DK8543.Text.Utility;
-with DK8543.Errors;
+--  with DK8543.Errors;
 with DK8543.Interfaces.C.Strings;
 
 with Rules;
@@ -90,7 +90,8 @@ package body Scanner is
 
    MAX_RHS : constant := 1000;
 
-   type RHS_Array is array (0 .. MAX_RHS - 1) of Symbols.Symbol_Access;
+   type RHS_Array   is array (0 .. MAX_RHS - 1) of Symbols.Symbol_Access;
+   type Alias_Array is array (0 .. MAX_RHS - 1) of Unbounded_String;
 
    type Scanner_Record is
       record
@@ -107,8 +108,10 @@ package body Scanner is
          N_RHS     : Natural;                         --  Number of right-hand side symbols seen
 
          --    struct symbol *rhs[MAXRHS];  --  RHS symbols
-         RHS : RHS_Array;
---    const char *alias[MAXRHS]; --  Aliases for each RHS symbol (or NULL)
+         RHS       : RHS_Array;
+         Alias     : Alias_Array;
+         --    const char *alias[MAXRHS];
+         --  Aliases for each RHS symbol (or NULL)
          Prev_Rule : access Rules.Rule_Record;     --  Previous rule parsed
 --    const char *declkeyword;   --  Keyword of a declaration
 --    char **declargslot;        --  Where the declaration argument should be put
@@ -134,9 +137,6 @@ package body Scanner is
 
    procedure Get_Line_Without_EOL_Comment (Line : out Line_Record);
 
-   procedure Error ( --  PS   : in out Scanner_Record;
-                    Text : in     String);
-
 
    Comment_CPP     : constant String := "//";
    Comment_C_Begin : constant String := "/*";
@@ -146,11 +146,20 @@ package body Scanner is
    Preproc_Ifndef  : constant String := "%ifndef";
    Preproc_Endif   : constant String := "%endif";
 
+   Start_Line : Natural := 0;
+
+   use Errors;
+   procedure Error (Kind        : in K_Error_Parse_One_Token;
+                    Arguments   : in Argument_List;
+                    Line_Number : in Natural                 := Start_Line);
+
+   procedure Error (Kind        : in K_Error_Parse_One_Token;
+                    Line_Number : in Natural                 := Start_Line);
+
    use Ada.Text_IO;
    File : File_Type;
    Line : Line_Record;
    PS   : Scanner_Record;
-   Start_Line : Integer := 0;
 
 
    procedure Get_Line_Without_EOL_Comment (Line : out Line_Record)
@@ -165,14 +174,23 @@ package body Scanner is
    end Get_Line_Without_EOL_Comment;
 
 
-   procedure Error (Text : in String)
+   procedure Error (Kind        : in K_Error_Parse_One_Token;
+--                    Text        : in String;
+                    Arguments   : in Argument_List;
+                    Line_Number : in Natural             := Start_Line)
    is
-      use DK8543.Errors;
    begin
-      Error (To_String (PS.File_Name), Start_Line, Text);
+      Errors.Default_File_Name := PS.File_Name;
+      Errors.Error (Kind, Line_Number, Arguments);
       PS.Error_Count := PS.Error_Count + 1;
    end Error;
 
+   procedure Error (Kind        : in K_Error_Parse_One_Token;
+                    Line_Number : in Natural                 := Start_Line)
+   is
+   begin
+      Error (Kind, Null_Argument_List, Line_Number);
+   end Error;
 
    procedure Comment_C_Filter (Line : in out Line_Record);
 
@@ -296,8 +314,8 @@ package body Scanner is
       end if;
    exception
       when Constraint_Error =>
-         Error
-           ("String starting on this line is not terminated before the end of the file.");
+         Error (E101);
+         --  ("String starting on this line is not terminated before the end of the file.");
    end Parse_Quoted_Identifier;
 
    procedure Parse_On_Mode (Line  : in out Line_Record;
@@ -327,9 +345,7 @@ package body Scanner is
          case Line.Mode is
 
             when Quoted_Identifier =>
-               Error ("String starting on this line is not " &
-                        "terminated before the end of the " &
-                        "file.");
+               Error (E102);
 
             when others =>
                raise;
@@ -348,8 +364,8 @@ package body Scanner is
       Break_Out : Boolean;
    begin
       PS.GP          := GP;
-      PS.File_Name   :=
-        To_Unbounded_String (Interfaces.C.Strings.Value (GP.File_Name));
+      PS.File_Name   := GP.File_Name;
+--        To_Unbounded_String (Interfaces.C.Strings.Value (GP.File_Name));
       PS.Error_Count := 0;
       PS.Scan_State  := INITIALIZE;
 
@@ -407,23 +423,15 @@ package body Scanner is
 --           Auxiliary.Errors.Error
 --             (To_String (PS.File_Name), 0, "Can't open this file for reading.");
 --           GP.Error_Cnt := GP.Error_Cnt + 1;
-         Error ("Can't open this file for reading.");
+         Error (E103);
 
    end Parse;
 
-   use Errors;
-   procedure Error (Kind : K_Error_Parse_One_Token);
-
-   procedure Error (Kind : K_Error_Parse_One_Token) is
-   begin
-      Error (To_String (PS.File_Name), Start_Line, Kind);
-      PS.Error_Count := PS.Error_Count + 1;
-   end Error;
 
    procedure Parse_One_Token (PSP  : in out Scanner_Record;
                               Line : in     Line_Record)
    is
-      use Errors;
+--      use Errors;
 
       procedure Do_Initialize;
 
@@ -531,8 +539,7 @@ package body Scanner is
                declare
                   use Symbols;
                begin
-                  Error ("Expected to see a ':' following the LHS symbol '" &
-                           From_Key (PSP.LHS.Name) & "'.");
+                  Error (E008, (1 => To_Unbounded_String (From_Key (PSP.LHS.Name))));
                   PSP.Scan_State := RESYNC_AFTER_RULE_ERROR;
                end;
             end if;
@@ -543,8 +550,8 @@ package body Scanner is
                PSP.LHS_Alias  := Interfaces.C.Strings.New_String (X);
                PSP.Scan_State := LHS_ALIAS_2;
             else
-               Error ("'" & X & "' is not a valid alias for the LHS '" &
-                        Symbols.From_Key (PSP.LHS.Name) & "'");
+               Error (E009, (1 => To_Unbounded_String (X),
+                             2 => To_Unbounded_String (Symbols.From_Key (PSP.LHS.Name))));
                PSP.Scan_State := RESYNC_AFTER_RULE_ERROR;
             end if;
 
@@ -552,8 +559,8 @@ package body Scanner is
             if X (0)  = ')' then
                PSP.Scan_State := LHS_ALIAS_3;
             else
-               Error ("Missing ')' following LHS alias name '" &
-                        Interfaces.C.Strings.Value (PSP.LHS_Alias) & "'.");
+               Error (E010, (1 => To_Unbounded_String
+                               (Interfaces.C.Strings.Value (PSP.LHS_Alias))));
                PSP.Scan_State := RESYNC_AFTER_RULE_ERROR;
             end if;
 
@@ -562,8 +569,10 @@ package body Scanner is
             if X (0 .. 2) = "::=" then
                PSP.Scan_State := IN_RHS;
             else
-               Error ("Missing '->' following: '" & Symbols.From_Key (PSP.LHS.Name) &
-                        "(" & Interfaces.C.Strings.Value (PSP.LHS_Alias) & ")'.");
+               Error (E011, (1 => To_Unbounded_String
+                               (Symbols.From_Key (PSP.LHS.Name)),
+                             2 => To_Unbounded_String
+                               (Interfaces.C.Strings.Value (PSP.LHS_Alias))));
                PSP.Scan_State := RESYNC_AFTER_RULE_ERROR;
             end if;
 
@@ -650,28 +659,36 @@ package body Scanner is
 --          psp->state = RESYNC_AFTER_RULE_ERROR;
 --        }
             null;
+
+
          when RHS_ALIAS_1 =>
---        if( ISALPHA(x[0]) ){
---          psp->alias[psp->nrhs-1] = x;
---          psp->state = RHS_ALIAS_2;
---        }else{
---          ErrorMsg(psp->filename,psp->tokenlineno,
---            "\"%s\" is not a valid alias for the RHS symbol \"%s\"\n",
---            x,psp->rhs[psp->nrhs-1]->name);
---          psp->errorcnt++;
---          psp->state = RESYNC_AFTER_RULE_ERROR;
---        }
-            null;
+
+            if DK8543.Interfaces.C.Strings.Is_Alpha (X (X'First)) then
+               PSP.Alias (PSP.N_RHS - 1) := To_Unbounded_String (X);
+               PSP.Scan_State := RHS_ALIAS_2;
+
+            else
+               Error (E012, (1 => To_Unbounded_String (X),
+                             2 => To_Unbounded_String
+                               (Symbols.From_Key (PSP.RHS (PSP.N_RHS - 1).Name))));
+               PSP.Scan_State := RESYNC_AFTER_RULE_ERROR;
+
+            end if;
+
+
          when RHS_ALIAS_2 =>
---        if( x[0]==')' ){
---          psp->state = IN_RHS;
---        }else{
---          ErrorMsg(psp->filename,psp->tokenlineno,
---            "Missing \")\" following LHS alias name \"%s\".",psp->lhsalias);
---          psp->errorcnt++;
---          psp->state = RESYNC_AFTER_RULE_ERROR;
---        }
-            null;
+
+            if X (X'First) = ')' then
+               PSP.Scan_State := IN_RHS;
+
+            else
+               Error (E013, (1 => To_Unbounded_String
+                               (Interfaces.C.Strings.Value (PSP.LHS_Alias))));
+               PSP.Scan_State := RESYNC_AFTER_RULE_ERROR;
+
+            end if;
+
+
          when WAITING_FOR_DECL_KEYWORD =>
 --        if( ISALPHA(x[0]) ){
 --          psp->declkeyword = x;

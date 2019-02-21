@@ -13,6 +13,7 @@
 --
 
 with Ada.Text_IO;
+with Ada.Strings.Unbounded;
 
 with Interfaces.C;
 with Interfaces.C.Strings;
@@ -247,7 +248,8 @@ package Lime is
          Extra_Code       : Strings.chars_ptr;  --  Code appended to the generated file
          Token_Dest       : Strings.chars_ptr;  --  Code to execute to destroy token data
          Var_Dest         : Strings.chars_ptr;  --  Code for the default non-terminal destructor
-         File_Name        : Strings.chars_ptr;  --  Name of the input file
+         --  File_Name        : Strings.chars_ptr;  --  Name of the input file
+         File_Name        : Ada.Strings.Unbounded.Unbounded_String;
 
          --   char *outname;           --  Name of the current output file
          Token_Prefix     : Strings.chars_ptr;  --  A prefix added to token names in the .h file
@@ -277,7 +279,8 @@ package Lime is
       Stack_Size   => Null_Ptr, Include      => Null_Ptr,  Error            => Null_Ptr,
       Overflow     => Null_Ptr, Failure      => Null_Ptr,  C_Accept         => Null_Ptr,
       Extra_Code   => Null_Ptr, Token_Dest   => Null_Ptr,  Var_Dest         => Null_Ptr,
-      File_Name    => Null_Ptr, Token_Prefix => Null_Ptr,
+      File_Name    => Ada.Strings.Unbounded.Null_Unbounded_String,  --  Null_Ptr,
+      Token_Prefix => Null_Ptr,
       N_Conflict   => 0,        N_Action_Tab => 0,         N_Lookahead_Tab  => 0,
       Table_Size   => 0,        Basis_Flag   => 0,         Has_Fallback     => 0,
       No_Line_Nos_Flag => 0,    Argv0        => Null_Ptr,  Extra            => Symbols.Get_Extra);

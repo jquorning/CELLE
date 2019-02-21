@@ -44,6 +44,17 @@ package Errors is
       E005,
       E006,
       E007,
+      E008,
+      E009,
+      E010,
+      E011,
+      E012,
+      E013,
+
+      E101,
+      E102,
+      E103,
+
       F001,
       F002
      );
@@ -51,7 +62,7 @@ package Errors is
    subtype K_Error   is K_Message range E001 .. K_Message'Val (K_Message'Pos (F001) - 1);
    subtype K_Fatal   is K_Message range F001 .. K_Message'Last;
 
-   type K_Error_Parse_One_Token is new K_Error range E001 .. E007;
+   type K_Error_Parse_One_Token is new K_Error range E001 .. E103;
 
 
    procedure Error

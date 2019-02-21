@@ -7,6 +7,8 @@
 --    May you share freely, not taking more than you give.
 --
 
+with Ada.Strings.Unbounded;
+
 with Interfaces.C.Strings;
 
 with Rules;
@@ -18,6 +20,7 @@ package body Cherry is
    procedure Find_States
      (Lemp : in out Lime.Lemon_Record)
    is
+      use Ada.Strings.Unbounded;
       use Interfaces.C.Strings;
       use Lemon_Bind;
       use Symbols;
@@ -34,8 +37,15 @@ package body Cherry is
       if Lemp.Start /= Null_Ptr then
          SP := Lime_Symbol_Find (Lemp.Start);
          if SP = null then
-            Errors.Error_1 (Value (Lemp.File_Name), Value (Lemp.Start),
-                            From_Key (Lemp.Start_Rule.LHS.all.Name));
+            Errors.Error_Plain
+              (File_Name   => Lemp.File_Name,
+               Line_Number => 0,
+               Text        =>
+                 "The specified start symbol '%1' Start is not in a nonterminal " &
+                 "of the grammar.  '%2' will be used as the start symbol instead.",
+               Arguments   => (1 => To_Unbounded_String (Value (Lemp.Start)),
+                               2 => To_Unbounded_String (From_Key (Lemp.Start_Rule.LHS.all.Name)))
+              );
             Lemp.Error_Cnt := Lemp.Error_Cnt + 1;
             SP := Symbol_Access (Lemp.Start_Rule.LHS);
          end if;
@@ -51,7 +61,15 @@ package body Cherry is
          exit when RP = null;
          for I in RP.RHS'Range loop
             if RP.RHS (I) = SP then   --  FIX ME:  Deal with multiterminals XXX
-               Errors.Error_2 (Value (Lemp.File_Name), From_Key (SP.Name));
+               Errors.Error_Plain
+                 (File_Name   => Lemp.File_Name,
+                  Line_Number => 0,
+                  Text        =>
+                    "The start symbol '%1' occurs on the right-hand " &
+                    "side of a rule. This will result in a parser which " &
+                    "does not work properly.",
+                  Arguments   => (1 => To_Unbounded_String (From_Key (SP.Name)))
+                 );
                Lemp.Error_Cnt := Lemp.Error_Cnt + 1;
             end if;
          end loop;
