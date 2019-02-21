@@ -16,6 +16,7 @@ with Interfaces.C.Strings;
 with DK8543.Text.IO;
 with DK8543.Text.Utility;
 with DK8543.Errors;
+with DK8543.Interfaces.C.Strings;
 
 with Rules;
 with Symbols;
@@ -520,17 +521,14 @@ package body Scanner is
 
 
          when LHS_ALIAS_1 =>
---        if( ISALPHA(x[0]) ){
---          psp->lhsalias = x;
---          psp->state = LHS_ALIAS_2;
---        }else{
---          ErrorMsg(psp->filename,psp->tokenlineno,
---            "\"%s\" is not a valid alias for the LHS \"%s\"\n",
---            x,psp->lhs->name);
---          psp->errorcnt++;
---          psp->state = RESYNC_AFTER_RULE_ERROR;
---        }
-            null;
+            if DK8543.Interfaces.C.Strings.Is_Alpha (X (0)) then
+               PSP.LHS_Alias  := Interfaces.C.Strings.New_String (X);
+               PSP.Scan_State := LHS_ALIAS_2;
+            else
+               Error ("'" & X & "' is not a valid alias for the LHS '" &
+                        Symbols.From_Key (PSP.LHS.Name) & "'");
+               PSP.Scan_State := RESYNC_AFTER_RULE_ERROR;
+            end if;
 
          when LHS_ALIAS_2 =>
 --        if( x[0]==')' ){
