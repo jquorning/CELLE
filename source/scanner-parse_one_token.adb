@@ -7,7 +7,7 @@
 --    May you share freely, not taking more than you give.
 --
 
-with DK8543.Interfaces.C.Strings;
+--  with DK8543.Interfaces.C.Strings;
 
 with Symbols;
 with Errors;
@@ -53,9 +53,11 @@ begin
             PSP.Scan_State := WAITING_FOR_DECL_KEYWORD;
 
          elsif X (X'First) in 'a' .. 'z' then
-            PSP.LHS        := Symbols.Lime_Symbol_New (Interfaces.C.Strings.New_String (X));
-            PSP.N_RHS      := 0;
-            PSP.LHS_Alias  := Interfaces.C.Strings.Null_Ptr;
+            PSP.LHS.Append (Symbols.Lime_Symbol_New (Interfaces.C.Strings.New_String (X)));
+--            PSP.N_RHS      := 0;
+            PSP.RHS        := Symbols.Symbol_Vectors.Empty_Vector;
+--            PSP.LHS_Alias  := Interfaces.C.Strings.Null_Ptr;
+            PSP.LHS_Alias  := Alias_Vectors.Empty_Vector; --  Interfaces.C.Strings.Null_Ptr;
             PSP.Scan_State := WAITING_FOR_ARROW;
 
          elsif X (X'First) = '{' then
@@ -118,29 +120,38 @@ begin
 
       when WAITING_FOR_ARROW =>
 
-         if X (0 .. 2) = "::=" then
+         if X (1 .. 3) = "::=" then
             PSP.Scan_State := IN_RHS;
 
-         elsif X (0) = '(' then
+         elsif X (1) = '(' then
             PSP.Scan_State := LHS_ALIAS_1;
 
          else
             declare
                use Symbols;
             begin
-               Error (E008, (1 => To_Unbounded_String (From_Key (PSP.LHS.Name))));
+--               Error (E008, (1 => To_Unbounded_String (From_Key (PSP.LHS.Name))));
+               Error (E008, (1 => To_Unbounded_String
+                               (From_Key (PSP.LHS.First_Element.Name))));
                PSP.Scan_State := RESYNC_AFTER_RULE_ERROR;
             end;
          end if;
 
 
       when LHS_ALIAS_1 =>
-         if DK8543.Interfaces.C.Strings.Is_Alpha (X (0)) then
-            PSP.LHS_Alias  := Interfaces.C.Strings.New_String (X);
+         if
+           X (X'First) in 'a' .. 'z' or
+           X (X'First) in 'A' .. 'Z'
+         then
+--            PSP.LHS_Alias  := Interfaces.C.Strings.New_String (X);
+--            PSP.LHS_Alias.Append (Interfaces.C.Strings.New_String (X));
+            PSP.LHS_Alias.Append (To_Alias (X));
             PSP.Scan_State := LHS_ALIAS_2;
          else
             Error (E009, (1 => To_Unbounded_String (X),
-                          2 => To_Unbounded_String (Symbols.From_Key (PSP.LHS.Name))));
+--                          2 => To_Unbounded_String (Symbols.From_Key (PSP.LHS.Name))));
+                          2 => To_Unbounded_String
+                            (Symbols.From_Key (PSP.LHS.First_Element.Name))));
             PSP.Scan_State := RESYNC_AFTER_RULE_ERROR;
          end if;
 
@@ -148,8 +159,9 @@ begin
          if X (0)  = ')' then
             PSP.Scan_State := LHS_ALIAS_3;
          else
-            Error (E010, (1 => To_Unbounded_String
-                            (Interfaces.C.Strings.Value (PSP.LHS_Alias))));
+--            Error (E010, (1 => To_Unbounded_String
+--                            (Interfaces.C.Strings.Value (PSP.LHS_Alias))));
+            Error (E010, (1 => PSP.LHS_Alias.First_Element));
             PSP.Scan_State := RESYNC_AFTER_RULE_ERROR;
          end if;
 
@@ -159,9 +171,11 @@ begin
             PSP.Scan_State := IN_RHS;
          else
             Error (E011, (1 => To_Unbounded_String
-                            (Symbols.From_Key (PSP.LHS.Name)),
-                          2 => To_Unbounded_String
-                            (Interfaces.C.Strings.Value (PSP.LHS_Alias))));
+--                            (Symbols.From_Key (PSP.LHS.Name)),
+                            (Symbols.From_Key (PSP.LHS.First_Element.Name)),
+--                          2 => To_Unbounded_String
+--                            (Interfaces.C.Strings.Value (PSP.LHS_Alias))));
+                          2 => PSP.LHS_Alias.First_Element));
             PSP.Scan_State := RESYNC_AFTER_RULE_ERROR;
          end if;
 
@@ -185,17 +199,34 @@ begin
                   RP.Rule_Line := PSP.Token_Lineno;
                   --  Rp.rhs      := (struct symbol**)&rp[1];
                   --  Rp.rhsalias := (const char**)&(rp->rhs[psp->nrhs]);
-                  for I in 0 .. PSP.N_RHS - 1 loop
-                     RP.RHS       (I) := PSP.RHS   (I);
-                     RP.RHS_Alias (I) := PSP.Alias (I);
-                     if RP.RHS_Alias (I) /= null then
-                        RP.RHS (I).Content := True;
-                     end if;
-                  end loop;
-                  RP.LHS        := PSP.LHS;
-                  RP.LHS_Alias  :=
-                    To_Unbounded_String
-                    (Interfaces.C.Strings.Value (PSP.LHS_Alias));
+
+--                    for I in 0 .. PSP.N_RHS - 1 loop
+--                       RP.RHS       (I) := PSP.RHS   (I);
+--                       RP.RHS_Alias (I) := PSP.Alias (I);
+--                       if RP.RHS_Alias (I) /= null then
+--                          RP.RHS (I).Content := True;
+--                       end if;
+--                    end loop;
+
+                  declare
+                     subtype Index_Range is Positive range
+                       PSP.RHS.First_Index .. PSP.RHS.Last_Index;
+                  begin
+                     for I in Index_Range loop
+                        RP.RHS       (I) := PSP.RHS   (I);
+--  XXX                       RP.RHS_Alias (I) := PSP.Alias.Element (I);
+                        if RP.RHS_Alias (I) /= null then
+                           RP.RHS (I).Content := True;
+                        end if;
+                     end loop;
+                  end;
+
+--                  RP.LHS        := PSP.LHS;
+                  RP.LHS        := PSP.LHS.First_Element;
+--                    RP.LHS_Alias  :=
+--                      To_Unbounded_String
+--                      (Interfaces.C.Strings.Value (PSP.LHS_Alias));
+                  RP.LHS_Alias  := PSP.LHS_Alias.First_Element;
                   --  RP.N_RHS      := PSP.RHS'Length; -- N_RHS;
                   RP.Code       := new Unbounded_String'(Null_Unbounded_String);
                   RP.No_Code    := True;
@@ -217,27 +248,38 @@ begin
             end;
             PSP.Scan_State := WAITING_FOR_DECL_OR_RULE;
 
-         elsif DK8543.Interfaces.C.Strings.Is_Alpha (X (X'First)) then
-            if PSP.N_RHS >= MAX_RHS then
---               ErrorMsg(psp->filename,psp->tokenlineno,
---                        "Too many symbols on RHS of rule beginning at \"%s\".",
---                        x);
---               psp->errorcnt++;
-               PSP.Scan_State := RESYNC_AFTER_RULE_ERROR;
-            else
-               PSP.RHS (PSP.N_RHS)   :=
-                 Symbols.Lime_Symbol_New (Interfaces.C.Strings.New_String (X));
-               PSP.Alias (PSP.N_RHS) := Null_Unbounded_String;
-               PSP.N_RHS := PSP.N_RHS + 1;
-            end if;
-         elsif (X (X'First) = '|' or X (X'First) = '/') and PSP.N_RHS > 0 then
+         elsif
+           X (X'First) in 'a' .. 'z' or
+           X (X'First) in 'A' .. 'Z'
+         then
+--              --  if PSP.N_RHS >= MAX_RHS then
+--              if Length (PSP.RHS) >= MAX_RHS then
+--  --               ErrorMsg(psp->filename,psp->tokenlineno,
+--  --                        "Too many symbols on RHS of rule beginning at \"%s\".",
+--  --                        x);
+--  --               psp->errorcnt++;
+--                 PSP.Scan_State := RESYNC_AFTER_RULE_ERROR;
+--              else
+--  --                 PSP.RHS (PSP.N_RHS)   :=
+--  --                   Symbols.Lime_Symbol_New (Interfaces.C.Strings.New_String (X));
+--  --                 PSP.Alias (PSP.N_RHS) := Null_Unbounded_String;
+--  --                 PSP.N_RHS := PSP.N_RHS + 1;
+               PSP.RHS  .Append (Symbols.Lime_Symbol_New (Interfaces.C.Strings.New_String (X)));
+               PSP.Alias.Append (Null_Unbounded_String);
+--            end if;
+
+         elsif
+           (X (X'First) = '|' or
+              X (X'First) = '/') and not PSP.RHS.Is_Empty
+         then
             declare
                use Symbols;
-               MSP : Symbols.Symbol_Access := PSP.RHS (PSP.N_RHS - 1);
+--               MSP : Symbols.Symbol_Access := PSP.RHS (PSP.N_RHS - 1);
+               MSP : Symbols.Symbol_Access := PSP.RHS.Last_Element;
             begin
                if MSP.Kind /= Symbols.Multi_Terminal then
                   declare
-                     Orig_SP : Symbols.Symbol_Access := MSP;
+                     Orig_SP : constant Symbols.Symbol_Access := MSP;
                   begin
                      MSP := new Symbols.Symbol_Record;
 --                  (struct symbol *) calloc(1,sizeof(*msp));
@@ -250,8 +292,9 @@ begin
                      MSP.Sub_Sym := Symbol_Vectors.Empty_Vector;
                      MSP.Sub_Sym.Append (Orig_SP);
 
-                     MSP.Name    := Orig_SP.Name;
-                     PSP.RHS (PSP.N_RHS - 1) := MSP;
+                     MSP.Name := Orig_SP.Name;
+
+                     PSP.RHS.Append (MSP);
                   end;
                end if;
 --                 MSP.N_Sub_Sym := MSP.N_Sub_Sym + 1;
@@ -277,8 +320,11 @@ begin
                   null;
                end if;
             end;
-         elsif X (X'First) = '(' and PSP.N_RHS > 0 then
+
+--         elsif X (X'First) = '(' and PSP.N_RHS > 0 then
+         elsif X (X'First) = '(' and not PSP.RHS.Is_Empty then
             PSP.Scan_State := RHS_ALIAS_1;
+
          else
 --            ErrorMsg(psp->filename,psp->tokenlineno,
 --                     "Illegal character on RHS of rule: \"%s\".",x);
@@ -289,14 +335,21 @@ begin
 
       when RHS_ALIAS_1 =>
 
-         if DK8543.Interfaces.C.Strings.Is_Alpha (X (X'First)) then
-            PSP.Alias (PSP.N_RHS - 1) := To_Unbounded_String (X);
-            PSP.Scan_State := RHS_ALIAS_2;
+         if
+           X (X'First) in 'a' .. 'z' or
+           X (X'First) in 'A' .. 'Z'
+         then
+--            PSP.Alias (PSP.N_RHS - 1) := To_Unbounded_String (X);
+            PSP.Alias.Append (To_Alias (X));
+            PSP.Scan_State   := RHS_ALIAS_2;
 
          else
+--              Error (E012, (1 => To_Unbounded_String (X),
+--                            2 => To_Unbounded_String
+--                              (Symbols.From_Key (PSP.RHS (PSP.N_RHS - 1).Name))));
             Error (E012, (1 => To_Unbounded_String (X),
                           2 => To_Unbounded_String
-                            (Symbols.From_Key (PSP.RHS (PSP.N_RHS - 1).Name))));
+                            (Symbols.From_Key (PSP.RHS.Last_Element.Name))));
             PSP.Scan_State := RESYNC_AFTER_RULE_ERROR;
 
          end if;
@@ -308,8 +361,9 @@ begin
             PSP.Scan_State := IN_RHS;
 
          else
-            Error (E013, (1 => To_Unbounded_String
-                            (Interfaces.C.Strings.Value (PSP.LHS_Alias))));
+--            Error (E013, (1 => To_Unbounded_String
+--                            (Interfaces.C.Strings.Value (PSP.LHS_Alias))));
+            Error (E013, (1 => PSP.LHS_Alias.First_Element));
             PSP.Scan_State := RESYNC_AFTER_RULE_ERROR;
 
          end if;

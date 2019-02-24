@@ -8,8 +8,9 @@
 --
 
 with Ada.Strings.Unbounded;
+with Ada.Containers.Vectors;
 
-with System;
+--  with System;
 limited with Symbols;
 
 package Rules is
@@ -19,20 +20,28 @@ package Rules is
 
    --  Left-hand side of the rule
 
-   type RHS_Array_Access is access all Symbols.Symbol_Access_Array;
+   type RHS_Array_Access   is access all Symbols.Symbol_Access_Array;
    type Alias_Array_Access is access all Symbols.Symbol_Access_Array;
+--   package Symbol_Vectors is
+--      new Ada.Containers.Vectors
+--     (Positive,
+--      Symbols.Symbol_Access);
 
+   --  use Symbols;
    use Ada.Strings.Unbounded;
    type Rule_Record is
       record
          LHS          : access Symbols.Symbol_Record;  -- lemon.h:97
          LHS_Alias    : Unbounded_String;
+--         LHS_Alias    : Symbols.S_Alias;
          LHS_Start    : Integer;  -- lemon.h:99
          Rule_Line    : Integer;  -- lemon.h:100
 --         N_RHS        : Integer;  -- lemon.h:101
 --         RHS          : System.Address;  -- lemon.h:102
          RHS          : RHS_Array_Access;
+--         RHS          : Symbols.Symbol_Vectors.Vector;
          RHS_Alias    : Alias_Array_Access; --  System.Address;  -- lemon.h:103
+--         RHS_Alias    : Symbols.Alias_Vectors.Vector;
          Line         : Natural;  -- lemon.h:104
          Code         : access Unbounded_String;
          Code_Prefix  : access Unbounded_String;

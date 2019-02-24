@@ -8,8 +8,7 @@
 --
 
 with Ada.Strings.Unbounded;
-
-with Interfaces.C.Strings;
+with Ada.Containers.Vectors;
 
 with Lime;
 with Symbols;
@@ -89,7 +88,14 @@ package Scanner_Data is
 
    use Ada.Strings.Unbounded;
    --  type RHS_Array   is array (0 .. MAX_RHS - 1) of Symbols.Symbol_Access;
-   type Alias_Array is array (0 .. MAX_RHS - 1) of Unbounded_String;
+   subtype S_Alias is Unbounded_String;
+   function To_Alias (Item : String) return S_Alias renames To_Unbounded_String;
+
+   package Alias_Vectors is
+      new Ada.Containers.Vectors
+     (Positive,
+      S_Alias);
+   --  type Alias_Array is array (0 .. MAX_RHS - 1) of Unbounded_String;
 
    use Symbols;
    type Scanner_Record is
@@ -104,13 +110,17 @@ package Scanner_Data is
 --    struct symbol *tkclass;    --  Token class symbol
 --         LHS       : Symbols.Symbol_Access;           --  Left-hand side of current rule
          LHS : Symbol_Vectors.Vector;
-         LHS_Alias : Interfaces.C.Strings.chars_ptr;  --  Alias for the LHS
-       --  N_RHS     : Natural;                         --  Number of right-hand side symbols seen
+--         LHS_Alias : Interfaces.C.Strings.chars_ptr;  --  Alias for the LHS
+         LHS_Alias : Alias_Vectors.Vector;
+         --  Interfaces.C.Strings.chars_ptr;  --  Alias for the LHS
+         --  N_RHS     : Natural;
+         --  Number of right-hand side symbols seen
 
          --    struct symbol *rhs[MAXRHS];  --  RHS symbols
-       --  RHS       : RHS_Array;
+         --  RHS       : RHS_Array;
          RHS       : Symbol_Vectors.Vector;
-         Alias     : Alias_Array;
+         --  Alias     : Alias_Array;
+         Alias     : Alias_Vectors.Vector;
          --    const char *alias[MAXRHS];
          --  Aliases for each RHS symbol (or NULL)
          Prev_Rule : access Rules.Rule_Record;     --  Previous rule parsed
