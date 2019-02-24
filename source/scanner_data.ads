@@ -88,25 +88,28 @@ package Scanner_Data is
    MAX_RHS : constant := 1000;
 
    use Ada.Strings.Unbounded;
-   type RHS_Array   is array (0 .. MAX_RHS - 1) of Symbols.Symbol_Access;
+   --  type RHS_Array   is array (0 .. MAX_RHS - 1) of Symbols.Symbol_Access;
    type Alias_Array is array (0 .. MAX_RHS - 1) of Unbounded_String;
 
+   use Symbols;
    type Scanner_Record is
       record
-         Token_Start  : Line_Pos;            --  Text of current token
-         Token_Lineno : Natural;             --  Linenumber at which current token starts
-         Error_Count  : Natural;             --  Number of errors so far
-         GP : access Lime.Lemon_Record;      --  Global state vector
+         Token_Start   : Line_Pos;                  --  Text of current token
+         Token_Lineno  : Natural;                   --  Linenumber at which current token starts
+         Error_Count   : Natural;                   --  Number of errors so far
+         GP            : access Lime.Lemon_Record;  --  Global state vector
          Preproc_State : State_Preproc;
-         Scan_State    : State_Scanner;      --  The state of the parser
+         Scan_State    : State_Scanner;             --  The state of the parser
 --    struct symbol *fallback;   --  The fallback token
 --    struct symbol *tkclass;    --  Token class symbol
-         LHS       : Symbols.Symbol_Access;           --  Left-hand side of current rule
+--         LHS       : Symbols.Symbol_Access;           --  Left-hand side of current rule
+         LHS : Symbol_Vectors.Vector;
          LHS_Alias : Interfaces.C.Strings.chars_ptr;  --  Alias for the LHS
-         N_RHS     : Natural;                         --  Number of right-hand side symbols seen
+       --  N_RHS     : Natural;                         --  Number of right-hand side symbols seen
 
          --    struct symbol *rhs[MAXRHS];  --  RHS symbols
-         RHS       : RHS_Array;
+       --  RHS       : RHS_Array;
+         RHS       : Symbol_Vectors.Vector;
          Alias     : Alias_Array;
          --    const char *alias[MAXRHS];
          --  Aliases for each RHS symbol (or NULL)
@@ -116,10 +119,10 @@ package Scanner_Data is
 --    int insertLineMacro;       --  Add #line before declaration insert
 --    int *decllinenoslot;       --  Where to write declaration line number
 --    enum e_assoc declassoc;    --  Assign this association to decl arguments
-         Prec_Counter : Integer;           --  Assign this precedence to decl arguments
+         Prec_Counter : Integer;                  --  Assign this precedence to decl arguments
          First_Rule   : access Rules.Rule_Record; --  Pointer to first rule in the grammar
          Last_Rule    : access Rules.Rule_Record; --  Pointer to the most recently parsed rule
-         File_Name    : Unbounded_String;    --  Name of the input file
+         File_Name    : Unbounded_String;         --  Name of the input file
       end record;
 
 

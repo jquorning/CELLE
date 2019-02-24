@@ -20,6 +20,7 @@ package Rules is
    --  Left-hand side of the rule
 
    type RHS_Array_Access is access all Symbols.Symbol_Access_Array;
+   type Alias_Array_Access is access all Symbols.Symbol_Access_Array;
 
    use Ada.Strings.Unbounded;
    type Rule_Record is
@@ -31,7 +32,7 @@ package Rules is
 --         N_RHS        : Integer;  -- lemon.h:101
 --         RHS          : System.Address;  -- lemon.h:102
          RHS          : RHS_Array_Access;
-         RHS_Alias    : System.Address;  -- lemon.h:103
+         RHS_Alias    : Alias_Array_Access; --  System.Address;  -- lemon.h:103
          Line         : Natural;  -- lemon.h:104
          Code         : access Unbounded_String;
          Code_Prefix  : access Unbounded_String;

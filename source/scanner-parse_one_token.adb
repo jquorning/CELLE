@@ -49,16 +49,16 @@ begin
       when WAITING_FOR_DECL_OR_RULE =>
          Do_Initialize;
 
-         if X (0) = '%' then
+         if X (X'First) = '%' then
             PSP.Scan_State := WAITING_FOR_DECL_KEYWORD;
 
-         elsif X (0) in 'a' .. 'z' then
+         elsif X (X'First) in 'a' .. 'z' then
             PSP.LHS        := Symbols.Lime_Symbol_New (Interfaces.C.Strings.New_String (X));
             PSP.N_RHS      := 0;
             PSP.LHS_Alias  := Interfaces.C.Strings.Null_Ptr;
             PSP.Scan_State := WAITING_FOR_ARROW;
 
-         elsif X (0) = '{' then
+         elsif X (X'First) = '{' then
 
             if PSP.Prev_Rule = null then
                Error (E001);
@@ -77,7 +77,7 @@ begin
                PSP.Prev_Rule.No_Code := False;
             end if;
 
-         elsif X (0) = '[' then
+         elsif X (X'First) = '[' then
             PSP.Scan_State := PRECEDENCE_MARK_1;
 
          else
@@ -167,87 +167,124 @@ begin
 
 
       when IN_RHS =>
---        if( x[0]=='.' ){
---          struct rule *rp;
---          rp = (struct rule *)calloc( sizeof(struct rule) +
---               sizeof(struct symbol*)*psp->nrhs + sizeof(char*)*psp->nrhs, 1);
---          if( rp==0 ){
+         if X (X'First) = '.' then
+            declare
+               use Symbols;
+               RP : Rules.Rule_Access;
+            begin
+               --  Rp := (struct rule *)calloc( sizeof(struct rule) +
+               --                               sizeof(struct symbol*)*psp->nrhs +
+               --                               sizeof(char*)*psp->nrhs, 1);
+               RP := new Rules.Rule_Record;
+               --  if Rp = 0 then
+               --   ErrorMsg(psp->filename,psp->tokenlineno,
+               --            "Can't allocate enough memory for this rule.");
+               --   psp->errorcnt++;
+               --   Psp.Prev_Rule := 0;
+               --  else
+                  RP.Rule_Line := PSP.Token_Lineno;
+                  --  Rp.rhs      := (struct symbol**)&rp[1];
+                  --  Rp.rhsalias := (const char**)&(rp->rhs[psp->nrhs]);
+                  for I in 0 .. PSP.N_RHS - 1 loop
+                     RP.RHS       (I) := PSP.RHS   (I);
+                     RP.RHS_Alias (I) := PSP.Alias (I);
+                     if RP.RHS_Alias (I) /= null then
+                        RP.RHS (I).Content := True;
+                     end if;
+                  end loop;
+                  RP.LHS        := PSP.LHS;
+                  RP.LHS_Alias  :=
+                    To_Unbounded_String
+                    (Interfaces.C.Strings.Value (PSP.LHS_Alias));
+                  --  RP.N_RHS      := PSP.RHS'Length; -- N_RHS;
+                  RP.Code       := new Unbounded_String'(Null_Unbounded_String);
+                  RP.No_Code    := True;
+                  RP.Prec_Sym   := null;
+                  PSP.GP.N_Rule := PSP.GP.N_Rule + 1;
+                  RP.Index      := PSP.GP.N_Rule;
+                  RP.Next_LHS   := RP.LHS.Rule;
+                  RP.LHS.Rule   := RP;
+                  RP.Next       := null;
+                  if PSP.First_Rule = null then
+                     PSP.First_Rule := RP;
+                     PSP.Last_Rule  := RP;
+                  else
+                     PSP.Last_Rule.Next := RP;
+                     PSP.Last_Rule      := RP;
+                  end if;
+                  PSP.Prev_Rule := RP;
+               --  end if;
+            end;
+            PSP.Scan_State := WAITING_FOR_DECL_OR_RULE;
+
+         elsif DK8543.Interfaces.C.Strings.Is_Alpha (X (X'First)) then
+            if PSP.N_RHS >= MAX_RHS then
+--               ErrorMsg(psp->filename,psp->tokenlineno,
+--                        "Too many symbols on RHS of rule beginning at \"%s\".",
+--                        x);
+--               psp->errorcnt++;
+               PSP.Scan_State := RESYNC_AFTER_RULE_ERROR;
+            else
+               PSP.RHS (PSP.N_RHS)   :=
+                 Symbols.Lime_Symbol_New (Interfaces.C.Strings.New_String (X));
+               PSP.Alias (PSP.N_RHS) := Null_Unbounded_String;
+               PSP.N_RHS := PSP.N_RHS + 1;
+            end if;
+         elsif (X (X'First) = '|' or X (X'First) = '/') and PSP.N_RHS > 0 then
+            declare
+               use Symbols;
+               MSP : Symbols.Symbol_Access := PSP.RHS (PSP.N_RHS - 1);
+            begin
+               if MSP.Kind /= Symbols.Multi_Terminal then
+                  declare
+                     Orig_SP : Symbols.Symbol_Access := MSP;
+                  begin
+                     MSP := new Symbols.Symbol_Record;
+--                  (struct symbol *) calloc(1,sizeof(*msp));
+--                  memset(msp, 0, sizeof(*msp));
+                     MSP.Kind       := Symbols.Multi_Terminal;
+                     --  MSP.N_Sub_Sym  := 1;
+                     --  MSP.Sub_Sym    := Null_Unbounded_String;  --  New Symbols.Symbol_Access;
+                     --  --  (struct symbol **) calloc(1,sizeof(struct symbol*));
+                     --  MSP.Sub_Sym (0) := Orig_SP;
+                     MSP.Sub_Sym := Symbol_Vectors.Empty_Vector;
+                     MSP.Sub_Sym.Append (Orig_SP);
+
+                     MSP.Name    := Orig_SP.Name;
+                     PSP.RHS (PSP.N_RHS - 1) := MSP;
+                  end;
+               end if;
+--                 MSP.N_Sub_Sym := MSP.N_Sub_Sym + 1;
+--  --               Msp.Sub_Sym   := (struct symbol **) realloc(msp->subsym,
+--  --                                                    sizeof(struct symbol*)*msp->nsubsym);
+--                 MSP.Sub_Sym   := Null_Unbounded_String;
+--                 --  New Symbols.Symbol_Access_Array (1 .. MSP.N_Sub_Sym);
+--                 MSP.Sub_Sym (MSP.N_Sub_Sym - 1) :=
+--                   Symbols.Lime_Symbol_New
+--                   (Interfaces.C.Strings.New_String (X (X'First + 1 .. X'Last)));
+               MSP.Sub_Sym.Append
+                 (Symbols.Lime_Symbol_New
+                    (Interfaces.C.Strings.New_String (X (X'First + 1 .. X'Last))));
+
+               if
+                 X (X'First + 1)          in 'a' .. 'z' or
+--                 MSP.Sub_Sym (0).Name (0) in 'a' .. 'z'
+                 To_String (MSP.Sub_Sym.First_Element.Name) (1) in 'a' .. 'z'
+               then
+--               ErrorMsg(psp->filename,psp->tokenlineno,
+--                        "Cannot form a compound containing a non-terminal");
+--               psp->errorcnt++;
+                  null;
+               end if;
+            end;
+         elsif X (X'First) = '(' and PSP.N_RHS > 0 then
+            PSP.Scan_State := RHS_ALIAS_1;
+         else
 --            ErrorMsg(psp->filename,psp->tokenlineno,
---              "Can't allocate enough memory for this rule.");
+--                     "Illegal character on RHS of rule: \"%s\".",x);
 --            psp->errorcnt++;
---            psp->prevrule = 0;
---          }else{
---            int i;
---            rp->ruleline = psp->tokenlineno;
---            rp->rhs = (struct symbol**)&rp[1];
---            rp->rhsalias = (const char**)&(rp->rhs[psp->nrhs]);
---            for(i=0; i<psp->nrhs; i++){
---              rp->rhs[i] = psp->rhs[i];
---              rp->rhsalias[i] = psp->alias[i];
---              if( rp->rhsalias[i]!=0 ){ rp->rhs[i]->bContent = 1; }
---            }
---            rp->lhs = psp->lhs;
---            rp->lhsalias = psp->lhsalias;
---            rp->nrhs = psp->nrhs;
---            rp->code = 0;
---            rp->noCode = 1;
---            rp->precsym = 0;
---            rp->index = psp->gp->nrule++;
---            rp->nextlhs = rp->lhs->rule;
---            rp->lhs->rule = rp;
---            rp->next = 0;
---            if( psp->firstrule==0 ){
---              psp->firstrule = psp->lastrule = rp;
---            }else{
---              psp->lastrule->next = rp;
---              psp->lastrule = rp;
---            }
---            psp->prevrule = rp;
---          }
---          psp->state = WAITING_FOR_DECL_OR_RULE;
---        }else if( ISALPHA(x[0]) ){
---          if( psp->nrhs>=MAXRHS ){
---            ErrorMsg(psp->filename,psp->tokenlineno,
---              "Too many symbols on RHS of rule beginning at \"%s\".",
---              x);
---            psp->errorcnt++;
---            psp->state = RESYNC_AFTER_RULE_ERROR;
---          }else{
---            psp->rhs[psp->nrhs] = lime_symbol_new(x);
---            psp->alias[psp->nrhs] = 0;
---            psp->nrhs++;
---          }
---        }else if( (x[0]=='|' || x[0]=='/') && psp->nrhs>0 ){
---          struct symbol *msp = psp->rhs[psp->nrhs-1];
---          if( msp->type!=MULTITERMINAL ){
---            struct symbol *origsp = msp;
---            msp = (struct symbol *) calloc(1,sizeof(*msp));
---            memset(msp, 0, sizeof(*msp));
---            msp->type = MULTITERMINAL;
---            msp->nsubsym = 1;
---            msp->subsym = (struct symbol **) calloc(1,sizeof(struct symbol*));
---            msp->subsym[0] = origsp;
---            msp->name = origsp->name;
---            psp->rhs[psp->nrhs-1] = msp;
---          }
---          msp->nsubsym++;
---          msp->subsym = (struct symbol **) realloc(msp->subsym,
---            sizeof(struct symbol*)*msp->nsubsym);
---          msp->subsym[msp->nsubsym-1] = lime_symbol_new(&x[1]);
---          if( ISLOWER(x[1]) || ISLOWER(msp->subsym[0]->name[0]) ){
---            ErrorMsg(psp->filename,psp->tokenlineno,
---              "Cannot form a compound containing a non-terminal");
---            psp->errorcnt++;
---          }
---        }else if( x[0]=='(' && psp->nrhs>0 ){
---          psp->state = RHS_ALIAS_1;
---        }else{
---          ErrorMsg(psp->filename,psp->tokenlineno,
---            "Illegal character on RHS of rule: \"%s\".",x);
---          psp->errorcnt++;
---          psp->state = RESYNC_AFTER_RULE_ERROR;
---        }
-         null;
+            PSP.Scan_State := RESYNC_AFTER_RULE_ERROR;
+         end if;
 
 
       when RHS_ALIAS_1 =>

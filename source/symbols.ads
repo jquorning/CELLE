@@ -9,6 +9,7 @@
 
 with Ada.Containers;
 with Ada.Strings.Unbounded;
+with Ada.Containers.Vectors;
 
 with Interfaces.C.Strings;
 
@@ -31,7 +32,18 @@ package Symbols is
       Unk);
    pragma Convention (C, E_Assoc);
 
+   type Symbol_Record;
+   type Symbol_Access is access all Symbol_Record;
+
+   package Symbol_Vectors is
+      new Ada.Containers.Vectors
+     (Positive,
+      Symbol_Access);
+   use Symbol_Vectors;
+
    use Ada.Strings.Unbounded;
+
+
    type Key_Type is new Unbounded_String;
 
    type Symbol_Index is new Natural;
@@ -66,15 +78,16 @@ package Symbols is
          --  stack is a union.  The .yy%d element of this
          --  union is the correct data type for this object
 
-         B_Content   : Integer;
+         Content   : Boolean;  --  Integer;
          --  True if this symbol ever carries content - if
          --  it is ever more than just syntax
 
-         N_Subsym    : Integer;
-         Sub_Sym     : Unbounded_String;
+--         N_Sub_Sym   : Integer;
+--         Sub_Sym     : Unbounded_String;
+         Sub_Sym : Vector;
       end record;
 
-   type Symbol_Access is access all Symbol_Record;
+--   type Symbol_Access is access all Symbol_Record;
 
    type Symbol_Access_Array is
      array (Natural range <>) of Symbols.Symbol_Access;

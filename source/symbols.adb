@@ -60,16 +60,16 @@ package body Symbols is
    --  function To_Cursor (Position : in Symbol_Cursor) return Symbol_Maps.Cursor;
    function To_Cursor (Position : in Symbol_Cursor) return Symbol_Lists.Cursor
    is
-      use Symbol_Lists;
+--      use Symbol_Lists;
    begin
-      return No_Element;
+      return Symbol_Lists.No_Element;
    end To_Cursor;
 
    function From_Cursor (Cursor : in Symbol_Cursor) return Symbol_Lists.Cursor
    is
-      use Symbol_Lists;
+--      use Symbol_Lists;
    begin
-      return No_Element;
+      return Symbol_Lists.No_Element;
    end From_Cursor;
 
    function From_Key (Key : Key_Type) return Unbounded_String
