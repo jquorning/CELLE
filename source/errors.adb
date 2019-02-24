@@ -81,7 +81,10 @@ package body Errors is
 
       E101 => -"String starting on this line is not terminated before the end of the file.",
       E102 => -"String starting on this line is not terminated before the end of the file.",
-      E103 => -"Can't open this file for reading."
+      E103 => -"Can't open this file for reading.",
+
+      E201 => -"Cannot form a compound containing a non-terminal",
+      E202 => -"Illegal character on RHS of rule: '%1'."
      );
 
 

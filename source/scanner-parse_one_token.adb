@@ -221,13 +221,8 @@ begin
                      end loop;
                   end;
 
---                  RP.LHS        := PSP.LHS;
                   RP.LHS        := PSP.LHS.First_Element;
---                    RP.LHS_Alias  :=
---                      To_Unbounded_String
---                      (Interfaces.C.Strings.Value (PSP.LHS_Alias));
                   RP.LHS_Alias  := PSP.LHS_Alias.First_Element;
-                  --  RP.N_RHS      := PSP.RHS'Length; -- N_RHS;
                   RP.Code       := new Unbounded_String'(Null_Unbounded_String);
                   RP.No_Code    := True;
                   RP.Prec_Sym   := null;
@@ -252,18 +247,6 @@ begin
            X (X'First) in 'a' .. 'z' or
            X (X'First) in 'A' .. 'Z'
          then
---              --  if PSP.N_RHS >= MAX_RHS then
---              if Length (PSP.RHS) >= MAX_RHS then
---  --               ErrorMsg(psp->filename,psp->tokenlineno,
---  --                        "Too many symbols on RHS of rule beginning at \"%s\".",
---  --                        x);
---  --               psp->errorcnt++;
---                 PSP.Scan_State := RESYNC_AFTER_RULE_ERROR;
---              else
---  --                 PSP.RHS (PSP.N_RHS)   :=
---  --                   Symbols.Lime_Symbol_New (Interfaces.C.Strings.New_String (X));
---  --                 PSP.Alias (PSP.N_RHS) := Null_Unbounded_String;
---  --                 PSP.N_RHS := PSP.N_RHS + 1;
                PSP.RHS  .Append (Symbols.Lime_Symbol_New (Interfaces.C.Strings.New_String (X)));
                PSP.Alias.Append (Null_Unbounded_String);
 --            end if;
@@ -274,7 +257,6 @@ begin
          then
             declare
                use Symbols;
---               MSP : Symbols.Symbol_Access := PSP.RHS (PSP.N_RHS - 1);
                MSP : Symbols.Symbol_Access := PSP.RHS.Last_Element;
             begin
                if MSP.Kind /= Symbols.Multi_Terminal then
@@ -282,13 +264,7 @@ begin
                      Orig_SP : constant Symbols.Symbol_Access := MSP;
                   begin
                      MSP := new Symbols.Symbol_Record;
---                  (struct symbol *) calloc(1,sizeof(*msp));
---                  memset(msp, 0, sizeof(*msp));
                      MSP.Kind       := Symbols.Multi_Terminal;
-                     --  MSP.N_Sub_Sym  := 1;
-                     --  MSP.Sub_Sym    := Null_Unbounded_String;  --  New Symbols.Symbol_Access;
-                     --  --  (struct symbol **) calloc(1,sizeof(struct symbol*));
-                     --  MSP.Sub_Sym (0) := Orig_SP;
                      MSP.Sub_Sym := Symbol_Vectors.Empty_Vector;
                      MSP.Sub_Sym.Append (Orig_SP);
 
@@ -297,38 +273,24 @@ begin
                      PSP.RHS.Append (MSP);
                   end;
                end if;
---                 MSP.N_Sub_Sym := MSP.N_Sub_Sym + 1;
---  --               Msp.Sub_Sym   := (struct symbol **) realloc(msp->subsym,
---  --                                                    sizeof(struct symbol*)*msp->nsubsym);
---                 MSP.Sub_Sym   := Null_Unbounded_String;
---                 --  New Symbols.Symbol_Access_Array (1 .. MSP.N_Sub_Sym);
---                 MSP.Sub_Sym (MSP.N_Sub_Sym - 1) :=
---                   Symbols.Lime_Symbol_New
---                   (Interfaces.C.Strings.New_String (X (X'First + 1 .. X'Last)));
+
                MSP.Sub_Sym.Append
                  (Symbols.Lime_Symbol_New
                     (Interfaces.C.Strings.New_String (X (X'First + 1 .. X'Last))));
 
                if
                  X (X'First + 1)          in 'a' .. 'z' or
---                 MSP.Sub_Sym (0).Name (0) in 'a' .. 'z'
                  To_String (MSP.Sub_Sym.First_Element.Name) (1) in 'a' .. 'z'
                then
---               ErrorMsg(psp->filename,psp->tokenlineno,
---                        "Cannot form a compound containing a non-terminal");
---               psp->errorcnt++;
-                  null;
+                  Errors.Error (E201, Line_Number => PSP.Token_Lineno);
                end if;
             end;
 
---         elsif X (X'First) = '(' and PSP.N_RHS > 0 then
          elsif X (X'First) = '(' and not PSP.RHS.Is_Empty then
             PSP.Scan_State := RHS_ALIAS_1;
 
          else
---            ErrorMsg(psp->filename,psp->tokenlineno,
---                     "Illegal character on RHS of rule: \"%s\".",x);
---            psp->errorcnt++;
+            Error (E202, (1 => To_Unbounded_String (X)));
             PSP.Scan_State := RESYNC_AFTER_RULE_ERROR;
          end if;
 
@@ -339,14 +301,10 @@ begin
            X (X'First) in 'a' .. 'z' or
            X (X'First) in 'A' .. 'Z'
          then
---            PSP.Alias (PSP.N_RHS - 1) := To_Unbounded_String (X);
             PSP.Alias.Append (To_Alias (X));
             PSP.Scan_State   := RHS_ALIAS_2;
 
          else
---              Error (E012, (1 => To_Unbounded_String (X),
---                            2 => To_Unbounded_String
---                              (Symbols.From_Key (PSP.RHS (PSP.N_RHS - 1).Name))));
             Error (E012, (1 => To_Unbounded_String (X),
                           2 => To_Unbounded_String
                             (Symbols.From_Key (PSP.RHS.Last_Element.Name))));
@@ -361,8 +319,6 @@ begin
             PSP.Scan_State := IN_RHS;
 
          else
---            Error (E013, (1 => To_Unbounded_String
---                            (Interfaces.C.Strings.Value (PSP.LHS_Alias))));
             Error (E013, (1 => PSP.LHS_Alias.First_Element));
             PSP.Scan_State := RESYNC_AFTER_RULE_ERROR;
 
