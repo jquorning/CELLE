@@ -437,19 +437,25 @@ begin
 
 
       when WAITING_FOR_DESTRUCTOR_SYMBOL =>
---        if( !ISALPHA(x[0]) ){
---          ErrorMsg(psp->filename,psp->tokenlineno,
---            "Symbol name missing after %%destructor keyword");
---          psp->errorcnt++;
---          psp->state = RESYNC_AFTER_DECL_ERROR;
---        }else{
---          struct symbol *sp = lime_symbol_new(x);
---          psp->declargslot = &sp->destructor;
---          psp->decllinenoslot = &sp->destLineno;
---          psp->insertLineMacro = 1;
---          psp->state = WAITING_FOR_DECL_ARG;
---        }
-         null;
+         if
+           X (X'First) not in 'a' .. 'z' and
+           X (X'First) not in 'A' .. 'Z'
+         then
+            Errors.Error (E205, Line_Number => PSP.Token_Lineno);
+            PSP.Scan_State := RESYNC_AFTER_DECL_ERROR;
+         else
+            declare
+               use Interfaces.C.Strings;
+               Symbol : Symbols.Symbol_Access := Symbols.Lime_Symbol_New (New_String (X));
+            begin
+               PSP.Decl_Arg_Slot     :=
+                 new chars_ptr'(New_String (To_String (Symbol.Destructor))); -- XXX
+               PSP.Decl_Lineno_Slot  := Symbol.Dest_Lineno'Access;
+               PSP.Insert_Line_Macro := True;
+            end;
+            PSP.Scan_State := WAITING_FOR_DECL_ARG;
+         end if;
+
 
       when WAITING_FOR_DATATYPE_SYMBOL =>
 --        if( !ISALPHA(x[0]) ){

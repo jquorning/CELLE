@@ -61,11 +61,11 @@ package Symbols is
          Lambda    : Boolean;           --  True if NT and can generate an empty string
          Use_Cnt   : Integer;           --  Number of times used
 
-         Destructor  : Unbounded_String;
+         Destructor  : aliased Unbounded_String;
          --  Code which executes whenever this symbol is
          --  popped from the stack during error processing
 
-         Dest_Lineno : Integer;
+         Dest_Lineno : aliased Integer;
          --  Line number for start of destructor.  Set to
          --  -1 for duplicate destructors.
 
