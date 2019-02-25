@@ -111,6 +111,14 @@ package body Symbols is
       return Extra'Access;
    end Get_Extra;
 
+   function Element_At (Extra : in Extra_Access;
+                        Index : in Symbol_Index)
+                       return Symbol_Access
+   is
+   begin
+      return null;  --  XXX
+   end Element_At;
+
 
    function To_Key (Item : in String) return Key_Type
    is

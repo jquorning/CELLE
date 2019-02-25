@@ -77,7 +77,7 @@ package body Reports is
       RP := Lemp.Rule;
       loop
          exit when RP = null;
-         rule_print_2 (stdout, rp);
+         Rule_Print_2 (Standard_Output, RP);
          Put (".");
          if RP.Prec_Sym /= null then
             Put (" [" & From_Key (RP.Prec_Sym.Name) & "]");
@@ -225,22 +225,22 @@ package body Reports is
 --    lime_implementation_open (file_makename (lemp, ".c"));
 
 --    lime_template_transfer (lemp->name);
-
+--
 --    /* Generate the include code, if any */
 --    lime_print (lemp->outname, lemp->nolinenosflag, lemp->include);
 --    //lime_print (lime_get_out_name (), lemp->nolinenosflag, lemp->include);
 --    //lime_write_include (lime_get_mh_flag(), file_makename(lemp, ".h"));
 --    lime_write_include (file_makename(lemp, ".h"));
-
+--
 --    lime_template_transfer (lemp->name);
-  
+--
 --    /* Generate #defines for all tokens */
 --    lime_lemp_copy = lemp;
 --    //lime_generate_tokens (lime_get_mh_flag(), lemp->tokenprefix, 1, lemp->nterminal);
 --    lime_generate_tokens (lemp->tokenprefix, 1, lemp->nterminal);
-  
+--
 --    lime_template_transfer (lemp->name);
-    
+--
 --    /* Generate the defines */
 --    lime_generate_the_defines_1
 --      (minimum_size_type(0, lemp->nsymbol, &szCodeType),
@@ -248,16 +248,16 @@ package body Reports is
 --       minimum_size_type(0,lemp->maxAction,&szActionType),
 --       (lemp->wildcard != NULL),
 --       (lemp->wildcard ? lemp->wildcard->index : 0));
-  
+--
 --    //print_stack_union (lemp, lime_get_mh_flag());
 --    print_stack_union (lemp);
 --    lime_generate_the_defines_2 (lemp->stacksize);
-
+--
 --    //if( lime_get_mh_flag() ){
 --    //  lime_put_line ("#if INTERFACE");
 --    //}
 --    lime_write_interface_begin ();
-
+--
 --    name = lemp->name ? lemp->name : "Parse";
 --    if( lemp->arg && lemp->arg[0] ){
 --      i = lemonStrlen(lemp->arg);
@@ -267,7 +267,7 @@ package body Reports is
 --    }else{
 --      lime_write_arg_defines (name, "ARG", 0, "", "");
 --    }
-
+--
 --    if( lemp->ctx && lemp->ctx[0] ){
 --      i = lemonStrlen(lemp->ctx);
 --      while( i>=1 && ISSPACE(lemp->ctx[i-1]) ) i--;
@@ -276,29 +276,29 @@ package body Reports is
 --    }else{
 --      lime_write_arg_defines (name, "CTX", 0, "", "");
 --    }
-
+--
 --    lime_write_interface_begin ();
 --    //  if( lime_get_mh_flag() ){
 --    //    lime_put_line ("#endif");
 --    //  }
-  
+--
 --    struct mystruct lime_mystruct;
 --    if (lemp->errsym) {
 --      lime_mystruct.use_count = lemp->errsym->useCnt;
 --      lime_mystruct.index     = lemp->errsym->index;
 --      lime_mystruct.dt_num    = lemp->errsym->dtnum;
 --    }
-
+--
 --    lime_error_fallback
 --      ((const char*)lemp->errsym,
 --       &lime_mystruct,
 --       lemp->has_fallback);
-
+--
 --    /* Compute the action table, but do not output it yet.  The action
 --    ** table must be computed before generating the YYNSTATE macro because
 --    ** we need to know how many states can be eliminated.
 --    */
-  
+--
 --    ax = (struct axset *) calloc(lemp->nxstate*2, sizeof(ax[0]));
 --    if( ax==0 ){
 --      fprintf(stderr,"malloc failed\n");
@@ -346,7 +346,7 @@ package body Reports is
 --        if( stp->iNtOfst<mnNtOfst ) mnNtOfst = stp->iNtOfst;
 --        if( stp->iNtOfst>mxNtOfst ) mxNtOfst = stp->iNtOfst;
 --      }
-
+--
 --  #if 0  /* Uncomment for a trace of how the yy_action[] table fills out */
 --      { int jj, nn;
 --        for(jj=nn=0; jj<pActtab->nAction; jj++){
@@ -359,7 +359,7 @@ package body Reports is
 --  #endif
 --    }
 --    free(ax);
-  
+--
 --    /* Mark rules that are actually used for reduce actions after all
 --    ** optimizations have been applied
 --    */
@@ -371,7 +371,7 @@ package body Reports is
 --        }
 --      }
 --    }
-  
+--
 --    /* Finish rendering the constants now that the action table has
 --    ** been computed */
 --    struct lime_render_record lime_render;
@@ -383,10 +383,10 @@ package body Reports is
 --    lime_render.accAction = lemp->accAction;
 --    lime_render.noAction  = lemp->noAction;
 --    lime_render.minReduce = lemp->minReduce;
-  
+--
 --    lime_render_constants (&lime_render);
 --    lime_template_transfer (lemp->name);
-  
+--
 --    /* Now output the action table and its associates:
 --    **
 --    **  yy_action[]        A single table containing all actions.
@@ -398,26 +398,26 @@ package body Reports is
 --    **                     shifting non-terminals after a reduce.
 --    **  yy_default[]       Default action for each state.
 --    */
-
+--
 --    /* Output the yy_action table */
 --    lemp->nactiontab = n = acttab_action_size(pActtab);
 --    lemp->tablesize += n*szActionType;
-  
+--
 --    lime_pActtab = pActtab;
 --    lime_write_action_table (n, lemp->noAction);
-  
+--
 --    /* Output the yy_lookahead table */
 --    lemp->nlookaheadtab = n = acttab_lookahead_size(pActtab);
 --    lemp->tablesize += n*szCodeType;
-  
+--
 --    lime_pActtab = pActtab;
 --    lime_write_yy_lookahead (n, lemp->nsymbol);
-  
+--
 --    /* Output the yy_shift_ofst[] table */
-  
+--
 --    n = lemp->nxstate;
 --    while( n>0 && lemp->sorted[n-1]->iTknOfst==NO_OFFSET ) n--;
-
+--
 --    lime_lemp = lemp;
 --    lime_write_yy_shift_offsets
 --      (n,
@@ -426,13 +426,13 @@ package body Reports is
 --       minimum_size_type (mnTknOfst, lemp->nterminal+lemp->nactiontab, &sz),
 --       lemp->nactiontab,
 --       NO_OFFSET);
-  
+--
 --    lemp->tablesize += n*sz;
-
+--
 --    /* Output the yy_reduce_ofst[] table */
 --    n = lemp->nxstate;
 --    while( n>0 && lemp->sorted[n-1]->iNtOfst==NO_OFFSET ) n--;
-
+--
 --    lime_lemp = lemp;
 --    lime_write_yy_reduce_offsets
 --      (n,
@@ -441,27 +441,27 @@ package body Reports is
 --       minimum_size_type(mnNtOfst-1, mxNtOfst, &sz),
 --       NO_OFFSET);
 --    lemp->tablesize += n*sz;
-
+--
 --    /* Output the default action table */
-
+--
 --    lime_write_default_action_table
 --      (lemp->nxstate,
 --       lemp->errAction,
 --       lemp->minReduce);
 --    lemp->tablesize += n*szActionType;
-
+--
 --    lime_template_transfer (lemp->name);
-
+--
 --    /* Generate the table of fallback tokens.
 --    */
 --    if( lemp->has_fallback ){
 --      int mx = lemp->nterminal - 1;
 --      while( mx>0 && lemp->symbols[mx]->fallback==0 ){ mx--; }
 --      lemp->tablesize += (mx+1)*szCodeType;
-
+--
 --      for(i=0; i<=mx; i++){
 --        struct symbol *p = lemp->symbols[i];
-
+--
 --        if (!p->fallback)
 --          {
 --            lime_put ("    0,  /* ");
@@ -479,10 +479,10 @@ package body Reports is
 --            lime_put_line (" */");
 --          }
 --      }
-
+--
 --    }
 --    lime_template_transfer (lemp->name);
-
+--
 --    /* Generate a table containing the symbolic name of every symbol
 --    */
 --    for(i=0; i<lemp->nsymbol; i++){
@@ -495,7 +495,7 @@ package body Reports is
 --      //fprintf(out,"  /* %4d */ \"%s\",\n",i, lemp->symbols[i]->name); lineno++;
 --    }
 --    lime_template_transfer (lemp->name);
-
+--
 --    /* Generate a table containing a text string that describes every
 --    ** rule in the rule set of the grammar.  This information is used
 --    ** when tracing REDUCE actions.
@@ -511,7 +511,7 @@ package body Reports is
 --      lime_put_line (""",");
 --    }
 --    lime_template_transfer (lemp->name);
-
+--
 --    /* Generate code which executes every time a symbol is popped from
 --    ** the stack while processing errors or while destroying the parser.
 --    ** (In other words, generate the %destructor actions)
@@ -537,7 +537,7 @@ package body Reports is
 --        lime_put_line ("      break;");
 --      }
 --    }
-  
+--
 --    if( lemp->vardest ){
 --      struct symbol *dflt_sp = 0;
 --      int once = 1;
@@ -565,13 +565,13 @@ package body Reports is
 --      struct symbol *sp = lemp->symbols[i];
 --      if( sp==0 || sp->type==TERMINAL || sp->destructor==0 ) continue;
 --      if( sp->destLineno<0 ) continue;  /* Already emitted */
-
+--
 --      lime_put ("    case ");
 --      lime_put_int (sp->index);
 --      lime_put (": /* ");
 --      lime_put (sp->name);
 --      lime_put_line (" */");
-
+--
 --      /* Combine duplicate destructors into a single case */
 --      for(j=i+1; j<lemp->nsymbol; j++){
 --        struct symbol *sp2 = lemp->symbols[j];
@@ -587,18 +587,18 @@ package body Reports is
 --           sp2->destLineno = -1;  /* Avoid emitting this destructor again */
 --          }
 --      }
-
+--
 --      emit_destructor_code (lemp->symbols[i], lemp); // , &lineno);
 --      lime_put_line ("      break;");
 --    }
-  
+--
 --    lime_template_transfer (lemp->name);
-  
+--
 --    /* Generate code which executes whenever the parser stack overflows */
 --    lime_template_print (lemp->overflow, lemp->nolinenosflag, lemp->outname);
 --    //lime_template_print (lemp->overflow, lemp->nolinenosflag, lime_get_out_name ());
 --    lime_template_transfer (lemp->name);
-
+--
 --    /* Generate the tables of rule information.  yyRuleInfoLhs[] and
 --    ** yyRuleInfoNRhs[].
 --    **
@@ -614,9 +614,9 @@ package body Reports is
 --      rule_print (rp);
 --      lime_put_line (" */");
 --    }
-
+--
 --    lime_template_transfer (lemp->name);
-
+--
 --    for(i=0, rp=lemp->rule; rp; rp=rp->next, i++){
 --      lime_put ("  ");
 --      lime_put_int (-rp->nrhs);
@@ -626,9 +626,9 @@ package body Reports is
 --      rule_print (rp);
 --      lime_put_line (" */");
 --    }
-
+--
 --    lime_template_transfer (lemp->name);
-
+--
 --    /* Generate code which execution during each REDUCE action */
 --    i = 0;
 --    for(rp=lemp->rule; rp; rp=rp->next){
@@ -637,7 +637,7 @@ package body Reports is
 --    if( i ){
 --      lime_put_line ("        YYMINORTYPE yylhsminor;");
 --    }
-
+--
 --    /* First output rules other than the default: rule */
 --    for(rp=lemp->rule; rp; rp=rp->next){
 --      struct rule *rp2;               /* Other rules with the same action */
@@ -651,7 +651,7 @@ package body Reports is
 --      lime_put (": /* ");
 --      writeRuleText (rp);
 --      lime_put_line (" */");
-
+--
 --      for(rp2=rp->next; rp2; rp2=rp2->next){
 --        if( rp2->code==rp->code && rp2->codePrefix==rp->codePrefix
 --               && rp2->codeSuffix==rp->codeSuffix )
@@ -670,7 +670,7 @@ package body Reports is
 --      lime_put_line ("        break;");
 --      rp->codeEmitted = 1;
 --    }
-
+--
 --    /* Finally, output the default: rule.  We choose as the default: all
 --    ** empty actions. */
 --    lime_put_line ("      default:");
@@ -692,33 +692,33 @@ package body Reports is
 --      }
 --    }
 --    lime_put_line ("        break;");
-
+--
 --    lime_template_transfer (lemp->name);
-  
+--
 --    /* Generate code which executes if a parse fails */
 --    lime_template_print (lemp->failure, lemp->nolinenosflag, lemp->outname);
 --    //lime_template_print (lemp->failure, lemp->nolinenosflag, lime_get_out_name ());
 --    lime_template_transfer (lemp->name);
-  
+--
 --    /* Generate code which executes when a syntax error occurs */
 --    lime_template_print (lemp->error, lemp->nolinenosflag, lemp->outname);
 --    //lime_template_print (lemp->error, lemp->nolinenosflag, lime_get_out_name ());
 --    lime_template_transfer (lemp->name);
 --    printf ("### 2-55\n");
-
+--
 --    /* Generate code which executes when the parser accepts its input */
 --    lime_template_print (lemp->accept, lemp->nolinenosflag, lemp->outname);
 --    //lime_template_print (lemp->accept, lemp->nolinenosflag, lime_get_out_name ());
 --    printf ("### 2-56\n");
-
+--
 --    lime_template_transfer (lemp->name);
 --    printf ("### 2-57\n");
-
+--
 --    /* Append any addition code the user desires */
 --    lime_template_print (lemp->extracode, lemp->nolinenosflag, lemp->outname);
 --    //lime_template_print (lemp->extracode, lemp->nolinenosflag, lime_get_out_name ());
 --    printf ("### 2-58\n");
-
+--
 --    lime_close_in;
 --    lime_close_out;
 --    printf ("### 2-58\n");
@@ -732,7 +732,7 @@ package body Reports is
    is
    begin
       null;
---  void 
+--  void
 --  lemon_compress_tables
 --  (struct lemon *lemp)
 --  {
@@ -742,13 +742,13 @@ package body Reports is
 --    int nbest, n;
 --    int i;
 --    int usesWildcard;
-
+--
 --    for(i=0; i<lemp->nstate; i++){
 --      stp = lemp->sorted[i];
 --      nbest = 0;
 --      rbest = 0;
 --      usesWildcard = 0;
-
+--
 --      for(ap=stp->ap; ap; ap=ap->next){
 --        if( ap->type==SHIFT && ap->sp==lemp->wildcard ){
 --          usesWildcard = 1;
@@ -769,14 +769,14 @@ package body Reports is
 --          rbest = rp;
 --        }
 --      }
-
+--
 --      /* Do not make a default if the number of rules to default
 --      ** is not at least 1 or if the wildcard token is a possible
 --      ** lookahead.
 --      */
 --      if( nbest<1 || usesWildcard ) continue;
-
-
+--
+--
 --      /* Combine matching REDUCE actions into a single default */
 --      for(ap=stp->ap; ap; ap=ap->next){
 --        if( ap->type==REDUCE && ap->x.rp==rbest ) break;
@@ -787,7 +787,7 @@ package body Reports is
 --        if( ap->type==REDUCE && ap->x.rp==rbest ) ap->type = NOT_USED;
 --      }
 --      stp->ap = Action_sort(stp->ap);
-
+--
 --      for(ap=stp->ap; ap; ap=ap->next){
 --        if( ap->type==SHIFT ) break;
 --        if( ap->type==REDUCE && ap->x.rp!=rbest ) break;
@@ -797,7 +797,7 @@ package body Reports is
 --        stp->pDfltReduce = rbest;
 --      }
 --    }
-
+--
 --    /* Make a second pass over all states and actions.  Convert
 --    ** every action that is a SHIFT to an autoReduce state into
 --    ** a SHIFTREDUCE action.
@@ -814,7 +814,7 @@ package body Reports is
 --        }
 --      }
 --    }
-
+--
 --    /* If a SHIFTREDUCE action specifies a rule that has a single RHS term
 --    ** (meaning that the SHIFTREDUCE will land back in the state where it
 --    ** started) and if there is no C-code associated with the reduce action,
@@ -857,7 +857,7 @@ package body Reports is
 --    int i;
 --    struct state *stp;
 --    struct action *ap;
-
+--
 --    printf ("ResortStates\n");
 --    for(i=0; i<lemp->nstate; i++){
 --      stp = lemp->sorted[i];
@@ -891,7 +891,7 @@ package body Reports is
 --  }
    end Resort_States;
 
-   
+
    procedure Dummy is
    begin
       null;
@@ -926,7 +926,8 @@ package body Reports is
 --      }
 --      /* if( rp->rhsalias[i] ) fprintf(out,"(%s)",rp->rhsalias[i]); */
 --    }
+      null;
    end Rule_Print_2;
 
-    
+
 end Reports;
