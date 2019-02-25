@@ -10,6 +10,8 @@
 with Ada.Strings.Unbounded;
 with Ada.Containers.Vectors;
 
+with Interfaces.C.Strings;
+
 with Lime;
 with Symbols;
 with Rules;
@@ -106,7 +108,7 @@ package Scanner_Data is
          GP            : access Lime.Lemon_Record;  --  Global state vector
          Preproc_State : State_Preproc;
          Scan_State    : State_Scanner;             --  The state of the parser
---    struct symbol *fallback;   --  The fallback token
+         Fallback : access Symbols.Symbol_Record;   --  The fallback token
 --    struct symbol *tkclass;    --  Token class symbol
 --         LHS       : Symbols.Symbol_Access;           --  Left-hand side of current rule
          LHS : Symbol_Vectors.Vector;
@@ -123,12 +125,15 @@ package Scanner_Data is
          Alias     : Alias_Vectors.Vector;
          --    const char *alias[MAXRHS];
          --  Aliases for each RHS symbol (or NULL)
-         Prev_Rule : access Rules.Rule_Record;     --  Previous rule parsed
---    const char *declkeyword;   --  Keyword of a declaration
---    char **declargslot;        --  Where the declaration argument should be put
---    int insertLineMacro;       --  Add #line before declaration insert
---    int *decllinenoslot;       --  Where to write declaration line number
---    enum e_assoc declassoc;    --  Assign this association to decl arguments
+         Prev_Rule     : access Rules.Rule_Record;     --  Previous rule parsed
+         Decl_Keyword  : Unbounded_String;   --  Keyword of a declaration
+
+         --  Decl_Arg_Slot : access Unbounded_String;
+         Decl_Arg_Slot : access Interfaces.C.Strings.chars_ptr;
+         --    char **declargslot;        --  Where the declaration argument should be put
+         Insert_Line_Macro : Boolean;       --  Add #line before declaration insert
+         Decl_Lineno_Slot : access Integer;       --  Where to write declaration line number
+         Decl_Assoc   : E_Assoc;      --  Assign this association to decl arguments
          Prec_Counter : Integer;                  --  Assign this precedence to decl arguments
          First_Rule   : access Rules.Rule_Record; --  Pointer to first rule in the grammar
          Last_Rule    : access Rules.Rule_Record; --  Pointer to the most recently parsed rule

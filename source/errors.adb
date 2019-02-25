@@ -84,7 +84,9 @@ package body Errors is
       E103 => -"Can't open this file for reading.",
 
       E201 => -"Cannot form a compound containing a non-terminal",
-      E202 => -"Illegal character on RHS of rule: '%1'."
+      E202 => -"Illegal character on RHS of rule: '%1'.",
+      E203 => -"Unknown declaration keyword: '%%%1'.",
+      E204 => -"Illegal declaration keyword: '%1'."
      );
 
 

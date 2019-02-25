@@ -57,6 +57,8 @@ package Errors is
 
       E201,
       E202,
+      E203,
+      E204,
 
       F001,
       F002

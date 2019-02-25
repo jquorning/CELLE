@@ -233,26 +233,26 @@ package Lime is
          Error_Cnt        : Integer;            --  Number of errors
          Err_Sym2         : Integer; --  Symbol_Access;      --  The error symbol
          Wildcard2        : Integer; --  Symbol_Access;      --  Token that matches anything
-         Name             : Strings.chars_ptr;  --  Name of the generated parser
-         Arg              : Strings.chars_ptr;  --  Declaration of the 3th argument to parser
-         Ctx              : Strings.chars_ptr;  --  Declaration of 2nd argument to constructor
-         Token_Type       : Strings.chars_ptr;  --  Type of terminal symbols in the parser stack
-         Var_Type         : Strings.chars_ptr;  --  The default type of non-terminal symbols
-         Start            : Strings.chars_ptr;  --  Name of the start symbol for the grammar
-         Stack_Size       : Strings.chars_ptr;  --  Size of the parser stack
-         Include          : Strings.chars_ptr;  --  Code to put at the start of the C file
-         Error            : Strings.chars_ptr;  --  Code to execute when an error is seen
-         Overflow         : Strings.chars_ptr;  --  Code to execute on a stack overflow
-         Failure          : Strings.chars_ptr;  --  Code to execute on parser failure
-         C_Accept         : Strings.chars_ptr;  --  Code to execute when the parser excepts
-         Extra_Code       : Strings.chars_ptr;  --  Code appended to the generated file
-         Token_Dest       : Strings.chars_ptr;  --  Code to execute to destroy token data
-         Var_Dest         : Strings.chars_ptr;  --  Code for the default non-terminal destructor
+         Name             : aliased chars_ptr;  --  Name of the generated parser
+         Arg              : aliased chars_ptr;  --  Declaration of the 3th argument to parser
+         Ctx              : aliased chars_ptr;  --  Declaration of 2nd argument to constructor
+         Token_Type       : aliased chars_ptr;  --  Type of terminal symbols in the parser stack
+         Var_Type         : aliased chars_ptr;  --  The default type of non-terminal symbols
+         Start            : aliased chars_ptr;  --  Name of the start symbol for the grammar
+         Stack_Size       : aliased chars_ptr;  --  Size of the parser stack
+         Include          : aliased chars_ptr;  --  Code to put at the start of the C file
+         Error            : aliased chars_ptr;  --  Code to execute when an error is seen
+         Overflow         : aliased chars_ptr;  --  Code to execute on a stack overflow
+         Failure          : aliased chars_ptr;  --  Code to execute on parser failure
+         C_Accept         : aliased chars_ptr;  --  Code to execute when the parser excepts
+         Extra_Code       : aliased chars_ptr;  --  Code appended to the generated file
+         Token_Dest       : aliased chars_ptr;  --  Code to execute to destroy token data
+         Var_Dest         : aliased chars_ptr;  --  Code for the default non-terminal destructor
          --  File_Name        : Strings.chars_ptr;  --  Name of the input file
          File_Name        : Ada.Strings.Unbounded.Unbounded_String;
 
          --   char *outname;           --  Name of the current output file
-         Token_Prefix     : Strings.chars_ptr;  --  A prefix added to token names in the .h file
+         Token_Prefix     : aliased chars_ptr;  --  A prefix added to token names in the .h file
          N_Conflict       : Integer;            --  Number of parsing conflicts
          N_Action_Tab     : Integer;            --  Number of entries in the yy_action[] table
          N_Lookahead_Tab  : Integer;            --  Number of entries in yy_lookahead[]

@@ -326,90 +326,121 @@ begin
 
 
       when WAITING_FOR_DECL_KEYWORD =>
---        if( ISALPHA(x[0]) ){
---          psp->declkeyword = x;
---          psp->declargslot = 0;
---          psp->decllinenoslot = 0;
---          psp->insertLineMacro = 1;
---          psp->state = WAITING_FOR_DECL_ARG;
---          if( strcmp(x,"name")==0 ){
---            psp->declargslot = &(psp->gp->name);
---            psp->insertLineMacro = 0;
---          }else if( strcmp(x,"include")==0 ){
---            psp->declargslot = &(psp->gp->include);
---          }else if( strcmp(x,"code")==0 ){
---            psp->declargslot = &(psp->gp->extracode);
---          }else if( strcmp(x,"token_destructor")==0 ){
---            psp->declargslot = &psp->gp->tokendest;
---          }else if( strcmp(x,"default_destructor")==0 ){
---            psp->declargslot = &psp->gp->vardest;
---          }else if( strcmp(x,"token_prefix")==0 ){
---            psp->declargslot = &psp->gp->tokenprefix;
---            psp->insertLineMacro = 0;
---          }else if( strcmp(x,"syntax_error")==0 ){
---            psp->declargslot = &(psp->gp->error);
---          }else if( strcmp(x,"parse_accept")==0 ){
---            psp->declargslot = &(psp->gp->accept);
---          }else if( strcmp(x,"parse_failure")==0 ){
---            psp->declargslot = &(psp->gp->failure);
---          }else if( strcmp(x,"stack_overflow")==0 ){
---            psp->declargslot = &(psp->gp->overflow);
---          }else if( strcmp(x,"extra_argument")==0 ){
---            psp->declargslot = &(psp->gp->arg);
---            psp->insertLineMacro = 0;
---          }else if( strcmp(x,"extra_context")==0 ){
---            psp->declargslot = &(psp->gp->ctx);
---            psp->insertLineMacro = 0;
---          }else if( strcmp(x,"token_type")==0 ){
---            psp->declargslot = &(psp->gp->tokentype);
---            psp->insertLineMacro = 0;
---          }else if( strcmp(x,"default_type")==0 ){
---            psp->declargslot = &(psp->gp->vartype);
---            psp->insertLineMacro = 0;
---          }else if( strcmp(x,"stack_size")==0 ){
---            psp->declargslot = &(psp->gp->stacksize);
---            psp->insertLineMacro = 0;
---          }else if( strcmp(x,"start_symbol")==0 ){
---            psp->declargslot = &(psp->gp->start);
---            psp->insertLineMacro = 0;
---          }else if( strcmp(x,"left")==0 ){
---            psp->preccounter++;
---            psp->declassoc = LEFT;
---            psp->state = WAITING_FOR_PRECEDENCE_SYMBOL;
---          }else if( strcmp(x,"right")==0 ){
---            psp->preccounter++;
---            psp->declassoc = RIGHT;
---            psp->state = WAITING_FOR_PRECEDENCE_SYMBOL;
---          }else if( strcmp(x,"nonassoc")==0 ){
---            psp->preccounter++;
---            psp->declassoc = NONE;
---            psp->state = WAITING_FOR_PRECEDENCE_SYMBOL;
---          }else if( strcmp(x,"destructor")==0 ){
---            psp->state = WAITING_FOR_DESTRUCTOR_SYMBOL;
---          }else if( strcmp(x,"type")==0 ){
---            psp->state = WAITING_FOR_DATATYPE_SYMBOL;
---          }else if( strcmp(x,"fallback")==0 ){
---            psp->fallback = 0;
---            psp->state = WAITING_FOR_FALLBACK_ID;
---          }else if( strcmp(x,"token")==0 ){
---            psp->state = WAITING_FOR_TOKEN_NAME;
---          }else if( strcmp(x,"wildcard")==0 ){
---            psp->state = WAITING_FOR_WILDCARD_ID;
---          }else if( strcmp(x,"token_class")==0 ){
---            psp->state = WAITING_FOR_CLASS_ID;
---          }else{
---            ErrorMsg(psp->filename,psp->tokenlineno,
---              "Unknown declaration keyword: \"%%%s\".",x);
---            psp->errorcnt++;
---            psp->state = RESYNC_AFTER_DECL_ERROR;
---          }
---        }else{
---          ErrorMsg(psp->filename,psp->tokenlineno,
---            "Illegal declaration keyword: \"%s\".",x);
---          psp->errorcnt++;
---          psp->state = RESYNC_AFTER_DECL_ERROR;
---        }
-         null;
+         if
+           X (X'First) in 'a' .. 'z' or
+           X (X'First) in 'A' .. 'Z'
+         then
+            PSP.Decl_Keyword      := To_Unbounded_String (X);
+            PSP.Decl_Arg_Slot     := null;
+            PSP.Decl_Lineno_Slot  := null;
+            PSP.Insert_Line_Macro := True;
+            PSP.Scan_State := WAITING_FOR_DECL_ARG;
+
+            if X = "name" then
+               PSP.Decl_Arg_Slot := PSP.GP.Name'Access;
+               PSP.Insert_Line_Macro := False;
+
+            elsif X = "include" then
+               PSP.Decl_Arg_Slot := PSP.GP.Include'Access;
+
+            elsif X = "code" then
+               PSP.Decl_Arg_Slot := PSP.GP.Extra_Code'Access;
+
+            elsif X = "token_destructor" then
+               PSP.Decl_Arg_Slot := PSP.GP.Token_Dest'Access;
+
+            elsif X = "default_destructor" then
+               PSP.Decl_Arg_Slot := PSP.GP.Var_Dest'Access;
+
+            elsif X = "token_prefix" then
+               PSP.Decl_Arg_Slot := PSP.GP.Token_Prefix'Access;
+               PSP.Insert_Line_Macro := False;
+
+            elsif X = "syntax_error" then
+               PSP.Decl_Arg_Slot := PSP.GP.Error'Access;
+
+            elsif X = "parse_accept" then
+               PSP.Decl_Arg_Slot := PSP.GP.C_Accept'Access;
+
+            elsif X = "parse_failure" then
+               PSP.Decl_Arg_Slot := PSP.GP.Failure'Access;
+
+            elsif X = "stack_overflow" then
+               PSP.Decl_Arg_Slot := PSP.GP.Overflow'Access;
+
+            elsif X = "extra_argument" then
+               PSP.Decl_Arg_Slot     := PSP.GP.Arg'Access;
+               PSP.Insert_Line_Macro := False;
+
+            elsif X = "extra_context" then
+               PSP.Decl_Arg_Slot     := PSP.GP.Ctx'Access;
+               PSP.Insert_Line_Macro := False;
+
+            elsif X = "token_type" then
+               PSP.Decl_Arg_Slot     := PSP.GP.Token_Type'Access;
+               PSP.Insert_Line_Macro := False;
+
+            elsif X = "default_type" then
+               PSP.Decl_Arg_Slot     := PSP.GP.Var_Type'Access;
+               PSP.Insert_Line_Macro := False;
+
+            elsif X = "stack_size" then
+               PSP.Decl_Arg_Slot     := PSP.GP.Stack_Size'Access;
+               PSP.Insert_Line_Macro := False;
+
+            elsif X = "start_symbol" then
+               PSP.Decl_Arg_Slot     := PSP.GP.Start'Access;
+               PSP.Insert_Line_Macro := False;
+
+            elsif X = "left" then
+               PSP.Prec_Counter := PSP.Prec_Counter + 1;
+               PSP.Decl_Assoc   := Symbols.Left;
+               PSP.Scan_State   := WAITING_FOR_PRECEDENCE_SYMBOL;
+
+            elsif X = "right" then
+               PSP.Prec_Counter := PSP.Prec_Counter + 1;
+               PSP.Decl_Assoc   := Symbols.Right;
+               PSP.Scan_State   := WAITING_FOR_PRECEDENCE_SYMBOL;
+
+            elsif X = "nonassoc" then
+               PSP.Prec_Counter := PSP.Prec_Counter + 1;
+               PSP.Decl_Assoc   := Symbols.None;
+               PSP.Scan_State   := WAITING_FOR_PRECEDENCE_SYMBOL;
+
+            elsif X = "destructor" then
+               PSP.Scan_State := WAITING_FOR_DESTRUCTOR_SYMBOL;
+
+            elsif X = "type" then
+               PSP.Scan_State := WAITING_FOR_DATATYPE_SYMBOL;
+
+            elsif X = "fallback" then
+               PSP.Fallback := null;
+               PSP.Scan_State := WAITING_FOR_FALLBACK_ID;
+
+            elsif X = "token" then
+               PSP.Scan_State := WAITING_FOR_TOKEN_NAME;
+
+            elsif X = "wildcard" then
+               PSP.Scan_State := WAITING_FOR_WILDCARD_ID;
+
+            elsif X = "token_class" then
+               PSP.Scan_State := WAITING_FOR_CLASS_ID;
+
+            else
+--                 ErrorMsg(psp->filename,psp->tokenlineno,
+--                          "Unknown declaration keyword: \"%%%s\".",x);
+--                 psp->errorcnt++;
+               Error (E203, (1 => To_Unbounded_String (X)), Line_Number => PSP.Token_Lineno);
+               PSP.Scan_State := RESYNC_AFTER_DECL_ERROR;
+            end if;
+         else
+--              ErrorMsg(psp->filename,psp->tokenlineno,
+--                       "Illegal declaration keyword: \"%s\".",x);
+--              psp->errorcnt++;
+            Error (E204, (1 => To_Unbounded_String (X)), Line_Number => PSP.Token_Lineno);
+            PSP.Scan_State := RESYNC_AFTER_DECL_ERROR;
+         end if;
+
 
       when WAITING_FOR_DESTRUCTOR_SYMBOL =>
 --        if( !ISALPHA(x[0]) ){
