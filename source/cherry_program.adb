@@ -22,6 +22,7 @@ with Cherry;
 with Rules;
 with Symbols;
 with Exceptions;
+with Reports;
 
 procedure Cherry_Program is
 
@@ -31,6 +32,7 @@ procedure Cherry_Program is
    procedure Put_Help is
    begin
       Cherry.Dummy;  -- XXX
+      Reports.Dummy;
    end Put_Help;
 
    procedure Put_Version

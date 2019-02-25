@@ -108,6 +108,11 @@ package Symbols is
 
    function Get_Extra return Extra_Access;
 
+   function Element_At (Extra : in Extra_Access;
+                        Index : in Symbol_Index)
+                       return Symbol_Access;
+   --  Get access to the symbol in Extra at position Index.
+
    subtype Symbol_Name is Ada.Strings.Unbounded.Unbounded_String;
 
 

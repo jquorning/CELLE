@@ -2433,6 +2433,7 @@ void rule_print (struct rule *rp)
   }
 }
 
+#if 0
 void rule_print_2(FILE *out, struct rule *rp){
   int i, j;
   fprintf(out, "%s",rp->lhs->name);
@@ -2459,7 +2460,9 @@ void rule_print_2(FILE *out, struct rule *rp){
     /* if( rp->rhsalias[i] ) fprintf(out,"(%s)",rp->rhsalias[i]); */
   }
 }
+#endif
 
+#if 0
 /* Duplicate the input file without comments and without actions
 ** on rules */
 void lemon_reprint (struct lemon *lemp)
@@ -2494,6 +2497,7 @@ void lemon_reprint (struct lemon *lemp)
     printf("\n");
   }
 }
+#endif
 
 /* Print a single rule.
 */
@@ -2626,8 +2630,8 @@ int PrintAction(
   return result;
 }
 
+#if 0
 /* Generate the "*.out" log file */
-
 void lemon_report_output (struct lemon *lemp)
 {
   int i, n;
@@ -2726,6 +2730,7 @@ void lemon_report_output (struct lemon *lemp)
   fclose(fp);
   return;
 }
+#endif
 
 
 /* Search for the file "name" which is in the same directory as
@@ -3535,7 +3540,7 @@ int lime_get_mh_flag (void)
 }
 */
 
-
+#if 0
 /* Generate C source code for the parser */
 void lemon_report_table (struct lemon *lemp)
 {
@@ -4064,6 +4069,7 @@ void lemon_report_table (struct lemon *lemp)
   printf ("### 2-58\n");
   return;
 }
+#endif
 
 
 const char *lemon_generate_header_line_callback (int index)
@@ -4072,6 +4078,7 @@ const char *lemon_generate_header_line_callback (int index)
   return lem.symbols [index]->name;
 }
 
+#if 0
 /* Reduce the size of the action tables, if possible, by making use
 ** of defaults.
 **
@@ -4192,7 +4199,7 @@ lemon_compress_tables
     }
   }
 }
-
+#endif
 
 /*
 ** Compare two states for sorting purposes.  The smaller state is the
@@ -4217,6 +4224,7 @@ static int stateResortCompare(const void *a, const void *b){
 }
 
 
+#if 0
 /*
 ** Renumber and resort states so that states with fewer choices
 ** occur at the end.  Except, keep state 0 as the first state.
@@ -4258,6 +4266,7 @@ void lemon_resort_states (struct lemon *lemp)
     lemp->nxstate--;
   }
 }
+#endif
 
 
 /***************** From the file "set.c" ************************************/
