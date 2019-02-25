@@ -69,7 +69,7 @@ package Symbols is
          --  Line number for start of destructor.  Set to
          --  -1 for duplicate destructors.
 
-         Data_Type   : Unbounded_String; -- Strings.chars_ptr;
+         Data_Type   : aliased Unbounded_String; -- Strings.chars_ptr;
          --  The data type of information held by this
          --  object. Only used if type==NONTERMINAL
 

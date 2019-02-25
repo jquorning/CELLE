@@ -458,28 +458,37 @@ begin
 
 
       when WAITING_FOR_DATATYPE_SYMBOL =>
---        if( !ISALPHA(x[0]) ){
---          ErrorMsg(psp->filename,psp->tokenlineno,
---            "Symbol name missing after %%type keyword");
---          psp->errorcnt++;
---          psp->state = RESYNC_AFTER_DECL_ERROR;
---        }else{
---          struct symbol *sp = lime_symbol_find(x);
---          if((sp) && (sp->datatype)){
---            ErrorMsg(psp->filename,psp->tokenlineno,
---              "Symbol %%type \"%s\" already defined", x);
---            psp->errorcnt++;
---            psp->state = RESYNC_AFTER_DECL_ERROR;
---          }else{
---            if (!sp){
---              sp = lime_symbol_new(x);
---            }
---            psp->declargslot = &sp->datatype;
---            psp->insertLineMacro = 0;
---            psp->state = WAITING_FOR_DECL_ARG;
---          }
---        }
-         null;
+         if
+           X (X'First) not in 'a' .. 'z' and
+           X (X'First) not in 'A' .. 'Z'
+         then
+            Errors.Error (E206, Line_Number => PSP.Token_Lineno);
+            PSP.Scan_State := RESYNC_AFTER_DECL_ERROR;
+         else
+            declare
+               use Interfaces.C.Strings;
+               use Symbols;
+               Symbol : Symbols.Symbol_Access := Symbols.Lime_Symbol_Find (New_String (X));
+            begin
+               if
+                 Symbol /= null and then
+                 Symbol.Data_Type /= Null_Unbounded_String
+               then
+                  Error (E207, (1 => To_Unbounded_String (X)),
+                         Line_Number => PSP.Token_Lineno);
+                  PSP.Scan_State := RESYNC_AFTER_DECL_ERROR;
+               else
+                  if Symbol = null then
+                     Symbol := Lime_Symbol_New (New_String (X));
+                  end if;
+                  PSP.Decl_Arg_Slot     :=
+                    new chars_ptr'(New_String (To_String (Symbol.Data_Type)));
+                  PSP.Insert_Line_Macro := False;
+                  PSP.Scan_State        := WAITING_FOR_DECL_ARG;
+               end if;
+            end;
+         end if;
+
 
       when WAITING_FOR_PRECEDENCE_SYMBOL =>
 --        if( x[0]=='.' ){
