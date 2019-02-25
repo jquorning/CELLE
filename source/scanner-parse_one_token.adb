@@ -427,16 +427,10 @@ begin
                PSP.Scan_State := WAITING_FOR_CLASS_ID;
 
             else
---                 ErrorMsg(psp->filename,psp->tokenlineno,
---                          "Unknown declaration keyword: \"%%%s\".",x);
---                 psp->errorcnt++;
                Error (E203, (1 => To_Unbounded_String (X)), Line_Number => PSP.Token_Lineno);
                PSP.Scan_State := RESYNC_AFTER_DECL_ERROR;
             end if;
          else
---              ErrorMsg(psp->filename,psp->tokenlineno,
---                       "Illegal declaration keyword: \"%s\".",x);
---              psp->errorcnt++;
             Error (E204, (1 => To_Unbounded_String (X)), Line_Number => PSP.Token_Lineno);
             PSP.Scan_State := RESYNC_AFTER_DECL_ERROR;
          end if;

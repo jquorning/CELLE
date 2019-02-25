@@ -67,7 +67,7 @@ package Errors is
    subtype K_Error   is K_Message range E001 .. K_Message'Val (K_Message'Pos (F001) - 1);
    subtype K_Fatal   is K_Message range F001 .. K_Message'Last;
 
-   type K_Error_Parse_One_Token is new K_Error range E001 .. F001;
+   type K_Error_Parse_One_Token is new K_Error range E001 .. E204;
 
 
    procedure Error
