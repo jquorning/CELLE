@@ -48,6 +48,9 @@ package Symbols is
 --     type Symbol_Index_Array_Access  is access all Symbol_Index_Array;
 --     type Symbol_Access_Array_Access is access all Symbol_Access_Array;
 --     pragma Convention (C, Symbol_Access_Array_Access);
+   subtype S_Set is Unbounded_String;
+   Null_Set : S_Set renames Null_Unbounded_String;
+   function "=" (Left, Right : S_Set) return Boolean renames Ada.Strings.Unbounded."=";
 
    type Symbol_Record is
       record
@@ -81,7 +84,7 @@ package Symbols is
          --  stack is a union.  The .yy%d element of this
          --  union is the correct data type for this object
 
-         B_Content   : Integer;
+         B_Content   : Boolean;
          --  True if this symbol ever carries content - if
          --  it is ever more than just syntax
 

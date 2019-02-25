@@ -815,4 +815,15 @@ package body Lime is
    end Lime_Partial_Database_Dump_Ada;
 
 
+   function Sorted_Element_At (Extra : in Extra_Access;
+                               Index : in Symbol_Index)
+                              return State_Access
+   is
+   begin
+      return null; --  XXX
+   end Sorted_Element_At;
+
+   --  A followset propagation link indicates that the contents of one
+   --  configuration followset should be propagated to another whenever
+
 end Lime;

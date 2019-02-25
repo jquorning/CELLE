@@ -107,6 +107,7 @@ package Lime is
    type Plink_Access is access all Plink_Record;
 
    type State_Record;
+   type State_Access is access all State_Record;
 
    type Config_Record;
    type Config_Access is access all Config_Record;
@@ -114,10 +115,10 @@ package Lime is
    type Config_Record is
       record
          RP          : access Rule_Record;   --  The rule upon which the configuration is based
-         DOT         : aliased int;          --  The parse point
-         Follow_Set  : Strings.chars_ptr;  --  FWS, Follow-set for this configuration only
-         FS_Forward  : Plink_Access;       --  fplp, forward propagation links
-         FS_Backward : Plink_Access;       --  bplp; Follow-set backwards propagation links
+         DOT         : aliased Integer;      --  The parse point
+         Follow_Set  : Strings.chars_ptr;    --  FWS, Follow-set for this configuration only
+         FS_Forward  : Plink_Access;         --  fplp, forward propagation links
+         FS_Backward : Plink_Access;         --  bplp; Follow-set backwards propagation links
          stp         : access State_Record;  --  Pointer to state which contains this
          status      : aliased cfgstatus;    --  used during followset and shift computations
          Next        : Config_Access;        --  Next configuration in the state
@@ -154,6 +155,7 @@ package Lime is
    use Symbols;
 
    type Action_Record;
+   type Action_Access is access all Action_Record;
 
    type anon1015_x_union (discr : unsigned := 0) is record
       case discr is
@@ -166,11 +168,11 @@ package Lime is
 
    type Action_Record is
       record
-         sp      : access Symbol_Kind;
+         SP      : access Symbol_Kind;
          c_type  : aliased e_action;
-         x       : aliased anon1015_x_union;  --  The rule, if a reduce
+         X       : aliased anon1015_x_union;  --  The rule, if a reduce
          spOpt   : access Symbol_Kind;        --  SHIFTREDUCE optimization to this symbol
-         next    : access Action_Record;      --  Next action for this state
+         Next    : access Action_Record;      --  Next action for this state
          collide : access Action_Record;      --  Next action with the same hash
       end record;
    pragma Convention (C_Pass_By_Copy, Action_Record);
@@ -181,19 +183,22 @@ package Lime is
 
    type State_Record is
       record
-         bp          : Config_Access;   --  The basis configurations for this state
-         cfp         : Config_Access;   --  All configurations in this set
-         statenum    : aliased int;     --  Sequential number for this state
-         ap          : access Action_Record; --  List of actions for this state
-         nTknAct     : aliased int;   --  Number of actions on terminals and nonterminals
-         nNtAct      : aliased int;   --  yy_action[] offset for terminals and nonterms
-         iTknOfst    : aliased int;   --  Default action is to REDUCE by this rule
-         iNtOfst     : aliased int;   --  The default REDUCE rule.
-         iDfltReduce : aliased int;   --  True if this is an auto-reduce state
+         BP          : Config_Access;        --  The basis configurations for this state
+         CFP         : Config_Access;        --  All configurations in this set
+         State_Num   : aliased Integer;      --  Sequential number for this state
+         AP          : access Action_Record; --  List of actions for this state
+         nTknAct     : aliased Integer;      --  Number of actions on terminals and nonterminals
+         nNtAct      : aliased Integer;      --  yy_action[] offset for terminals and nonterms
+         iTknOfst    : aliased Integer;      --  Default action is to REDUCE by this rule
+         iNtOfst     : aliased Integer;      --  The default REDUCE rule.
+         iDfltReduce : aliased Integer;      --  True if this is an auto-reduce state
          pDfltReduce : access Rule_Record;
          autoReduce  : aliased int;
       end record;
 
+   function Sorted_Element_At (Extra : in Extra_Access;
+                               Index : in Symbol_Index)
+                              return State_Access;
 
    --  A followset propagation link indicates that the contents of one
    --  configuration followset should be propagated to another whenever
@@ -230,8 +235,8 @@ package Lime is
          Max_Action       : Integer;            --  Maximum action value of any kind
          Symbols2         : Integer; -- XXX delme --  Sorted array of pointers to symbols
          Error_Cnt        : Integer;            --  Number of errors
-         Err_Sym2          : Integer; --  Symbol_Access;      --  The error symbol
-         Wildcard2         : Integer; --  Symbol_Access;      --  Token that matches anything
+         Err_Sym2         : Integer; --  Symbol_Access;  --  The error symbol
+         Wildcard2        : Integer; --  Symbol_Access;  --  Token that matches anything
          Name             : Strings.chars_ptr;  --  Name of the generated parser
          Arg              : Strings.chars_ptr;  --  Declaration of the 3th argument to parser
          Ctx              : Strings.chars_ptr;  --  Declaration of 2nd argument to constructor
@@ -255,9 +260,9 @@ package Lime is
          N_Action_Tab     : Integer;            --  Number of entries in the yy_action[] table
          N_Lookahead_Tab  : Integer;            --  Number of entries in yy_lookahead[]
          Table_Size       : Integer;            --  Total table size of all tables in bytes
-         Basis_Flag       : Integer;            --  Print only basis configurations
-         Has_Fallback     : Integer;            --  True if any %fallback is seen in the grammar
-         No_Line_Nos_Flag : Integer;            --  True if #line statements should not be printed
+         Basis_Flag       : Boolean;            --  Print only basis configurations
+         Has_Fallback     : Boolean;            --  True if any %fallback is seen in the grammar
+         No_Line_Nos_Flag : Boolean;            --  True if #line statements should not be printed
          Argv0            : Strings.chars_ptr;  --  Name of the program
 
          Extra            : Symbols.Extra_Access;
@@ -279,8 +284,8 @@ package Lime is
       Extra_Code   => Null_Ptr, Token_Dest   => Null_Ptr,  Var_Dest         => Null_Ptr,
       File_Name    => Null_Ptr, Token_Prefix => Null_Ptr,
       N_Conflict   => 0,        N_Action_Tab => 0,         N_Lookahead_Tab  => 0,
-      Table_Size   => 0,        Basis_Flag   => 0,         Has_Fallback     => 0,
-      No_Line_Nos_Flag => 0,    Argv0        => Null_Ptr,  Extra            => Symbols.Get_Extra);
+      Table_Size   => 0,        Basis_Flag   => False,     Has_Fallback     => False,
+      No_Line_Nos_Flag => False, Argv0       => Null_Ptr,  Extra            => Symbols.Get_Extra);
 
    ----------------------------------------------------------------------------
    --#define NO_OFFSET (-2147483647)

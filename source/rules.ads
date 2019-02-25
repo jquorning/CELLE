@@ -29,6 +29,13 @@ package Rules is
 
    type RHS_Array_Access is access all Symbols.Symbol_Access_Array;
 
+   subtype T_Code is Unbounded_String;
+
+   Null_Code : T_Code renames Null_Unbounded_String;
+
+   function "=" (Left, Right : T_Code) return Boolean
+     renames Ada.Strings.Unbounded."=";
+
    --  A configuration is a production rule of the grammar together with
    --  a mark (dot) showing how much of that rule has been processed so far.
    --  Configurations also contain a follow-set which is a list of terminal

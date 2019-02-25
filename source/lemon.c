@@ -2562,6 +2562,7 @@ char *tag;
 }
 #endif
 
+#if 0
 /* Print an action to the given file descriptor.  Return FALSE if
 ** nothing was actually printed.
 */
@@ -2629,6 +2630,7 @@ int PrintAction(
   }
   return result;
 }
+#endif
 
 #if 0
 /* Generate the "*.out" log file */

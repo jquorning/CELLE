@@ -105,8 +105,8 @@ begin
       Lime.State_Init;
       Lemon.Argv0            := New_String (Options.Program_Name.all);
       Lemon.File_Name        := Lemon_Input_File; --  New_String (Lime.Option_Input_File.all);
-      Lemon.Basis_Flag       := Boolean'Pos (Options.Basis_Flag);
-      Lemon.No_Line_Nos_Flag := Boolean'Pos (Options.No_Line_Nos);
+      Lemon.Basis_Flag       := Options.Basis_Flag;
+      Lemon.No_Line_Nos_Flag := Options.No_Line_Nos;
       --  Extras.Symbol_New_Proc (Extras.To_Name ("$"));
       Symbols.Symbol_Append (Key => "$");
 

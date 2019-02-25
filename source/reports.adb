@@ -21,6 +21,19 @@ package body Reports is
    procedure Rule_Print_2 (File : in Ada.Text_IO.File_Type;
                            RP   : in Rules.Rule_Access);
 
+   procedure Print_Action
+     (AP     : in     Lime.Action_Access;
+      File   : in     Ada.Text_IO.File_Type;
+      Indent : in     Integer;
+      Result :    out Boolean);
+  --  Print an action to the given file descriptor.  Return FALSE if
+  --  nothing was actually printed.
+
+   procedure Config_Print (File : in Ada.Text_IO.File_Type;
+                           CFP  : in Lime.Config_Access);
+   --  Print the rule for a configuration.
+
+
    procedure Reprint
    is
       use Ada.Text_IO;
@@ -91,106 +104,156 @@ package body Reports is
 
    procedure Report_Output
    is
+      use Ada.Text_IO;
+      use Symbols;
+      use Rules;
+      use Lime;
+      Lemp : Lemon_Record renames Database.Lime_Lemp;
+      File : File_Type;
+
+      Action_Result : Boolean;
+
+      N   : Integer;
+      STP : State_Access;
+      CFP : Lime.Config_Access;
+      AP  : Action_Access;
+      RP  : Rule_Access;
    begin
-      null;
---  void lemon_report_output (struct lemon *lemp)
---  {
---    int i, n;
---    struct state *stp;
---    struct config *cfp;
---    struct action *ap;
---    struct rule *rp;
---    FILE *fp;
+--  fp = file_open(lemp,".out","wb");
+      Open (File, Out_File, "XXX.out");
 
---    fp = file_open(lemp,".out","wb");
---    if( fp==0 ) return;
---    for(i=0; i<lemp->nxstate; i++){
---      stp = lemp->sorted[i];
---      fprintf(fp,"State %d:\n",stp->statenum);
---      if( lemp->basisflag ) cfp=stp->bp;
---      else                  cfp=stp->cfp;
---      while( cfp ){
---        char buf[20];
---        if( cfp->dot==cfp->rp->nrhs ){
---          lemon_sprintf(buf,"(%d)",cfp->rp->iRule);
---          fprintf(fp,"    %5s ",buf);
---        }else{
---          fprintf(fp,"          ");
---        }
---        ConfigPrint(fp,cfp);
---        fprintf(fp,"\n");
---  #if 0
---        SetPrint(fp,cfp->fws,lemp);
---        PlinkPrint(fp,cfp->fplp,"To  ");
---        PlinkPrint(fp,cfp->bplp,"From");
---  #endif
---        if( lemp->basisflag ) cfp=cfp->bp;
---        else                  cfp=cfp->next;
---      }
---      fprintf(fp,"\n");
---      for(ap=stp->ap; ap; ap=ap->next){
---        if( PrintAction(ap,fp,30) ) fprintf(fp,"\n");
---      }
---      fprintf(fp,"\n");
---    }
---    fprintf(fp, "----------------------------------------------------\n");
---    fprintf(fp, "Symbols:\n");
---    fprintf(fp, "The first-set of non-terminals is shown after the name.\n\n");
---    for(i=0; i<lemp->nsymbol; i++){
---      int j;
---      struct symbol *sp;
+      for I in Symbol_Index range 0 .. Symbol_Index (Lemp.Nx_State) - 1 loop
+         STP := Sorted_Element_At (Lemp.Extra, Index => I);
+         Put (File, "State ");
+         Put (File, Integer'Image (STP.State_Num));
+         Put (File, ":");
+         New_Line;
 
---      sp = lemp->symbols[i];
---      fprintf(fp, "  %3d: %s", i, sp->name);
---      if( sp->type==NONTERMINAL ){
---        fprintf(fp, ":");
---        if( sp->lambda ){
---          fprintf(fp, " <lambda>");
---        }
---        for(j=0; j<lemp->nterminal; j++){
---          if( sp->firstset && SetFind(sp->firstset, j) ){
---            fprintf(fp, " %s", lemp->symbols[j]->name);
---          }
---        }
---      }
---      if( sp->prec>=0 ) fprintf(fp," (precedence=%d)", sp->prec);
---      fprintf(fp, "\n");
---    }
---    fprintf(fp, "----------------------------------------------------\n");
---    fprintf(fp, "Syntax-only Symbols:\n");
---    fprintf(fp, "The following symbols never carry semantic content.\n\n");
---    for(i=n=0; i<lemp->nsymbol; i++){
---      int w;
---      struct symbol *sp = lemp->symbols[i];
---      if( sp->bContent ) continue;
---      w = (int)strlen(sp->name);
---      if( n>0 && n+w>75 ){
---        fprintf(fp,"\n");
---        n = 0;
---      }
---      if( n>0 ){
---        fprintf(fp, " ");
---        n++;
---      }
---      fprintf(fp, "%s", sp->name);
---      n += w;
---    }
---    if( n>0 ) fprintf(fp, "\n");
---    fprintf(fp, "----------------------------------------------------\n");
---    fprintf(fp, "Rules:\n");
---    for(rp=lemp->rule; rp; rp=rp->next){
---      fprintf(fp, "%4d: ", rp->iRule);
---      rule_print_2(fp, rp);
---      fprintf(fp,".");
---      if( rp->precsym ){
---        fprintf(fp," [%s precedence=%d]",
---                rp->precsym->name, rp->precsym->prec);
---      }
---      fprintf(fp,"\n");
---    }
---    fclose(fp);
---    return;
---  }
+         if Lemp.Basis_Flag then
+            CFP := STP.BP;
+         else
+            CFP := STP.CFP;
+         end if;
+
+         while CFP /= null loop
+            if CFP.DOT = CFP.RP.RHS'Length then
+               Put (File, "    (");
+               Put (File, CFP.RP.Rule'Img);
+               Put (File, ") ");
+            else
+               Put (File, "          ");
+            end if;
+            Config_Print (File, CFP);
+            New_Line (File);
+
+--      SetPrint(fp,cfp->fws,lemp);
+--      PlinkPrint(fp,cfp->fplp,"To  ");
+--      PlinkPrint(fp,cfp->bplp,"From");
+
+            if Lemp.Basis_Flag then
+               CFP := CFP.Basis;
+            else
+               CFP := CFP.Next;
+            end if;
+         end loop;
+         New_Line (File);
+
+         AP := Action_Access (STP.AP);
+         while AP /= null loop
+            Print_Action (AP, File, 30, Action_Result);
+            if Action_Result then
+               New_Line (File);
+            end if;
+            AP := AP.Next;
+         end loop;
+         New_Line (File);
+      end loop;
+
+      Put_Line (File, "----------------------------------------------------");
+      Put_Line (File, "Symbols:");
+      Put_Line (File, "The first-set of non-terminals is shown after the name.");
+      New_Line (File);
+
+      for I in 0 .. Lemp.N_Symbol - 1 loop
+         declare
+            SP : Symbol_Access;
+         begin
+            SP := Element_At (Lemp.Extra, Index => I);
+            Put (File, "  " & I'Img & ": " & From_Key (SP.Name));
+            if SP.Kind = Non_Terminal then
+               Put (File, ":");
+               if SP.Lambda then
+                  Put (File, " <lambda>");
+               end if;
+               for J in 0 .. Lemp.N_Terminal - 1 loop
+                  if Symbols."=" (SP.First_Set, Null_Set) then
+                     --  XXX and SetFind (SP.First_Set, J) then
+                     Put (File, " ");
+                     Put (File, From_Key (Element_At (Lemp.Extra, Index => J).Name));
+                  end if;
+               end loop;
+            end if;
+            if SP.Prec >= 0 then
+               Put (File, " (precedence=");
+               Put (File, SP.Prec'Img);
+               Put (File, ")");
+            end if;
+         end;
+         New_Line (File);
+      end loop;
+
+      Put_Line (File, "----------------------------------------------------");
+      Put_Line (File, "Syntax-only Symbols:");
+      Put_Line (File, "The following symbols never carry semantic content.");
+      New_Line (File);
+
+      N := 0;
+      for I in 0 .. Lemp.N_Symbol loop
+         declare
+            W  : Integer;
+            SP : constant Symbol_Access := Element_At (Lemp.Extra, Index => I);
+         begin
+            if not SP.B_Content then
+               W := Length (SP.Name);
+               if N > 0 and N + W > 75 then
+                  New_Line (File);
+                  N := 0;
+               end if;
+               if N > 0 then
+                  Put (File, " ");
+                  N := N + 1;
+               end if;
+               Put (File, From_Key (SP.Name));
+               N := N + W;
+            end if;
+         end;
+      end loop;
+      if N > 0 then
+         New_Line (File);
+      end if;
+
+      Put_Line (File, "----------------------------------------------------");
+      Put_Line (File, "Rules:");
+
+      RP := Lemp.Rule;
+      loop
+         exit when RP = null;
+         Put (File, RP.Rule'Img); -- XXX "%4d: ", rp->iRule);
+         Put (File, ": ");
+         Rule_Print_2 (File, RP);
+         Put (File, ".");
+         if RP.Prec_Sym /= null then
+            Put (File, " [");
+            Put (File, From_Key (RP.Prec_Sym.Name));
+            Put (File, " precedence=");
+            Put (File, RP.Prec_Sym.Prec'Img);
+            Put (File, "]");
+         end if;
+         New_Line (File);
+         RP := RP.Next;
+      end loop;
+
+      Close (File);
    end Report_Output;
 
 
@@ -928,6 +991,88 @@ package body Reports is
 --    }
       null;
    end Rule_Print_2;
+
+
+   procedure Print_Action
+     (AP     : in     Lime.Action_Access;
+      File   : in     Ada.Text_IO.File_Type;
+      Indent : in     Integer;
+      Result :    out Boolean)
+   is
+   begin
+--    struct action *ap,          /* The action to print */
+--    FILE *fp,                   /* Print the action here */
+--    int indent                  /* Indent by this amount */
+--  ){
+--    int result = 1;
+--    switch( ap->type ){
+--      case SHIFT: {
+--        struct state *stp = ap->x.stp;
+--        fprintf(fp,"%*s shift        %-7d",indent,ap->sp->name,stp->statenum);
+--        break;
+--      }
+--      case REDUCE: {
+--        struct rule *rp = ap->x.rp;
+--        fprintf(fp,"%*s reduce       %-7d",indent,ap->sp->name,rp->iRule);
+--        RulePrint(fp, rp, -1);
+--        break;
+--      }
+--      case SHIFTREDUCE: {
+--        struct rule *rp = ap->x.rp;
+--        fprintf(fp,"%*s shift-reduce %-7d",indent,ap->sp->name,rp->iRule);
+--        RulePrint(fp, rp, -1);
+--        break;
+--      }
+--      case ACCEPT:
+--        fprintf(fp,"%*s accept",indent,ap->sp->name);
+--        break;
+--      case ERROR:
+--        fprintf(fp,"%*s error",indent,ap->sp->name);
+--        break;
+--      case SRCONFLICT:
+--      case RRCONFLICT:
+--        fprintf(fp,"%*s reduce       %-7d ** Parsing conflict **",
+--          indent,ap->sp->name,ap->x.rp->iRule);
+--        break;
+--      case SSCONFLICT:
+--        fprintf(fp,"%*s shift        %-7d ** Parsing conflict **",
+--          indent,ap->sp->name,ap->x.stp->statenum);
+--        break;
+--      case SH_RESOLVED:
+--        if( lemon_show_conflict ){
+--          fprintf(fp,"%*s shift        %-7d -- dropped by precedence",
+--                  indent,ap->sp->name,ap->x.stp->statenum);
+--        }else{
+--          result = 0;
+--        }
+--        break;
+--      case RD_RESOLVED:
+--        if( lemon_show_conflict ){
+--          fprintf(fp,"%*s reduce %-7d -- dropped by precedence",
+--                  indent,ap->sp->name,ap->x.rp->iRule);
+--        }else{
+--          result = 0;
+--        }
+--        break;
+--      case NOT_USED:
+--        result = 0;
+--        break;
+--    }
+--    if( result && ap->spOpt ){
+--      fprintf(fp,"  /* because %s==%s */", ap->sp->name, ap->spOpt->name);
+--    }
+--    return result;
+      null;
+   end Print_Action;
+
+
+   procedure Config_Print (File : in Ada.Text_IO.File_Type;
+                           CFP  : in Lime.Config_Access)
+   is
+   begin
+      null;
+      --  RulePrint(fp, cfp->rp, cfp->dot);
+   end Config_Print;
 
 
 end Reports;
