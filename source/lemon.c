@@ -1342,8 +1342,10 @@ struct rule *lime_rule_sort (struct rule *rp)
   return rp;
 }
 
+#if 0
 /* forward reference */
 static const char *minimum_size_type(int lwr, int upr, int *pnByte);
+#endif
 
 /* Print a single line of the "Parser Stats" output
  */
@@ -3407,6 +3409,7 @@ void print_stack_union
   lime_put_line ("} YYMINORTYPE;");
 }
 
+#if 0
 /*
 ** Return the name of a C datatype able to represent values between
 ** lwr and upr, inclusive.  If pnByte!=NULL then also write the sizeof
@@ -3436,6 +3439,7 @@ static const char *minimum_size_type(int lwr, int upr, int *pnByte){
   if( pnByte ) *pnByte = nByte;
   return zType;
 }
+#endif
 
 /*
 ** Each state contains a set of token transaction and a set of

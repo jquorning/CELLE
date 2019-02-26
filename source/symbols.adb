@@ -100,6 +100,7 @@ package body Symbols is
          Symbol_List : Symbol_Lists.List;  --  The Symbol_Record list
          Symbol_Map  : Symbol_Maps.Map;    --  Lookup from Symbol_Name
          Error       : Symbol_Cursor;
+         Wild_Card   : Symbol_Cursor;
       end record;
 
    Extra : aliased Extra_Record;
@@ -118,6 +119,14 @@ package body Symbols is
    begin
       return null;  --  XXX
    end Element_At;
+
+
+   function Get_Wildcard (Extra : in Extra_Access)
+                         return Symbol_Access
+   is
+   begin
+      return null;
+   end Get_Wildcard;
 
 
    function To_Key (Item : in String) return Key_Type

@@ -19,6 +19,7 @@ with Interfaces.C.Strings;
 
 with Rules;
 with Symbols;
+with Parsers;
 
 package Lime is
 
@@ -238,8 +239,8 @@ package Lime is
          Err_Sym2         : Integer; --  Symbol_Access;  --  The error symbol
          Wildcard2        : Integer; --  Symbol_Access;  --  Token that matches anything
          Name             : Strings.chars_ptr;  --  Name of the generated parser
-         Arg              : Strings.chars_ptr;  --  Declaration of the 3th argument to parser
-         Ctx              : Strings.chars_ptr;  --  Declaration of 2nd argument to constructor
+         ARG2             : Strings.chars_ptr;  --  Declaration of the 3th argument to parser
+         CTX2             : Strings.chars_ptr;  --  Declaration of 2nd argument to constructor
          Token_Type       : Strings.chars_ptr;  --  Type of terminal symbols in the parser stack
          Var_Type         : Strings.chars_ptr;  --  The default type of non-terminal symbols
          Start            : Strings.chars_ptr;  --  Name of the start symbol for the grammar
@@ -254,18 +255,19 @@ package Lime is
          Var_Dest         : Strings.chars_ptr;  --  Code for the default non-terminal destructor
          File_Name        : Strings.chars_ptr;  --  Name of the input file
 
-         --   char *outname;           --  Name of the current output file
-         Token_Prefix     : Strings.chars_ptr;  --  A prefix added to token names in the .h file
-         N_Conflict       : Integer;            --  Number of parsing conflicts
-         N_Action_Tab     : Integer;            --  Number of entries in the yy_action[] table
-         N_Lookahead_Tab  : Integer;            --  Number of entries in yy_lookahead[]
-         Table_Size       : Integer;            --  Total table size of all tables in bytes
-         Basis_Flag       : Boolean;            --  Print only basis configurations
-         Has_Fallback     : Boolean;            --  True if any %fallback is seen in the grammar
-         No_Line_Nos_Flag : Boolean;            --  True if #line statements should not be printed
-         Argv0            : Strings.chars_ptr;  --  Name of the program
+         Out_Name        : chars_ptr;          --  Name of the current output file
+         Token_Prefix    : Strings.chars_ptr;  --  A prefix added to token names in the .h file
+         N_Conflict      : Integer;            --  Number of parsing conflicts
+         N_Action_Tab    : Integer;            --  Number of entries in the yy_action[] table
+         N_Lookahead_Tab : Integer;            --  Number of entries in yy_lookahead[]
+         Table_Size      : Integer;            --  Total table size of all tables in bytes
+         Basis_Flag      : Boolean;            --  Print only basis configurations
+         Has_Fallback    : Boolean;            --  True if any %fallback is seen in the grammar
+         No_Linenos_Flag : Boolean;            --  True if #line statements should not be printed
+         Argv0           : Strings.chars_ptr;  --  Name of the program
 
-         Extra            : Symbols.Extra_Access;
+         Extra           : Symbols.Extra_Access;
+         Parser          : Parsers.Context_Access;
       end record;
    --  pragma Convention (C_Pass_By_Copy, Lemon_Record);
 
@@ -277,15 +279,17 @@ package Lime is
       Min_Reduce   => 0,        Max_Action   => 0,         Symbols2         => 999, --  null,
       Error_Cnt    => 0,        Err_Sym2     => 999, --  null,
       Wildcard2    => 999, -- null,
-      Name         => Null_Ptr, Arg          => Null_Ptr,  Ctx              => Null_Ptr,
+      Name         => Null_Ptr, ARG2         => Null_Ptr,  CTX2             => Null_Ptr,
       Token_Type   => Null_Ptr, Var_Type     => Null_Ptr,  Start            => Null_Ptr,
       Stack_Size   => Null_Ptr, Include      => Null_Ptr,  Error            => Null_Ptr,
       Overflow     => Null_Ptr, Failure      => Null_Ptr,  C_Accept         => Null_Ptr,
       Extra_Code   => Null_Ptr, Token_Dest   => Null_Ptr,  Var_Dest         => Null_Ptr,
-      File_Name    => Null_Ptr, Token_Prefix => Null_Ptr,
+      File_Name    => Null_Ptr, Out_Name     => Null_Ptr,  Token_Prefix     => Null_Ptr,
       N_Conflict   => 0,        N_Action_Tab => 0,         N_Lookahead_Tab  => 0,
       Table_Size   => 0,        Basis_Flag   => False,     Has_Fallback     => False,
-      No_Line_Nos_Flag => False, Argv0       => Null_Ptr,  Extra            => Symbols.Get_Extra);
+      No_Linenos_Flag => False, Argv0       => Null_Ptr,
+      Extra           => Symbols.Get_Extra,
+      Parser          => Parsers.Get_Context);
 
    ----------------------------------------------------------------------------
    --#define NO_OFFSET (-2147483647)
@@ -365,8 +369,8 @@ package Lime is
      (YY_Code_Type   : in chars_ptr;
       Symbol_Count   : in Integer;
       YY_Action_Type : in chars_ptr;
-      Wildcard       : in Integer;
-      Wildcard_Index : in chars_ptr);
+      Is_Wildcard    : in Boolean;
+      Wildcard_Index : in Symbol_Index);
 
    procedure Generate_The_Defines_2
      (Stack_Size : in chars_ptr);
@@ -474,11 +478,11 @@ package Lime is
    --  Print a string to the file and keep the linenumber up to date
 
    procedure Write_Arg_Defines
-     (Name    : in chars_ptr;
-      Arg_Ctx : in chars_ptr;
-      Extend  : in Integer;
-      Arg     : in chars_ptr;
-      Arg_I   : in chars_ptr);
+     (Name    : in String;
+      Arg_Ctx : in String;
+      Extend  : in Boolean;
+      Arg     : in String;
+      Arg_I   : in String);
 
    procedure Close_Out;
    --  Close out file

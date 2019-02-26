@@ -8,6 +8,7 @@
 --
 
 with Ada.Text_IO;
+with Ada.Strings.Fixed;
 
 with Interfaces.C.Strings;
 
@@ -15,6 +16,7 @@ with Lime;
 with Database;
 with Rules;
 with Symbols;
+with Parsers;
 
 package body Reports is
 
@@ -32,6 +34,19 @@ package body Reports is
    procedure Config_Print (File : in Ada.Text_IO.File_Type;
                            CFP  : in Lime.Config_Access);
    --  Print the rule for a configuration.
+
+   function Minimum_Size_Type (LWS     : in     Integer;
+                               UPR     : in     Integer;
+                               PnBytes :    out Integer)
+                              return Interfaces.C.Strings.chars_ptr;
+
+
+   --  Return the name of a C datatype able to represent values between
+   --  lwr and upr, inclusive.  If pnByte!=NULL then also write the sizeof
+   --  for that type (1, 2, or 4) into *pnByte.
+
+   function File_Makename (Global    : in Lime.Lemon_Record;
+                           Extension : in String) return String;
 
 
    procedure Reprint
@@ -259,88 +274,144 @@ package body Reports is
 
    procedure Report_Table
    is
-   begin
---  void lemon_report_table (struct lemon *lemp)
---  {
+      use Interfaces.C.Strings;
+      use Lime;
+      use Rules;
+      Lemp : Lemon_Record renames Database.Lime_Lemp;  --  Parameter
 --    char line[LINESIZE];
 --    struct state *stp;
 --    struct action *ap;
 --    struct rule *rp;
 --    struct acttab *pActtab;
 --    int i, j, n, sz;
---    int szActionType;     /* sizeof(YYACTIONTYPE) */
---    int szCodeType;       /* sizeof(YYCODETYPE)   */
+      Action_Type : Integer;     --  sizeof(YYACTIONTYPE)
+      Code_Type   : Integer;       --  sizeof(YYCODETYPE)
 --    const char *name;
 --    int mnTknOfst, mxTknOfst;
 --    int mnNtOfst, mxNtOfst;
 --    struct axset *ax;
---    int  template_open_success;
---    int  error_count;
+      Template_Open_Success : Integer;
+      Error_Count : Natural;
+      pragma Unreferenced (Code_Type);
+      pragma Unreferenced (Action_Type);
+   begin
+      Lemp.Min_Shift_Reduce := Lemp.N_State;
+      Lemp.Err_Action       := Lemp.Min_Shift_Reduce + Lemp.N_Rule;
+      Lemp.Acc_Action       := Lemp.Err_Action + 1;
+      Lemp.No_Action        := Lemp.Acc_Action + 1;
+      Lemp.Min_Reduce       := Lemp.No_Action + 1;
+      Lemp.Max_Action       := Lemp.Min_Reduce + Lemp.N_Rule;
 
---    lemp->minShiftReduce = lemp->nstate;
---    lemp->errAction      = lemp->minShiftReduce + lemp->nrule;
---    lemp->accAction      = lemp->errAction + 1;
---    lemp->noAction       = lemp->accAction + 1;
---    lemp->minReduce      = lemp->noAction + 1;
---    lemp->maxAction      = lemp->minReduce + lemp->nrule;
+      Template_Open (Lemon_User_Template, Error_Count, Template_Open_Success);
+      Implementation_Open (New_String (File_Makename (Lemp, ".c")));
 
---    lime_template_open (lemon_user_template, &error_count, &template_open_success);
---    lime_implementation_open (file_makename (lemp, ".c"));
+      Template_Transfer (Lemp.Name);
 
---    lime_template_transfer (lemp->name);
---
---    /* Generate the include code, if any */
---    lime_print (lemp->outname, lemp->nolinenosflag, lemp->include);
---    //lime_print (lime_get_out_name (), lemp->nolinenosflag, lemp->include);
---    //lime_write_include (lime_get_mh_flag(), file_makename(lemp, ".h"));
---    lime_write_include (file_makename(lemp, ".h"));
---
---    lime_template_transfer (lemp->name);
---
---    /* Generate #defines for all tokens */
---    lime_lemp_copy = lemp;
---    //lime_generate_tokens (lime_get_mh_flag(), lemp->tokenprefix, 1, lemp->nterminal);
---    lime_generate_tokens (lemp->tokenprefix, 1, lemp->nterminal);
---
---    lime_template_transfer (lemp->name);
---
---    /* Generate the defines */
---    lime_generate_the_defines_1
---      (minimum_size_type(0, lemp->nsymbol, &szCodeType),
---       lemp->nsymbol,
---       minimum_size_type(0,lemp->maxAction,&szActionType),
---       (lemp->wildcard != NULL),
---       (lemp->wildcard ? lemp->wildcard->index : 0));
---
---    //print_stack_union (lemp, lime_get_mh_flag());
---    print_stack_union (lemp);
---    lime_generate_the_defines_2 (lemp->stacksize);
---
+      --  Generate the include code, if any
+      --  Lime_Print (Lemp.Outname, Lemp.No_Linenos_Flag, Lemp.Include);
+      Template_Print (Lemp.Out_Name, Boolean'Pos (Lemp.No_Linenos_Flag), Lemp.Include);
+      --  lime_print (lime_get_ouüt_name (), lemp->nolinenosflag, lemap->include);
+      --  lime_write_include (lime_get_mh_flag(), file_makename(lemp, ".h"));
+      Write_Include (New_String (File_Makename (Lemp, ".h")));
+
+      Template_Transfer (Lemp.Name);
+
+      --  Generate #defines for all tokens
+--  XXX    Lime_Lemp_Copy := Lemp;
+      --  lime_generate_tokens (lime_get_mh_flag(), lemp->tokenprefix, 1, lemp->nterminal);
+      Generate_Tokens (Lemp.Token_Prefix, 1, Integer (Lemp.N_Terminal));
+
+      Template_Transfer (Lemp.Name);
+
+      --  Generate the defines
+      declare
+         use Interfaces.C.Strings;
+         use Symbols;
+         Code     : constant chars_ptr := Minimum_Size_Type (0, Integer (Lemp.N_Symbol),
+                                                             Code_Type);
+         Action   : constant chars_ptr := Minimum_Size_Type (0, Lemp.Max_Action,
+                                                             Action_Type);
+         Wildcard    : constant Symbol_Access := Get_Wildcard (Lemp.Extra);
+         Is_Wildcard : constant Boolean       := (Wildcard /= null);
+      begin
+         if Is_Wildcard then
+            Generate_The_Defines_1
+              (Code,
+               Integer (Lemp.N_Symbol),
+               Action,
+               Is_Wildcard    => True,
+               Wildcard_Index => Wildcard.Index);
+         else
+            Generate_The_Defines_1
+            (Code,
+             Integer (Lemp.N_Symbol),
+             Action,
+             Is_Wildcard    => False,
+             Wildcard_Index => 0);
+         end if;
+      end;
+
+      --  print_stack_union (lemp, lime_get_mh_flag());
+      --  XXX  Print_Stack_Union (Lemp);
+      Generate_The_Defines_2 (Lemp.Stack_Size);
+
 --    //if( lime_get_mh_flag() ){
 --    //  lime_put_line ("#if INTERFACE");
 --    //}
---    lime_write_interface_begin ();
---
---    name = lemp->name ? lemp->name : "Parse";
---    if( lemp->arg && lemp->arg[0] ){
---      i = lemonStrlen(lemp->arg);
---      while( i>=1 && ISSPACE(lemp->arg[i-1]) ) i--;
---      while( i>=1 && (ISALNUM(lemp->arg[i-1]) || lemp->arg[i-1]=='_') ) i--;
---      lime_write_arg_defines (name, "ARG", 1, lemp->arg, &lemp->arg[i]);
---    }else{
---      lime_write_arg_defines (name, "ARG", 0, "", "");
---    }
---
---    if( lemp->ctx && lemp->ctx[0] ){
---      i = lemonStrlen(lemp->ctx);
---      while( i>=1 && ISSPACE(lemp->ctx[i-1]) ) i--;
---      while( i>=1 && (ISALNUM(lemp->ctx[i-1]) || lemp->ctx[i-1]=='_') ) i--;
---      lime_write_arg_defines (name, "CTX", 1, lemp->ctx, &lemp->ctx[i]);
---    }else{
---      lime_write_arg_defines (name, "CTX", 0, "", "");
---    }
---
---    lime_write_interface_begin ();
+      Write_Interface_Begin;
+
+      declare
+
+         function Get_Name return chars_ptr;
+
+         function Get_Name return chars_ptr is
+         begin
+            if Lemp.Name /= Null_Ptr then
+               return Lemp.Name;
+            else
+               return New_String ("Parse");
+            end if;
+         end Get_Name;
+
+
+         Name : constant String := Value (Get_Name);
+
+         use Parsers;
+         ARG   : constant String := Get_ARG (Get_Context);
+         CTX   : constant String := Get_CTX (Get_Context);
+         ARG_I : Natural;
+         CTX_I : Natural;
+      begin
+         Trim_Right_Symbol (ARG, ARG_I);
+         if ARG /= "" then  --  Null_Ptr and then ARG (0) then
+--              I := Integer (Strlen (ARG));
+--              while I >= 1 and ARG (I - 1) = ' ' loop
+--                 I := I - 1;
+--              end loop;
+--              while I >= 1 and (Is_Alnum (ARG (I - 1)) or ARG (I - 1) = '_') loop
+--                 I := I - 1;
+--              end loop;
+            Write_Arg_Defines (Name, "ARG", True, ARG, ARG (ARG_I .. ARG'Last));
+         else
+            Write_Arg_Defines (Name, "ARG", False, "", "");
+         end if;
+
+         Trim_Right_Symbol (CTX, CTX_I);
+         if CTX /= "" then  --  Null_Ptr and then CTX (0) then
+--              I := Integer (Strlen (CTX));
+--              while I >= 1 and CTX (I - 1) = ' ' loop
+--                 I := I - 1;
+--              end loop;
+--              while I >= 1 and (Is_Alnum (CTX (I - 1)) or CTX (I - 1) = '_') loop
+--                 I := I - 1;
+--              end loop;
+            Write_Arg_Defines (Name, "CTX", True, CTX, CTX (CTX_I .. CTX'Last));
+         else
+            Write_Arg_Defines (Name, "CTX", False, "", "");
+         end if;
+      end;
+
+      Write_Interface_Begin;
 --    //  if( lime_get_mh_flag() ){
 --    //    lime_put_line ("#endif");
 --    //  }
@@ -357,10 +428,9 @@ package body Reports is
 --       &lime_mystruct,
 --       lemp->has_fallback);
 --
---    /* Compute the action table, but do not output it yet.  The action
---    ** table must be computed before generating the YYNSTATE macro because
---    ** we need to know how many states can be eliminated.
---    */
+--  Compute the action table, but do not output it yet.  The action
+--  table must be computed before generating the YYNSTATE macro because
+--  we need to know how many states can be eliminated.
 --
 --    ax = (struct axset *) calloc(lemp->nxstate*2, sizeof(ax[0]));
 --    if( ax==0 ){
@@ -1073,6 +1143,56 @@ package body Reports is
       null;
       --  RulePrint(fp, cfp->rp, cfp->dot);
    end Config_Print;
+
+
+   function Minimum_Size_Type (LWS     : in     Integer;
+                               UPR     : in     Integer;
+                               PnBytes :    out Integer)
+                              return Interfaces.C.Strings.chars_ptr
+   is
+   begin
+--  static const char *minimum_size_type(int lwr, int upr, int *pnByte){
+--    const char *zType = "int";
+--    int nByte = 4;
+--    if( lwr>=0 ){
+--      if( upr<=255 ){
+--        zType = "unsigned char";
+--        nByte = 1;
+--      }else if( upr<65535 ){
+--        zType = "unsigned short int";
+--        nByte = 2;
+--      }else{
+--        zType = "unsigned int";
+--        nByte = 4;
+--      }
+--    }else if( lwr>=-127 && upr<=127 ){
+--      zType = "signed char";
+--      nByte = 1;
+--    }else if( lwr>=-32767 && upr<32767 ){
+--      zType = "short";
+--      nByte = 2;
+--    }
+--    if( pnByte ) *pnByte = nByte;
+--    return zType;
+--  }
+      return Interfaces.C.Strings.Null_Ptr;
+   end Minimum_Size_Type;
+
+
+   function File_Makename (Global    : in Lime.Lemon_Record;
+                           Extension : in String) return String
+   is
+      use Ada.Strings;
+      use Interfaces.C.Strings;
+      File_Name    : constant String  := Value (Global.File_Name);
+      Dot_Position : constant Natural := Fixed.Index (File_Name, ".", Backward);
+   begin
+      if Dot_Position = 0 then
+         return File_Name & Extension;
+      else
+         return File_Name (File_Name'First .. Dot_Position) & Extension;
+      end if;
+   end File_Makename;
 
 
 end Reports;

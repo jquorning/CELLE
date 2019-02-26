@@ -116,6 +116,9 @@ package Symbols is
                        return Symbol_Access;
    --  Get access to the symbol in Extra at position Index.
 
+   function Get_Wildcard (Extra : in Extra_Access)
+                         return Symbol_Access;
+
    subtype Symbol_Name is Ada.Strings.Unbounded.Unbounded_String;
 
 
