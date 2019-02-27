@@ -64,6 +64,9 @@ package Action_Tables is
    function Lookahead_Size (P : in Action_Table) return Integer;
    --  Return the number of entries in the yy_action table
 
+   function Alloc (N_Symbol   : in Integer;
+                   N_Terminal : in Integer) return A_Action_Table;
+   --  Allocate a new acttab structure
 
    function Action_Size (P : in Action_Table) return Integer;
    --  Return the size of the action table without the trailing syntax error

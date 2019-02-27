@@ -9,7 +9,7 @@
 
 with Ada.Text_IO;
 with Ada.Strings.Fixed;
-with Ada.Strings.Unbounded;
+--  with Ada.Strings.Unbounded;
 
 with Interfaces.C.Strings;
 
@@ -50,6 +50,10 @@ package body Reports is
 
    function File_Makename (Global    : in Lime.Lemon_Record;
                            Extension : in String) return String;
+
+
+   procedure Write_Rule_Text (RP : in Rules.Rule_Access);
+   --  Write text on "out" that describes the rule "rp".
 
 
    procedure Reprint
@@ -280,6 +284,8 @@ package body Reports is
       use Interfaces.C.Strings;
       use Lime;
       use Rules;
+      package Acttab renames Action_Tables;
+
       Lemp : Lemon_Record renames Database.Lime_Lemp;  --  Parameter
 --    char line[LINESIZE];
 --    struct state *stp;
@@ -296,7 +302,7 @@ package body Reports is
       Mn_Nt_Ofst,  Mx_Nt_Ofst  : Integer;
 --    struct axset *ax;
       Template_Open_Success : Integer;
-      Error_Count : Natural;
+      Error_Count : Natural := 0;
    begin
       Lemp.Min_Shift_Reduce := Lemp.N_State;
       Lemp.Err_Action       := Lemp.Min_Shift_Reduce + Lemp.N_Rule;
@@ -328,7 +334,7 @@ package body Reports is
 
       --  Generate the defines
       declare
-         use Interfaces.C.Strings;
+--         use Interfaces.C.Strings;
          use Symbols;
          Code     : constant chars_ptr := Minimum_Size_Type (0, Integer (Lemp.N_Symbol),
                                                              Size_Of_Code_Type);
@@ -435,13 +441,15 @@ package body Reports is
 --      ax[i*2+1].isTkn = 0;
 --      ax[i*2+1].nAction = stp->nNtAct;
 --    }
---    mxTknOfst = mnTknOfst = 0;
---    mxNtOfst = mnNtOfst = 0;
+      Mx_Tkn_Ofst := 0;
+      Mn_Tkn_Ofst := 0;
+      Mx_Nt_Ofst  := 0;
+      Mn_Nt_Ofst  := 0;
 --    /* In an effort to minimize the action table size, use the heuristic
 --    ** of placing the largest action sets first */
 --    for(i=0; i<lemp->nxstate*2; i++) ax[i].iOrder = i;
 --    qsort(ax, lemp->nxstate*2, sizeof(ax[0]), axset_compare);
---    pActtab = acttab_alloc(lemp->nsymbol, lemp->nterminal);
+      Act_Tab := Acttab.Alloc (Integer (Lemp.N_Symbol), Integer (Lemp.N_Terminal));
 --    for(i=0; i<lemp->nxstate*2 && ax[i].nAction>0; i++){
 --      stp = ax[i].stp;
 --      if( ax[i].isTkn ){
@@ -523,7 +531,6 @@ package body Reports is
       --  yy_default[]       Default action for each state.
 
       declare
-         package Acttab renames Action_Tables;
       begin
 
          --
@@ -552,7 +559,9 @@ package body Reports is
       --
 
       N := Lemp.Nx_State;
---    while( n>0 && lemp->sorted[n-1]->iTknOfst==NO_OFFSET ) n--;
+--      while  N > 0 and Lemp.Sorted(N - 1).I_Tkn_Ofst = NO_Offset loop
+--         N := N - 1;
+--      end loop;
 --
 --    lime_lemp = lemp;
       Write_YY_Shift_Offsets
@@ -583,7 +592,6 @@ package body Reports is
       --
       --  Output the default action table
       --
-
       Write_Default_Action_Table
         (Lemp.Nx_State,
          Lemp.Err_Action,
@@ -597,7 +605,7 @@ package body Reports is
       --
       if Lemp.Has_Fallback then
          declare
-            use Ada.Strings.Unbounded;
+--            use Ada.Strings.Unbounded;
             use Symbols;
             MX : Symbol_Index := Lemp.N_Terminal - 1;
          begin
@@ -613,7 +621,7 @@ package body Reports is
             for I in 0 .. MX loop
                declare
                   use Text_Out;
-                  P : Symbol_Access := Element_At (Lemp.Extra, I);
+                  P : constant Symbol_Access := Element_At (Lemp.Extra, I);
                begin
                   if P.Fallback = null then
                      Put ("    0,  /* ");
@@ -635,35 +643,54 @@ package body Reports is
 
       Template_Transfer (Lemp.Name);
 
---    /* Generate A Table Containing the symbolic name of every symbol
---    */
---    for(i=0; i<lemp->nsymbol; i++){
---      lemon_sprintf(line,"\"%s\",",lemp->symbols[i]->name);
---      lime_put ("  /* "); //%4d */ \"%s\",\n",i, lemp->symbols[i]->name); lineno++;
---      lime_put_int (i);
---      lime_put (" */ """); // %s\",\n",i, lemp->symbols[i]->name); lineno++;
---      lime_put (lemp->symbols[i]->name);  //
---      lime_put_line (""",");
---      //fprintf(out,"  /* %4d */ \"%s\",\n",i, lemp->symbols[i]->name); lineno++;
---    }
---    lime_template_transfer (lemp->name);
---
---    /* Generate a table containing a text string that describes every
---    ** rule in the rule set of the grammar.  This information is used
---    ** when tracing REDUCE actions.
---    */
---    for(i=0, rp=lemp->rule; rp; rp=rp->next, i++){
---      assert( rp->iRule==i );
---      //fprintf(out," /* %3d */ \"", i);
---      lime_put (" /* ");
---      lime_put_int (i);
---      lime_put (" */ """);
---      writeRuleText (rp);
---      //fprintf(out,"\",\n"); lineno++;
---      lime_put_line (""",");
---    }
---    lime_template_transfer (lemp->name);
---
+      --
+      --  Generate A Table Containing the symbolic name of every symbol
+      --
+      declare
+         use Text_Out;
+         use Symbols;
+         J : Integer;
+         RP : Rules.Rule_Access;
+      begin
+         for I in Symbol_Index range 0 .. Symbol_Index (Lemp.N_Symbol - 1) loop
+            declare
+               Name : constant String := From_Key (Element_At (Lemp.Extra, I).Name);
+            begin
+               --  Lemon_Sprintf (Line, """" & Name & """,");
+               Put ("  /* "); --  %4d */ \"%s\",\n",i, lemp->symbols[i]->name);
+               --  lineno++;
+               Put_Int (Integer (I));
+               Put_Line (" */ """ & Name & """,");
+               --  lineno++;
+               Put (Name);  --
+               Put_Line (""",");
+               --  fprintf(out,"  /* %4d */ \"%s\",\n",i, lemp->symbols[i]->name);
+               --  lineno++;
+            end;
+         end loop;
+
+         Template_Transfer (Lemp.Name);
+
+         --  Generate a table containing a text string that describes every
+         --  rule in the rule set of the grammar.  This information is used
+         --  when tracing REDUCE actions.
+         J  := 0;
+         RP := Lemp.Rule;
+
+         while RP /= null loop
+            pragma Assert (RP.Rule = J);
+            --  fprintf(out," /* %3d */ \"", i);
+            Put (" /* ");
+            Put_Int (J);
+            Put (" */ """);
+            Write_Rule_Text (RP);
+            --  fprintf(out,"\",\n"); lineno++;
+            Put_Line (""",");
+            RP := RP.Next;
+         end loop;
+      end;
+
+      Template_Transfer (Lemp.Name);
 
       --  Generate code which executes every time a symbol is popped from
       --  the stack while processing errors or while destroying the parser.
@@ -1167,6 +1194,7 @@ package body Reports is
                                PnBytes :    out Integer)
                               return Interfaces.C.Strings.chars_ptr
    is
+      pragma Unreferenced (LWS, UPR, PnBytes);
    begin
 --  static const char *minimum_size_type(int lwr, int upr, int *pnByte){
 --    const char *zType = "int";
@@ -1210,6 +1238,33 @@ package body Reports is
          return File_Name (File_Name'First .. Dot_Position) & Extension;
       end if;
    end File_Makename;
+
+
+   procedure Write_Rule_Text (RP : in Rules.Rule_Access)
+   is
+      use Text_Out;
+      use Symbols;
+   begin
+      Put (From_Key (RP.LHS.Name));
+      Put (" ::=");
+      for J in 0 .. RP.RHS'Length - 1 loop
+         declare
+            SP : constant Symbol_Access := RP.RHS (J);
+         begin
+            if SP.Kind /= Multi_Terminal then
+               Put (" ");
+               Put (From_Key (SP.Name));
+            else
+               Put (" ");
+               Put ("XXX"); --  XXX Put (SP.Sub_Sym (0).Name);
+               for K in 1 .. SP.N_Subsym loop
+                  Put ("|");
+                  Put ("XXX"); --  XXX Put (SP.Sub_Sym (K).Name);
+               end loop;
+            end if;
+         end;
+      end loop;
+   end Write_Rule_Text;
 
 
 end Reports;

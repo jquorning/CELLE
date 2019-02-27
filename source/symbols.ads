@@ -91,7 +91,6 @@ package Symbols is
          N_Subsym    : Integer;
          Sub_Sym     : Unbounded_String; --  System.Address;
       end record;
-   --  pragma Convention (C_Pass_By_Copy, Symbol_Record);
 
    type Symbol_Access is access all Symbol_Record;
    --  pragma Convention (C, Symbol_Access);

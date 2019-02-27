@@ -52,18 +52,16 @@ package body Action_Tables is
 --    free( p );
 --  }
 
---  /* Allocate a new acttab structure */
---  acttab *acttab_alloc(int nsymbol, int nterminal){
---    acttab *p = (acttab *) calloc( 1, sizeof(*p) );
---    if( p==0 ){
---      fprintf(stderr,"Unable to allocate memory for a new acttab.");
---      exit(1);
---    }
---    memset(p, 0, sizeof(*p));
---    p->nsymbol = nsymbol;
---    p->nterminal = nterminal;
---    return p;
---  }
+
+   function Alloc (N_Symbol   : in Integer;
+                   N_Terminal : in Integer) return A_Action_Table
+   is
+      P : constant A_Action_Table := new Action_Table;
+   begin
+      P.N_Symbol   := N_Symbol;
+      P.N_Terminal := N_Terminal;
+      return P;
+   end Alloc;
 
 --  /* Add a new action to the current transaction set.
 --  **

@@ -3077,34 +3077,6 @@ static int axset_compare(const void *a, const void *b){
   return c;
 }
 
-/*
-** Write text on "out" that describes the rule "rp".
-*/
-static void writeRuleText
-(
- struct rule *rp){
-  int j;
-
-  lime_put (rp->lhs->name);
-  lime_put (" ::=");
-  for(j=0; j<rp->nrhs; j++){
-    struct symbol *sp = rp->rhs[j];
-    if( sp->type!=MULTITERMINAL ){
-      lime_put (" ");
-      lime_put (sp->name);
-    }else{
-      int k;
-
-      lime_put (" ");
-      lime_put (sp->subsym[0]->name);
-      for(k=1; k<sp->nsubsym; k++){
-        lime_put ("|");
-        lime_put (sp->subsym[k]->name);
-      }
-    }
-  }
-}
-
 
 struct lemon *lime_lemp_copy;
 const char *lime_get_token_callback (int  index)
