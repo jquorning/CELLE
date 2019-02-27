@@ -7,9 +7,6 @@
 --    May you share freely, not taking more than you give.
 --
 
-with Interfaces.C;
-with Interfaces.C.Strings;
-
 with Symbols;
 
 package body Rules is
@@ -23,7 +20,6 @@ package body Rules is
      (Lemon_Rule : in     Rule_Access;
       Start_Rule :    out Rule_Access)
    is
-      use Interfaces.C.Strings;
       use Symbols;
       I  : Symbols.Symbol_Index;
       RP : Rules.Rule_Access;
