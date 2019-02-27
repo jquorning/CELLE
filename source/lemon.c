@@ -23,6 +23,7 @@
 #include "lemon.h"   /* Binding to C from Ada */
 #include "lime.h"    /* Binding to Ada from C */
 #include "cherry.h"
+#include "action_tables.h"
 
 #define ISSPACE(X) isspace((unsigned char)(X))
 #define ISDIGIT(X) isdigit((unsigned char)(X))
@@ -362,6 +363,7 @@ void Action_add(
     newaction->x.rp = (struct rule *)arg;
   }
 }
+#if 0
 /********************** New code to implement the "acttab" module ***********/
 /*
 ** This module implements routines use to construct the yy_action[] table.
@@ -589,6 +591,7 @@ int acttab_action_size(acttab *p){
   while( n>0 && p->aAction[n-1].lookahead<0 ){ n--; }
   return n;
 }
+#endif
 
 /********************** From the file "build.c" *****************************/
 /*

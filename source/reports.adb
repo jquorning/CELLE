@@ -19,6 +19,7 @@ with Rules;
 with Symbols;
 with Parsers;
 with Text_Out;
+with Action_Tables;
 
 package body Reports is
 
@@ -284,17 +285,18 @@ package body Reports is
 --    struct state *stp;
 --    struct action *ap;
 --    struct rule *rp;
---    struct acttab *pActtab;
+      Act_Tab : Action_Tables.A_Action_Table;
 --    int i, j, n, sz;
-      Action_Type : Integer;     --  sizeof(YYACTIONTYPE)
-      Code_Type   : Integer;       --  sizeof(YYCODETYPE)
+      N  : Integer;
+      SZ : Integer;
+      Size_Of_Action_Type : Integer;
+      Size_Of_Code_Type   : Integer;
 --    const char *name;
---    int mnTknOfst, mxTknOfst;
---    int mnNtOfst, mxNtOfst;
+      Mn_Tkn_Ofst, Mx_Tkn_Ofst : Integer;
+      Mn_Nt_Ofst,  Mx_Nt_Ofst  : Integer;
 --    struct axset *ax;
       Template_Open_Success : Integer;
       Error_Count : Natural;
-      pragma Unreferenced (Action_Type);
    begin
       Lemp.Min_Shift_Reduce := Lemp.N_State;
       Lemp.Err_Action       := Lemp.Min_Shift_Reduce + Lemp.N_Rule;
@@ -329,9 +331,9 @@ package body Reports is
          use Interfaces.C.Strings;
          use Symbols;
          Code     : constant chars_ptr := Minimum_Size_Type (0, Integer (Lemp.N_Symbol),
-                                                             Code_Type);
+                                                             Size_Of_Code_Type);
          Action   : constant chars_ptr := Minimum_Size_Type (0, Lemp.Max_Action,
-                                                             Action_Type);
+                                                             Size_Of_Action_Type);
          Wildcard    : constant Symbol_Access := Get_Wildcard (Lemp.Extra);
          Is_Wildcard : constant Boolean       := (Wildcard /= null);
       begin
@@ -508,6 +510,7 @@ package body Reports is
       Template_Transfer (Lemp.Name);
 
 
+      --
       --  Now output the action table and its associates:
       --
       --  yy_action[]        A single table containing all actions.
@@ -519,56 +522,73 @@ package body Reports is
       --                     shifting non-terminals after a reduce.
       --  yy_default[]       Default action for each state.
 
-      --  Output the yy_action table
---    lemp->nactiontab = n = acttab_action_size(pActtab);
---    lemp->tablesize += n*szActionType;
---
---    lime_pActtab = pActtab;
---    lime_write_action_table (n, lemp->noAction);
+      declare
+         package Acttab renames Action_Tables;
+      begin
 
-      --  Output the yy_lookahead table
---    lemp->nlookaheadtab = n = acttab_lookahead_size(pActtab);
---    lemp->tablesize += n*szCodeType;
---
---    lime_pActtab = pActtab;
---    lime_write_yy_lookahead (n, lemp->nsymbol);
---
---    /* Output the yy_shift_ofst[] table */
---
---    n = lemp->nxstate;
+         --
+         --  Output the yy_action table
+         --
+         Lemp.N_Action_Tab := Acttab.Action_Size (Act_Tab.all);
+         N := Lemp.N_Action_Tab;
+         Lemp.Table_Size := Lemp.Table_Size + N * Size_Of_Action_Type;
+
+         --  lime_apActtab = pActtab;
+         Write_Action_Table (N, Lemp.No_Action);
+
+         --
+         --  Output the yy_lookahead table
+         --
+         Lemp.N_Lookahead_Tab := Acttab.Lookahead_Size (Act_Tab.all);
+         N := Lemp.N_Lookahead_Tab;
+         Lemp.Table_Size := Lemp.Table_Size + N * Size_Of_Code_Type;
+      end;
+
+      --      pActtab := pActtab;
+      Write_YY_Lookahead (N, Integer (Lemp.N_Symbol));
+
+      --
+      --  Output the yy_shift_ofst[] table
+      --
+
+      N := Lemp.Nx_State;
 --    while( n>0 && lemp->sorted[n-1]->iTknOfst==NO_OFFSET ) n--;
 --
 --    lime_lemp = lemp;
---    lime_write_yy_shift_offsets
---      (n,
---       mnTknOfst,
---       mxTknOfst,
---       minimum_size_type (mnTknOfst, lemp->nterminal+lemp->nactiontab, &sz),
---       lemp->nactiontab,
---       NO_OFFSET);
---
---    lemp->tablesize += n*sz;
---
---    /* Output the yy_reduce_ofst[] table */
---    n = lemp->nxstate;
+      Write_YY_Shift_Offsets
+        (N,
+         Mn_Tkn_Ofst,
+         Mx_Tkn_Ofst,
+         Minimum_Size_Type (Mn_Tkn_Ofst, Integer (Lemp.N_Terminal) + Lemp.N_Action_Tab, SZ),
+         Lemp.N_Action_Tab,
+         No_Offset);
+
+      Lemp.Table_Size := Lemp.Table_Size + N * SZ;
+
+      --
+      --  Output the yy_reduce_ofst[] table
+      --
+      N := Lemp.Nx_State;
 --    while( n>0 && lemp->sorted[n-1]->iNtOfst==NO_OFFSET ) n--;
 --
 --    lime_lemp = lemp;
---    lime_write_yy_reduce_offsets
---      (n,
---       mnNtOfst,
---       mxNtOfst,
---       minimum_size_type(mnNtOfst-1, mxNtOfst, &sz),
---       NO_OFFSET);
---    lemp->tablesize += n*sz;
---
---    /* Output the default action table */
---
---    lime_write_default_action_table
---      (lemp->nxstate,
---       lemp->errAction,
---       lemp->minReduce);
---    lemp->tablesize += n*szActionType;
+      Write_YY_Reduce_Offsets
+        (N,
+         Mn_Nt_Ofst,
+         Mx_Nt_Ofst,
+         Minimum_Size_Type (Mn_Nt_Ofst - 1, Mx_Nt_Ofst, SZ),
+         No_Offset);
+      Lemp.Table_Size := Lemp.Table_Size + N * SZ;
+
+      --
+      --  Output the default action table
+      --
+
+      Write_Default_Action_Table
+        (Lemp.Nx_State,
+         Lemp.Err_Action,
+         Lemp.Min_Reduce);
+      Lemp.Table_Size := Lemp.Table_Size + N * Size_Of_Action_Type;
 
       Template_Transfer (Lemp.Name);
 
@@ -588,11 +608,10 @@ package body Reports is
             loop
                MX := MX - 1;
             end loop;
-            Lemp.Table_Size := Lemp.Table_Size + Integer (MX + 1) * Code_Type;
+            Lemp.Table_Size := Lemp.Table_Size + Integer (MX + 1) * Size_Of_Code_Type;
 
             for I in 0 .. MX loop
                declare
-                  use Ada.Strings.Unbounded;
                   use Text_Out;
                   P : Symbol_Access := Element_At (Lemp.Extra, I);
                begin

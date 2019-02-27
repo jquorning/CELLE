@@ -292,9 +292,10 @@ package Lime is
       Parser          => Parsers.Get_Context);
 
    ----------------------------------------------------------------------------
-   --#define NO_OFFSET (-2147483647)
-   NO_OFFSET : aliased long;  -- lemon.h:247
-   pragma Import (C, NO_OFFSET, "NO_OFFSET");
+   --  #define NO_OFFSET (-2147483647)
+   --  NO_OFFSET : aliased long;  -- lemon.h:247
+   --  pragma Import (C, NO_OFFSET, "NO_OFFSET");
+   No_Offset : aliased Integer := Integer'First;
 
    type lime_render_record is
       record
