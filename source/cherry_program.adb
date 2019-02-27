@@ -8,6 +8,7 @@
 --
 
 with Ada.Text_IO;
+with Ada.Strings.Unbounded;
 with Ada.Command_Line;
 with Ada.Containers;
 
@@ -21,6 +22,7 @@ with Lime;
 with Cherry;
 with Rules;
 with Symbols;
+with Scanner;
 with Exceptions;
 with Reports;
 
@@ -81,13 +83,14 @@ begin
    Lime.Make_Copy_Of_Ada_Option_Strings;
 
    declare
+      use Ada.Strings.Unbounded;
       use Interfaces.C.Strings;
       use Ada.Text_IO;
       use Lime;
       use Symbols;
       use Rules;
 
-      Lemon  : Lime.Lemon_Record renames Database.Lime_Lemp;
+      Lemon : Lime.Lemon_Record renames Database.Lemon;
       --  Status : Ada.Command_Line.Exit_Status;
 
       --  Success : Ada.Command_Line.Exit_Status renames Ada.Command_Line.Success;
@@ -103,10 +106,17 @@ begin
       Lime.Strsafe_Init;
       Symbols.Symbol_Init;
       Lime.State_Init;
+--<<<<<<< HEAD
+--      Lemon.Argv0           := New_String (Options.Program_Name.all);
+--      Lemon.File_Name       := Lemon_Input_File; --  New_String (Lime.Option_Input_File.all);
+--=======
       Lemon.Argv0           := New_String (Options.Program_Name.all);
-      Lemon.File_Name       := Lemon_Input_File; --  New_String (Lime.Option_Input_File.all);
+      Lemon.File_Name       := Unbounded_String'(To_Unbounded_String (Options.Input_File.all));
       Lemon.Basis_Flag      := Options.Basis_Flag;
       Lemon.No_Linenos_Flag := Options.No_Line_Nos;
+--      Lemon.Basis_Flag      := Boolean'Pos (Options.Basis_Flag);
+--      Lemon.No_Linenos_Flag := Boolean'Pos (Options.No_Line_Nos);
+-->>>>>>> parsetoken
       --  Extras.Symbol_New_Proc (Extras.To_Name ("$"));
       Symbols.Symbol_Append (Key => "$");
 
@@ -122,7 +132,7 @@ begin
       Put_Line ("Lemon_Input_File: " & Value (Lemon_Input_File));
 
       --  Parse the input file
-      Lime.Parse (Lemon);
+      Scanner.Parse (Lemon'Access);
 
       if Lemon.Error_Cnt /= 0 then
          --  Status := Failure;

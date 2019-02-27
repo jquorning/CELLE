@@ -8,26 +8,31 @@
 --
 
 with Ada.Strings.Unbounded;
+with Ada.Containers.Vectors;
 
-with Interfaces.C;
-
-with System;
+--  with System;
 limited with Symbols;
 
 package Rules is
-
-   use Interfaces.C;
-
---   type Symbol_Proxy_Record is private;
---   type Symbol_Proxy_Access is private;
 
    type Rule_Record;
    type Rule_1_Access is access all Rule_Record;
 
    --  Left-hand side of the rule
-   use Ada.Strings.Unbounded;
 
-   type RHS_Array_Access is access all Symbols.Symbol_Access_Array;
+   type RHS_Array_Access   is access all Symbols.Symbol_Access_Array;
+   type Alias_Array_Access is access all Symbols.Symbol_Access_Array;
+--   package Symbol_Vectors is
+--      new Ada.Containers.Vectors
+--     (Positive,
+--      Symbols.Symbol_Access);
+
+   use Ada.Strings.Unbounded;
+   package Alias_Vectors is
+      new Ada.Containers.Vectors
+     (Positive,
+      Unbounded_String);
+
 
    subtype T_Code is Unbounded_String;
 
@@ -50,7 +55,8 @@ package Rules is
 --       N_RHS        : Integer;    -- Number of RHS symbols
 --       RHS          : System.Address;
          RHS          : RHS_Array_Access;    -- The RHS symbols
-         RHS_Alias    : System.Address;      -- An alias for each RHS symbol (NULL if none)
+         --  RHS_Alias    : System.Address;      -- An alias for each RHS symbol (NULL if none)
+         RHS_Alias    : Alias_Vectors.Vector;
          Line         : Integer;             -- Line number at which code begins
          Code         : Unbounded_String;    -- The code executed when this rule is reduced
          Code_Prefix  : Unbounded_String;    -- The code executed when this rule is reduced
@@ -65,6 +71,38 @@ package Rules is
          Next_LHS     : access Rule_Record;  -- Next rule with the same LHS
          Next         : access Rule_Record;  -- Next rule in the global list
       end record;
+--  =======
+--     --  use Symbols;
+--     use Ada.Strings.Unbounded;
+--     type Rule_Record is
+--        record
+--           LHS          : access Symbols.Symbol_Record;  -- lemon.h:97
+--           LHS_Alias    : Unbounded_String;
+--  --         LHS_Alias    : Symbols.S_Alias;
+--           LHS_Start    : Integer;  -- lemon.h:99
+--           Rule_Line    : Integer;  -- lemon.h:100
+--  --         N_RHS        : Integer;  -- lemon.h:101
+--  --         RHS          : System.Address;  -- lemon.h:102
+--           RHS          : RHS_Array_Access;
+--  --         RHS          : Symbols.Symbol_Vectors.Vector;
+--           RHS_Alias    : Alias_Array_Access; --  System.Address;  -- lemon.h:103
+--  --         RHS_Alias    : Symbols.Alias_Vectors.Vector;
+--           Line         : Natural;  -- lemon.h:104
+--           Code         : access Unbounded_String;
+--           Code_Prefix  : access Unbounded_String;
+--           Code_Suffix  : access Unbounded_String;
+--           No_Code      : Boolean;
+--           Code_Emitted : Integer;  -- lemon.h:109
+--           Prec_Sym     : access Symbols.Symbol_Record;
+--           Index        : Integer;
+--           Rule         : Integer;
+--           Can_Reduce   : Boolean;
+--           Does_Reduce  : Boolean;
+--           Next_LHS     : access Rule_Record;  -- lemon.h:115
+--           Next         : access Rule_Record;  -- lemon.h:116
+--        end record;
+--     --   pragma Convention (C_Pass_By_Copy, Rule_Record);  -- lemon.h:96
+--  >>>>>>> parsetoken
 
    type Rule_Access is access all Rule_Record;
 

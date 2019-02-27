@@ -9,6 +9,7 @@
 
 with Ada.Containers;
 with Ada.Strings.Unbounded;
+with Ada.Containers.Vectors;
 
 with Interfaces.C.Strings;
 
@@ -31,19 +32,23 @@ package Symbols is
       Unk);
    pragma Convention (C, E_Assoc);
 
+   type Symbol_Record;
+   type Symbol_Access is access all Symbol_Record;
+
+   package Symbol_Vectors is
+      new Ada.Containers.Vectors
+     (Positive,
+      Symbol_Access);
+   use Symbol_Vectors;
+
    use Ada.Strings.Unbounded;
-   type Key_Type is new Unbounded_String;
+   package Alias_Vectors is
+      new Ada.Containers.Vectors
+     (Positive,
+      Unbounded_String);
 
-   type Symbol_Index is new Natural;
---     type Symbol_Array is array (Symbol_Index range <>) of Symbol_Kind;
+   use Symbol_Vectors;
 
---     type Symbol_Index_Array is
---       array (Symbols.Symbol_Index range <>)
---       of Symbol_Index;
-
---     type Symbol_Access_Array is
---       array (Symbols.Symbol_Index range <>)
---       of Symbol_Access;
 
 --     type Symbol_Index_Array_Access  is access all Symbol_Index_Array;
 --     type Symbol_Access_Array_Access is access all Symbol_Access_Array;
@@ -52,30 +57,32 @@ package Symbols is
    Null_Set : S_Set renames Null_Unbounded_String;
    function "=" (Left, Right : S_Set) return Boolean renames Ada.Strings.Unbounded."=";
 
+   type Key_Type is new Unbounded_String;
+
+   type Symbol_Index is new Natural;
+
    type Symbol_Record is
       record
-         Name      : Key_Type; -- Unbounded_String; --  Strings.chars_ptr;
+         Name      : Key_Type;
          Index     : Symbol_Index;      --  Index number for this symbol
          Kind      : Symbol_Kind;       --  Symbols are all either TERMINALS or NTs
-         Rule      : access Rules.Rule_Record;  --  Linked list of rules of this (if an NT)
-         Fallback  : access Symbol_Record; --  Unbounded_String;
-         --  Symbol_Access; --  fallback token in case this token doesn't parse
+         Rule      : access Rules.Rule_Record; --  Linked list of rules of this (if an NT)
+         Fallback  : access Symbol_Record;     --  fallback token in case this token doesn't parse
          Prec      : Integer;           --  Precedence if defined (-1 otherwise)
          Assoc     : E_Assoc;           --  Associativity if precedence is defined
-         First_Set : Unbounded_String;
-         --  Strings.chars_ptr; --  First-set for all rules of this symbol
+         First_Set : Unbounded_String;  --  First-set for all rules of this symbol
          Lambda    : Boolean;           --  True if NT and can generate an empty string
          Use_Cnt   : Integer;           --  Number of times used
 
-         Destructor  : Unbounded_String; -- Strings.chars_ptr;
+         Destructor  : aliased Unbounded_String;
          --  Code which executes whenever this symbol is
          --  popped from the stack during error processing
 
-         Dest_Lineno : Integer;
+         Dest_Lineno : aliased Integer;
          --  Line number for start of destructor.  Set to
          --  -1 for duplicate destructors.
 
-         Data_Type   : Unbounded_String; -- Strings.chars_ptr;
+         Data_Type   : aliased Unbounded_String; -- Strings.chars_ptr;
          --  The data type of information held by this
          --  object. Only used if type==NONTERMINAL
 
@@ -84,25 +91,26 @@ package Symbols is
          --  stack is a union.  The .yy%d element of this
          --  union is the correct data type for this object
 
-         B_Content   : Boolean;
+         Content   : Boolean;  --  Integer;
+
          --  True if this symbol ever carries content - if
          --  it is ever more than just syntax
 
-         N_Subsym    : Integer;
-         Sub_Sym     : Unbounded_String; --  System.Address;
+--         N_Sub_Sym   : Integer;
+--         Sub_Sym     : Unbounded_String;
+         Sub_Sym : Vector;
       end record;
 
-   type Symbol_Access is access all Symbol_Record;
-   --  pragma Convention (C, Symbol_Access);
+--   type Symbol_Access is access all Symbol_Record;
 
    type Symbol_Access_Array is
      array (Natural range <>) of Symbols.Symbol_Access;
 
-   --  The following fields are used by MULTITERMINALs only
-   --  Number of constituent symbols in the MULTI
-   --  Array of constituent symbols
-   --  Each production rule in the grammar is stored in the following
-   --  structure.
+--     --  The following fields are used by MULTITERMINALs only
+--     --  Number of constituent symbols in the MULTI
+--     --  Array of constituent symbols
+--     --  Each production rule in the grammar is stored in the following
+--     --  structure.
 
 
    type Symbol_Cursor is private;
@@ -139,15 +147,7 @@ package Symbols is
    procedure Symbol_Init;
    --  Allocate a new associative array.
 
-   --  int Symbol_insert(struct symbol *, const char *);
-   --  procedure Symbol_Insert (Symbol : in Symbol_Record;
-   --                            Name   : in Symbol_Name);
-   --  Insert a new record into the array.  Return TRUE if successful.
-   --  Prior data with the same key is NOT overwritten
-
    function Symbol_New (Name : in String) return Symbol_Cursor;
-   --  function  Symbol_New (Name : in Symbol_Name) return Symbol_Access;
---   procedure Symbol_New_Proc (Name : in Symbol_Name);
    --  Return a pointer to the (terminal or nonterminal) symbol "x".
    --  Create a new symbol if this is the first time "x" has been seen.
 
@@ -167,10 +167,6 @@ package Symbols is
                             New_Item : in Symbol_Record);
    procedure Symbol_Append (Key      : in String);
 
-   --  struct symbol **Symbol_arrayof(void);
-   --     function Symbol_Array_Of return Symbol_Access_Array_Access;
-
-   --  function Symbol_Array_Of return Symbol_Access_Array_Access;
    procedure Symbol_Allocate (Count : in Ada.Containers.Count_Type);
    --  Return an array of pointers to all data in the table.
    --  The array is obtained from malloc.  Return NULL if memory allocation
@@ -208,14 +204,7 @@ private
    type Cursor_Type;
    type Symbol_Cursor is access Cursor_Type;
 
---   pragma Import (C, Symbol_New,      "lime_symbol_new");
-   pragma Export (C, Lime_Symbol_New,  "lime_symbol_new");
---     pragma Import (C, Symbol_Init,     "Symbol_init");
---     pragma Import (C, Symbol_Insert,   "Symbol_insert");
-   pragma Export (C, Lime_Symbol_Find, "lime_symbol_find");
---     pragma Import (C, Symbol_Nth,      "Symbol_nth");
---     pragma Import (C, Symbol_Count,    "Symbol_count");
---     pragma Import (C, Symbol_Array_Of, "Symbol_arrayof");
+   pragma Export (C, Symbol_New, "symbols_symbol_new");
 
 end Symbols;
 

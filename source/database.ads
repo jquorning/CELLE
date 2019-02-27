@@ -13,8 +13,8 @@ package Database is
 
    use Lime;
 
-   Lime_Lemp : Lemon_Record;
-   pragma Import (C, Lime_Lemp, "lem");
+   Lemon : aliased Lemon_Record;
+   pragma Import (C, Lemon, "lem");
    --  Ada mirror of C lem (struct lemon) data structure.
 
    procedure Dump (Lemon : in Lemon_Record);

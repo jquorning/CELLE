@@ -7,11 +7,15 @@
 ##    May you share freely, not taking more than you give.
 ##
 
+all: setup build
+
+setup:
+	tools/create-setup-adb.sh
+
 build:
-	gprbuild -k -p cherry.gpr
+	gprbuild -k cherry.gpr
 
 clean:
 	gprclean -q cherry.gpr
 
-setup:
-	tools/create-setup-adb.sh
+
