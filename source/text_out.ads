@@ -42,15 +42,13 @@ package Text_Out is
    procedure New_Line;
    --  New line to the out file with line number increase.
 
-   procedure Put_Line_Directive
-     (File_Name : in String);
+   procedure Put_Line_Directive (File_Name : in String);
+   --  Put line directive to File_Name
 
 private
 
    pragma Export (C, Put_CP,        "lime_put");
    pragma Export (C, Put_Int,       "lime_put_int");
    pragma Export (C, Put_Line_CP,   "lime_put_line");
-
-   pragma Export (C, Put_Line_Directive,  "lime_write_line_directive");
 
 end Text_Out;
