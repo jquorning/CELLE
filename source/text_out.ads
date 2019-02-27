@@ -19,7 +19,7 @@ package Text_Out is
    use Interfaces.C.Strings;
 
    procedure Implementation_Open
-     (File_Name : in chars_ptr);
+     (File_Name : in String);
 
    procedure Close_Out;
    --  Close out file
@@ -43,7 +43,7 @@ package Text_Out is
    --  New line to the out file with line number increase.
 
    procedure Put_Line_Directive
-     (File_Name : in chars_ptr);
+     (File_Name : in String);
 
 private
 

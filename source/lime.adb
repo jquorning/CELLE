@@ -29,8 +29,7 @@ package body Lime is
 
    use Backend;
 
-   procedure Implementation_Open
-     (File_Name : in Interfaces.C.Strings.chars_ptr)
+   procedure Implementation_Open (File_Name : in String)
    is
       use Text_Out;
    begin
@@ -120,25 +119,22 @@ package body Lime is
       end case;
    end Default_Template_Name;
 
+
    procedure Template_Open
-     (User_Template : in     chars_ptr;
+     (User_Template : in     String;
       Error_Count   : in out Integer;
       Success       :    out Integer)
    is
       use Ada.Strings.Unbounded;
-      Template     : Unbounded_String := Null_Unbounded_String;
+      Template     : String renames User_Template;
       Open_Success : Boolean;
    begin
       Success := 1;
 
-      if User_Template /= Null_Ptr or User_Template = New_String ("") then
-         Template := To_Unbounded_String ("");
-      end if;
-
       --  Try User_Template
       if Template /= "" then
          Open_If_Possible (Context.File_Template,
-                           To_String (Template), Open_Success);
+                           Template, Open_Success);
          if Open_Success then
             return;
          else
@@ -167,7 +163,7 @@ package body Lime is
 
 
    procedure Template_Transfer
-     (Name : in chars_ptr)
+     (Name : in String)
    is
       Parse : constant String := "Parse";
       Start : Natural;
@@ -194,7 +190,7 @@ package body Lime is
                   if Index > Start then
                      Put (Line (Start .. Index));
                   end if;
-                  Text_Out.Put_CP (Name);
+                  Text_Out.Put (Name);
                   Index := Index + Parse'Length;
                   Start := Index;
                end if;
@@ -211,8 +207,9 @@ package body Lime is
 
    end Template_Transfer;
 
+
    procedure Template_Print
-     (Out_Name    : in chars_ptr;
+     (Out_Name    : in String;
       No_Line_Nos : in Integer;
       Include     : in chars_ptr)
    is
@@ -248,21 +245,21 @@ package body Lime is
 
 
    procedure Write_Include
-     (Include_Name : in chars_ptr)
+     (Include_Name : in String)
    is
       use Text_Out;
    begin
       if Options.MH_Flag then
          Put ("#include <");
-         Put_CP (Include_Name);
+         Put (Include_Name);
          Put_Line (">;");
       end if;
    end Write_Include;
 
    procedure Generate_Tokens
-     (Tokenprefix : in chars_ptr;
-      First       : in Integer;
-      Last        : in Integer)
+     (Token_Prefix : in chars_ptr;
+      First        : in Integer;
+      Last         : in Integer)
    is
       use Text_Out;
       Prefix : chars_ptr;
@@ -271,8 +268,8 @@ package body Lime is
          --  const char *prefix; */
          Put_Line ("#if INTERFACE");
 --         Line_Number := Line_Number + 1;
-         if Tokenprefix /= Null_Ptr then
-            Prefix := Tokenprefix;
+         if Token_Prefix /= Null_Ptr then
+            Prefix := Token_Prefix;
          else
             Prefix := New_String ("");
          end if;
@@ -294,6 +291,7 @@ package body Lime is
          Put_Line ("#endif");
       end if;
    end Generate_Tokens;
+
 
    procedure Generate_The_Defines_1
      (YY_Code_Type   : in chars_ptr;
@@ -586,7 +584,7 @@ package body Lime is
      (Line        : in chars_ptr;
       No_Line_Nos : in Integer;
 --      Line_Number : in Line_Number_Index;
-      Out_Name    : in chars_ptr)
+      Out_Name    : in String)
    is
 --      pragma Unreferenced (Out_Name);
    begin

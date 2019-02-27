@@ -9,6 +9,7 @@
 
 with Ada.Text_IO;
 with Ada.Strings.Fixed;
+with Ada.Strings.Unbounded;
 
 with Interfaces.C.Strings;
 
@@ -96,6 +97,7 @@ package body Reports is
    procedure Reprint
    is
       use Ada.Text_IO;
+      use Ada.Strings.Unbounded;
       use Interfaces.C.Strings;
       use Symbols;
       use Rules;
@@ -106,7 +108,9 @@ package body Reports is
       J    : Symbol_Index;
       Max_Len, Len, N_Columns, Skip : Integer;
    begin
-      Put_Line ("// Reprint of input file '" & Value (Lemp.File_Name) & "'.");
+      Put ("// Reprint of input file '");
+      Put (To_String (Unbounded_String'(Lemp.File_Name)));
+      Put_Line ("'.");
       Put_Line ("// Symbols:");
       Max_Len := 10;
 
@@ -272,7 +276,7 @@ package body Reports is
             W  : Integer;
             SP : constant Symbol_Access := Element_At (Lemp.Extra, Index => I);
          begin
-            if not SP.B_Content then
+            if not SP.Content then
                W := Length (SP.Name);
                if N > 0 and N + W > 75 then
                   New_Line (File);
@@ -324,6 +328,8 @@ package body Reports is
       package Acttab renames Action_Tables;
 
       Lemp : Lemon_Record renames Database.Lime_Lemp;  --  Parameter
+
+      Lemp_Name : constant String := Value (Lemp.Name);
 --    char line[LINESIZE];
       STP : Lime.State_Access;
 --    struct action *ap;
@@ -350,26 +356,27 @@ package body Reports is
       Lemp.Min_Reduce       := Lemp.No_Action + 1;
       Lemp.Max_Action       := Lemp.Min_Reduce + Lemp.N_Rule;
 
-      Template_Open (Lemon_User_Template, Error_Count, Template_Open_Success);
-      Implementation_Open (New_String (File_Makename (Lemp, ".c")));
+      Template_Open (Value (Lemon_User_Template), Error_Count, Template_Open_Success);
+      Implementation_Open (File_Makename (Lemp, ".c"));
 
-      Template_Transfer (Lemp.Name);
+      Template_Transfer (Lemp_Name);
 
       --  Generate the include code, if any
       --  Lime_Print (Lemp.Outname, Lemp.No_Linenos_Flag, Lemp.Include);
-      Template_Print (Lemp.Out_Name, Boolean'Pos (Lemp.No_Linenos_Flag), Lemp.Include);
+      Template_Print (Ada.Strings.Unbounded.To_String (Lemp.Out_Name),
+                      Boolean'Pos (Lemp.No_Linenos_Flag), Lemp.Include);
       --  lime_print (lime_get_ouüt_name (), lemp->nolinenosflag, lemap->include);
       --  lime_write_include (lime_get_mh_flag(), file_makename(lemp, ".h"));
-      Write_Include (New_String (File_Makename (Lemp, ".h")));
+      Write_Include (File_Makename (Lemp, ".h"));
 
-      Template_Transfer (Lemp.Name);
+      Template_Transfer (Lemp_Name);
 
       --  Generate #defines for all tokens
 --  XXX    Lime_Lemp_Copy := Lemp;
       --  lime_generate_tokens (lime_get_mh_flag(), lemp->tokenprefix, 1, lemp->nterminal);
       Generate_Tokens (Lemp.Token_Prefix, 1, Integer (Lemp.N_Terminal));
 
-      Template_Transfer (Lemp.Name);
+      Template_Transfer (Lemp_Name);
 
       --  Generate the defines
       declare
@@ -563,7 +570,7 @@ package body Reports is
             No_Action        => Lemp.No_Action,
             Min_Reduce       => Lemp.Min_Reduce));
 
-      Template_Transfer (Lemp.Name);
+      Template_Transfer (Lemp_Name);
 
 
       --
@@ -646,7 +653,7 @@ package body Reports is
          Lemp.Min_Reduce);
       Lemp.Table_Size := Lemp.Table_Size + N * Size_Of_Action_Type;
 
-      Template_Transfer (Lemp.Name);
+      Template_Transfer (Lemp_Name);
 
       --
       --  Generate the table of fallback tokens.
@@ -689,7 +696,7 @@ package body Reports is
          end;
       end if;
 
-      Template_Transfer (Lemp.Name);
+      Template_Transfer (Lemp_Name);
 
       --
       --  Generate A Table Containing the symbolic name of every symbol
@@ -717,7 +724,7 @@ package body Reports is
             end;
          end loop;
 
-         Template_Transfer (Lemp.Name);
+         Template_Transfer (Lemp_Name);
 
          --  Generate a table containing a text string that describes every
          --  rule in the rule set of the grammar.  This information is used
@@ -738,7 +745,7 @@ package body Reports is
          end loop;
       end;
 
-      Template_Transfer (Lemp.Name);
+      Template_Transfer (Lemp_Name);
 
       --  Generate code which executes every time a symbol is popped from
       --  the stack while processing errors or while destroying the parser.
@@ -843,7 +850,7 @@ package body Reports is
 --      lime_put_line (" */");
 --    }
 --
-      Template_Transfer (Lemp.Name);
+      Template_Transfer (Lemp_Name);
 --
 --    for(i=0, rp=lemp->rule; rp; rp=rp->next, i++){
 --      lime_put ("  ");
@@ -855,7 +862,7 @@ package body Reports is
 --      lime_put_line (" */");
 --    }
 --
-      Template_Transfer (Lemp.Name);
+      Template_Transfer (Lemp_Name);
 --
 --    /* Generate code which execution during each REDUCE action */
 --    i = 0;
@@ -1276,8 +1283,9 @@ package body Reports is
                            Extension : in String) return String
    is
       use Ada.Strings;
+      use Ada.Strings.Unbounded;
       use Interfaces.C.Strings;
-      File_Name    : constant String  := Value (Global.File_Name);
+      File_Name    : constant String  := To_String (Global.File_Name);
       Dot_Position : constant Natural := Fixed.Index (File_Name, ".", Backward);
    begin
       if Dot_Position = 0 then
@@ -1305,7 +1313,7 @@ package body Reports is
             else
                Put (" ");
                Put ("XXX"); --  XXX Put (SP.Sub_Sym (0).Name);
-               for K in 1 .. SP.N_Subsym loop
+               for K in 1 .. SP.N_Sub_Sym loop
                   Put ("|");
                   Put ("XXX"); --  XXX Put (SP.Sub_Sym (K).Name);
                end loop;

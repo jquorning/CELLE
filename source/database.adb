@@ -41,7 +41,7 @@ package body Database is
       if Lemon.Start = Null_Ptr then
          Put_Line ("start    : (null)");
       else
-         Put_Line ("start    : " & Strings.Value (Lemon.Start));
+         Put_Line ("start    : " & Value (Lemon.Start));
       end if;
       Put_Line ("filename : " & To_String (Lemon.File_Name));
       New_Line;

@@ -106,17 +106,15 @@ begin
       Lime.Strsafe_Init;
       Symbols.Symbol_Init;
       Lime.State_Init;
---<<<<<<< HEAD
---      Lemon.Argv0           := New_String (Options.Program_Name.all);
---      Lemon.File_Name       := Lemon_Input_File; --  New_String (Lime.Option_Input_File.all);
---=======
+
       Lemon.Argv0           := New_String (Options.Program_Name.all);
-      Lemon.File_Name       := Unbounded_String'(To_Unbounded_String (Options.Input_File.all));
+--      Lemon.File_Name       := (Lime.Option_Input_File.all);
+      Lemon.File_Name       := To_Unbounded_String (Options.Input_File.all);
       Lemon.Basis_Flag      := Options.Basis_Flag;
       Lemon.No_Linenos_Flag := Options.No_Line_Nos;
 --      Lemon.Basis_Flag      := Boolean'Pos (Options.Basis_Flag);
 --      Lemon.No_Linenos_Flag := Boolean'Pos (Options.No_Line_Nos);
--->>>>>>> parsetoken
+
       --  Extras.Symbol_New_Proc (Extras.To_Name ("$"));
       Symbols.Symbol_Append (Key => "$");
 

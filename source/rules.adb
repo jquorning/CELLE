@@ -32,7 +32,7 @@ package body Rules is
       RP := Lemon_Rule;
       loop
          exit when RP /= null;
-         if RP.Code /= null then
+         if RP.Code /= Null_Code then
             RP.Rule := Integer (I);
             I := I + 1;
          else

@@ -16,12 +16,11 @@ package body Text_Out is
    File_Out    : Ada.Text_IO.File_Type;
    Line_Number : Line_Number_Index := 1;
 
-   procedure Implementation_Open
-     (File_Name : in chars_ptr)
+   procedure Implementation_Open (File_Name : in String)
    is
       use Ada.Text_IO;
    begin
-      Auxiliary.Recreate (File_Out, Out_File, Value (File_Name));
+      Auxiliary.Recreate (File_Out, Out_File, File_Name);
    end Implementation_Open;
 
 
@@ -70,8 +69,7 @@ package body Text_Out is
       Put_Line ("");
    end New_Line;
 
-   procedure Put_Line_Directive
-     (File_Name : in chars_ptr)
+   procedure Put_Line_Directive (File_Name : in String)
    is
 --      pragma Unreferenced (Line_Number);
       use Text_Out;
@@ -86,7 +84,7 @@ package body Text_Out is
 --    putc(*filename,out);
 --    filename++;
 --  }
-      Put_CP (File_Name);
+      Put (File_Name);
       Put_Line ("""");
    end Put_Line_Directive;
 

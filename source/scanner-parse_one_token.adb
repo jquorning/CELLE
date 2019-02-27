@@ -21,6 +21,7 @@ is
    use Ada.Strings.Unbounded;
    use Scanner_Data;
    use Scanner_Errors;
+   use Rules;
 
    procedure Do_Initialize;
 
@@ -57,7 +58,7 @@ begin
 --            PSP.N_RHS      := 0;
             PSP.RHS        := Symbols.Symbol_Vectors.Empty_Vector;
 --            PSP.LHS_Alias  := Interfaces.C.Strings.Null_Ptr;
-            PSP.LHS_Alias  := Alias_Vectors.Empty_Vector; --  Interfaces.C.Strings.Null_Ptr;
+            PSP.LHS_Alias  := Scanner_Data.Alias_Vectors.Empty_Vector;
             PSP.Scan_State := WAITING_FOR_ARROW;
 
          elsif X (X'First) = '{' then
@@ -67,7 +68,7 @@ begin
 --                  Error ("There is no prior rule upon which to attach the code " &
 --                           "fragment which begins on this line.");
 
-            elsif PSP.Prev_Rule.Code /= null then
+            elsif Rules."/=" (PSP.Prev_Rule.Code, Null_Code) then
                Error (E002);
 --                  Error ("Code fragment beginning on this line is not the first " &
 --                           "to follow the previous rule.");
@@ -75,7 +76,8 @@ begin
             else
                PSP.Prev_Rule.Line    := PSP.Token_Lineno;
                PSP.Prev_Rule.Code    :=
-                 new Unbounded_String'(To_Unbounded_String (X (X'First + 1 .. X'Last)));
+                 Unbounded_String'(To_Unbounded_String (X (X'First + 1 .. X'Last)));
+               --  new Unbounded_String'(To_Unbounded_String (X (X'First + 1 .. X'Last)));
                PSP.Prev_Rule.No_Code := False;
             end if;
 
@@ -215,7 +217,8 @@ begin
                      for I in Index_Range loop
                         RP.RHS       (I) := PSP.RHS   (I);
 --  XXX                       RP.RHS_Alias (I) := PSP.Alias.Element (I);
-                        if RP.RHS_Alias (I) /= null then
+                        --  if Symbols."/=" (RP.RHS_Alias (I), Null_Unbounded_String) then
+                        if RP.RHS_Alias (I) /= Null_Unbounded_String then
                            RP.RHS (I).Content := True;
                         end if;
                      end loop;
@@ -223,7 +226,7 @@ begin
 
                   RP.LHS        := PSP.LHS.First_Element;
                   RP.LHS_Alias  := PSP.LHS_Alias.First_Element;
-                  RP.Code       := new Unbounded_String'(Null_Unbounded_String);
+                  RP.Code       := Null_Code; --  New Unbounded_String'(Null_Unbounded_String);
                   RP.No_Code    := True;
                   RP.Prec_Sym   := null;
                   PSP.GP.N_Rule := PSP.GP.N_Rule + 1;
@@ -369,11 +372,11 @@ begin
                PSP.Decl_Arg_Slot := PSP.GP.Overflow'Access;
 
             elsif X = "extra_argument" then
-               PSP.Decl_Arg_Slot     := PSP.GP.Arg'Access;
+               PSP.Decl_Arg_Slot     := PSP.GP.ARG2'Access;
                PSP.Insert_Line_Macro := False;
 
             elsif X = "extra_context" then
-               PSP.Decl_Arg_Slot     := PSP.GP.Ctx'Access;
+               PSP.Decl_Arg_Slot     := PSP.GP.CTX2'Access;
                PSP.Insert_Line_Macro := False;
 
             elsif X = "token_type" then
@@ -472,7 +475,7 @@ begin
             begin
                if
                  Symbol /= null and then
-                 Symbol.Data_Type /= Null_Unbounded_String
+                 Symbols."/=" (Symbol.Data_Type, Null_Unbounded_String)
                then
                   Error (E207, (1 => To_Unbounded_String (X)),
                          Line_Number => PSP.Token_Lineno);

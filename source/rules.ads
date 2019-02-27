@@ -58,9 +58,9 @@ package Rules is
          --  RHS_Alias    : System.Address;      -- An alias for each RHS symbol (NULL if none)
          RHS_Alias    : Alias_Vectors.Vector;
          Line         : Integer;             -- Line number at which code begins
-         Code         : Unbounded_String;    -- The code executed when this rule is reduced
-         Code_Prefix  : Unbounded_String;    -- The code executed when this rule is reduced
-         Code_Suffix  : Unbounded_String;    -- Setup code before code[] above
+         Code         : T_Code;              -- The code executed when this rule is reduced
+         Code_Prefix  : T_Code;              -- The code executed when this rule is reduced
+         Code_Suffix  : T_Code;              -- Setup code before code[] above
          No_Code      : Boolean;             -- True if this rule has no associated C code
          Code_Emitted : Boolean;             -- True if the code has been emitted already
          Prec_Sym     : access Symbols.Symbol_Record;  -- Precedence symbol for this rule

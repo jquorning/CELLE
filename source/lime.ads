@@ -219,6 +219,7 @@ package Lime is
    --  static variables.  Fields in the following structure can be thought
    --  of as begin global variables in the program.)
 
+   use Ada.Strings.Unbounded;
    type Lemon_Record is
       record
          Sorted           : Rule_Access;        --  Table of states sorted by state number
@@ -243,7 +244,7 @@ package Lime is
 --           Name             : Strings.chars_ptr;  --  Name of the generated parser
 --           ARG2             : Strings.chars_ptr;  --  Declaration of the 3th argument to parser
 --           CTX2             : Strings.chars_ptr;  --  Declaration of 2nd argument to constructor
---           Token_Type       : Strings.chars_ptr;  --  Type of terminal symbols in the parser stack
+--        Token_Type       : Strings.chars_ptr;  --  Type of terminal symbols in the parser stack
 --           Var_Type         : Strings.chars_ptr;  --  The default type of non-terminal symbols
 --           Start            : Strings.chars_ptr;  --  Name of the start symbol for the grammar
 --           Stack_Size       : Strings.chars_ptr;  --  Size of the parser stack
@@ -254,7 +255,7 @@ package Lime is
 --           C_Accept         : Strings.chars_ptr;  --  Code to execute when the parser excepts
 --           Extra_Code       : Strings.chars_ptr;  --  Code appended to the generated file
 --           Token_Dest       : Strings.chars_ptr;  --  Code to execute to destroy token data
---           Var_Dest         : Strings.chars_ptr;  --  Code for the default non-terminal destructor
+--       Var_Dest         : Strings.chars_ptr;  --  Code for the default non-terminal destructor
 --           File_Name        : Strings.chars_ptr;  --  Name of the input file
 
 --           Out_Name        : chars_ptr;          --  Name of the current output file
@@ -265,7 +266,7 @@ package Lime is
 --           Table_Size      : Integer;            --  Total table size of all tables in bytes
 --           Basis_Flag      : Boolean;            --  Print only basis configurations
 --           Has_Fallback    : Boolean;            --  True if any %fallback is seen in the grammar
---           No_Linenos_Flag : Boolean;            --  True if #line statements should not be printed
+--       No_Linenos_Flag : Boolean;            --  True if #line statements should not be printed
 --           Argv0           : Strings.chars_ptr;  --  Name of the program
 
 --           Extra           : Symbols.Extra_Access;
@@ -288,8 +289,9 @@ package Lime is
          Extra_Code       : aliased chars_ptr;  --  Code appended to the generated file
          Token_Dest       : aliased chars_ptr;  --  Code to execute to destroy token data
          Var_Dest         : aliased chars_ptr;  --  Code for the default non-terminal destructor
-         --  File_Name        : Strings.chars_ptr;  --  Name of the input file
-         File_Name        : Ada.Strings.Unbounded.Unbounded_String;
+         File_Name        : Unbounded_String;   --  Name of the input file
+         Out_Name         : Unbounded_String;   --  Name of the current output file
+--         File_Name        : Ada.Strings.Unbounded.Unbounded_String;
 
          --   char *outname;           --  Name of the current output file
          Token_Prefix     : aliased chars_ptr;  --  A prefix added to token names in the .h file
@@ -322,10 +324,12 @@ package Lime is
       Overflow     => Null_Ptr, Failure      => Null_Ptr,  C_Accept         => Null_Ptr,
       Extra_Code   => Null_Ptr, Token_Dest   => Null_Ptr,  Var_Dest         => Null_Ptr,
 --<<<<<<< HEAD
---      File_Name    => Null_Ptr, Out_Name     => Null_Ptr,  Token_Prefix     => Null_Ptr,
+      File_Name    => Null_Unbounded_String,
+      Out_Name     => Null_Unbounded_String,
+      Token_Prefix     => Null_Ptr,
 --=======
-      File_Name    => Ada.Strings.Unbounded.Null_Unbounded_String,  --  Null_Ptr,
-      Token_Prefix => Null_Ptr,
+--      File_Name    => Null_Ptr, Ada.Strings.Unbounded.Null_Unbounded_String,  --  Null_Ptr,
+--      Token_Prefix => Null_Ptr,
 -->>>>>>> parsetoken
       N_Conflict   => 0,        N_Action_Tab => 0,         N_Lookahead_Tab  => 0,
       Table_Size   => 0,        Basis_Flag   => False,     Has_Fallback     => False,
@@ -353,8 +357,7 @@ package Lime is
    pragma Convention (C_Pass_By_Copy, lime_render_record);  -- lemon.h:370
 
 
-   procedure Implementation_Open
-     (File_Name : in Interfaces.C.Strings.chars_ptr);
+   procedure Implementation_Open (File_Name : in String);
    --  Open the out file.
 
    function Get_Token (Index : in Integer) return String;
@@ -367,13 +370,13 @@ package Lime is
    --  Open File_Name to File. Success is True when success.
 
    procedure Template_Open
-     (User_Template : in     chars_ptr;
+     (User_Template : in     String;
       Error_Count   : in out Integer;
       Success       :    out Integer);
    --  Uses Context for File_Template.
 
    procedure Template_Transfer
-     (Name : in chars_ptr);
+     (Name : in String);
    --
 
    procedure Generate_Spec
@@ -392,17 +395,17 @@ package Lime is
      return chars_ptr;
 
    procedure Template_Print
-     (Out_Name    : in chars_ptr;
+     (Out_Name    : in String;
       No_Line_Nos : in Integer;
       Include     : in chars_ptr);
 
    procedure Write_Include
-     (Include_Name : in chars_ptr);
+     (Include_Name : in String);
 
    procedure Generate_Tokens
-     (Tokenprefix : in chars_ptr;
-      First       : in Integer;
-      Last        : in Integer);
+     (Token_Prefix : in chars_ptr;
+      First        : in Integer;
+      Last         : in Integer);
 
    function Get_Token_Callback
      (Index : in Integer)
@@ -517,7 +520,7 @@ package Lime is
    procedure Template_Print_2
      (Line        : in chars_ptr;
       No_Line_Nos : in Integer;
-      Out_Name    : in chars_ptr);
+      Out_Name    : in String);
    --  Print a string to the file and keep the linenumber up to date
 
    procedure Write_Arg_Defines

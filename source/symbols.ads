@@ -96,7 +96,7 @@ package Symbols is
          --  True if this symbol ever carries content - if
          --  it is ever more than just syntax
 
---         N_Sub_Sym   : Integer;
+         N_Sub_Sym   : Integer;
 --         Sub_Sym     : Unbounded_String;
          Sub_Sym : Vector;
       end record;
