@@ -58,7 +58,7 @@ package Symbols is
          Index     : Symbol_Index;      --  Index number for this symbol
          Kind      : Symbol_Kind;       --  Symbols are all either TERMINALS or NTs
          Rule      : access Rules.Rule_Record;  --  Linked list of rules of this (if an NT)
-         Fallback  : Unbounded_String;
+         Fallback  : access Symbol_Record; --  Unbounded_String;
          --  Symbol_Access; --  fallback token in case this token doesn't parse
          Prec      : Integer;           --  Precedence if defined (-1 otherwise)
          Assoc     : E_Assoc;           --  Associativity if precedence is defined

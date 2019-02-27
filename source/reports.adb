@@ -9,6 +9,7 @@
 
 with Ada.Text_IO;
 with Ada.Strings.Fixed;
+with Ada.Strings.Unbounded;
 
 with Interfaces.C.Strings;
 
@@ -17,6 +18,7 @@ with Database;
 with Rules;
 with Symbols;
 with Parsers;
+with Text_Out;
 
 package body Reports is
 
@@ -292,7 +294,6 @@ package body Reports is
 --    struct axset *ax;
       Template_Open_Success : Integer;
       Error_Count : Natural;
-      pragma Unreferenced (Code_Type);
       pragma Unreferenced (Action_Type);
    begin
       Lemp.Min_Shift_Reduce := Lemp.N_State;
@@ -568,41 +569,54 @@ package body Reports is
 --       lemp->errAction,
 --       lemp->minReduce);
 --    lemp->tablesize += n*szActionType;
---
---    lime_template_transfer (lemp->name);
---
---    /* Generate the table of fallback tokens.
---    */
---    if( lemp->has_fallback ){
---      int mx = lemp->nterminal - 1;
---      while( mx>0 && lemp->symbols[mx]->fallback==0 ){ mx--; }
---      lemp->tablesize += (mx+1)*szCodeType;
---
---      for(i=0; i<=mx; i++){
---        struct symbol *p = lemp->symbols[i];
---
---        if (!p->fallback)
---          {
---            lime_put ("    0,  /* ");
---            lime_put (p->name);
---            lime_put_line (" => nothing */");
---          }
---        else
---          {
---            lime_put ("  ");
---            lime_put_int (p->fallback->index);
---            lime_put (",  /* ");
---            lime_put (p->name);
---            lime_put (" => ");
---            lime_put (p->fallback->name);
---            lime_put_line (" */");
---          }
---      }
---
---    }
---    lime_template_transfer (lemp->name);
---
---    /* Generate a table containing the symbolic name of every symbol
+
+      Template_Transfer (Lemp.Name);
+
+      --
+      --  Generate the table of fallback tokens.
+      --
+      if Lemp.Has_Fallback then
+         declare
+            use Ada.Strings.Unbounded;
+            use Symbols;
+            MX : Symbol_Index := Lemp.N_Terminal - 1;
+         begin
+            --  while MX > 0 and Lemp.Symbols (MX).Fallback = 0 loop
+            while
+              MX > 0 and
+              Element_At (Lemp.Extra, Index => MX).Fallback = null
+            loop
+               MX := MX - 1;
+            end loop;
+            Lemp.Table_Size := Lemp.Table_Size + Integer (MX + 1) * Code_Type;
+
+            for I in 0 .. MX loop
+               declare
+                  use Ada.Strings.Unbounded;
+                  use Text_Out;
+                  P : Symbol_Access := Element_At (Lemp.Extra, I);
+               begin
+                  if P.Fallback = null then
+                     Put ("    0,  /* ");
+                     Put (From_Key (P.Name));
+                     Put_Line (" => nothing */");
+                  else
+                     Put ("  ");
+                     Put_Int (Integer (P.Fallback.Index));
+                     Put (",  /* ");
+                     Put (From_Key (P.Name));
+                     Put (" => ");
+                     Put (To_String (P.Fallback.Name));
+                     Put_Line (" */");
+                  end if;
+               end;
+            end loop;
+         end;
+      end if;
+
+      Template_Transfer (Lemp.Name);
+
+--    /* Generate A Table Containing the symbolic name of every symbol
 --    */
 --    for(i=0; i<lemp->nsymbol; i++){
 --      lemon_sprintf(line,"\"%s\",",lemp->symbols[i]->name);
