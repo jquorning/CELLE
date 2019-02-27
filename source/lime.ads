@@ -188,8 +188,8 @@ package Lime is
          CFP         : Config_Access;        --  All configurations in this set
          State_Num   : aliased Integer;      --  Sequential number for this state
          AP          : access Action_Record; --  List of actions for this state
-         nTknAct     : aliased Integer;      --  Number of actions on terminals and nonterminals
-         nNtAct      : aliased Integer;      --  yy_action[] offset for terminals and nonterms
+         N_Tkn_Act   : aliased Integer;      --  Number of actions on terminals and nonterminals
+         N_Nt_Act    : aliased Integer;      --  yy_action[] offset for terminals and nonterms
          iTknOfst    : aliased Integer;      --  Default action is to REDUCE by this rule
          iNtOfst     : aliased Integer;      --  The default REDUCE rule.
          iDfltReduce : aliased Integer;      --  True if this is an auto-reduce state

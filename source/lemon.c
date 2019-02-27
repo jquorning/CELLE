@@ -3049,34 +3049,6 @@ static const char *minimum_size_type(int lwr, int upr, int *pnByte){
 }
 #endif
 
-/*
-** Each state contains a set of token transaction and a set of
-** nonterminal transactions.  Each of these sets makes an instance
-** of the following structure.  An array of these structures is used
-** to order the creation of entries in the yy_action[] table.
-*/
-struct axset {
-  struct state *stp;   /* A pointer to a state */
-  int isTkn;           /* True to use tokens.  False for non-terminals */
-  int nAction;         /* Number of actions */
-  int iOrder;          /* Original order of action sets */
-};
-
-/*
-** Compare to axset structures for sorting purposes
-*/
-static int axset_compare(const void *a, const void *b){
-  struct axset *p1 = (struct axset*)a;
-  struct axset *p2 = (struct axset*)b;
-  int c;
-  c = p2->nAction - p1->nAction;
-  if( c==0 ){
-    c = p1->iOrder - p2->iOrder;
-  }
-  assert( c!=0 || p1==p2 );
-  return c;
-}
-
 
 struct lemon *lime_lemp_copy;
 const char *lime_get_token_callback (int  index)

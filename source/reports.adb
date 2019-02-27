@@ -9,7 +9,6 @@
 
 with Ada.Text_IO;
 with Ada.Strings.Fixed;
---  with Ada.Strings.Unbounded;
 
 with Interfaces.C.Strings;
 
@@ -55,6 +54,44 @@ package body Reports is
    procedure Write_Rule_Text (RP : in Rules.Rule_Access);
    --  Write text on "out" that describes the rule "rp".
 
+   --
+   --  Each state contains a set of token transaction and a set of
+   --  nonterminal transactions.  Each of these sets makes an instance
+   --  of the following structure.  An array of these structures is used
+   --  to order the creation of entries in the yy_action[] table.
+   --
+   type AX_Record is
+     record
+        STP      : Lime.State_Access; --  A pointer to a state
+        Is_Token : Boolean;           --  True to use tokens.  False for non-terminals
+        N_Action : Integer;           --  Number of actions
+        Order    : Integer;           --  Original order of action sets
+     end record;
+
+   type AX_Set_Record is
+      record
+         Token        : AX_Record;
+         Non_Terminal : AX_Record;
+      end record;
+
+   type AX_Set_Array is array (Natural range <>) of AX_Set_Record;
+   type A_AX_Set_Array is access all AX_Set_Array;
+
+
+--   function Axset_Compare (A, B : AX_Set_Record) return Integer;
+   --  Compare to axset structures for sorting purposes
+
+--    static int axset_compare(const void *a, const void *b){
+--    struct axset *p1 = (struct axset*)a;
+--    struct axset *p2 = (struct axset*)b;
+--    int c;
+--    c = p2->nAction - p1->nAction;
+--    if( c==0 ){
+--      c = p1->iOrder - p2->iOrder;
+--    }
+--    assert( c!=0 || p1==p2 );
+--    return c;
+--  }
 
    procedure Reprint
    is
@@ -288,7 +325,7 @@ package body Reports is
 
       Lemp : Lemon_Record renames Database.Lime_Lemp;  --  Parameter
 --    char line[LINESIZE];
---    struct state *stp;
+      STP : Lime.State_Access;
 --    struct action *ap;
 --    struct rule *rp;
       Act_Tab : Action_Tables.A_Action_Table;
@@ -300,9 +337,11 @@ package body Reports is
 --    const char *name;
       Mn_Tkn_Ofst, Mx_Tkn_Ofst : Integer;
       Mn_Nt_Ofst,  Mx_Nt_Ofst  : Integer;
---    struct axset *ax;
+
+      AX : A_AX_Set_Array;
+
       Template_Open_Success : Integer;
-      Error_Count : Natural := 0;
+      Error_Count           : Natural := 0;
    begin
       Lemp.Min_Shift_Reduce := Lemp.N_State;
       Lemp.Err_Action       := Lemp.Min_Shift_Reduce + Lemp.N_Rule;
@@ -422,31 +461,40 @@ package body Reports is
 --      ((const char*)lemp->errsym,
 --       &lime_mystruct,
 --       lemp->has_fallback);
---
---  Compute the action table, but do not output it yet.  The action
---  table must be computed before generating the YYNSTATE macro because
---  we need to know how many states can be eliminated.
---
---    ax = (struct axset *) calloc(lemp->nxstate*2, sizeof(ax[0]));
---    if( ax==0 ){
---      fprintf(stderr,"malloc failed\n");
---      exit(1);
---    }
---    for(i=0; i<lemp->nxstate; i++){
---      stp = lemp->sorted[i];
---      ax[i*2].stp = stp;
---      ax[i*2].isTkn = 1;
---      ax[i*2].nAction = stp->nTknAct;
---      ax[i*2+1].stp = stp;
---      ax[i*2+1].isTkn = 0;
---      ax[i*2+1].nAction = stp->nNtAct;
---    }
+
+      --  Compute the action table, but do not output it yet.  The action
+      --  table must be computed before generating the YYNSTATE macro because
+      --  we need to know how many states can be eliminated.
+
+      --      AX := (struct axset *) calloc(lemp->nxstate*2, sizeof(ax[0]));
+      --  AX := new AX_Set_Record;  --  (struct axset *) calloc(lemp->nxstate*2, sizeof(ax[0]));
+      AX := new AX_Set_Array (0 .. Lemp.Nx_State - 1);
+
+      --  if( ax==0 ){
+      --    fprintf(stderr,"malloc failed\n");
+      --    exit(1);
+
+      for I in 0 .. Lemp.Nx_State - 1 loop
+--         STP := Lemp.Sorted (I);
+
+         AX (I).Token := (STP      => STP,
+                          Is_Token => True,
+                          N_Action => STP.N_Tkn_Act,
+                          Order    => <>);
+
+         AX (I).Non_Terminal := (STP      => STP,
+                                 Is_Token => False,
+                                 N_Action => STP.N_Nt_Act,
+                                 Order    => <>);
+      end loop;
+
       Mx_Tkn_Ofst := 0;
       Mn_Tkn_Ofst := 0;
       Mx_Nt_Ofst  := 0;
       Mn_Nt_Ofst  := 0;
---    /* In an effort to minimize the action table size, use the heuristic
---    ** of placing the largest action sets first */
+
+      --  In an effort to minimize the action table size, use the heuristic
+      --  of placing the largest action sets first
 --    for(i=0; i<lemp->nxstate*2; i++) ax[i].iOrder = i;
 --    qsort(ax, lemp->nxstate*2, sizeof(ax[0]), axset_compare);
       Act_Tab := Acttab.Alloc (Integer (Lemp.N_Symbol), Integer (Lemp.N_Terminal));
