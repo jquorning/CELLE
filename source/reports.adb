@@ -75,7 +75,7 @@ package body Reports is
          Non_Terminal : AX_Record;
       end record;
 
-   type AX_Set_Array is array (Natural range <>) of AX_Set_Record;
+   type AX_Set_Array is array (Symbols.Symbol_Index range <>) of AX_Set_Record;
    type A_AX_Set_Array is access all AX_Set_Array;
 
 
@@ -475,25 +475,29 @@ package body Reports is
 
       --      AX := (struct axset *) calloc(lemp->nxstate*2, sizeof(ax[0]));
       --  AX := new AX_Set_Record;  --  (struct axset *) calloc(lemp->nxstate*2, sizeof(ax[0]));
-      AX := new AX_Set_Array (0 .. Lemp.Nx_State - 1);
+      declare
+         use Symbols;
+      begin
+         AX := new AX_Set_Array (0 .. Symbol_Index (Lemp.Nx_State) - 1);
 
       --  if( ax==0 ){
       --    fprintf(stderr,"malloc failed\n");
       --    exit(1);
 
-      for I in 0 .. Lemp.Nx_State - 1 loop
---         STP := Lemp.Sorted (I);
+         for I in Symbol_Index range 0 .. Symbol_Index (Lemp.Nx_State - 1) loop
+            STP := Sorted_Element_At (Lemp.Extra, Index => I);
 
-         AX (I).Token := (STP      => STP,
-                          Is_Token => True,
-                          N_Action => STP.N_Tkn_Act,
-                          Order    => <>);
+            AX (I).Token := (STP      => STP,
+                             Is_Token => True,
+                             N_Action => STP.N_Tkn_Act,
+                             Order    => <>);
 
-         AX (I).Non_Terminal := (STP      => STP,
-                                 Is_Token => False,
-                                 N_Action => STP.N_Nt_Act,
-                                 Order    => <>);
-      end loop;
+            AX (I).Non_Terminal := (STP      => STP,
+                                    Is_Token => False,
+                                    N_Action => STP.N_Nt_Act,
+                                    Order    => <>);
+         end loop;
+      end;
 
       Mx_Tkn_Ofst := 0;
       Mn_Tkn_Ofst := 0;

@@ -10,8 +10,6 @@
 with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Containers.Ordered_Maps;
 
-with Interfaces.C.Strings;
-
 package body Symbols is
 
    package Symbol_Lists
