@@ -23,6 +23,7 @@
 #include "lemon.h"   /* Binding to C from Ada */
 #include "lime.h"    /* Binding to Ada from C */
 #include "cherry.h"
+#include "action_tables.h"
 
 #define ISSPACE(X) isspace((unsigned char)(X))
 #define ISDIGIT(X) isdigit((unsigned char)(X))
@@ -362,6 +363,7 @@ void Action_add(
     newaction->x.rp = (struct rule *)arg;
   }
 }
+#if 0
 /********************** New code to implement the "acttab" module ***********/
 /*
 ** This module implements routines use to construct the yy_action[] table.
@@ -589,6 +591,7 @@ int acttab_action_size(acttab *p){
   while( n>0 && p->aAction[n-1].lookahead<0 ){ n--; }
   return n;
 }
+#endif
 
 /********************** From the file "build.c" *****************************/
 /*
@@ -1342,8 +1345,10 @@ struct rule *lime_rule_sort (struct rule *rp)
   return rp;
 }
 
+#if 0
 /* forward reference */
 static const char *minimum_size_type(int lwr, int upr, int *pnByte);
+#endif
 
 /* Print a single line of the "Parser Stats" output
  */
@@ -2433,6 +2438,7 @@ void rule_print (struct rule *rp)
   }
 }
 
+#if 0
 void rule_print_2(FILE *out, struct rule *rp){
   int i, j;
   fprintf(out, "%s",rp->lhs->name);
@@ -2459,7 +2465,9 @@ void rule_print_2(FILE *out, struct rule *rp){
     /* if( rp->rhsalias[i] ) fprintf(out,"(%s)",rp->rhsalias[i]); */
   }
 }
+#endif
 
+#if 0
 /* Duplicate the input file without comments and without actions
 ** on rules */
 void lemon_reprint (struct lemon *lemp)
@@ -2494,6 +2502,7 @@ void lemon_reprint (struct lemon *lemp)
     printf("\n");
   }
 }
+#endif
 
 /* Print a single rule.
 */
@@ -2558,6 +2567,7 @@ char *tag;
 }
 #endif
 
+#if 0
 /* Print an action to the given file descriptor.  Return FALSE if
 ** nothing was actually printed.
 */
@@ -2625,9 +2635,10 @@ int PrintAction(
   }
   return result;
 }
+#endif
 
+#if 0
 /* Generate the "*.out" log file */
-
 void lemon_report_output (struct lemon *lemp)
 {
   int i, n;
@@ -2726,6 +2737,7 @@ void lemon_report_output (struct lemon *lemp)
   fclose(fp);
   return;
 }
+#endif
 
 
 /* Search for the file "name" which is in the same directory as
@@ -3400,6 +3412,7 @@ void print_stack_union
   lime_put_line ("} YYMINORTYPE;");
 }
 
+#if 0
 /*
 ** Return the name of a C datatype able to represent values between
 ** lwr and upr, inclusive.  If pnByte!=NULL then also write the sizeof
@@ -3429,6 +3442,7 @@ static const char *minimum_size_type(int lwr, int upr, int *pnByte){
   if( pnByte ) *pnByte = nByte;
   return zType;
 }
+#endif
 
 /*
 ** Each state contains a set of token transaction and a set of
@@ -3535,7 +3549,7 @@ int lime_get_mh_flag (void)
 }
 */
 
-
+#if 0
 /* Generate C source code for the parser */
 void lemon_report_table (struct lemon *lemp)
 {
@@ -4064,6 +4078,7 @@ void lemon_report_table (struct lemon *lemp)
   printf ("### 2-58\n");
   return;
 }
+#endif
 
 
 const char *lemon_generate_header_line_callback (int index)
@@ -4072,6 +4087,7 @@ const char *lemon_generate_header_line_callback (int index)
   return lem.symbols [index]->name;
 }
 
+#if 0
 /* Reduce the size of the action tables, if possible, by making use
 ** of defaults.
 **
@@ -4192,7 +4208,7 @@ lemon_compress_tables
     }
   }
 }
-
+#endif
 
 /*
 ** Compare two states for sorting purposes.  The smaller state is the
@@ -4217,6 +4233,7 @@ static int stateResortCompare(const void *a, const void *b){
 }
 
 
+#if 0
 /*
 ** Renumber and resort states so that states with fewer choices
 ** occur at the end.  Except, keep state 0 as the first state.
@@ -4258,6 +4275,7 @@ void lemon_resort_states (struct lemon *lemp)
     lemp->nxstate--;
   }
 }
+#endif
 
 
 /***************** From the file "set.c" ************************************/

@@ -48,6 +48,9 @@ package Symbols is
 --     type Symbol_Index_Array_Access  is access all Symbol_Index_Array;
 --     type Symbol_Access_Array_Access is access all Symbol_Access_Array;
 --     pragma Convention (C, Symbol_Access_Array_Access);
+   subtype S_Set is Unbounded_String;
+   Null_Set : S_Set renames Null_Unbounded_String;
+   function "=" (Left, Right : S_Set) return Boolean renames Ada.Strings.Unbounded."=";
 
    type Symbol_Record is
       record
@@ -55,7 +58,7 @@ package Symbols is
          Index     : Symbol_Index;      --  Index number for this symbol
          Kind      : Symbol_Kind;       --  Symbols are all either TERMINALS or NTs
          Rule      : access Rules.Rule_Record;  --  Linked list of rules of this (if an NT)
-         Fallback  : Unbounded_String;
+         Fallback  : access Symbol_Record; --  Unbounded_String;
          --  Symbol_Access; --  fallback token in case this token doesn't parse
          Prec      : Integer;           --  Precedence if defined (-1 otherwise)
          Assoc     : E_Assoc;           --  Associativity if precedence is defined
@@ -81,7 +84,7 @@ package Symbols is
          --  stack is a union.  The .yy%d element of this
          --  union is the correct data type for this object
 
-         B_Content   : Integer;
+         B_Content   : Boolean;
          --  True if this symbol ever carries content - if
          --  it is ever more than just syntax
 
@@ -107,6 +110,14 @@ package Symbols is
    type Extra_Access  is private;
 
    function Get_Extra return Extra_Access;
+
+   function Element_At (Extra : in Extra_Access;
+                        Index : in Symbol_Index)
+                       return Symbol_Access;
+   --  Get access to the symbol in Extra at position Index.
+
+   function Get_Wildcard (Extra : in Extra_Access)
+                         return Symbol_Access;
 
    subtype Symbol_Name is Ada.Strings.Unbounded.Unbounded_String;
 

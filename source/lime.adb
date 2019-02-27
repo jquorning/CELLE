@@ -294,11 +294,11 @@ package body Lime is
    end Generate_Tokens;
 
    procedure Generate_The_Defines_1
-     (YY_Code_Type   : in     chars_ptr;
-      Symbol_Count   : in     Integer;
-      YY_Action_Type : in     chars_ptr;
-      Wildcard       : in     Integer;
-      Wildcard_Index : in     chars_ptr)
+     (YY_Code_Type   : in chars_ptr;
+      Symbol_Count   : in Integer;
+      YY_Action_Type : in chars_ptr;
+      Is_Wildcard    : in Boolean;
+      Wildcard_Index : in Symbol_Index) --  Chars_Ptr)
    is
       use Text_Out;
    begin
@@ -314,9 +314,9 @@ package body Lime is
       Put_CP (YY_Action_Type);
       New_Line;
 
-      if Wildcard = 0 then
+      if Is_Wildcard then
          Put ("#define YYWILDCARD ");
-         Put_CP (Wildcard_Index);
+         Put_Int (Integer (Wildcard_Index));
          Put_Line ("");
       end if;
    end Generate_The_Defines_1;
@@ -364,7 +364,7 @@ package body Lime is
 
 
    procedure Render_Constants
-     (Render : in Render_Access)
+     (Render : in Render_Record)
    is
       procedure Put (Item  : in String;
                      Value : in Integer);
@@ -381,19 +381,19 @@ package body Lime is
 
       I : Integer;
    begin
-      Put ("#define YYNSTATE             ", Render.Nxstate);
-      Put ("#define YYNRULE              ", Render.nrule);
-      Put ("#define YYNTOKEN             ", Render.nterminal);
-      Put ("#define YY_MAX_SHIFT         ", Render.Nxstate - 1);
-      I := Render.minShiftReduce;
+      Put ("#define YYNSTATE             ", Render.Nx_State);
+      Put ("#define YYNRULE              ", Render.N_Rule);
+      Put ("#define YYNTOKEN             ", Render.N_Terminal);
+      Put ("#define YY_MAX_SHIFT         ", Render.Nx_State - 1);
+      I := Render.Min_Shift_Reduce;
       Put ("#define YY_MIN_SHIFTREDUCE   ", I);
-      I := I + Render.nrule;
+      I := I + Render.N_Rule;
       Put ("#define YY_MAX_SHIFTREDUCE   ", I - 1);
-      Put ("#define YY_ERROR_ACTION      ", Render.errAction);
-      Put ("#define YY_ACCEPT_ACTION     ", Render.accAction);
-      Put ("#define YY_NO_ACTION         ", Render.noAction);
-      Put ("#define YY_MIN_REDUCE        ", Render.minReduce);
-      I := Render.minReduce + Render.nrule;
+      Put ("#define YY_ERROR_ACTION      ", Render.Err_Action);
+      Put ("#define YY_ACCEPT_ACTION     ", Render.Acc_Action);
+      Put ("#define YY_NO_ACTION         ", Render.No_Action);
+      Put ("#define YY_MIN_REDUCE        ", Render.Min_Reduce);
+      I := Render.Min_Reduce + Render.N_Rule;
       Put ("#define YY_MAX_REDUCE        ", I - 1);
    end Render_Constants;
 
@@ -612,23 +612,23 @@ package body Lime is
 
 
    procedure Write_Arg_Defines
-     (Name    : in chars_ptr;
-      Arg_Ctx : in chars_ptr;
-      Extend  : in Integer;
-      Arg     : in chars_ptr;
-      Arg_I   : in chars_ptr)
+     (Name    : in String;
+      Arg_Ctx : in String;
+      Extend  : in Boolean;
+      Arg     : in String;
+      Arg_I   : in String)
    is
-      Ada_Name    : constant String := Value (Name);
-      Ada_Arg_Ctx : constant String := Value (Arg_Ctx);
-      Ada_Arg     : constant String := Value (Arg);
-      Ada_Arg_I   : constant String := Value (Arg_I);
+--      Ada_Name    : constant String := Name;
+--      Ada_Arg_Ctx : constant String := Arg_Ctx;
+--      Ada_Arg     : constant String := Arg;
+--      Ada_Arg_I   : constant String := Arg_I;
 
       procedure Write (Decl : in String);
 
       procedure Write (Decl : in String) is
          use Text_Out;
       begin
-         Put_Line ("#define " & Ada_Name & Ada_Arg_Ctx & Decl & Ada_Arg & ";");
+         Put_Line ("#define " & Name & Arg_Ctx & Decl & Arg & ";");
       end Write;
 
       use Text_Out;
@@ -636,11 +636,11 @@ package body Lime is
       Write ("_SDECL ");
       Write ("_PDECL ,");
       Write ("_PARAM ,");
-      if Extend = 0 then
-         Put_Line ("#define " & Ada_Name & "_FETCH " &
-                     Ada_Arg   & "=yypParser->" & Ada_Arg_I & ";");
-         Put_Line ("#define " & Ada_Name & "_STORE " &
-                     Ada_Arg_I & "=yypParser->" & Ada_Arg_I & ";");
+      if Extend = False then
+         Put_Line ("#define " & Name & "_FETCH " &
+                     Arg   & "=yypParser->" & Arg_I & ";");
+         Put_Line ("#define " & Name & "_STORE " &
+                     Arg_I & "=yypParser->" & Arg_I & ";");
       else
          Write ("_FETCH ");
          Write ("_STORE ");
@@ -814,5 +814,16 @@ package body Lime is
       Dump (Lime_Lemp);
    end Lime_Partial_Database_Dump_Ada;
 
+
+   function Sorted_Element_At (Extra : in Extra_Access;
+                               Index : in Symbol_Index)
+                              return State_Access
+   is
+   begin
+      return null; --  XXX
+   end Sorted_Element_At;
+
+   --  A followset propagation link indicates that the contents of one
+   --  configuration followset should be propagated to another whenever
 
 end Lime;

@@ -19,6 +19,7 @@ with Interfaces.C.Strings;
 
 with Rules;
 with Symbols;
+with Parsers;
 
 package Lime is
 
@@ -107,6 +108,7 @@ package Lime is
    type Plink_Access is access all Plink_Record;
 
    type State_Record;
+   type State_Access is access all State_Record;
 
    type Config_Record;
    type Config_Access is access all Config_Record;
@@ -114,10 +116,10 @@ package Lime is
    type Config_Record is
       record
          RP          : access Rule_Record;   --  The rule upon which the configuration is based
-         DOT         : aliased int;          --  The parse point
-         Follow_Set  : Strings.chars_ptr;  --  FWS, Follow-set for this configuration only
-         FS_Forward  : Plink_Access;       --  fplp, forward propagation links
-         FS_Backward : Plink_Access;       --  bplp; Follow-set backwards propagation links
+         DOT         : aliased Integer;      --  The parse point
+         Follow_Set  : Strings.chars_ptr;    --  FWS, Follow-set for this configuration only
+         FS_Forward  : Plink_Access;         --  fplp, forward propagation links
+         FS_Backward : Plink_Access;         --  bplp; Follow-set backwards propagation links
          stp         : access State_Record;  --  Pointer to state which contains this
          status      : aliased cfgstatus;    --  used during followset and shift computations
          Next        : Config_Access;        --  Next configuration in the state
@@ -154,6 +156,7 @@ package Lime is
    use Symbols;
 
    type Action_Record;
+   type Action_Access is access all Action_Record;
 
    type anon1015_x_union (discr : unsigned := 0) is record
       case discr is
@@ -166,11 +169,11 @@ package Lime is
 
    type Action_Record is
       record
-         sp      : access Symbol_Kind;
+         SP      : access Symbol_Kind;
          c_type  : aliased e_action;
-         x       : aliased anon1015_x_union;  --  The rule, if a reduce
+         X       : aliased anon1015_x_union;  --  The rule, if a reduce
          spOpt   : access Symbol_Kind;        --  SHIFTREDUCE optimization to this symbol
-         next    : access Action_Record;      --  Next action for this state
+         Next    : access Action_Record;      --  Next action for this state
          collide : access Action_Record;      --  Next action with the same hash
       end record;
    pragma Convention (C_Pass_By_Copy, Action_Record);
@@ -181,19 +184,22 @@ package Lime is
 
    type State_Record is
       record
-         bp          : Config_Access;   --  The basis configurations for this state
-         cfp         : Config_Access;   --  All configurations in this set
-         statenum    : aliased int;     --  Sequential number for this state
-         ap          : access Action_Record; --  List of actions for this state
-         nTknAct     : aliased int;   --  Number of actions on terminals and nonterminals
-         nNtAct      : aliased int;   --  yy_action[] offset for terminals and nonterms
-         iTknOfst    : aliased int;   --  Default action is to REDUCE by this rule
-         iNtOfst     : aliased int;   --  The default REDUCE rule.
-         iDfltReduce : aliased int;   --  True if this is an auto-reduce state
+         BP          : Config_Access;        --  The basis configurations for this state
+         CFP         : Config_Access;        --  All configurations in this set
+         State_Num   : aliased Integer;      --  Sequential number for this state
+         AP          : access Action_Record; --  List of actions for this state
+         nTknAct     : aliased Integer;      --  Number of actions on terminals and nonterminals
+         nNtAct      : aliased Integer;      --  yy_action[] offset for terminals and nonterms
+         iTknOfst    : aliased Integer;      --  Default action is to REDUCE by this rule
+         iNtOfst     : aliased Integer;      --  The default REDUCE rule.
+         iDfltReduce : aliased Integer;      --  True if this is an auto-reduce state
          pDfltReduce : access Rule_Record;
          autoReduce  : aliased int;
       end record;
 
+   function Sorted_Element_At (Extra : in Extra_Access;
+                               Index : in Symbol_Index)
+                              return State_Access;
 
    --  A followset propagation link indicates that the contents of one
    --  configuration followset should be propagated to another whenever
@@ -230,11 +236,11 @@ package Lime is
          Max_Action       : Integer;            --  Maximum action value of any kind
          Symbols2         : Integer; -- XXX delme --  Sorted array of pointers to symbols
          Error_Cnt        : Integer;            --  Number of errors
-         Err_Sym2          : Integer; --  Symbol_Access;      --  The error symbol
-         Wildcard2         : Integer; --  Symbol_Access;      --  Token that matches anything
+         Err_Sym2         : Integer; --  Symbol_Access;  --  The error symbol
+         Wildcard2        : Integer; --  Symbol_Access;  --  Token that matches anything
          Name             : Strings.chars_ptr;  --  Name of the generated parser
-         Arg              : Strings.chars_ptr;  --  Declaration of the 3th argument to parser
-         Ctx              : Strings.chars_ptr;  --  Declaration of 2nd argument to constructor
+         ARG2             : Strings.chars_ptr;  --  Declaration of the 3th argument to parser
+         CTX2             : Strings.chars_ptr;  --  Declaration of 2nd argument to constructor
          Token_Type       : Strings.chars_ptr;  --  Type of terminal symbols in the parser stack
          Var_Type         : Strings.chars_ptr;  --  The default type of non-terminal symbols
          Start            : Strings.chars_ptr;  --  Name of the start symbol for the grammar
@@ -249,18 +255,19 @@ package Lime is
          Var_Dest         : Strings.chars_ptr;  --  Code for the default non-terminal destructor
          File_Name        : Strings.chars_ptr;  --  Name of the input file
 
-         --   char *outname;           --  Name of the current output file
-         Token_Prefix     : Strings.chars_ptr;  --  A prefix added to token names in the .h file
-         N_Conflict       : Integer;            --  Number of parsing conflicts
-         N_Action_Tab     : Integer;            --  Number of entries in the yy_action[] table
-         N_Lookahead_Tab  : Integer;            --  Number of entries in yy_lookahead[]
-         Table_Size       : Integer;            --  Total table size of all tables in bytes
-         Basis_Flag       : Integer;            --  Print only basis configurations
-         Has_Fallback     : Integer;            --  True if any %fallback is seen in the grammar
-         No_Line_Nos_Flag : Integer;            --  True if #line statements should not be printed
-         Argv0            : Strings.chars_ptr;  --  Name of the program
+         Out_Name        : chars_ptr;          --  Name of the current output file
+         Token_Prefix    : Strings.chars_ptr;  --  A prefix added to token names in the .h file
+         N_Conflict      : Integer;            --  Number of parsing conflicts
+         N_Action_Tab    : Integer;            --  Number of entries in the yy_action[] table
+         N_Lookahead_Tab : Integer;            --  Number of entries in yy_lookahead[]
+         Table_Size      : Integer;            --  Total table size of all tables in bytes
+         Basis_Flag      : Boolean;            --  Print only basis configurations
+         Has_Fallback    : Boolean;            --  True if any %fallback is seen in the grammar
+         No_Linenos_Flag : Boolean;            --  True if #line statements should not be printed
+         Argv0           : Strings.chars_ptr;  --  Name of the program
 
-         Extra            : Symbols.Extra_Access;
+         Extra           : Symbols.Extra_Access;
+         Parser          : Parsers.Context_Access;
       end record;
    --  pragma Convention (C_Pass_By_Copy, Lemon_Record);
 
@@ -272,20 +279,23 @@ package Lime is
       Min_Reduce   => 0,        Max_Action   => 0,         Symbols2         => 999, --  null,
       Error_Cnt    => 0,        Err_Sym2     => 999, --  null,
       Wildcard2    => 999, -- null,
-      Name         => Null_Ptr, Arg          => Null_Ptr,  Ctx              => Null_Ptr,
+      Name         => Null_Ptr, ARG2         => Null_Ptr,  CTX2             => Null_Ptr,
       Token_Type   => Null_Ptr, Var_Type     => Null_Ptr,  Start            => Null_Ptr,
       Stack_Size   => Null_Ptr, Include      => Null_Ptr,  Error            => Null_Ptr,
       Overflow     => Null_Ptr, Failure      => Null_Ptr,  C_Accept         => Null_Ptr,
       Extra_Code   => Null_Ptr, Token_Dest   => Null_Ptr,  Var_Dest         => Null_Ptr,
-      File_Name    => Null_Ptr, Token_Prefix => Null_Ptr,
+      File_Name    => Null_Ptr, Out_Name     => Null_Ptr,  Token_Prefix     => Null_Ptr,
       N_Conflict   => 0,        N_Action_Tab => 0,         N_Lookahead_Tab  => 0,
-      Table_Size   => 0,        Basis_Flag   => 0,         Has_Fallback     => 0,
-      No_Line_Nos_Flag => 0,    Argv0        => Null_Ptr,  Extra            => Symbols.Get_Extra);
+      Table_Size   => 0,        Basis_Flag   => False,     Has_Fallback     => False,
+      No_Linenos_Flag => False, Argv0       => Null_Ptr,
+      Extra           => Symbols.Get_Extra,
+      Parser          => Parsers.Get_Context);
 
    ----------------------------------------------------------------------------
-   --#define NO_OFFSET (-2147483647)
-   NO_OFFSET : aliased long;  -- lemon.h:247
-   pragma Import (C, NO_OFFSET, "NO_OFFSET");
+   --  #define NO_OFFSET (-2147483647)
+   --  NO_OFFSET : aliased long;  -- lemon.h:247
+   --  pragma Import (C, NO_OFFSET, "NO_OFFSET");
+   No_Offset : aliased Integer := Integer'First;
 
    type lime_render_record is
       record
@@ -360,8 +370,8 @@ package Lime is
      (YY_Code_Type   : in chars_ptr;
       Symbol_Count   : in Integer;
       YY_Action_Type : in chars_ptr;
-      Wildcard       : in Integer;
-      Wildcard_Index : in chars_ptr);
+      Is_Wildcard    : in Boolean;
+      Wildcard_Index : in Symbol_Index);
 
    procedure Generate_The_Defines_2
      (Stack_Size : in chars_ptr);
@@ -382,23 +392,23 @@ package Lime is
       Has_Fallback : in Integer);
    --
    --
-   type Render_Record is record
-      Nxstate        : Integer;
-      nrule          : Integer;
-      nterminal      : Integer;
-      minShiftReduce : Integer;
-      errAction      : Integer;
-      accAction      : Integer;
-      noAction       : Integer;
-      minReduce      : Integer;
-   end record;
-   pragma Convention (C, Render_Record);
+   type Render_Record is
+      record
+         Nx_State         : Integer;
+         N_Rule           : Integer;
+         N_Terminal       : Integer;
+         Min_Shift_Reduce : Integer;
+         Err_Action       : Integer;
+         Acc_Action       : Integer;
+         No_Action        : Integer;
+         Min_Reduce       : Integer;
+      end record;
 
    type Render_Access is access all Render_Record;
    pragma Convention (C, Render_Access);
 
    procedure Render_Constants
-     (Render : in Render_Access);
+     (Render : in Render_Record);
    --
    --
 
@@ -469,11 +479,11 @@ package Lime is
    --  Print a string to the file and keep the linenumber up to date
 
    procedure Write_Arg_Defines
-     (Name    : in chars_ptr;
-      Arg_Ctx : in chars_ptr;
-      Extend  : in Integer;
-      Arg     : in chars_ptr;
-      Arg_I   : in chars_ptr);
+     (Name    : in String;
+      Arg_Ctx : in String;
+      Extend  : in Boolean;
+      Arg     : in String;
+      Arg_I   : in String);
 
    procedure Close_Out;
    --  Close out file
@@ -554,7 +564,7 @@ private
    pragma Export (C, Generate_The_Defines_1, "lime_generate_the_defines_1");
    pragma Export (C, Generate_The_Defines_2, "lime_generate_the_defines_2");
    pragma Export (C, Error_Fallback,         "lime_error_fallback");
-   pragma Export (C, Render_Constants,       "lime_render_constants");
+--   pragma Export (C, Render_Constants,       "lime_render_constants");
    pragma Export (C, Write_Action_Table,     "lime_write_action_table");
    pragma Import (C, Get_Acttab_YY_Action,   "lime_get_acttab_yy_action");
    pragma Export (C, Write_YY_Lookahead,     "lime_write_yy_lookahead");

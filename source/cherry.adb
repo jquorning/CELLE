@@ -67,7 +67,7 @@ package body Cherry is
          declare
             New_CFP : Lime.Config_Access;
          begin
-            RP.LHS_Start := 1;
+            RP.LHS_Start := True;
             New_CFP := Configlist_Add_Basis (RP, 0);
             Set_Add (New_CFP.Follow_Set, 0);
          end;
