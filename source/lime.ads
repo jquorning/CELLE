@@ -391,23 +391,23 @@ package Lime is
       Has_Fallback : in Integer);
    --
    --
-   type Render_Record is record
-      Nxstate        : Integer;
-      nrule          : Integer;
-      nterminal      : Integer;
-      minShiftReduce : Integer;
-      errAction      : Integer;
-      accAction      : Integer;
-      noAction       : Integer;
-      minReduce      : Integer;
-   end record;
-   pragma Convention (C, Render_Record);
+   type Render_Record is
+      record
+         Nx_State         : Integer;
+         N_Rule           : Integer;
+         N_Terminal       : Integer;
+         Min_Shift_Reduce : Integer;
+         Err_Action       : Integer;
+         Acc_Action       : Integer;
+         No_Action        : Integer;
+         Min_Reduce       : Integer;
+      end record;
 
    type Render_Access is access all Render_Record;
    pragma Convention (C, Render_Access);
 
    procedure Render_Constants
-     (Render : in Render_Access);
+     (Render : in Render_Record);
    --
    --
 
@@ -563,7 +563,7 @@ private
    pragma Export (C, Generate_The_Defines_1, "lime_generate_the_defines_1");
    pragma Export (C, Generate_The_Defines_2, "lime_generate_the_defines_2");
    pragma Export (C, Error_Fallback,         "lime_error_fallback");
-   pragma Export (C, Render_Constants,       "lime_render_constants");
+--   pragma Export (C, Render_Constants,       "lime_render_constants");
    pragma Export (C, Write_Action_Table,     "lime_write_action_table");
    pragma Import (C, Get_Acttab_YY_Action,   "lime_get_acttab_yy_action");
    pragma Export (C, Write_YY_Lookahead,     "lime_write_yy_lookahead");

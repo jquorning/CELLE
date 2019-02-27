@@ -364,7 +364,7 @@ package body Lime is
 
 
    procedure Render_Constants
-     (Render : in Render_Access)
+     (Render : in Render_Record)
    is
       procedure Put (Item  : in String;
                      Value : in Integer);
@@ -381,19 +381,19 @@ package body Lime is
 
       I : Integer;
    begin
-      Put ("#define YYNSTATE             ", Render.Nxstate);
-      Put ("#define YYNRULE              ", Render.nrule);
-      Put ("#define YYNTOKEN             ", Render.nterminal);
-      Put ("#define YY_MAX_SHIFT         ", Render.Nxstate - 1);
-      I := Render.minShiftReduce;
+      Put ("#define YYNSTATE             ", Render.Nx_State);
+      Put ("#define YYNRULE              ", Render.N_Rule);
+      Put ("#define YYNTOKEN             ", Render.N_Terminal);
+      Put ("#define YY_MAX_SHIFT         ", Render.Nx_State - 1);
+      I := Render.Min_Shift_Reduce;
       Put ("#define YY_MIN_SHIFTREDUCE   ", I);
-      I := I + Render.nrule;
+      I := I + Render.N_Rule;
       Put ("#define YY_MAX_SHIFTREDUCE   ", I - 1);
-      Put ("#define YY_ERROR_ACTION      ", Render.errAction);
-      Put ("#define YY_ACCEPT_ACTION     ", Render.accAction);
-      Put ("#define YY_NO_ACTION         ", Render.noAction);
-      Put ("#define YY_MIN_REDUCE        ", Render.minReduce);
-      I := Render.minReduce + Render.nrule;
+      Put ("#define YY_ERROR_ACTION      ", Render.Err_Action);
+      Put ("#define YY_ACCEPT_ACTION     ", Render.Acc_Action);
+      Put ("#define YY_NO_ACTION         ", Render.No_Action);
+      Put ("#define YY_MIN_REDUCE        ", Render.Min_Reduce);
+      I := Render.Min_Reduce + Render.N_Rule;
       Put ("#define YY_MAX_REDUCE        ", I - 1);
    end Render_Constants;
 

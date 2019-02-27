@@ -383,28 +383,14 @@ package body Reports is
          CTX_I : Natural;
       begin
          Trim_Right_Symbol (ARG, ARG_I);
-         if ARG /= "" then  --  Null_Ptr and then ARG (0) then
---              I := Integer (Strlen (ARG));
---              while I >= 1 and ARG (I - 1) = ' ' loop
---                 I := I - 1;
---              end loop;
---              while I >= 1 and (Is_Alnum (ARG (I - 1)) or ARG (I - 1) = '_') loop
---                 I := I - 1;
---              end loop;
+         if ARG /= "" then
             Write_Arg_Defines (Name, "ARG", True, ARG, ARG (ARG_I .. ARG'Last));
          else
             Write_Arg_Defines (Name, "ARG", False, "", "");
          end if;
 
          Trim_Right_Symbol (CTX, CTX_I);
-         if CTX /= "" then  --  Null_Ptr and then CTX (0) then
---              I := Integer (Strlen (CTX));
---              while I >= 1 and CTX (I - 1) = ' ' loop
---                 I := I - 1;
---              end loop;
---              while I >= 1 and (Is_Alnum (CTX (I - 1)) or CTX (I - 1) = '_') loop
---                 I := I - 1;
---              end loop;
+         if CTX /= "" then
             Write_Arg_Defines (Name, "CTX", True, CTX, CTX (CTX_I .. CTX'Last));
          else
             Write_Arg_Defines (Name, "CTX", False, "", "");
@@ -504,42 +490,42 @@ package body Reports is
 --        }
 --      }
 --    }
---
---    /* Finish rendering the constants now that the action table has
---    ** been computed */
---    struct lime_render_record lime_render;
---    lime_render.Nxstate   = lemp->nxstate;
---    lime_render.nrule     = lemp->nrule;
---    lime_render.nterminal = lemp->nterminal;
---    lime_render.minShiftReduce = lemp->minShiftReduce;
---    lime_render.errAction = lemp->errAction;
---    lime_render.accAction = lemp->accAction;
---    lime_render.noAction  = lemp->noAction;
---    lime_render.minReduce = lemp->minReduce;
---
---    lime_render_constants (&lime_render);
---    lime_template_transfer (lemp->name);
---
---    /* Now output the action table and its associates:
---    **
---    **  yy_action[]        A single table containing all actions.
---    **  yy_lookahead[]     A table containing the lookahead for each entry in
---    **                     yy_action.  Used to detect hash collisions.
---    **  yy_shift_ofst[]    For each state, the offset into yy_action for
---    **                     shifting terminals.
---    **  yy_reduce_ofst[]   For each state, the offset into yy_action for
---    **                     shifting non-terminals after a reduce.
---    **  yy_default[]       Default action for each state.
---    */
---
---    /* Output the yy_action table */
+
+      --  Finish rendering the constants now that the action table has
+      --  been computed
+      Render_Constants
+        (Render =>
+           (Nx_State         => Lemp.Nx_State,
+            N_Rule           => Lemp.N_Rule,
+            N_Terminal       => Integer (Lemp.N_Terminal),
+            Min_Shift_Reduce => Lemp.Min_Shift_Reduce,
+            Err_Action       => Lemp.Err_Action,
+            Acc_Action       => Lemp.Acc_Action,
+            No_Action        => Lemp.No_Action,
+            Min_Reduce       => Lemp.Min_Reduce));
+
+      Template_Transfer (Lemp.Name);
+
+
+      --  Now output the action table and its associates:
+      --
+      --  yy_action[]        A single table containing all actions.
+      --  yy_lookahead[]     A table containing the lookahead for each entry in
+      --                     yy_action.  Used to detect hash collisions.
+      --  yy_shift_ofst[]    For each state, the offset into yy_action for
+      --                     shifting terminals.
+      --  yy_reduce_ofst[]   For each state, the offset into yy_action for
+      --                     shifting non-terminals after a reduce.
+      --  yy_default[]       Default action for each state.
+
+      --  Output the yy_action table
 --    lemp->nactiontab = n = acttab_action_size(pActtab);
 --    lemp->tablesize += n*szActionType;
 --
 --    lime_pActtab = pActtab;
 --    lime_write_action_table (n, lemp->noAction);
---
---    /* Output the yy_lookahead table */
+
+      --  Output the yy_lookahead table
 --    lemp->nlookaheadtab = n = acttab_lookahead_size(pActtab);
 --    lemp->tablesize += n*szCodeType;
 --
@@ -645,10 +631,11 @@ package body Reports is
 --    }
 --    lime_template_transfer (lemp->name);
 --
---    /* Generate code which executes every time a symbol is popped from
---    ** the stack while processing errors or while destroying the parser.
---    ** (In other words, generate the %destructor actions)
---    */
+
+      --  Generate code which executes every time a symbol is popped from
+      --  the stack while processing errors or while destroying the parser.
+      --  (In other words, generate the %destructor actions)
+
 --    if( lemp->tokendest ){
 --      int once = 1;
 --      for(i=0; i<lemp->nsymbol; i++){
@@ -731,13 +718,13 @@ package body Reports is
 --    lime_template_print (lemp->overflow, lemp->nolinenosflag, lemp->outname);
 --    //lime_template_print (lemp->overflow, lemp->nolinenosflag, lime_get_out_name ());
 --    lime_template_transfer (lemp->name);
---
---    /* Generate the tables of rule information.  yyRuleInfoLhs[] and
---    ** yyRuleInfoNRhs[].
---    **
---    ** Note: This code depends on the fact that rules are number
---    ** sequentually beginning with 0.
---    */
+
+      --  Generate the tables of rule information.  yyRuleInfoLhs[] and
+      --  yyRuleInfoNRhs[].
+      --
+      --  Note: This code depends on the fact that rules are number
+      --  sequentually beginning with 0.
+
 --    for(i=0, rp=lemp->rule; rp; rp=rp->next, i++){
 --      lime_put ("  ");
 --      lime_put_int (rp->lhs->index);
@@ -748,7 +735,7 @@ package body Reports is
 --      lime_put_line (" */");
 --    }
 --
---    lime_template_transfer (lemp->name);
+      Template_Transfer (Lemp.Name);
 --
 --    for(i=0, rp=lemp->rule; rp; rp=rp->next, i++){
 --      lime_put ("  ");
@@ -760,7 +747,7 @@ package body Reports is
 --      lime_put_line (" */");
 --    }
 --
---    lime_template_transfer (lemp->name);
+      Template_Transfer (Lemp.Name);
 --
 --    /* Generate code which execution during each REDUCE action */
 --    i = 0;
@@ -851,13 +838,10 @@ package body Reports is
 --    lime_template_print (lemp->extracode, lemp->nolinenosflag, lemp->outname);
 --    //lime_template_print (lemp->extracode, lemp->nolinenosflag, lime_get_out_name ());
 --    printf ("### 2-58\n");
---
---    lime_close_in;
---    lime_close_out;
+
+      Close_In;
+      Close_Out;
 --    printf ("### 2-58\n");
---    return;
---  }
-      null;
    end Report_Table;
 
 
