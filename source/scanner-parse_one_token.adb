@@ -218,9 +218,14 @@ begin
                         RP.RHS       (I) := PSP.RHS   (I);
 --  XXX                       RP.RHS_Alias (I) := PSP.Alias.Element (I);
                         --  if Symbols."/=" (RP.RHS_Alias (I), Null_Unbounded_String) then
-                        if RP.RHS_Alias (I) /= Null_Unbounded_String then
+--                        declare
+--                           use
+--                        begin
+--  if RP.RHS_Alias (I) /= Null_Unbounded_String then
+                        if Length (RP.RHS_Alias (I)) /= 0 then
                            RP.RHS (I).Content := True;
                         end if;
+                        --                        end;
                      end loop;
                   end;
 

@@ -1699,6 +1699,7 @@ PRIVATE void tplt_print(FILE *out, struct lemoan *lemp, char *str, int *lineno)
 }
 */
 
+#if 0
 /*
 ** The following routine emits code for the destructor for the
 ** symbol sp
@@ -1756,7 +1757,7 @@ void emit_destructor_code
  lime_put_line ("}");
  return;
 }
-
+#endif
 
 /*
 ** Return TRUE (non-zero) if the given symbol has a destructor.
@@ -2025,6 +2026,7 @@ PRIVATE int translate_code(struct lemon *lemp, struct rule *rp){
   return rc;
 }
 
+#if 0
 /*
 ** Generate code which executes when the rule "rp" is reduced.  Write
 ** the code to "out".  Make sure lineno stays up-to-date.
@@ -2082,6 +2084,7 @@ PRIVATE void emit_code
 
  return;
 }
+#endif
 
 
 /*

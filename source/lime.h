@@ -16,6 +16,7 @@ char*
 lime_get_user_template_name (void);
 //  lempar.c for C and cherry_parser.adb for Ada.
 
+#if 0
 void
 lime_template_open
   (const char  *user_template, // User provided template. "" when none.
@@ -23,17 +24,21 @@ lime_template_open
    int         *success);      // Success = 0 when no template file is
 //  Thisk function finds the template file and opens it. File handle
 //  is located in the context structure.
+#endif
 
-
+#if 0
 void
 lime_implementation_open (const char *file_name);
 //  Open a file for writing then implementaion (parse.adb/parse.c).
 //  File handler is located in the context structure.
+#endif
 
+#if 0
 void
 lime_template_transfer (const char  *name);
 //
 //
+#endif
 
 void
 lime_print (const char  *out_name,
@@ -43,23 +48,29 @@ lime_print (const char  *out_name,
 //
 //
 
+#if 0
 void
 lime_template_linedir (int         *line_number,
                        const char  *file_name);
 //
 //
+#endif
 
+#if 0
 void
 lime_write_include (const char  *include_name);
 //
 //
+#endif
 
+#if 0
 void
 lime_generate_tokens (const char  *tokenprefix,
                       int          first,
                       int          last);
 //
 //
+#endif
 
 const char *lime_get_token_callback (int  index);
 //
@@ -172,12 +183,14 @@ lime_put_line (const char* item);
 //
 //
 
+#if 0
 void
 lime_write_line_directive
 (int         line_number,
  const char  *file_name);
 //
 //
+#endif
 
 void
 lime_template_print

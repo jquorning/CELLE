@@ -125,7 +125,6 @@ package body Lime is
       Error_Count   : in out Integer;
       Success       :    out Integer)
    is
-      use Ada.Strings.Unbounded;
       Template     : String renames User_Template;
       Open_Success : Boolean;
    begin

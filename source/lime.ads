@@ -375,8 +375,7 @@ package Lime is
       Success       :    out Integer);
    --  Uses Context for File_Template.
 
-   procedure Template_Transfer
-     (Name : in String);
+   procedure Template_Transfer (Name : in String);
    --
 
    procedure Generate_Spec
@@ -592,19 +591,19 @@ private
    pragma Export (C, Lemon_User_Template, "lemon_user_template");
    pragma Export (C, Lemon_Output_Dir,    "lemon_output_dir");
 
-   pragma Export (C, Template_Open,       "lime_template_open");
-   pragma Export (C, Implementation_Open, "lime_implementation_open");
-   pragma Export (C, Template_Transfer,   "lime_template_transfer");
+--   pragma Export (C, Template_Open,       "lime_template_open");
+--   pragma Export (C, Implementation_Open, "lime_implementation_open");
+--   pragma Export (C, Template_Transfer,   "lime_template_transfer");
    pragma Export (C, Generate_Spec,       "lime_generate_spec");
 
-   pragma Export (C, Template_Print,   "lime_print");
-   pragma Export (C, Write_Include,    "lime_write_include");
+--   pragma Export (C, Template_Print,   "lime_print");
+--   pragma Export (C, Write_Include,    "lime_write_include");
    pragma Export (C, Generate_Tokens,  "lime_generate_tokens");
    pragma Import (C, Spec_Line_Callback,
                   "lemon_generate_header_line_callback");
    pragma Import (C, Get_Token_Callback,
                   "lime_get_token_callback");
-   pragma Export (C, Generate_The_Defines_1, "lime_generate_the_defines_1");
+--   pragma Export (C, Generate_The_Defines_1, "lime_generate_the_defines_1");
    pragma Export (C, Generate_The_Defines_2, "lime_generate_the_defines_2");
    pragma Export (C, Error_Fallback,         "lime_error_fallback");
 --   pragma Export (C, Render_Constants,       "lime_render_constants");
@@ -619,9 +618,9 @@ private
    pragma Export (C, Write_Default_Action_Table, "lime_write_default_action_table");
    pragma Import (C, Get_Default_Reduce,         "lime_get_default_reduce");
 
-   pragma Export (C, Template_Print_2,    "lime_template_print");
+--   pragma Export (C, Template_Print_2,    "lime_template_print");
 
-   pragma Export (C, Write_Arg_Defines, "lime_write_arg_defines");
+--   pragma Export (C, Write_Arg_Defines, "lime_write_arg_defines");
    pragma Export (C, Close_Out,         "lime_close_out");
    pragma Export (C, Close_In,          "lime_close_in");
 

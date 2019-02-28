@@ -55,6 +55,23 @@ package body Reports is
    procedure Write_Rule_Text (RP : in Rules.Rule_Access);
    --  Write text on "out" that describes the rule "rp".
 
+   procedure Emit_Destructor_Code
+     (SP   : in Symbols.Symbol_Access;
+      Lemp : in Lime.Lemon_Record);
+   --  The following routine emits code for the destructor for the
+   --  symbol sp
+
+   procedure Emit_Code
+     (
+      --  FILE *out,
+      RP   : in Rules.Rule_Access;
+      Lemp : in Lime.Lemon_Record
+      --  int *lineno
+     );
+   --  Generate code which executes when the rule "rp" is reduced.  Write
+   --  the code to "out".  Make sure lineno stays up-to-date.
+
+
    --
    --  Each state contains a set of token transaction and a set of
    --  nonterminal transactions.  Each of these sets makes an instance
@@ -333,9 +350,11 @@ package body Reports is
 --    char line[LINESIZE];
       STP : Lime.State_Access;
 --    struct action *ap;
---    struct rule *rp;
+      RP  : Rules.Rule_Access;
+
       Act_Tab : Action_Tables.A_Action_Table;
 --    int i, j, n, sz;
+      I  : Integer;
       N  : Integer;
       SZ : Integer;
       Size_Of_Action_Type : Integer;
@@ -771,10 +790,22 @@ package body Reports is
 --        lime_put_line (" */");
 --      }
 --      for(i=0; i<lemp->nsymbol && lemp->symbols[i]->type!=TERMINAL; i++);
---      if( i<lemp->nsymbol ){
---        emit_destructor_code (lemp->symbols[i], lemp);
---        lime_put_line ("      break;");
---      }
+      declare
+         use Symbols;
+      begin
+         I := 0;
+         loop
+            exit when I >= Integer (Lemp.N_Symbol);
+            exit when Element_At (Lemp.Extra, Symbol_Index (I)).Kind = Terminal;
+            I := I + 1;
+         end loop;
+
+         --  I : Symbols.Symbol_Index;
+         --      if( i<lemp->nsymbol ){
+         Emit_Destructor_Code (Symbols.Element_At (Lemp.Extra, Symbol_Index (I)), Lemp);
+         --        lime_put_line ("      break;");
+         --      }
+      end;
 --    }
 --
 --    if( lemp->vardest ){
@@ -867,19 +898,23 @@ package body Reports is
 --    }
 --
       Template_Transfer (Lemp_Name);
---
---    /* Generate code which execution during each REDUCE action */
---    i = 0;
---    for(rp=lemp->rule; rp; rp=rp->next){
---      i += translate_code(lemp, rp);
---    }
---    if( i ){
---      lime_put_line ("        YYMINORTYPE yylhsminor;");
---    }
---
---    /* First output rules other than the default: rule */
---    for(rp=lemp->rule; rp; rp=rp->next){
---      struct rule *rp2;               /* Other rules with the same action */
+
+      --  Generate code which execution during each REDUCE action
+      I  := 0;
+      RP := Lemp.Rule;
+      while RP /= null loop
+         --  I  := I + Translate_Code (Lemp, RP);
+         RP := RP.Next;
+      end loop;
+
+      if I /= 0 then
+         Text_Out.Put_Line ("        YYMINORTYPE yylhsminor;");
+      end if;
+
+      --  First output rules other than the default: rule
+      RP := Lemp.Rule;
+      while RP /= null loop
+      --      struct rule *rp2;               /* Other rules with the same action */
 --      if( rp->codeEmitted ) continue;
 --      if( rp->noCode ){
 --        /* No C code actions, so this will be part of the "default:" rule */
@@ -905,10 +940,11 @@ package body Reports is
 --            rp2->codeEmitted = 1;
 --          }
 --      }
---      emit_code (rp, lemp);
+         Emit_Code (RP, Lemp);
 --      lime_put_line ("        break;");
 --      rp->codeEmitted = 1;
---    }
+         RP := RP.Next;
+      end loop;
 --
 --    /* Finally, output the default: rule.  We choose as the default: all
 --    ** empty actions. */
@@ -1325,6 +1361,111 @@ package body Reports is
          end;
       end loop;
    end Write_Rule_Text;
+
+
+   procedure Emit_Destructor_Code
+     (SP   : in Symbols.Symbol_Access;
+      Lemp : in Lime.Lemon_Record)
+   is
+      --  char *cp = 0;
+   begin
+      null;
+--   if( sp->type==TERMINAL ){
+--     cp = lemp->tokendest;
+--     if( cp==0 ) return;
+
+--     lime_put_line ("{");
+--   }else if( sp->destructor ){
+--     cp = sp->destructor;
+--     lime_put_line ("{");
+--     if( !lemp->nolinenosflag ){
+--       //(*lineno)++;   // XXX
+--       lime_write_line_directive (sp->destLineno, lemp->filename);
+--     }
+--   }else if( lemp->vardest ){
+--     cp = lemp->vardest;
+--     if( cp==0 ) return;
+
+--     lime_put_line ("{");
+--   }else{
+--   assert( 0 );  // Cannot happen
+--   }
+--   for(; *cp; cp++){
+--     if( *cp=='$' && cp[1]=='$' ){
+--       lime_put ("(yypminor->yy");
+--       lime_put_int (sp->dtnum);
+--       lime_put (")");
+--       cp++;
+--       continue;
+--     }
+--     //   if( *cp=='\n' ) (*lineno)++;  //  XXX
+--     //fputc(*cp,out);
+--     char lime_string[2];
+--     lime_string[0] = *cp;
+--     lime_string[1] = 0;
+--     lime_put (lime_string);
+--     //lime_put ("" & *cp);  // XXX
+--   }
+--   lime_put_line ("");
+--   if (!lemp->nolinenosflag) {
+--     lime_write_line_directive (0, lemp->outname);
+--     //lime_write_line_directive (0, lime_get_out_name ());
+--   }
+--   lime_put_line ("}");
+--   return;
+   end Emit_Destructor_Code;
+
+
+   procedure Emit_Code
+     (RP   : in Rules.Rule_Access;
+      Lemp : in Lime.Lemon_Record)
+   is
+--         const char *cp;
+   begin
+      null;
+--   // Setup code prior to the #line directive
+--   if( rp->codePrefix && rp->codePrefix[0] ){
+--     lime_put ("{");
+--     lime_put (rp->codePrefix);
+--     for(cp=rp->codePrefix; *cp; cp++)
+--       {
+--         //if( *cp=='\n' ) //  XXX
+--         //  (*lineno)++;
+--       }
+--   }
+
+--  // Generate code to do the reduce action
+--   if( rp->code ){
+--     if( !lemp->nolinenosflag ){
+--       lime_write_line_directive (rp->line, lemp->filename);
+--     }
+--     lime_put ("{");
+--     lime_put (rp->code);
+--     for(cp=rp->code; *cp; cp++){
+--       //if( *cp=='\n' ) (*lineno)++;
+--     }
+--     lime_put_line ("}");
+--     if( !lemp->nolinenosflag ){
+--       //(*lineno)++;
+--       //tplt_linedir(out,*lineno,lemp->outname);  //  XXX
+--       //lime_write_line_directive (*lineno, lemp->outname);
+--       lime_write_line_directive (0, lemp->outname);
+--       //lime_write_line_directive (0, lime_get_out_name ());
+--     }
+--   }
+
+--  // Generate breakdown code that occurs after the #line directive
+--   if( rp->codeSuffix && rp->codeSuffix[0] ){
+--     lime_put (rp->codeSuffix);
+--     for(cp=rp->codeSuffix; *cp; cp++); //{ if( *cp=='\n' ) (*lineno)++; }
+--   }
+
+--   if( rp->codePrefix ){
+--     lime_put_line ("}");
+--   }
+
+--   return;
+   end Emit_Code;
 
 
 end Reports;
