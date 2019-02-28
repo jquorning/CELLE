@@ -21,7 +21,6 @@
 #include <assert.h>
 
 #include "lemon.h"   /* Binding to C from Ada */
-#include "lime.h"    /* Binding to Ada from C */
 #include "cherry.h"
 #include "action_tables.h"
 #include "symbols.h"
