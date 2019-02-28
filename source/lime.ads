@@ -238,40 +238,6 @@ package Lime is
          Max_Action       : Integer;            --  Maximum action value of any kind
          Symbols2         : Integer; -- XXX delme --  Sorted array of pointers to symbols
          Error_Cnt        : Integer;            --  Number of errors
---  <<<<<<< HEAD
---           Err_Sym2         : Integer; --  Symbol_Access;  --  The error symbol
---           Wildcard2        : Integer; --  Symbol_Access;  --  Token that matches anything
---           Name             : Strings.chars_ptr;  --  Name of the generated parser
---           ARG2             : Strings.chars_ptr;  --  Declaration of the 3th argument to parser
---           CTX2             : Strings.chars_ptr;  --  Declaration of 2nd argument to constructor
---        Token_Type       : Strings.chars_ptr;  --  Type of terminal symbols in the parser stack
---           Var_Type         : Strings.chars_ptr;  --  The default type of non-terminal symbols
---           Start            : Strings.chars_ptr;  --  Name of the start symbol for the grammar
---           Stack_Size       : Strings.chars_ptr;  --  Size of the parser stack
---           Include          : Strings.chars_ptr;  --  Code to put at the start of the C file
---           Error            : Strings.chars_ptr;  --  Code to execute when an error is seen
---           Overflow         : Strings.chars_ptr;  --  Code to execute on a stack overflow
---           Failure          : Strings.chars_ptr;  --  Code to execute on parser failure
---           C_Accept         : Strings.chars_ptr;  --  Code to execute when the parser excepts
---           Extra_Code       : Strings.chars_ptr;  --  Code appended to the generated file
---           Token_Dest       : Strings.chars_ptr;  --  Code to execute to destroy token data
---       Var_Dest         : Strings.chars_ptr;  --  Code for the default non-terminal destructor
---           File_Name        : Strings.chars_ptr;  --  Name of the input file
-
---           Out_Name        : chars_ptr;          --  Name of the current output file
---           Token_Prefix    : Strings.chars_ptr;  --  A prefix added to token names in the .h file
---           N_Conflict      : Integer;            --  Number of parsing conflicts
---           N_Action_Tab    : Integer;            --  Number of entries in the yy_action[] table
---           N_Lookahead_Tab : Integer;            --  Number of entries in yy_lookahead[]
---           Table_Size      : Integer;            --  Total table size of all tables in bytes
---           Basis_Flag      : Boolean;            --  Print only basis configurations
---           Has_Fallback    : Boolean;            --  True if any %fallback is seen in the grammar
---       No_Linenos_Flag : Boolean;            --  True if #line statements should not be printed
---           Argv0           : Strings.chars_ptr;  --  Name of the program
-
---           Extra           : Symbols.Extra_Access;
---           Parser          : Parsers.Context_Access;
---  =======
          Err_Sym2         : Integer; --  Symbol_Access;      --  The error symbol
          Wildcard2        : Integer; --  Symbol_Access;      --  Token that matches anything
          Name             : aliased chars_ptr;  --  Name of the generated parser
@@ -291,9 +257,6 @@ package Lime is
          Var_Dest         : aliased chars_ptr;  --  Code for the default non-terminal destructor
          File_Name        : Unbounded_String;   --  Name of the input file
          Out_Name         : Unbounded_String;   --  Name of the current output file
---         File_Name        : Ada.Strings.Unbounded.Unbounded_String;
-
-         --   char *outname;           --  Name of the current output file
          Token_Prefix     : aliased chars_ptr;  --  A prefix added to token names in the .h file
          N_Conflict       : Integer;            --  Number of parsing conflicts
          N_Action_Tab     : Integer;            --  Number of entries in the yy_action[] table
@@ -306,31 +269,24 @@ package Lime is
 
          Extra            : Symbols.Extra_Access;
          Parser           : Parsers.Context_Access;
--->>>>>>> parsetoken
       end record;
-   --  pragma Convention (C_Pass_By_Copy, Lemon_Record);
 
    Clean_Lemon : constant Lemon_Record :=
      (Sorted       => null,       Rule         => null,      Start_Rule       => null,
       N_State      => 0,          Nx_State     => 0,         N_Rule           => 0,
       N_Symbol     => 0,          N_Terminal   => 0,         Min_Shift_Reduce => 0,
       Err_Action   => 0,          Acc_Action   => 0,         No_Action        => 0,
-      Min_Reduce   => 0,          Max_Action   => 0,         Symbols2         => 999, --  null,
-      Error_Cnt    => 0,          Err_Sym2     => 999, --  null,
-      Wildcard2    => 999, -- null,
+      Min_Reduce   => 0,          Max_Action   => 0,         Symbols2         => 999,
+      Error_Cnt    => 0,          Err_Sym2     => 999,
+      Wildcard2    => 999,
       Name         => Null_Ptr, ARG2         => Null_Ptr,  CTX2             => Null_Ptr,
       Token_Type   => Null_Ptr, Var_Type     => Null_Ptr,  Start            => Null_Ptr,
       Stack_Size   => Null_Ptr, Include      => Null_Ptr,  Error            => Null_Ptr,
       Overflow     => Null_Ptr, Failure      => Null_Ptr,  C_Accept         => Null_Ptr,
       Extra_Code   => Null_Ptr, Token_Dest   => Null_Ptr,  Var_Dest         => Null_Ptr,
---<<<<<<< HEAD
       File_Name    => Null_Unbounded_String,
       Out_Name     => Null_Unbounded_String,
-      Token_Prefix     => Null_Ptr,
---=======
---      File_Name    => Null_Ptr, Ada.Strings.Unbounded.Null_Unbounded_String,  --  Null_Ptr,
---      Token_Prefix => Null_Ptr,
--->>>>>>> parsetoken
+      Token_Prefix => Null_Ptr,
       N_Conflict   => 0,        N_Action_Tab => 0,         N_Lookahead_Tab  => 0,
       Table_Size   => 0,        Basis_Flag   => False,     Has_Fallback     => False,
       No_Linenos_Flag => False, Argv0       => Null_Ptr,
@@ -343,18 +299,18 @@ package Lime is
    --  pragma Import (C, NO_OFFSET, "NO_OFFSET");
    No_Offset : aliased Integer := Integer'First;
 
-   type lime_render_record is
-      record
-         Nxstate : aliased int;  -- lemon.h:372
-         nrule : aliased int;  -- lemon.h:373
-         nterminal : aliased int;  -- lemon.h:374
-         minShiftReduce : aliased int;  -- lemon.h:375
-         errAction : aliased int;  -- lemon.h:376
-         accAction : aliased int;  -- lemon.h:377
-         noAction : aliased int;  -- lemon.h:378
-         minReduce : aliased int;  -- lemon.h:379
-      end record;
-   pragma Convention (C_Pass_By_Copy, lime_render_record);  -- lemon.h:370
+--     type lime_render_record is
+--        record
+--           Nxstate : aliased int;  -- lemon.h:372
+--           nrule : aliased int;  -- lemon.h:373
+--           nterminal : aliased int;  -- lemon.h:374
+--           minShiftReduce : aliased int;  -- lemon.h:375
+--           errAction : aliased int;  -- lemon.h:376
+--           accAction : aliased int;  -- lemon.h:377
+--           noAction : aliased int;  -- lemon.h:378
+--           minReduce : aliased int;  -- lemon.h:379
+--        end record;
+--     pragma Convention (C_Pass_By_Copy, lime_render_record);  -- lemon.h:370
 
 
    procedure Implementation_Open (File_Name : in String);
@@ -386,7 +342,6 @@ package Lime is
       Module    : in chars_ptr; --  Prefix of symbols in spec
       First     : in Integer;   --  Index of first symbol
       Last      : in Integer);  --  Index of last symbol
-
    --  Create spec file with name File_Name including symols found by
    --  iterating from First to Last calling callback prepended with
    --  Suffix.

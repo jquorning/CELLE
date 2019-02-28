@@ -23,11 +23,8 @@
 #include "lemon.h"   /* Binding to C from Ada */
 #include "lime.h"    /* Binding to Ada from C */
 #include "cherry.h"
-//<<<<<<< HEAD
 #include "action_tables.h"
-//=======
 #include "symbols.h"
-//>>>>>>> parsetoken
 
 #define ISSPACE(X) isspace((unsigned char)(X))
 #define ISDIGIT(X) isdigit((unsigned char)(X))
