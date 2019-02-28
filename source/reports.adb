@@ -72,6 +72,19 @@ package body Reports is
    --  the code to "out".  Make sure lineno stays up-to-date.
 
 
+   procedure Print_Stack_Union
+     (Lemp : Lime.Lemon_Record);  --  The main info structure for this parser
+
+   --  struct lemon *lemp //,
+   --  //  int mhflag                  /* True if generating makeheaders output */
+
+   --  Print the definition of the union used for the parser's data stack.
+   --  This union contains fields for every possible data type for tokens
+   --  and nonterminals.  In the process of computing and printing this
+   --  union, also set the ".dtnum" field of every terminal and nonterminal
+   --  symbol.
+
+
    --
    --  Each state contains a set of token transaction and a set of
    --  nonterminal transactions.  Each of these sets makes an instance
@@ -426,7 +439,7 @@ package body Reports is
       end;
 
       --  print_stack_union (lemp, lime_get_mh_flag());
-      --  XXX  Print_Stack_Union (Lemp);
+      Print_Stack_Union (Lemp);
       Generate_The_Defines_2 (Lemp.Stack_Size);
 
 --    //if( lime_get_mh_flag() ){
@@ -1467,5 +1480,140 @@ package body Reports is
 --   return;
    end Emit_Code;
 
+
+   procedure Print_Stack_Union
+     (Lemp : Lime.Lemon_Record)  --  The main info structure for this parser
+   is
+--    char **types;             /* A hash table of datatypes */
+--    int arraysize;            /* Size of the "types" array */
+--    int maxdtlength;          /* Maximum length of any ".datatype" field. */
+--    char *stddt;              /* Standardized name for a datatype */
+--    int i,j;                  /* Loop counters */
+--    unsigned hash;            /* For hashing the name of a type */
+--    const char *name;         /* Name of the parser */
+   begin
+      null;
+--    /* Allocate and initialize types[] and allocate stddt[] */
+--    arraysize = lemp->nsymbol * 2;
+--    types = (char**)calloc( arraysize, sizeof(char*) );
+--    if( types==0 ){
+--      fprintf(stderr,"Out of memory.\n");
+--      exit(1);
+--    }
+--    for(i=0; i<arraysize; i++) types[i] = 0;
+--    maxdtlength = 0;
+--    if( lemp->vartype ){
+--      maxdtlength = lemonStrlen(lemp->vartype);
+--    }
+--    for(i=0; i<lemp->nsymbol; i++){
+--      int len;
+--      struct symbol *sp = lemp->symbols[i];
+--      if( sp->datatype==0 ) continue;
+--      len = lemonStrlen(sp->datatype);
+--      if( len>maxdtlength ) maxdtlength = len;
+--    }
+--    stddt = (char*)malloc( maxdtlength*2 + 1 );
+--    if( stddt==0 ){
+--      fprintf(stderr,"Out of memory.\n");
+--      exit(1);
+--    }
+
+--    /* Build a hash table of datatypes. The ".dtnum" field of each symbol
+--    ** is filled in with the hash index plus 1.  A ".dtnum" value of 0 is
+--    ** used for terminal symbols.  If there is no %default_type defined then
+--    ** 0 is also used as the .dtnum value for nonterminals which do not specify
+--    ** a datatype using the %type directive.
+--    */
+--    for(i=0; i<lemp->nsymbol; i++){
+--      struct symbol *sp = lemp->symbols[i];
+--      char *cp;
+--      if( sp==lemp->errsym ){
+--        sp->dtnum = arraysize+1;
+--        continue;
+--      }
+--      if( sp->type!=NONTERMINAL || (sp->datatype==0 && lemp->vartype==0) ){
+--        sp->dtnum = 0;
+--        continue;
+--      }
+--      cp = sp->datatype;
+--      if( cp==0 ) cp = lemp->vartype;
+--      j = 0;
+--      while( ISSPACE(*cp) ) cp++;
+--      while( *cp ) stddt[j++] = *cp++;
+--      while( j>0 && ISSPACE(stddt[j-1]) ) j--;
+--      stddt[j] = 0;
+--      if( lemp->tokentype && strcmp(stddt, lemp->tokentype)==0 ){
+--        sp->dtnum = 0;
+--        continue;
+--      }
+--      hash = 0;
+--      for(j=0; stddt[j]; j++){
+--        hash = hash*53 + stddt[j];
+--      }
+--      hash = (hash & 0x7fffffff)%arraysize;
+--      while( types[hash] ){
+--        if( strcmp(types[hash],stddt)==0 ){
+--          sp->dtnum = hash + 1;
+--          break;
+--        }
+--        hash++;
+--        if( hash>=(unsigned)arraysize ) hash = 0;
+--      }
+--      if( types[hash]==0 ){
+--        sp->dtnum = hash + 1;
+--        types[hash] = (char*)malloc( lemonStrlen(stddt)+1 );
+--        if( types[hash]==0 ){
+--          fprintf(stderr,"Out of memory.\n");
+--          exit(1);
+--        }
+--        lemon_strcpy(types[hash],stddt);
+--      }
+--    }
+
+--    /* Print out the definition of YYTOKENTYPE and YYMINORTYPE */
+--    const char*  tokentype;
+
+--    name      = (lemp->name      ? lemp->name      : "Parse");
+--    tokentype = (lemp->tokentype ? lemp->tokentype : "void*");
+--    lime_write_interface (name, tokentype);
+--  /*   name = lemp->name ? lemp->name : "Parse"; */
+--  /*   if( mhflag ) */
+--  /*     { */
+--  /*       lime_put_line ("#if INTERFACE"); */
+--  /*     } */
+--  /*   lime_put ("#define "); */
+--  /*   lime_put (name); */
+--  /*   lime_put ("TOKENTYPE "); */
+--  /*   lime_put_line ((lemp->tokentype ? lemp->tokentype : "void*")); */
+
+--  /*   if( mhflag ) */
+--  /*     { */
+--  /*       lime_put_line ("#endif"); */
+--  /*     } */
+
+--    lime_put_line ("typedef union {");
+--    lime_put_line ("  int yyinit;");
+--    lime_put ("  ");
+--    lime_put (name);
+--    lime_put_line ("TOKENTYPE yy0;");
+
+--    for(i=0; i<arraysize; i++){
+--      if( types[i]==0 ) continue;
+--      lime_put ("  ");
+--      lime_put (types[i]);
+--      lime_put (" yy");
+--      lime_put_int (i+1);
+--      lime_put_line (";");
+--      free(types[i]);
+--    }
+--    if( lemp->errsym && lemp->errsym->useCnt ){
+--      lime_put ("  int yy");
+--      lime_put_int (lemp->errsym->dtnum);
+--      lime_put_line (";");
+--    }
+--    free(stddt);
+--    free(types);
+--    lime_put_line ("} YYMINORTYPE;");
+   end Print_Stack_Union;
 
 end Reports;
