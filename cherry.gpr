@@ -6,17 +6,17 @@
 --    May you find forgiveness for yourself and forgive others.
 --    May you share freely, not taking more than you give.
 --
--- cherry
--- cherry GPR project
+---------------------------------------------------------------------------
+--  Cherry GPR project
 --
 
-with "../DK8543/dk8543.gpr";
+with "../DK8543/dk8543_core.gpr";
 
 project Cherry is
 
   for Languages    use ("Ada", "C");
   for Source_Dirs  use ("source/");
-  for Object_Dir   use ".object/";
+  for Object_Dir   use "object/";
   for Exec_Dir     use "binary/";
   for Main         use ("cherry_program.adb");
 
