@@ -18,4 +18,6 @@ build:
 clean:
 	gprclean -q cherry.gpr
 
+test:
+	cd test_c; make
 
