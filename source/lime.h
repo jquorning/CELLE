@@ -13,45 +13,13 @@
 
 
 
-#if 1
-void
-lime_put (const char* item);
+//void
+//lime_partial_database_dump_ada (void);
 //
 //
 
-void
-lime_put_int (int item);
-//
-//
-
-void
-lime_put_line (const char* item);
-//
-//
-#endif
-
-
-
-void
-lime_write_interface
-(const char  *name,
- const char  *tokentype);
-//
-//
-
-void lime_write_interface_begin (void);
-void lime_write_interface_end   (void);
-//
-//
-
-
-void
-lime_partial_database_dump_ada (void);
-//
-//
-
-struct rule*
-lime_rule_sort (struct rule*);
+//struct rule*
+//lime_rule_sort (struct rule*);
 //
 //
 

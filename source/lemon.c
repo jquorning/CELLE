@@ -1391,33 +1391,7 @@ PRIVATE FILE *file_open(
 }
 
 
-/* Print the text of a rule
-*/
-void rule_print (struct rule *rp)
-{
-  int i, j;
-
-  lime_put (rp->lhs->name);
-  /*    if( rp->lhsalias ) fprintf(out,"(%s)",rp->lhsalias); */ // XXX
-  lime_put (" ::=");
-  for(i=0; i<rp->nrhs; i++){
-    struct symbol *sp = rp->rhs[i];
-    if( sp->type==MULTITERMINAL ){
-      lime_put (" ");
-      lime_put (sp->subsym[0]->name);
-      for(j=1; j<sp->nsubsym; j++){
-        lime_put ("|");
-        lime_put (sp->subsym[j]->name);
-      }
-    }else{
-      lime_put (" ");
-      lime_put (sp->name);
-    }
-    /* if( rp->rhsalias[i] ) fprintf(out,"(%s)",rp->rhsalias[i]); */  //  XXX
-  }
-}
-
-
+#if 1
 /* Print a single rule.
 */
 void RulePrint(FILE *fp, struct rule *rp, int iCursor){
@@ -1438,6 +1412,7 @@ void RulePrint(FILE *fp, struct rule *rp, int iCursor){
     }
   }
 }
+#endif
 
 /* Print the rule for a configuration.
 */

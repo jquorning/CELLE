@@ -84,6 +84,9 @@ package body Reports is
    --  union, also set the ".dtnum" field of every terminal and nonterminal
    --  symbol.
 
+   procedure Rule_Print (RP : in Rules.Rule_Access);
+   --  Print the text of a rule
+
 
    --
    --  Each state contains a set of token transaction and a set of
@@ -894,7 +897,7 @@ package body Reports is
 --      lime_put (", /* (");
 --      lime_put_int (i);
 --      lime_put (" ");
---      rule_print (rp);
+      Rule_Print (RP);
 --      lime_put_line (" */");
 --    }
 --
@@ -1615,5 +1618,53 @@ package body Reports is
 --    free(types);
 --    lime_put_line ("} YYMINORTYPE;");
    end Print_Stack_Union;
+
+
+   procedure Rule_Print (RP : in Rules.Rule_Access)
+   is
+      --  int i, j;
+   begin
+      null;
+--    lime_put (rp->lhs->name);
+--    /*    if( rp->lhsalias ) fprintf(out,"(%s)",rp->lhsalias); */ // XXX
+--    lime_put (" ::=");
+--    for(i=0; i<rp->nrhs; i++){
+--      struct symbol *sp = rp->rhs[i];
+--      if( sp->type==MULTITERMINAL ){
+--        lime_put (" ");
+--        lime_put (sp->subsym[0]->name);
+--        for(j=1; j<sp->nsubsym; j++){
+--          lime_put ("|");
+--          lime_put (sp->subsym[j]->name);
+--        }
+--      }else{
+--        lime_put (" ");
+--        lime_put (sp->name);
+--      }
+--      /* if( rp->rhsalias[i] ) fprintf(out,"(%s)",rp->rhsalias[i]); */  //  XXX
+--    }
+   end Rule_Print;
+
+
+--  /* Print a single rule.
+--  */
+--  void RulePrint(FILE *fp, struct rule *rp, int iCursor){
+--    struct symbol *sp;
+--    int i, j;
+--    fprintf(fp,"%s ::=",rp->lhs->name);
+--    for(i=0; i<=rp->nrhs; i++){
+--      if( i==iCursor ) fprintf(fp," *");
+--      if( i==rp->nrhs ) break;
+--      sp = rp->rhs[i];
+--      if( sp->type==MULTITERMINAL ){
+--        fprintf(fp," %s", sp->subsym[0]->name);
+--        for(j=1; j<sp->nsubsym; j++){
+--          fprintf(fp,"|%s",sp->subsym[j]->name);
+--        }
+--      }else{
+--        fprintf(fp," %s", sp->name);
+--      }
+--    }
+--  }
 
 end Reports;
