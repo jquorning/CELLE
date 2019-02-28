@@ -358,7 +358,8 @@ package Lime is
 
 
    procedure Implementation_Open (File_Name : in String);
-   --  Open the out file.
+   --  Open a file for writing then implementaion (parse.adb/parse.c).
+   --  File handler is located in the context structure.
 
    function Get_Token (Index : in Integer) return String;
    --  Get token for token symbol creation.
@@ -373,7 +374,8 @@ package Lime is
      (User_Template : in     String;
       Error_Count   : in out Integer;
       Success       :    out Integer);
-   --  Uses Context for File_Template.
+   --  Thisk function finds the template file and opens it. File handle
+   --  is located in the context structure.
 
    procedure Template_Transfer (Name : in String);
    --
@@ -591,22 +593,15 @@ private
    pragma Export (C, Lemon_User_Template, "lemon_user_template");
    pragma Export (C, Lemon_Output_Dir,    "lemon_output_dir");
 
---   pragma Export (C, Template_Open,       "lime_template_open");
---   pragma Export (C, Implementation_Open, "lime_implementation_open");
---   pragma Export (C, Template_Transfer,   "lime_template_transfer");
    pragma Export (C, Generate_Spec,       "lime_generate_spec");
 
---   pragma Export (C, Template_Print,   "lime_print");
---   pragma Export (C, Write_Include,    "lime_write_include");
    pragma Export (C, Generate_Tokens,  "lime_generate_tokens");
    pragma Import (C, Spec_Line_Callback,
                   "lemon_generate_header_line_callback");
    pragma Import (C, Get_Token_Callback,
                   "lime_get_token_callback");
---   pragma Export (C, Generate_The_Defines_1, "lime_generate_the_defines_1");
    pragma Export (C, Generate_The_Defines_2, "lime_generate_the_defines_2");
    pragma Export (C, Error_Fallback,         "lime_error_fallback");
---   pragma Export (C, Render_Constants,       "lime_render_constants");
    pragma Export (C, Write_Action_Table,     "lime_write_action_table");
    pragma Import (C, Get_Acttab_YY_Action,   "lime_get_acttab_yy_action");
    pragma Export (C, Write_YY_Lookahead,     "lime_write_yy_lookahead");
@@ -618,9 +613,6 @@ private
    pragma Export (C, Write_Default_Action_Table, "lime_write_default_action_table");
    pragma Import (C, Get_Default_Reduce,         "lime_get_default_reduce");
 
---   pragma Export (C, Template_Print_2,    "lime_template_print");
-
---   pragma Export (C, Write_Arg_Defines, "lime_write_arg_defines");
    pragma Export (C, Close_Out,         "lime_close_out");
    pragma Export (C, Close_In,          "lime_close_in");
 
