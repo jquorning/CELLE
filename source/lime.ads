@@ -21,6 +21,7 @@ with Interfaces.C.Strings;
 with Rules;
 with Symbols;
 with Parsers;
+with Action_Tables;
 
 package Lime is
 
@@ -185,17 +186,17 @@ package Lime is
 
    type State_Record is
       record
-         BP          : Config_Access;        --  The basis configurations for this state
-         CFP         : Config_Access;        --  All configurations in this set
-         State_Num   : aliased Integer;      --  Sequential number for this state
-         AP          : access Action_Record; --  List of actions for this state
-         N_Tkn_Act   : aliased Integer;      --  Number of actions on terminals and nonterminals
-         N_Nt_Act    : aliased Integer;      --  yy_action[] offset for terminals and nonterms
-         iTknOfst    : aliased Integer;      --  Default action is to REDUCE by this rule
-         iNtOfst     : aliased Integer;      --  The default REDUCE rule.
-         iDfltReduce : aliased Integer;      --  True if this is an auto-reduce state
-         pDfltReduce : access Rule_Record;
-         autoReduce  : aliased int;
+         BP           : Config_Access;        --  The basis configurations for this state
+         CFP          : Config_Access;        --  All configurations in this set
+         State_Num    : aliased Integer;      --  Sequential number for this state
+         AP           : access Action_Record; --  List of actions for this state
+         N_Tkn_Act    : aliased Integer;      --  Number of actions on terminals and nonterminals
+         N_Nt_Act     : aliased Integer;      --  yy_action[] offset for terminals and nonterms
+         Token_Offset : aliased Integer;      --  Default action is to REDUCE by this rule
+         iNtOfst      : aliased Integer;      --  The default REDUCE rule.
+         iDfltReduce  : aliased Integer;      --  True if this is an auto-reduce state
+         pDfltReduce  : access Rule_Record;
+         autoReduce   : aliased int;
       end record;
 
    function Sorted_Element_At (Extra : in Extra_Access;
@@ -317,7 +318,7 @@ package Lime is
    --  Open a file for writing then implementaion (parse.adb/parse.c).
    --  File handler is located in the context structure.
 
-   function Get_Token (Index : in Integer) return String;
+   --  function Get_Token (Index : in Integer) return String;
    --  Get token for token symbol creation.
 
    procedure Open_If_Possible
@@ -346,9 +347,9 @@ package Lime is
    --  iterating from First to Last calling callback prepended with
    --  Suffix.
 
-   function Spec_Line_Callback
-     (Index : in Integer)
-     return chars_ptr;
+--   function Spec_Line_Callback
+--     (Index : in Integer)
+--     return chars_ptr;
 
    procedure Template_Print
      (Out_Name    : in String;
@@ -363,9 +364,9 @@ package Lime is
       First        : in Integer;
       Last         : in Integer);
 
-   function Get_Token_Callback
-     (Index : in Integer)
-     return chars_ptr;
+--   function Get_Token_Callback
+--     (Index : in Integer)
+--     return chars_ptr;
 
    procedure Generate_The_Defines_1
      (YY_Code_Type   : in chars_ptr;
@@ -413,32 +414,35 @@ package Lime is
    --
    --
 
-   function Get_Acttab_YY_Action
-     (I : in Integer)
-     return Integer;
+--   function Get_Acttab_YY_Action
+--     (I : in Integer)
+--     return Integer;
 
-   procedure Write_Action_Table
-     (N         : in Integer;
-      No_Action : in Integer);
+   procedure Output_Action_Table
+     (Action_Table : in Action_Tables.A_Action_Table;
+      N            : in Integer;
+      No_Action    : in Integer);
    --
    --
 
-   function Get_Acttab_YY_Lookahead
-     (I : in Integer)
-     return Integer;
+--   function Get_Acttab_YY_Lookahead
+--     (I : in Integer)
+--     return Integer;
 
-   procedure Write_YY_Lookahead
-     (N       : in Integer;
-      Nsymbol : in Integer);
+   procedure Output_YY_Lookahead
+     (Action_Table : in Action_Tables.A_Action_Table;
+      N            : in Integer;
+      Nsymbol      : in Integer);
    --
    --
 
-   function Get_Token_Offset
-     (I : in Integer)
-     return Integer;
+--   function Get_Token_Offset
+--     (I : in Integer)
+--     return Integer;
 
-   procedure Write_YY_Shift_Offsets
-     (N             : in Integer;
+   procedure Output_YY_Shift_Offsets
+     (Lemp          : in Lime.Lemon_Record;
+      N             : in Integer;
       MnTknOfst     : in Integer;
       MxTknOfst     : in Integer;
       Min_Size_Type : in chars_ptr;
@@ -449,12 +453,13 @@ package Lime is
    --
    --
 
-   function Get_NT_Offset
-     (I : in Integer)
-     return Integer;
+--   function Get_NT_Offset
+--     (I : in Integer)
+--     return Integer;
 
-   procedure Write_YY_Reduce_Offsets
-     (N             : in Integer;
+   procedure Output_YY_Reduce_Offsets
+     (Lemp          : in Lime.Lemon_Record;
+      N             : in Integer;
       MnNtOfst      : in Integer;
       MxNtOfst      : in Integer;
       Min_Size_Type : in chars_ptr;
@@ -464,12 +469,13 @@ package Lime is
    --
    --
 
-   function Get_Default_Reduce
-     (I : in Integer)
-     return Integer;
+--   function Get_Default_Reduce
+--     (I : in Integer)
+--     return Integer;
 
-   procedure Write_Default_Action_Table
-     (N            : in Integer;
+   procedure Output_Default_Action_Table
+     (Lemp         : in Lime.Lemon_Record;
+      N            : in Integer;
       Error_Action : in Integer;
       Min_Reduce   : in Integer);
 
@@ -551,32 +557,32 @@ private
    pragma Export (C, Generate_Spec,       "lime_generate_spec");
 
    pragma Export (C, Generate_Tokens,  "lime_generate_tokens");
-   pragma Import (C, Spec_Line_Callback,
-                  "lemon_generate_header_line_callback");
-   pragma Import (C, Get_Token_Callback,
-                  "lime_get_token_callback");
-   pragma Export (C, Generate_The_Defines_2, "lime_generate_the_defines_2");
-   pragma Export (C, Error_Fallback,         "lime_error_fallback");
-   pragma Export (C, Write_Action_Table,     "lime_write_action_table");
-   pragma Import (C, Get_Acttab_YY_Action,   "lime_get_acttab_yy_action");
-   pragma Export (C, Write_YY_Lookahead,     "lime_write_yy_lookahead");
-   pragma Import (C, Get_Acttab_YY_Lookahead, "lime_get_acttab_yy_lookahead");
-   pragma Export (C, Write_YY_Shift_Offsets,  "lime_write_yy_shift_offsets");
-   pragma Import (C, Get_Token_Offset,        "lime_get_token_offset");
-   pragma Export (C, Write_YY_Reduce_Offsets, "lime_write_yy_reduce_offsets");
-   pragma Import (C, Get_NT_Offset,           "lime_get_nt_offset");
-   pragma Export (C, Write_Default_Action_Table, "lime_write_default_action_table");
-   pragma Import (C, Get_Default_Reduce,         "lime_get_default_reduce");
+--   pragma Import (C, Spec_Line_Callback,
+--                  "lemon_generate_header_line_callback");
+--   pragma Import (C, Get_Token_Callback,
+--                  "lime_get_token_callback");
+--   pragma Export (C, Generate_The_Defines_2, "lime_generate_the_defines_2");
+--   pragma Export (C, Error_Fallback,         "lime_error_fallback");
+--   pragma Export (C, Output_Action_Table,    "lime_write_action_table");
+--   pragma Import (C, Get_Acttab_YY_Action,   "lime_get_acttab_yy_action");
+--   pragma Export (C, Write_YY_Lookahead,     "lime_write_yy_lookahead");
+--   pragma Import (C, Get_Acttab_YY_Lookahead, "lime_get_acttab_yy_lookahead");
+--   pragma Export (C, Write_YY_Shift_Offsets,  "lime_write_yy_shift_offsets");
+--   pragma Import (C, Get_Token_Offset,        "lime_get_token_offset");
+--   pragma Export (C, Write_YY_Reduce_Offsets, "lime_write_yy_reduce_offsets");
+--   pragma Import (C, Get_NT_Offset,           "lime_get_nt_offset");
+--   pragma Export (C, Write_Default_Action_Table, "lime_write_default_action_table");
+--   pragma Import (C, Get_Default_Reduce,         "lime_get_default_reduce");
 
-   pragma Export (C, Close_Out,         "lime_close_out");
-   pragma Export (C, Close_In,          "lime_close_in");
+--   pragma Export (C, Close_Out,         "lime_close_out");
+--   pragma Export (C, Close_In,          "lime_close_in");
 
-   pragma Export (C, Write_Interface,   "lime_write_interface");
-   pragma Export (C, Write_Interface_Begin, "lime_write_interface_begin");
-   pragma Export (C, Write_Interface_End,   "lime_write_interface_end");
-   pragma Export (C, Report_Header,         "lime_report_header");
-   pragma Export (C, Generate_Reprint_Of_Grammar,
-                  "lime_generate_reprint_of_grammar");
+--   pragma Export (C, Write_Interface,   "lime_write_interface");
+--   pragma Export (C, Write_Interface_Begin, "lime_write_interface_begin");
+--   pragma Export (C, Write_Interface_End,   "lime_write_interface_end");
+--   pragma Export (C, Report_Header,         "lime_report_header");
+--   pragma Export (C, Generate_Reprint_Of_Grammar,
+--                  "lime_generate_reprint_of_grammar");
 
    pragma Import (C, Reprint,               "lemon_reprint");
    pragma Import (C, Set_Size,              "lemon_set_size");

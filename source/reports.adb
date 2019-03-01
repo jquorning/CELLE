@@ -634,8 +634,7 @@ package body Reports is
          N := Lemp.N_Action_Tab;
          Lemp.Table_Size := Lemp.Table_Size + N * Size_Of_Action_Type;
 
-         --  lime_apActtab = pActtab;
-         Write_Action_Table (N, Lemp.No_Action);
+         Output_Action_Table (Act_Tab, N, Lemp.No_Action);
 
          --
          --  Output the yy_lookahead table
@@ -645,8 +644,7 @@ package body Reports is
          Lemp.Table_Size := Lemp.Table_Size + N * Size_Of_Code_Type;
       end;
 
-      --      pActtab := pActtab;
-      Write_YY_Lookahead (N, Integer (Lemp.N_Symbol));
+      Output_YY_Lookahead (Act_Tab, N, Integer (Lemp.N_Symbol));
 
       --
       --  Output the yy_shift_ofst[] table
@@ -658,8 +656,8 @@ package body Reports is
 --      end loop;
 --
 --    lime_lemp = lemp;
-      Write_YY_Shift_Offsets
-        (N,
+      Output_YY_Shift_Offsets
+        (Lemp, N,
          Mn_Tkn_Ofst,
          Mx_Tkn_Ofst,
          Minimum_Size_Type (Mn_Tkn_Ofst, Integer (Lemp.N_Terminal) + Lemp.N_Action_Tab, SZ),
@@ -674,9 +672,8 @@ package body Reports is
       N := Lemp.Nx_State;
 --    while( n>0 && lemp->sorted[n-1]->iNtOfst==NO_OFFSET ) n--;
 --
---    lime_lemp = lemp;
-      Write_YY_Reduce_Offsets
-        (N,
+      Output_YY_Reduce_Offsets
+        (Lemp, N,
          Mn_Nt_Ofst,
          Mx_Nt_Ofst,
          Minimum_Size_Type (Mn_Nt_Ofst - 1, Mx_Nt_Ofst, SZ),
@@ -686,8 +683,8 @@ package body Reports is
       --
       --  Output the default action table
       --
-      Write_Default_Action_Table
-        (Lemp.Nx_State,
+      Output_Default_Action_Table
+        (Lemp, Lemp.Nx_State,
          Lemp.Err_Action,
          Lemp.Min_Reduce);
       Lemp.Table_Size := Lemp.Table_Size + N * Size_Of_Action_Type;

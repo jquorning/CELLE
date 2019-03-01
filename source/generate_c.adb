@@ -12,9 +12,11 @@ with Ada.Strings.Fixed;
 with Ada.Strings.Unbounded;
 with Ada.Directories;
 
-with Lime;
+--  with Lime;
 with Setup;
 with Auxiliary;
+with Symbols;
+with Database;
 
 package body Generate_C is
 
@@ -121,6 +123,7 @@ package body Generate_C is
          new Ada.Text_IO.Integer_IO (Integer);
 
       use Ada.Text_IO, Auxiliary;
+      use Symbols;
       File : File_Type;
    begin
 
@@ -130,7 +133,10 @@ package body Generate_C is
 
       for I in First .. Last - 1 loop
          declare
-            Symbol : constant String := Prefix & Lime.Get_Token (I);
+            Symbol : constant String :=
+              Prefix & From_Key (Symbols.Element_At (Database.Lemon.Extra,
+                                                     Symbol_Index (I)).Name);
+            --  Lime.Get_Token (I);
          begin
             Put (File, "#define ");
             Put (File, Symbol);

@@ -39,13 +39,13 @@ package body Lime is
 --   function Is_Alpha (C : Character) return Boolean;
    function Default_Template_Name return String;
 
-   function Get_Token (Index : in Integer) return String
-   is
-      function Callback (Index : in Integer) return chars_ptr;
-      pragma Import (C, Callback, "lemon_generate_header_line_callback");
-   begin
-      return Value (Callback (Index));
-   end Get_Token;
+--     function Get_Token (Index : in Integer) return String
+--     is
+--        function Callback (Index : in Integer) return chars_ptr;
+--        --  pragma Import (C, Callback, "lem$$$$on_generate_header_line_callback");
+--     begin
+--        return Value (Callback (Index));
+--     end Get_Token;
 
 
    procedure Generate_Spec
@@ -282,7 +282,12 @@ package body Lime is
 --              Line_Number := Line_Number + 1;
             Put ("#define ");
             Put_CP (Prefix);
-            Put_CP (Get_Token_Callback (I));
+            --  Put_CP (Get_Token_Callback (I));
+            --  return lime_lemp_copy->symbols[index]->name;
+            Put (From_Key
+                   (Element_At
+                      (Database.Lemon.Extra,
+                       Symbol_Index (I)).Name));
             Put (" ");
             Put_Int (I);
             New_Line;
@@ -396,10 +401,11 @@ package body Lime is
       Put ("#define YY_MAX_REDUCE        ", I - 1);
    end Render_Constants;
 
-
-   procedure Write_Action_Table
-     (N           : in     Integer;
-      No_Action   : in     Integer)
+   --  lemon.c:4377
+   procedure Output_Action_Table
+     (Action_Table : in Action_Tables.A_Action_Table;
+      N            : in Integer;
+      No_Action    : in Integer)
    is
       use Text_Out;
       use DK8543.Auxiliary;
@@ -410,7 +416,11 @@ package body Lime is
       Put_Line ("static const YYACTIONTYPE yy_action[] = {");
       J := 0;
       for I in 0 .. N - 1 loop
-         Action := Get_Acttab_YY_Action (I);
+         --  #define acttab_yyaction(X,N)  ((X)->aAction[N].action)
+         --  return acttab_yyaction (lime_pActtab, i);
+         --  struct acttab *lime_pActtab;
+         --  Action := Get_Acttab_YY_Action (I);
+         Action := Action_Table.Action (I).Action;
          if Action < 0 then
             Action := No_Action;
          end if;
@@ -427,12 +437,13 @@ package body Lime is
       end loop;
       Put_Line ("};");
 
-   end Write_Action_Table;
+   end Output_Action_Table;
 
 
-   procedure Write_YY_Lookahead
-     (N           : in     Integer;
-      Nsymbol     : in     Integer)
+   procedure Output_YY_Lookahead
+     (Action_Table : in Action_Tables.A_Action_Table;
+      N            : in Integer;
+      Nsymbol      : in Integer)
    is
       use Text_Out;
       use DK8543.Auxiliary;
@@ -441,7 +452,8 @@ package body Lime is
    begin
       Put_Line ("static const YYCODETYPE yy_lookahead[] = {");
       for I in 0 .. N - 1 loop
-         LA := Get_Acttab_YY_Lookahead (I);
+         --  LA := Get_Acttab_YY_Lookahead (I);
+         LA := Action_Table.Lookahead (I).Action;
          if LA < 0 then
             LA := Nsymbol;
          end if;
@@ -457,10 +469,13 @@ package body Lime is
          end if;
       end loop;
       Put_Line ("};");
-   end Write_YY_Lookahead;
+   end Output_YY_Lookahead;
 
-   procedure Write_YY_Shift_Offsets
-     (N             : in Integer;
+
+   --  lemon.c:4414
+   procedure Output_YY_Shift_Offsets
+     (Lemp          : in Lime.Lemon_Record;
+      N             : in Integer;
       MnTknOfst     : in Integer;
       MxTknOfst     : in Integer;
       Min_Size_Type : in chars_ptr;
@@ -470,7 +485,7 @@ package body Lime is
       use Text_Out;
       use DK8543.Auxiliary;
       Ofst : Integer;
-      J : Integer := 0;
+      J    : Integer := 0;
    begin
       Put_Line ("#define YY_SHIFT_COUNT    (" & Image (N - 1) & ")");
       Put_Line ("#define YY_SHIFT_MIN      (" & Image (MnTknOfst) & ")");
@@ -478,9 +493,16 @@ package body Lime is
       Put_Line ("static const " & Value (Min_Size_Type) & " yy_shift_ofst[] = {");
 --  lemp->tablesize += n*sz;
       for I in 0 .. N - 1 loop
---  stp := lemp->sorted[i];
---  ofst := stp->iTknOfst;
-         Ofst := Get_Token_Offset (I);
+         declare
+            STP : State_Access;
+         begin
+            --  stp := lemp->sorted[i];
+            STP := Sorted_Element_At (Lemp.Extra,
+                                      Symbol_Index (I));
+            --  ofst := stp->iTknOfst;
+            --  Ofst := Get_Token_Offset (I);
+            Ofst := STP.Token_Offset;
+         end;
          if Ofst = NO_OFFSET then
             Ofst := Nactiontab;
          end if;
@@ -496,10 +518,13 @@ package body Lime is
          end if;
       end loop;
       Put_Line ("};");
-   end Write_YY_Shift_Offsets;
+   end Output_YY_Shift_Offsets;
 
-   procedure Write_YY_Reduce_Offsets
-     (N             : in Integer;
+
+   --  lemon.c:4440
+   procedure Output_YY_Reduce_Offsets
+     (Lemp          : in Lime.Lemon_Record;
+      N             : in Integer;
       MnNtOfst      : in Integer;
       MxNtOfst      : in Integer;
       Min_Size_Type : in chars_ptr;
@@ -517,7 +542,12 @@ package body Lime is
 
 --  lemp->tablesize += n*sz;
       for I in 0 .. N - 1 loop
-         Ofst := Get_NT_Offset (I);
+         declare
+            STP : State_Access;
+         begin
+            STP := Sorted_Element_At (Lemp.Extra, Symbol_Index (I));
+            Ofst := STP.iNtOfst;
+         end;
          if Ofst = NO_OFFSET then
             Ofst := MnNtOfst - 1;
          end if;
@@ -533,31 +563,37 @@ package body Lime is
          end if;
       end loop;
          Put_Line ("};");
-   end Write_YY_Reduce_Offsets;
+   end Output_YY_Reduce_Offsets;
 
 
-   procedure Write_Default_Action_Table
-     (N            : in Integer;
+   --  lemon.c:4465
+   procedure Output_Default_Action_Table
+     (Lemp         : in Lime.Lemon_Record;
+      N            : in Integer;
       Error_Action : in Integer;
       Min_Reduce   : in Integer)
    is
       use Text_Out;
       use DK8543.Auxiliary;
       J : Integer := 0;
-      IDfltReduce : Integer;
+--      IDfltReduce : Integer;
    begin
       Put_Line ("static const YYACTIONTYPE yy_default[] = {");
       for I in 0 .. N - 1 loop
-         IDfltReduce := Get_Default_Reduce (I);
+         declare
+            STP : constant State_Access := Sorted_Element_At (Lemp.Extra, Symbol_Index (I));
+         begin
+--         IDfltReduce := Get_Default_Reduce (I);
 --         stp := lemp->sorted[i];
-         if J = 0 then
-            Put (" /* " & Image (I) & " */ ");
-         end if;
-         if IDfltReduce < 0 then
-            Put (" " & Image (Error_Action) & ",");
-         else
-            Put (" " & Image (IDfltReduce + Min_Reduce) & ",");
-         end if;
+            if J = 0 then
+               Put (" /* " & Image (I) & " */ ");
+            end if;
+            if STP.iDfltReduce < 0 then
+               Put (" " & Image (Error_Action) & ",");
+            else
+               Put (" " & Image (STP.iDfltReduce + Min_Reduce) & ",");
+            end if;
+         end;
          if J = 9 or I = N - 1 then
             Put_Line ("");
             J := 0;
@@ -566,7 +602,7 @@ package body Lime is
          end if;
       end loop;
       Put_Line ("};");
-   end Write_Default_Action_Table;
+   end Output_Default_Action_Table;
 
 --     procedure Write_Fallback_Token
 --       (Is_Fallback    : in Integer;

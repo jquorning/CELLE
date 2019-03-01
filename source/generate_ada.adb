@@ -142,7 +142,7 @@ package body Generate_Ada is
       Set_Output (File);
       for I in First .. Last loop
          declare
-            Symbol : constant String := Prefix & Lime.Get_Token (I);
+            Symbol : constant String := Prefix; --  & Lime.Get_Token (I);
          begin
             Set_Col (File, 4); --  ..Put (File, "   ");
             Put (File, Symbol);

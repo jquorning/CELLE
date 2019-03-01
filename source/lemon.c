@@ -1997,13 +1997,15 @@ PRIVATE int translate_code(struct lemon *lemp, struct rule *rp){
   return rc;
 }
 
-
+#if 0
 struct lemon *lime_lemp_copy;
 const char *lime_get_token_callback (int  index)
 {
   return lime_lemp_copy->symbols[index]->name;
 }
+#endif
 
+#if 0
 struct acttab *lime_pActtab;
 int
 lime_get_acttab_yy_action (int i)
@@ -2053,6 +2055,7 @@ const char *lemon_generate_header_line_callback (int index)
   //return lemon_lemp->symbols [index]->name;
   return lem.symbols [index]->name;
 }
+#endif
 
 #if 0
 <<<<<<< HEAD
