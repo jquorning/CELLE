@@ -167,7 +167,7 @@ struct state {
   int autoReduce;          /* True if this is an auto-reduce state */
 };
 
-
+#if 1
 /* A followset propagation link indicates that the contents of one
 ** configuration followset should be propagated to another whenever
 ** the first changes. */
@@ -175,6 +175,8 @@ struct plink {
   struct config *cfp;      /* The configuration to which linked */
   struct plink *next;      /* The next propagate link */
 };
+#endif
+
 /* The state vector for the entire parser generator is recorded as
 ** follows.  (LEMON uses no global variables and makes little use of
 ** static variables.  Fields in the following structure can be thought

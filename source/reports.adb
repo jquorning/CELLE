@@ -13,8 +13,6 @@ with Ada.Strings.Unbounded;
 
 with Interfaces.C.Strings;
 
-with Lime;
-with Database;
 with Rules;
 with Symbols;
 with Parsers;
@@ -24,6 +22,31 @@ with Configs;
 with States;
 
 package body Reports is
+
+   procedure Reprint_C (Lemp : access Lime.Lemon_Record) is
+   begin
+      Reprint (Lemp.all);
+   end Reprint_C;
+
+   procedure Report_Output_C (Lemp : access Lime.Lemon_Record) is
+   begin
+      Reprint (Lemp.all);
+   end Report_Output_C;
+
+   procedure Report_Table_C (Lemp : access Lime.Lemon_Record) is
+   begin
+      Report_Table (Lemp.all);
+   end Report_Table_C;
+
+   procedure Compress_Tables_C (Lemp : access Lime.Lemon_Record) is
+   begin
+      Compress_Tables (Lemp.all);
+   end Compress_Tables_C;
+
+   procedure Resort_States_C (Lemp : access Lime.Lemon_Record) is
+   begin
+      Resort_States (Lemp.all);
+   end Resort_States_C;
 
    procedure Rule_Print_2 (File : in Ada.Text_IO.File_Type;
                            RP   : in Rules.Rule_Access);
@@ -131,7 +154,7 @@ package body Reports is
 --    return c;
 --  }
 
-   procedure Reprint
+   procedure Reprint (Lemp : in Lime.Lemon_Record)
    is
       use Ada.Text_IO;
       use Ada.Strings.Unbounded;
@@ -139,7 +162,6 @@ package body Reports is
       use Symbols;
       use Rules;
 
-      Lemp : Lime.Lemon_Record renames Database.Lemon; -- Parameter
       RP   : Rules.Rule_Access;
       SP   : Symbol_Access;
       J    : Symbol_Index;
@@ -202,7 +224,7 @@ package body Reports is
    end Reprint;
 
 
-   procedure Report_Output
+   procedure Report_Output (Lemp : in Lime.Lemon_Record)
    is
       use Ada.Text_IO;
       use Symbols;
@@ -211,7 +233,6 @@ package body Reports is
       use Configs;
       use Actions;
 
-      Lemp : Lemon_Record renames Database.Lemon;
       File : File_Type;
 
       Action_Result : Boolean;
@@ -360,14 +381,12 @@ package body Reports is
    end Report_Output;
 
 
-   procedure Report_Table
+   procedure Report_Table (Lemp : in out Lime.Lemon_Record)
    is
       use Interfaces.C.Strings;
       use Lime;
       use Rules;
       package Acttab renames Actions;
-
-      Lemp : Lemon_Record renames Database.Lemon;  --  Parameter
 
       Lemp_Name : constant String := Value (Lemp.Name);
 --    char line[LINESIZE];
@@ -1020,7 +1039,7 @@ package body Reports is
    end Report_Table;
 
 
-   procedure Compress_Tables
+   procedure Compress_Tables (Lemp : in Lime.Lemon_Record)
    is
    begin
       null;
@@ -1140,7 +1159,7 @@ package body Reports is
    end  Compress_Tables;
 
 
-   procedure Resort_States
+   procedure Resort_States (Lemp : in Lime.Lemon_Record)
    is
    begin
       null;
