@@ -21,7 +21,7 @@ with Lime;
 with Cherry;
 with Rules;
 with Symbols;
-with Scanner;
+with Scanners;
 with Exceptions;
 with Reports;
 
@@ -130,7 +130,7 @@ begin
       Put_Line ("Lemon_Input_File: " & Value (Lemon_Input_File));
 
       --  Parse the input file
-      Scanner.Parse (Lemon'Access);
+      Scanners.Parse (Lemon);
 
       if Lemon.Error_Cnt /= 0 then
          --  Status := Failure;

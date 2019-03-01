@@ -22,11 +22,9 @@ with Errors;
 with Rules;
 with Symbols;
 
+package body Scanners is
 
-package body Scanner is
-
-
-
+   use Scanner_Data;
 
    --  Run the preprocessor over the input file text.  The global
    --  variables azDefine[0] through azDefine[nDefine-1] contains the
@@ -34,17 +32,34 @@ package body Scanner is
    --  and "%ifndef" and "%endif" and comments them out.  Text in
    --  between is also commented out as appropriate.
 
-   procedure Parse_One_Token (PSP  : in out Scanner_Data.Scanner_Record;
-                              Line : in     Scanner_Data.Line_Record);
+   procedure Parse_One_Token (Lemon   : in out Lime.Lemon_Record;
+                              Scanner : in out Scanner_Record;
+                              Line    : in     Line_Record);
 
-   procedure Parse_One_Token (PSP  : in out Scanner_Data.Scanner_Record;
-                              Line : in     Scanner_Data.Line_Record)
+   procedure Parse_On_Mode (Lemon   : in out Lime.Lemon_Record;
+                            Scanner : in out Scanner_Record;
+                            Line    : in out Line_Record;
+                            Break   :    out Boolean);
+
+   procedure Get_Line_Without_EOL_Comment (Line : out Line_Record);
+
+   procedure Comment_C_Filter (Line : in out Line_Record);
+
+   procedure Parse_Current_Character (Lemon   : in out Lime.Lemon_Record;
+                                      Scanner : in out Scanner_Record;
+                                      Line    : in out Line_Record);
+
+   procedure Parse_Quoted_Identifier (Line : in out Line_Record);
+
+   --
+   --
+   --
+
+   procedure Parse_One_Token (Lemon   : in out Lime.Lemon_Record;
+                              Scanner : in out Scanner_Record;
+                              Line    : in     Line_Record)
    is separate;
    --  Parse a single Token.
-
-
-   use Scanner_Data;
-   procedure Get_Line_Without_EOL_Comment (Line : out Line_Record);
 
 
    Comment_CPP     : constant String := "//";
@@ -59,9 +74,9 @@ package body Scanner is
    use Errors;
    use Ada.Text_IO;
 
-   File : File_Type;
-   Line : Line_Record;
-   PS   : Scanner_Record;
+   File    : File_Type;
+   Line    : Line_Record;
+--   Scanner : Scanner_Record;
 
 
    procedure Get_Line_Without_EOL_Comment (Line : out Line_Record)
@@ -76,8 +91,6 @@ package body Scanner is
    end Get_Line_Without_EOL_Comment;
 
 
-
-   procedure Comment_C_Filter (Line : in out Line_Record);
 
    Comment_C_Start : Natural;
    Comment_C_Stop  : Natural;
@@ -98,10 +111,9 @@ package body Scanner is
    end Comment_C_Filter;
 
 
-   procedure Parse_Current_Character (Line : in out Line_Record);
-   procedure Parse_Quoted_Identifier (Line : in out Line_Record);
-
-   procedure Parse_Current_Character (Line : in out Line_Record)
+   procedure Parse_Current_Character (Lemon   : in out Lime.Lemon_Record;
+                                      Scanner : in out Scanner_Record;
+                                      Line    : in out Line_Record)
    is
       use Ada.Strings.Unbounded;
       Current : constant Character := Line.Item (Line.Current);
@@ -183,7 +195,7 @@ package body Scanner is
       end case;
 --      c = *cp;
 --      *cp = 0;                        /* Null terminate the token */
-      Parse_One_Token (PS, Line);       --  Parse the token
+      Parse_One_Token (Lemon, Scanner, Line); --  Parse the token
 --    *cp = (char)c;                  /* Restore the buffer */
 --    cp = nextcp;
    end Parse_Current_Character;
@@ -205,12 +217,10 @@ package body Scanner is
          --  ("String starting on this line is not terminated before the end of the file.");
    end Parse_Quoted_Identifier;
 
-   procedure Parse_On_Mode (Line  : in out Line_Record;
-                            Break :    out Boolean);
-
-
-   procedure Parse_On_Mode (Line  : in out Line_Record;
-                            Break :    out Boolean)
+   procedure Parse_On_Mode (Lemon   : in out Lime.Lemon_Record;
+                            Scanner : in out Scanner_Record;
+                            Line    : in out Line_Record;
+                            Break   :    out Boolean)
    is
       Current : Character renames Line.Item (Line.Current);
    begin
@@ -222,7 +232,7 @@ package body Scanner is
          when C_Code_Block =>  null;
 
          when Quoted_Identifier =>  Parse_Quoted_Identifier (Line);
-         when Root              =>  Parse_Current_Character (Line);
+         when Root              =>  Parse_Current_Character (Lemon, Scanner, Line);
 
       end case;
 
@@ -242,22 +252,23 @@ package body Scanner is
    end Parse_On_Mode;
 
 
-   procedure Parse (GP : access Lime.Lemon_Record)
+   procedure Parse (Lemon : in out Lime.Lemon_Record)
    is
       use Ada.Strings.Unbounded;
       use Ada.Strings.Fixed;
       use DK8543.Text;
 
+      Scanner   : Scanner_Record;
       Break_Out : Boolean;
    begin
-      PS.GP          := GP;
-      PS.File_Name   := GP.File_Name;
+--      Scanner.GP          := Lemon;
+      Scanner.File_Name   := Lemon.File_Name;
 --        To_Unbounded_String (Interfaces.C.Strings.Value (GP.File_Name));
-      PS.Error_Count := 0;
-      PS.Scan_State  := INITIALIZE;
+      Scanner.Error_Count := 0;
+      Scanner.Scan_State  := INITIALIZE;
 
       --  Begin by opening the input file
-      Open (File, In_File, To_String (PS.File_Name));
+      Open (File, In_File, To_String (Scanner.File_Name));
 
       --  Make an initial pass through the file to handle %ifdef and %ifndef.
       --  Preprocess_Input (filebuf);
@@ -289,11 +300,11 @@ package body Scanner is
          DK8543.Text.Trim (Line.Item, Line.First, Line.Last,
                            Side => Ada.Strings.Left);
 
-         PS.Token_Start  := Line.First;       --  Mark the beginning of the token
-         PS.Token_Lineno := IO.Line_Number;   --  Linenumber on which token begins
+         Scanner.Token_Start  := Line.First;       --  Mark the beginning of the token
+         Scanner.Token_Lineno := IO.Line_Number;   --  Linenumber on which token begins
 
          loop
-            Parse_On_Mode (Line, Break_Out);
+            Parse_On_Mode (Lemon, Scanner, Line, Break_Out);
             exit when Break_Out;
          end loop;
 
@@ -303,8 +314,8 @@ package body Scanner is
 
       when End_Error =>
          Close (File);
-         GP.Rule      := Rules.Rule_Access (PS.First_Rule);
-         GP.Error_Cnt := PS.Error_Count;
+         Lemon.Rule      := Rules.Rule_Access (Scanner.First_Rule);
+         Lemon.Error_Cnt := Scanner.Error_Count;
 
       when others =>
 --           Auxiliary.Errors.Error
@@ -315,4 +326,4 @@ package body Scanner is
    end Parse;
 
 
-end Scanner;
+end Scanners;

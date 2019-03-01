@@ -79,6 +79,28 @@ package Lime is
    --  static variables.  Fields in the following structure can be thought
    --  of as begin global variables in the program.)
 
+   type Parser_Names_Record is record
+      Name       : aliased chars_ptr := Null_Ptr;  --  Name of the generated parser
+      ARG2       : aliased chars_ptr := Null_Ptr;  --  Declaration of the 3th argument to parser
+      CTX2       : aliased chars_ptr := Null_Ptr;  --  Declaration of 2nd argument to constructor
+      Token_Type : aliased chars_ptr := Null_Ptr;  --  Type of terminal symbols in the parser stack
+      Var_Type   : aliased chars_ptr := Null_Ptr;  --  The default type of non-terminal symbols
+      Start      : aliased chars_ptr := Null_Ptr;  --  Name of the start symbol for the grammar
+      Stack_Size : aliased chars_ptr := Null_Ptr;  --  Size of the parser stack
+      Include    : aliased chars_ptr := Null_Ptr;  --  Code to put at the start of the C file
+      Error      : aliased chars_ptr := Null_Ptr;  --  Code to execute when an error is seen
+      Overflow   : aliased chars_ptr := Null_Ptr;  --  Code to execute on a stack overflow
+      Failure    : aliased chars_ptr := Null_Ptr;  --  Code to execute on parser failure
+      C_Accept   : aliased chars_ptr := Null_Ptr;  --  Code to execute when the parser excepts
+      Extra_Code : aliased chars_ptr := Null_Ptr;  --  Code appended to the generated file
+      Token_Dest : aliased chars_ptr := Null_Ptr;  --  Code to execute to destroy token data
+      Var_Dest   : aliased chars_ptr := Null_Ptr;  --  Code for the default non-terminal destructor
+      Token_Prefix : aliased chars_ptr := Null_Ptr;
+      --  A prefix added to token names in the .h file
+   end record;
+
+   Parser_Names : aliased Parser_Names_Record;
+
    use Ada.Strings.Unbounded;
    type Lemon_Record is
       record
@@ -100,24 +122,25 @@ package Lime is
          Error_Cnt        : Integer;            --  Number of errors
          Err_Sym2         : Integer; --  Symbol_Access;      --  The error symbol
          Wildcard2        : Integer; --  Symbol_Access;      --  Token that matches anything
-         Name             : aliased chars_ptr;  --  Name of the generated parser
-         ARG2             : aliased chars_ptr;  --  Declaration of the 3th argument to parser
-         CTX2             : aliased chars_ptr;  --  Declaration of 2nd argument to constructor
-         Token_Type       : aliased chars_ptr;  --  Type of terminal symbols in the parser stack
-         Var_Type         : aliased chars_ptr;  --  The default type of non-terminal symbols
-         Start            : aliased chars_ptr;  --  Name of the start symbol for the grammar
-         Stack_Size       : aliased chars_ptr;  --  Size of the parser stack
-         Include          : aliased chars_ptr;  --  Code to put at the start of the C file
-         Error            : aliased chars_ptr;  --  Code to execute when an error is seen
-         Overflow         : aliased chars_ptr;  --  Code to execute on a stack overflow
-         Failure          : aliased chars_ptr;  --  Code to execute on parser failure
-         C_Accept         : aliased chars_ptr;  --  Code to execute when the parser excepts
-         Extra_Code       : aliased chars_ptr;  --  Code appended to the generated file
-         Token_Dest       : aliased chars_ptr;  --  Code to execute to destroy token data
-         Var_Dest         : aliased chars_ptr;  --  Code for the default non-terminal destructor
+--           Name             : aliased chars_ptr;  --  Name of the generated parser
+--           ARG2             : aliased chars_ptr;  --  Declaration of the 3th argument to parser
+--           CTX2             : aliased chars_ptr;  --  Declaration of 2nd argument to constructor
+--           Token_Type    : aliased chars_ptr;  --  Type of terminal symbols in the parser stack
+--           Var_Type         : aliased chars_ptr;  --  The default type of non-terminal symbols
+--           Start            : aliased chars_ptr;  --  Name of the start symbol for the grammar
+--           Stack_Size       : aliased chars_ptr;  --  Size of the parser stack
+--           Include          : aliased chars_ptr;  --  Code to put at the start of the C file
+--           Error            : aliased chars_ptr;  --  Code to execute when an error is seen
+--           Overflow         : aliased chars_ptr;  --  Code to execute on a stack overflow
+--           Failure          : aliased chars_ptr;  --  Code to execute on parser failure
+--           C_Accept         : aliased chars_ptr;  --  Code to execute when the parser excepts
+--           Extra_Code       : aliased chars_ptr;  --  Code appended to the generated file
+--           Token_Dest       : aliased chars_ptr;  --  Code to execute to destroy token data
+--           Var_Dest      : aliased chars_ptr;  --  Code for the default non-terminal destructor
+         Names            : access Parser_Names_Record;
          File_Name        : Unbounded_String;   --  Name of the input file
          Out_Name         : Unbounded_String;   --  Name of the current output file
-         Token_Prefix     : aliased chars_ptr;  --  A prefix added to token names in the .h file
+--         Token_Prefix     : aliased chars_ptr;  --  A prefix added to token names in the .h file
          N_Conflict       : Integer;            --  Number of parsing conflicts
          N_Action_Tab     : Integer;            --  Number of entries in the yy_action[] table
          N_Lookahead_Tab  : Integer;            --  Number of entries in yy_lookahead[]
@@ -139,14 +162,15 @@ package Lime is
       Min_Reduce   => 0,          Max_Action   => 0,         Symbols2         => 999,
       Error_Cnt    => 0,          Err_Sym2     => 999,
       Wildcard2    => 999,
-      Name         => Null_Ptr, ARG2         => Null_Ptr,  CTX2             => Null_Ptr,
-      Token_Type   => Null_Ptr, Var_Type     => Null_Ptr,  Start            => Null_Ptr,
-      Stack_Size   => Null_Ptr, Include      => Null_Ptr,  Error            => Null_Ptr,
-      Overflow     => Null_Ptr, Failure      => Null_Ptr,  C_Accept         => Null_Ptr,
-      Extra_Code   => Null_Ptr, Token_Dest   => Null_Ptr,  Var_Dest         => Null_Ptr,
+--        Name         => Null_Ptr, ARG2         => Null_Ptr,  CTX2             => Null_Ptr,
+--        Token_Type   => Null_Ptr, Var_Type     => Null_Ptr,  Start            => Null_Ptr,
+--        Stack_Size   => Null_Ptr, Include      => Null_Ptr,  Error            => Null_Ptr,
+--        Overflow     => Null_Ptr, Failure      => Null_Ptr,  C_Accept         => Null_Ptr,
+--        Extra_Code   => Null_Ptr, Token_Dest   => Null_Ptr,  Var_Dest         => Null_Ptr,
+      Names        => Parser_Names'Access,
       File_Name    => Null_Unbounded_String,
       Out_Name     => Null_Unbounded_String,
-      Token_Prefix => Null_Ptr,
+--      Token_Prefix => Null_Ptr,
       N_Conflict   => 0,        N_Action_Tab => 0,         N_Lookahead_Tab  => 0,
       Table_Size   => 0,        Basis_Flag   => False,     Has_Fallback     => False,
       No_Linenos_Flag => False, Argv0       => Null_Ptr,

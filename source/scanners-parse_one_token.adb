@@ -13,13 +13,14 @@ with Symbols;
 with Errors;
 with Scanner_Errors;
 
-separate (Scanner)
-procedure Parse_One_Token (PSP  : in out Scanner_Data.Scanner_Record;
-                           Line : in     Scanner_Data.Line_Record)
+separate (Scanners)
+procedure Parse_One_Token (Lemon   : in out Lime.Lemon_Record;
+                           Scanner : in out Scanner_Record;
+                           Line    : in     Line_Record)
 is
-   use Errors;
    use Ada.Strings.Unbounded;
-   use Scanner_Data;
+
+   use Errors;
    use Scanner_Errors;
    use Rules;
 
@@ -27,14 +28,16 @@ is
 
    procedure Do_Initialize is
    begin
-      PSP.Prev_Rule    := null;
-      PSP.Prec_Counter := 0;
-      PSP.First_Rule   := null;
-      PSP.Last_Rule    := null;
-      PSP.GP.N_Rule    := 0;
+      Scanner.Prev_Rule    := null;
+      Scanner.Prec_Counter := 0;
+      Scanner.First_Rule   := null;
+      Scanner.Last_Rule    := null;
+
+      Lemon.N_Rule := 0;
    end Do_Initialize;
 
-   X : constant String := Line.Item (PSP.Token_Start .. Line.Last);
+   X : constant String := Line.Item (Scanner.Token_Start .. Line.Last);
+   PSP : Scanner_Record renames Scanner;
 begin
 --    const char *x;
 --    x = Strsafe(psp->tokenstart);     /* Save the token permanently */
@@ -42,7 +45,7 @@ begin
 --    printf("%s:%d: Token=[%s] state=%d\n",psp->filename,psp->tokenlineno,
 --      x,psp->state);
 --  #endif
-   case PSP.Scan_State is
+   case Scanner.Scan_State is
 
       when INITIALIZE =>
          Do_Initialize;
@@ -234,8 +237,10 @@ begin
                   RP.Code       := Null_Code; --  New Unbounded_String'(Null_Unbounded_String);
                   RP.No_Code    := True;
                   RP.Prec_Sym   := null;
-                  PSP.GP.N_Rule := PSP.GP.N_Rule + 1;
-                  RP.Index      := PSP.GP.N_Rule;
+
+                  Lemon.N_Rule  := Lemon.N_Rule + 1;
+
+                  RP.Index      := Lemon.N_Rule;
                   RP.Next_LHS   := RP.LHS.Rule;
                   RP.LHS.Rule   := RP;
                   RP.Next       := null;
@@ -345,59 +350,59 @@ begin
             PSP.Scan_State := WAITING_FOR_DECL_ARG;
 
             if X = "name" then
-               PSP.Decl_Arg_Slot := PSP.GP.Name'Access;
+               PSP.Decl_Arg_Slot := Lemon.Names.Name'Access;
                PSP.Insert_Line_Macro := False;
 
             elsif X = "include" then
-               PSP.Decl_Arg_Slot := PSP.GP.Include'Access;
+               PSP.Decl_Arg_Slot := Lemon.Names.Include'Access;
 
             elsif X = "code" then
-               PSP.Decl_Arg_Slot := PSP.GP.Extra_Code'Access;
+               PSP.Decl_Arg_Slot := Lemon.Names.Extra_Code'Access;
 
             elsif X = "token_destructor" then
-               PSP.Decl_Arg_Slot := PSP.GP.Token_Dest'Access;
+               PSP.Decl_Arg_Slot := Lemon.Names.Token_Dest'Access;
 
             elsif X = "default_destructor" then
-               PSP.Decl_Arg_Slot := PSP.GP.Var_Dest'Access;
+               PSP.Decl_Arg_Slot := Lemon.Names.Var_Dest'Access;
 
             elsif X = "token_prefix" then
-               PSP.Decl_Arg_Slot := PSP.GP.Token_Prefix'Access;
+               PSP.Decl_Arg_Slot := Lemon.Names.Token_Prefix'Access;
                PSP.Insert_Line_Macro := False;
 
             elsif X = "syntax_error" then
-               PSP.Decl_Arg_Slot := PSP.GP.Error'Access;
+               PSP.Decl_Arg_Slot := Lemon.Names.Error'Access;
 
             elsif X = "parse_accept" then
-               PSP.Decl_Arg_Slot := PSP.GP.C_Accept'Access;
+               PSP.Decl_Arg_Slot := Lemon.Names.C_Accept'Access;
 
             elsif X = "parse_failure" then
-               PSP.Decl_Arg_Slot := PSP.GP.Failure'Access;
+               PSP.Decl_Arg_Slot := Lemon.Names.Failure'Access;
 
             elsif X = "stack_overflow" then
-               PSP.Decl_Arg_Slot := PSP.GP.Overflow'Access;
+               PSP.Decl_Arg_Slot := Lemon.Names.Overflow'Access;
 
             elsif X = "extra_argument" then
-               PSP.Decl_Arg_Slot     := PSP.GP.ARG2'Access;
+               PSP.Decl_Arg_Slot     := Lemon.Names.ARG2'Access;
                PSP.Insert_Line_Macro := False;
 
             elsif X = "extra_context" then
-               PSP.Decl_Arg_Slot     := PSP.GP.CTX2'Access;
+               PSP.Decl_Arg_Slot     := Lemon.Names.CTX2'Access;
                PSP.Insert_Line_Macro := False;
 
             elsif X = "token_type" then
-               PSP.Decl_Arg_Slot     := PSP.GP.Token_Type'Access;
+               PSP.Decl_Arg_Slot     := Lemon.Names.Token_Type'Access;
                PSP.Insert_Line_Macro := False;
 
             elsif X = "default_type" then
-               PSP.Decl_Arg_Slot     := PSP.GP.Var_Type'Access;
+               PSP.Decl_Arg_Slot     := Lemon.Names.Var_Type'Access;
                PSP.Insert_Line_Macro := False;
 
             elsif X = "stack_size" then
-               PSP.Decl_Arg_Slot     := PSP.GP.Stack_Size'Access;
+               PSP.Decl_Arg_Slot     := Lemon.Names.Stack_Size'Access;
                PSP.Insert_Line_Macro := False;
 
             elsif X = "start_symbol" then
-               PSP.Decl_Arg_Slot     := PSP.GP.Start'Access;
+               PSP.Decl_Arg_Slot     := Lemon.Names.Start'Access;
                PSP.Insert_Line_Macro := False;
 
             elsif X = "left" then

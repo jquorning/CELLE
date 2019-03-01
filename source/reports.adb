@@ -400,7 +400,7 @@ package body Reports is
       use Rules;
       package Acttab renames Actions;
 
-      Lemp_Name : constant String := Value (Lemp.Name);
+      Lemp_Name : constant String := Value (Lemp.Names.Name);
 --    char line[LINESIZE];
       STP : States.State_Access;
 --    struct action *ap;
@@ -437,7 +437,7 @@ package body Reports is
       --  Generate the include code, if any
       --  Lime_Print (Lemp.Outname, Lemp.No_Linenos_Flag, Lemp.Include);
       Template_Print (Ada.Strings.Unbounded.To_String (Lemp.Out_Name),
-                      Boolean'Pos (Lemp.No_Linenos_Flag), Lemp.Include);
+                      Boolean'Pos (Lemp.No_Linenos_Flag), Lemp.Names.Include);
       --  lime_print (lime_get_ouüt_name (), lemp->nolinenosflag, lemap->include);
       --  lime_write_include (lime_get_mh_flag(), file_makename(lemp, ".h"));
       Write_Include (File_Makename (Lemp, ".h"));
@@ -447,7 +447,7 @@ package body Reports is
       --  Generate #defines for all tokens
 --  XXX    Lime_Lemp_Copy := Lemp;
       --  lime_generate_tokens (lime_get_mh_flag(), lemp->tokenprefix, 1, lemp->nterminal);
-      Generate_Tokens (Lemp, Value (Lemp.Token_Prefix), 1, Integer (Lemp.N_Terminal));
+      Generate_Tokens (Lemp, Value (Lemp.Names.Token_Prefix), 1, Integer (Lemp.N_Terminal));
 
       Template_Transfer (Lemp_Name);
 
@@ -481,7 +481,7 @@ package body Reports is
 
       --  print_stack_union (lemp, lime_get_mh_flag());
       Print_Stack_Union (Lemp);
-      Generate_The_Defines_2 (Lemp.Stack_Size);
+      Generate_The_Defines_2 (Lemp.Names.Stack_Size);
 
 --    //if( lime_get_mh_flag() ){
 --    //  lime_put_line ("#if INTERFACE");
@@ -494,8 +494,8 @@ package body Reports is
 
          function Get_Name return chars_ptr is
          begin
-            if Lemp.Name /= Null_Ptr then
-               return Lemp.Name;
+            if Lemp.Names.Name /= Null_Ptr then
+               return Lemp.Names.Name;
             else
                return New_String ("Parse");
             end if;

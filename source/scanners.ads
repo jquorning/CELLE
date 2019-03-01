@@ -12,18 +12,18 @@
 
 with Lime;
 
-package Scanner is
+package Scanners is
 
 
-   procedure Parse (GP : access Lime.Lemon_Record);
+   procedure Parse (Lemon : in out Lime.Lemon_Record);
    --  In spite of its name, this function is really a scanner.  It
    --  read in the entire input file (all at once) then tokenizes it.
    --  Each token is passed to the function "parseonetoken" which
    --  builds all the appropriate data structures in the global state
    --  vector "gp".
 
-private
+--  private
 
-   pragma Export (C, Parse, "scanner_parse");
+--   pragma Export (C, Parse, "scanner_parse");
 
-end Scanner;
+end Scanners;

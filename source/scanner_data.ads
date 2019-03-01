@@ -105,7 +105,7 @@ package Scanner_Data is
          Token_Start   : Line_Pos;                  --  Text of current token
          Token_Lineno  : Natural;                   --  Linenumber at which current token starts
          Error_Count   : Natural;                   --  Number of errors so far
-         GP            : access Lime.Lemon_Record;  --  Global state vector
+--         GP            : access Lime.Lemon_Record;  --  Global state vector
          Preproc_State : State_Preproc;
          Scan_State    : State_Scanner;             --  The state of the parser
          Fallback : access Symbols.Symbol_Record;   --  The fallback token
