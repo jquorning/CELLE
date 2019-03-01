@@ -9,7 +9,7 @@
 
 with Interfaces.C.Strings;
 
-limited with Rules;
+with Rules;
 limited with States;
 
 package Configs is
