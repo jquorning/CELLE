@@ -10,7 +10,6 @@
 with Ada.Strings.Unbounded;
 with Ada.Containers.Vectors;
 
---  with System;
 limited with Symbols;
 
 package Rules is
@@ -46,6 +45,9 @@ package Rules is
    --  Configurations also contain a follow-set which is a list of terminal
    --  symbols which are allowed to immediately follow the end of the rule.
    --  Every configuration is recorded as an instance of the following:
+
+   --  Each production rule in the grammar is stored in the following
+   --  structure.
    type Rule_Record is
       record
          LHS          : access Symbols.Symbol_Record;  -- lemon.h:97
@@ -71,38 +73,6 @@ package Rules is
          Next_LHS     : access Rule_Record;  -- Next rule with the same LHS
          Next         : access Rule_Record;  -- Next rule in the global list
       end record;
---  =======
---     --  use Symbols;
---     use Ada.Strings.Unbounded;
---     type Rule_Record is
---        record
---           LHS          : access Symbols.Symbol_Record;  -- lemon.h:97
---           LHS_Alias    : Unbounded_String;
---  --         LHS_Alias    : Symbols.S_Alias;
---           LHS_Start    : Integer;  -- lemon.h:99
---           Rule_Line    : Integer;  -- lemon.h:100
---  --         N_RHS        : Integer;  -- lemon.h:101
---  --         RHS          : System.Address;  -- lemon.h:102
---           RHS          : RHS_Array_Access;
---  --         RHS          : Symbols.Symbol_Vectors.Vector;
---           RHS_Alias    : Alias_Array_Access; --  System.Address;  -- lemon.h:103
---  --         RHS_Alias    : Symbols.Alias_Vectors.Vector;
---           Line         : Natural;  -- lemon.h:104
---           Code         : access Unbounded_String;
---           Code_Prefix  : access Unbounded_String;
---           Code_Suffix  : access Unbounded_String;
---           No_Code      : Boolean;
---           Code_Emitted : Integer;  -- lemon.h:109
---           Prec_Sym     : access Symbols.Symbol_Record;
---           Index        : Integer;
---           Rule         : Integer;
---           Can_Reduce   : Boolean;
---           Does_Reduce  : Boolean;
---           Next_LHS     : access Rule_Record;  -- lemon.h:115
---           Next         : access Rule_Record;  -- lemon.h:116
---        end record;
---     --   pragma Convention (C_Pass_By_Copy, Rule_Record);  -- lemon.h:96
---  >>>>>>> parsetoken
 
    type Rule_Access is access all Rule_Record;
 

@@ -66,39 +66,6 @@ package Lime is
    --  True if this symbol ever carries content - if
    --                           ** it is ever more than just syntax
 
-   --  The following fields are used by MULTITERMINALs only
-   --  Number of constituent symbols in the MULTI
-   --  Array of constituent symbols
-   --  Each production rule in the grammar is stored in the following
-   --  structure.
-
-
-   --  Alias for the LHS (NULL if none)
-   --  True if left-hand side is the start symbol
-   --  Line number for the rule
-   --  Number of RHS symbols
-   --  The RHS symbols
-   --  An alias for each RHS symbol (NULL if none)
-   --  Line number at which code begins
-   --  The code executed when this rule is reduced
-   --  Setup code before code[] above
-   --  Breakdown code after code[] above
-   --  True if this rule has no associated C code
-   --  True if the code has been emitted already
-   --  Precedence symbol for this rule
-   --  An index number for this rule
-   --  Rule number as used in the generated tables
-   --  True if this rule is ever reduced
-   --  Reduce actions occur after optimization
-   --  Next rule with the same LHS
-   --  Next rule in the global list
-   --  A configuration is a production rule of the grammar together with
-   --  a mark (dot) showing how much of that rule has been processed so far.
-   --  Configurations also contain a follow-set which is a list of terminal
-   --  symbols which are allowed to immediately follow the end of the rule.
-   --  Every configuration is recorded as an instance of the following:
-
-
    use Interfaces.C;
    use Rules;
    use Symbols;

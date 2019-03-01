@@ -41,25 +41,15 @@ package Actions is
       c_ACCEPT,
       REDUCE,
       ERROR,
-      SSCONFLICT,
-      SRCONFLICT,
-      RRCONFLICT,
-      SH_RESOLVED,
-      RD_RESOLVED,
-      NOT_USED,
-      SHIFTREDUCE);
+      SSCONFLICT,   --  A shift/shift conflict
+      SRCONFLICT,   --  Was a reduce, but part of a conflict
+      RRCONFLICT,   --  Was a reduce, but part of a conflict
+      SH_RESOLVED,  --  Was a shift.  Precedence resolved conflict
+      RD_RESOLVED,  --  Was reduce.  Precedence resolved conflict
+      NOT_USED,     --  Deleted by compression
+      SHIFTREDUCE   --  Shift first, then reduce
+     );
    pragma Convention (C, E_Action);  -- lemon.h:141
-
-   --  A shift/shift conflict
-   --  Was a reduce, but part of a conflict
-   --  Was a reduce, but part of a conflict
-   --  Was a shift.  Precedence resolved conflict
-   --  Was reduce.  Precedence resolved conflict
-   --  Deleted by compression
-   --  Shift first, then reduce
-   --  Every shift or reduce operation is stored as one of the following
-   --  The look-ahead symbol
-   --  The new state, if a shift
 
    type Action_Record;
    type Action_Access is access all Action_Record;
@@ -67,14 +57,15 @@ package Actions is
    type State_Rule_Kind is (Is_State, Is_Rule);
    type anon1015_x_union (discr : State_Rule_Kind := Is_State) is record
       case discr is
-         when Is_State  => stp  : access States.State_Record;
-         when Is_Rule   => Rule : access Rules.Rule_Record;
+         when Is_State  => stp  : access States.State_Record;  --  The look-ahead symbol
+         when Is_Rule   => Rule : access Rules.Rule_Record;    --  The new state, if a shift
       end case;
    end record;
 
    pragma Convention (C_Pass_By_Copy, anon1015_x_union);
    pragma Unchecked_Union (anon1015_x_union);
 
+   --  Every shift or reduce operation is stored as one of the following
    type Action_Record is
       record
          Symbol  : access Symbols.Symbol_Record;

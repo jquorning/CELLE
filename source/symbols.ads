@@ -89,27 +89,17 @@ package Symbols is
          --  stack is a union.  The .yy%d element of this
          --  union is the correct data type for this object
 
-         Content   : Boolean;  --  Integer;
-
+         Content : Boolean;
          --  True if this symbol ever carries content - if
          --  it is ever more than just syntax
 
-         N_Sub_Sym   : Integer;
---         Sub_Sym     : Unbounded_String;
-         Sub_Sym : Vector;
+         --  The following fields are used by MULTITERMINALs only
+         N_Sub_Sym : Integer;  --  Number of constituent symbols in the MULTI
+         Sub_Sym   : Vector;   --  Array of constituent symbols
       end record;
-
---   type Symbol_Access is access all Symbol_Record;
 
    type Symbol_Access_Array is
      array (Natural range <>) of Symbols.Symbol_Access;
-
---     --  The following fields are used by MULTITERMINALs only
---     --  Number of constituent symbols in the MULTI
---     --  Array of constituent symbols
---     --  Each production rule in the grammar is stored in the following
---     --  structure.
-
 
    type Symbol_Cursor is private;
    type Extra_Access  is private;
