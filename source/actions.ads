@@ -36,7 +36,7 @@ with Symbols;
 
 package Actions is
 
-   type e_action is
+   type E_Action is
      (SHIFT,
       c_ACCEPT,
       REDUCE,
@@ -48,7 +48,7 @@ package Actions is
       RD_RESOLVED,
       NOT_USED,
       SHIFTREDUCE);
-   pragma Convention (C, e_action);  -- lemon.h:141
+   pragma Convention (C, E_Action);  -- lemon.h:141
 
    --  A shift/shift conflict
    --  Was a reduce, but part of a conflict
@@ -64,20 +64,22 @@ package Actions is
    type Action_Record;
    type Action_Access is access all Action_Record;
 
-   type anon1015_x_union (discr : Integer := 0) is record
+   type State_Rule_Kind is (Is_State, Is_Rule);
+   type anon1015_x_union (discr : State_Rule_Kind := Is_State) is record
       case discr is
-         when 0      => stp : access States.State_Record;  -- lemon.h:161
-         when others => Rp  : access Rules.Rule_Record;  -- lemon.h:162
+         when Is_State  => stp  : access States.State_Record;
+         when Is_Rule   => Rule : access Rules.Rule_Record;
       end case;
    end record;
+
    pragma Convention (C_Pass_By_Copy, anon1015_x_union);
    pragma Unchecked_Union (anon1015_x_union);
 
    type Action_Record is
       record
-         SP      : access Symbols.Symbol_Kind;
-         c_type  : aliased e_action;
-         X       : aliased anon1015_x_union;    --  The rule, if a reduce
+         Symbol  : access Symbols.Symbol_Record;
+         Kind    : E_Action;
+         X       : anon1015_x_union;            --  The rule, if a reduce
          spOpt   : access Symbols.Symbol_Kind;  --  SHIFTREDUCE optimization to this symbol
          Next    : access Action_Record;        --  Next action for this state
          collide : access Action_Record;        --  Next action with the same hash
@@ -124,7 +126,7 @@ package Actions is
    --  Return the size of the action table without the trailing syntax error
    --  entries.
 
-   function Action_Cmp (Ap1, AP2 : in Action_Access)
+   function Action_Cmp (Left, Right : in Action_Record)
                        return Integer;
    --  Compare two actions for sorting purposes.  Return negative, zero, or
    --  positive if the first action is less than, equal to, or greater than

@@ -226,21 +226,30 @@ package body Actions is
    end Action_Size;
 
 
-   function Action_Cmp (Ap1, AP2 : in Action_Access)
+   function Action_Cmp (Left, Right : in Action_Record)
                        return Integer
    is
+      use Symbols;
       RC : Integer;
    begin
-      --    rc = ap1->sp->index - ap2->sp->index;
---    if( rc==0 ){
---      rc = (int)ap1->type - (int)ap2->type;
---    }
---    if( rc==0 && (ap1->type==REDUCE || ap1->type==SHIFTREDUCE) ){
---      rc = ap1->x.rp->index - ap2->x.rp->index;
---    }
---    if( rc==0 ){
---      rc = (int) (ap2 - ap1);
---    }
+      RC := Integer (Left.Symbol.Index) - Integer (Right.Symbol.Index);
+
+      if RC = 0 then
+         RC := E_Action'Pos (Left.Kind) - E_Action'Pos (Right.Kind);
+      end if;
+
+      if
+        RC = 0 and
+        (Left.Kind = REDUCE or Left.Kind = SHIFTREDUCE)
+      then
+         RC := Left.X.Rule.Index - Right.X.Rule.Index;
+      end if;
+
+      if RC = 0 then
+         RC := 0;
+         --  RC := (int) (ap2 - ap1); -- XXX Pointer
+         raise Program_Error;
+      end if;
       return RC;
    end Action_Cmp;
 
