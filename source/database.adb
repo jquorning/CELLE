@@ -15,7 +15,7 @@ with Interfaces.C.Strings;
 
 package body Database is
 
-   procedure Dump (Lemon : in Lemon_Record)
+   procedure Dump (Lemon : in Lime.Lemon_Record)
    is
       use Ada.Text_IO;
       use Ada.Strings.Unbounded;
@@ -25,7 +25,7 @@ package body Database is
    begin
       Put_Line ("PARTIAL DUMP OF LEMON RECORD");
       Put_Line ("----------------------------");
-      Put_Line ("Size    : "   & Lemon_Record'Size'Img);
+      Put_Line ("Size    : "   & Lime.Lemon_Record'Size'Img);
       Put_Line ("nstate  : "   & Integer'Image (Lemon.N_State));
       Put_Line ("nxstate : "   & Integer'Image (Lemon.Nx_State));
       Put_Line ("nrule   : "   & Integer'Image (Lemon.N_Rule));
