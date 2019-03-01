@@ -24,6 +24,7 @@ with Backend;
 with Text_Out;
 with Database;
 with Options;
+--  with States;
 
 package body Lime is
 
@@ -403,7 +404,7 @@ package body Lime is
 
    --  lemon.c:4377
    procedure Output_Action_Table
-     (Action_Table : in Action_Tables.A_Action_Table;
+     (Action_Table : in Actions.A_Action_Table;
       N            : in Integer;
       No_Action    : in Integer)
    is
@@ -441,7 +442,7 @@ package body Lime is
 
 
    procedure Output_YY_Lookahead
-     (Action_Table : in Action_Tables.A_Action_Table;
+     (Action_Table : in Actions.A_Action_Table;
       N            : in Integer;
       Nsymbol      : in Integer)
    is
@@ -494,7 +495,7 @@ package body Lime is
 --  lemp->tablesize += n*sz;
       for I in 0 .. N - 1 loop
          declare
-            STP : State_Access;
+            STP : access States.State_Record;  --  States.State_Access;
          begin
             --  stp := lemp->sorted[i];
             STP := Sorted_At (Lemp.Extra,
@@ -543,7 +544,7 @@ package body Lime is
 --  lemp->tablesize += n*sz;
       for I in 0 .. N - 1 loop
          declare
-            STP : State_Access;
+            STP : access States.State_Record;
          begin
             STP := Sorted_At (Lemp.Extra, Symbol_Index (I));
             Ofst := STP.iNtOfst;
@@ -581,17 +582,17 @@ package body Lime is
       Put_Line ("static const YYACTIONTYPE yy_default[] = {");
       for I in 0 .. N - 1 loop
          declare
-            STP : constant State_Access := Sorted_At (Lemp.Extra, Symbol_Index (I));
+            STP : constant access States.State_Record := Sorted_At (Lemp.Extra, Symbol_Index (I));
          begin
 --         IDfltReduce := Get_Default_Reduce (I);
 --         stp := lemp->sorted[i];
             if J = 0 then
                Put (" /* " & Image (I) & " */ ");
             end if;
-            if STP.iDfltReduce < 0 then
+            if STP.iDfltReduce then
                Put (" " & Image (Error_Action) & ",");
             else
-               Put (" " & Image (STP.iDfltReduce + Min_Reduce) & ",");
+               Put (" " & Image (Boolean'Pos (STP.iDfltReduce) + Min_Reduce) & ",");
             end if;
          end;
          if J = 9 or I = N - 1 then
@@ -852,7 +853,7 @@ package body Lime is
 
    function Sorted_At (Extra : in Extra_Access;
                        Index : in Symbol_Index)
-                      return State_Access
+                      return States.State_Access
    is
    begin
       return null; --  XXX

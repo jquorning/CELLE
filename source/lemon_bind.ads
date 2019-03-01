@@ -11,6 +11,7 @@ with Interfaces.C.Strings;
 
 with Lime;
 with Rules;
+with Configs;
 
 package Lemon_Bind is
 
@@ -18,7 +19,7 @@ package Lemon_Bind is
 
    function Configlist_Add_Basis
      (RP : in Rules.Rule_Access;
-      I  : in Integer) return Lime.Config_Access;
+      I  : in Integer) return Configs.Config_Access;
 
    procedure Set_Add (Config : in Interfaces.C.Strings.chars_ptr;
                       I      : in Integer);

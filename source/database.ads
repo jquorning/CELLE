@@ -11,12 +11,11 @@ with Lime;
 
 package Database is
 
-   Lemon     : aliased Lime.Lemon_Record;
-   pragma Import (C, Lemon, "lem");
+   Lemon : aliased Lime.Lemon_Record;
+   --  Global Lemon_Record instance
 
-   Lime_Lemp : aliased Lime.Lemon_Record;
-   pragma Import (C, Lime_Lemp, "lem");
-   --  Ada mirror of C lem (struct lemon) data structure.
+   pragma Import (C, Lemon, "lem");
+   --  Ada mirror of C lem (struct lemon) data structure
 
    procedure Dump (Lemon : in Lime.Lemon_Record);
    --  pragma Export (C, Dump, "lime_power_on_self_test");

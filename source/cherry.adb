@@ -14,6 +14,7 @@ with Interfaces.C.Strings;
 with Rules;
 with Errors;
 with Lemon_Bind;
+with Configs;
 
 package body Cherry is
 
@@ -83,7 +84,7 @@ package body Cherry is
       loop
          exit when RP = null;
          declare
-            New_CFP : Lime.Config_Access;
+            New_CFP : Configs.Config_Access;
          begin
             RP.LHS_Start := True;
             New_CFP := Configlist_Add_Basis (RP, 0);

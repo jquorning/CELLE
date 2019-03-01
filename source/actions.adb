@@ -30,7 +30,7 @@
 --  state number.
 --
 
-package body Action_Tables is
+package body Actions is
 
 --  /* Return the number of entries in the yy_action table */
 --  #define acttab_lookahead_size(X) ((X)->nAction)
@@ -226,4 +226,23 @@ package body Action_Tables is
    end Action_Size;
 
 
-end Action_Tables;
+   function Action_Cmp (Ap1, AP2 : in Action_Access)
+                       return Integer
+   is
+      RC : Integer;
+   begin
+      --    rc = ap1->sp->index - ap2->sp->index;
+--    if( rc==0 ){
+--      rc = (int)ap1->type - (int)ap2->type;
+--    }
+--    if( rc==0 && (ap1->type==REDUCE || ap1->type==SHIFTREDUCE) ){
+--      rc = ap1->x.rp->index - ap2->x.rp->index;
+--    }
+--    if( rc==0 ){
+--      rc = (int) (ap2 - ap1);
+--    }
+      return RC;
+   end Action_Cmp;
+
+
+end Actions;

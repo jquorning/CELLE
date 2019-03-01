@@ -10,6 +10,11 @@
 #ifndef __ACTION_TABLES_H__
 #define __ACTION_TABLES_H__
 
+int actioncmp (struct action* ap1,
+               struct attion* ap2);
+//
+//
+
 struct lookahead_action {
   int lookahead;             /* Value of the lookahead token */
   int action;                /* Action to take on the given lookahead */

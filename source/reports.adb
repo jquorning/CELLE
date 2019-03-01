@@ -19,7 +19,9 @@ with Rules;
 with Symbols;
 with Parsers;
 with Text_Out;
-with Action_Tables;
+with Actions;
+with Configs;
+with States;
 
 package body Reports is
 
@@ -27,7 +29,7 @@ package body Reports is
                            RP   : in Rules.Rule_Access);
 
    procedure Print_Action
-     (AP     : in     Lime.Action_Access;
+     (AP     : in     Actions.Action_Access;
       File   : in     Ada.Text_IO.File_Type;
       Indent : in     Integer;
       Result :    out Boolean);
@@ -35,7 +37,7 @@ package body Reports is
   --  nothing was actually printed.
 
    procedure Config_Print (File : in Ada.Text_IO.File_Type;
-                           CFP  : in Lime.Config_Access);
+                           CFP  : in Configs.Config_Access);
    --  Print the rule for a configuration.
 
    function Minimum_Size_Type (LWS     : in     Integer;
@@ -96,10 +98,12 @@ package body Reports is
    --
    type AX_Record is
      record
-        STP      : Lime.State_Access; --  A pointer to a state
-        Is_Token : Boolean;           --  True to use tokens.  False for non-terminals
-        N_Action : Integer;           --  Number of actions
-        Order    : Integer;           --  Original order of action sets
+        STP      : access States.State_Record; --  A pointer to a state
+        Is_Token : Boolean;
+        --  True to use tokens.  False for non-terminals
+
+        N_Action : Integer;                    --  Number of actions
+        Order    : Integer;                    --  Original order of action sets
      end record;
 
    type AX_Set_Record is
@@ -135,7 +139,7 @@ package body Reports is
       use Symbols;
       use Rules;
 
-      Lemp : Lime.Lemon_Record renames Database.Lime_Lemp; -- Parameter
+      Lemp : Lime.Lemon_Record renames Database.Lemon; -- Parameter
       RP   : Rules.Rule_Access;
       SP   : Symbol_Access;
       J    : Symbol_Index;
@@ -204,14 +208,17 @@ package body Reports is
       use Symbols;
       use Rules;
       use Lime;
-      Lemp : Lemon_Record renames Database.Lime_Lemp;
+      use Configs;
+      use Actions;
+
+      Lemp : Lemon_Record renames Database.Lemon;
       File : File_Type;
 
       Action_Result : Boolean;
 
       N   : Integer;
-      STP : State_Access;
-      CFP : Lime.Config_Access;
+      STP : States.State_Access;
+      CFP : Config_Access;
       AP  : Action_Access;
       RP  : Rule_Access;
    begin
@@ -226,9 +233,9 @@ package body Reports is
          New_Line;
 
          if Lemp.Basis_Flag then
-            CFP := STP.BP;
+            CFP := Config_Access (STP.BP);
          else
-            CFP := STP.CFP;
+            CFP := Config_Access (STP.CFP);
          end if;
 
          while CFP /= null loop
@@ -254,7 +261,7 @@ package body Reports is
          end loop;
          New_Line (File);
 
-         AP := Action_Access (STP.AP);
+         AP := Actions.Action_Access (STP.AP);
          while AP /= null loop
             Print_Action (AP, File, 30, Action_Result);
             if Action_Result then
@@ -358,17 +365,17 @@ package body Reports is
       use Interfaces.C.Strings;
       use Lime;
       use Rules;
-      package Acttab renames Action_Tables;
+      package Acttab renames Actions;
 
-      Lemp : Lemon_Record renames Database.Lime_Lemp;  --  Parameter
+      Lemp : Lemon_Record renames Database.Lemon;  --  Parameter
 
       Lemp_Name : constant String := Value (Lemp.Name);
 --    char line[LINESIZE];
-      STP : Lime.State_Access;
+      STP : States.State_Access;
 --    struct action *ap;
       RP  : Rules.Rule_Access;
 
-      Act_Tab : Action_Tables.A_Action_Table;
+      Act_Tab : Actions.A_Action_Table;
 --    int i, j, n, sz;
       I  : Integer;
       N  : Integer;
@@ -1216,7 +1223,7 @@ package body Reports is
 
 
    procedure Print_Action
-     (AP     : in     Lime.Action_Access;
+     (AP     : in     Actions.Action_Access;
       File   : in     Ada.Text_IO.File_Type;
       Indent : in     Integer;
       Result :    out Boolean)
@@ -1289,7 +1296,7 @@ package body Reports is
 
 
    procedure Config_Print (File : in Ada.Text_IO.File_Type;
-                           CFP  : in Lime.Config_Access)
+                           CFP  : in Configs.Config_Access)
    is
    begin
       null;

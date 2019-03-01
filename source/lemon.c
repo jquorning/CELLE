@@ -22,7 +22,7 @@
 
 #include "lemon.h"   /* Binding to C from Ada */
 #include "cherry.h"
-#include "action_tables.h"
+#include "actions.h"
 #include "symbols.h"
 
 #define ISSPACE(X) isspace((unsigned char)(X))
@@ -313,6 +313,7 @@ static struct action *Action_new(void){
   return newaction;
 }
 
+#if 0
 /* Compare two actions for sorting purposes.  Return negative, zero, or
 ** positive if the first action is less than, equal to, or greater than
 ** the first
@@ -334,6 +335,7 @@ static int actioncmp(
   }
   return rc;
 }
+#endif
 
 /* Sort parser actions */
 static struct action *Action_sort(

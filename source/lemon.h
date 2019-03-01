@@ -47,7 +47,7 @@ enum e_assoc {
     UNK
 };
 
-
+#if 1
 struct symbol {
   const char *name;        /* Name of the symbol */
   int index;               /* Index number for this symbol */
@@ -74,8 +74,9 @@ struct symbol {
   int nsubsym;             /* Number of constituent symbols in the MULTI */
   struct symbol **subsym;  /* Array of constituent symbols */
 };
+#endif
 
-
+#if 1
 /* Each production rule in the grammar is stored in the following
 ** structure.  */
 struct rule {
@@ -100,7 +101,7 @@ struct rule {
   struct rule *nextlhs;    /* Next rule with the same LHS */
   struct rule *next;       /* Next rule in the global list */
 };
-
+#endif
 
 /* A configuration is a production rule of the grammar together with
 ** a mark (dot) showing how much of that rule has been processed so far.

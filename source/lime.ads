@@ -21,7 +21,9 @@ with Interfaces.C.Strings;
 with Rules;
 with Symbols;
 with Parsers;
-with Action_Tables;
+with Actions;
+with States;
+--  with Configs;
 
 package Lime is
 
@@ -97,123 +99,86 @@ package Lime is
    --  symbols which are allowed to immediately follow the end of the rule.
    --  Every configuration is recorded as an instance of the following:
 
-   type cfgstatus is
-     (COMPLETE,
-      INCOMPLETE);
-   pragma Convention (C, cfgstatus);  -- lemon.h:125
 
    use Interfaces.C;
    use Rules;
 
 
-   type Plink_Record;
-   type Plink_Access is access all Plink_Record;
+--   type Plink_Record;
+--   type Plink_Access is access all Plink_Record;
 
-   type State_Record;
-   type State_Access is access all State_Record;
+--   type State_Record;
+--   type State_Access is access all State_Record;
 
-   type Config_Record;
-   type Config_Access is access all Config_Record;
+--     type Config_Record;
+--     type Config_Access is access all Config_Record;
 
-   type Config_Record is
-      record
-         RP          : access Rule_Record;   --  The rule upon which the configuration is based
-         DOT         : aliased Integer;      --  The parse point
-         Follow_Set  : Strings.chars_ptr;    --  FWS, Follow-set for this configuration only
-         FS_Forward  : Plink_Access;         --  fplp, forward propagation links
-         FS_Backward : Plink_Access;         --  bplp; Follow-set backwards propagation links
-         stp         : access State_Record;  --  Pointer to state which contains this
-         status      : aliased cfgstatus;    --  used during followset and shift computations
-         Next        : Config_Access;        --  Next configuration in the state
-         Basis       : Config_Access;        --  bp, The next basis configuration
-      end record;
-   pragma Convention (C_Pass_By_Copy, Config_Record);
+--     type Config_Record is
+--        record
+--           RP          : access Rule_Record;   --  The rule upon which the configuration is based
+--           DOT         : aliased Integer;      --  The parse point
+--           Follow_Set  : Strings.chars_ptr;    --  FWS, Follow-set for this configuration only
+--           FS_Forward  : Plink_Access;         --  fplp, forward propagation links
+--           FS_Backward : Plink_Access;         --  bplp; Follow-set backwards propagation links
+--           stp         : access States.State_Record;  --  Pointer to state which contains this
+--           status      : aliased cfgstatus;    --  used during followset and shift computations
+--           Next        : Config_Access;        --  Next configuration in the state
+--           Basis       : Config_Access;        --  bp, The next basis configuration
+--        end record;
+--     pragma Convention (C_Pass_By_Copy, Config_Record);
 
-
-   type e_action is
-     (SHIFT,
-      c_ACCEPT,
-      REDUCE,
-      ERROR,
-      SSCONFLICT,
-      SRCONFLICT,
-      RRCONFLICT,
-      SH_RESOLVED,
-      RD_RESOLVED,
-      NOT_USED,
-      SHIFTREDUCE);
-   pragma Convention (C, e_action);  -- lemon.h:141
-
-   --  A shift/shift conflict
-   --  Was a reduce, but part of a conflict
-   --  Was a reduce, but part of a conflict
-   --  Was a shift.  Precedence resolved conflict
-   --  Was reduce.  Precedence resolved conflict
-   --  Deleted by compression
-   --  Shift first, then reduce
-   --  Every shift or reduce operation is stored as one of the following
-   --  The look-ahead symbol
-   --  The new state, if a shift
 
    use Symbols;
 
-   type Action_Record;
-   type Action_Access is access all Action_Record;
+--     type Action_Record;
+--     type Action_Access is access all Action_Record;
 
-   type anon1015_x_union (discr : unsigned := 0) is record
-      case discr is
-         when 0      => stp : access State_Record;  -- lemon.h:161
-         when others => Rp  : access Rule_Record;  -- lemon.h:162
-      end case;
-   end record;
-   pragma Convention (C_Pass_By_Copy, anon1015_x_union);
-   pragma Unchecked_Union (anon1015_x_union);
+--     type anon1015_x_union (discr : unsigned := 0) is record
+--        case discr is
+--           when 0      => stp : access State_Record;  -- lemon.h:161
+--           when others => Rp  : access Rule_Record;  -- lemon.h:162
+--        end case;
+--     end record;
+--     pragma Convention (C_Pass_By_Copy, anon1015_x_union);
+--     pragma Unchecked_Union (anon1015_x_union);
 
-   type Action_Record is
-      record
-         SP      : access Symbol_Kind;
-         c_type  : aliased e_action;
-         X       : aliased anon1015_x_union;  --  The rule, if a reduce
-         spOpt   : access Symbol_Kind;        --  SHIFTREDUCE optimization to this symbol
-         Next    : access Action_Record;      --  Next action for this state
-         collide : access Action_Record;      --  Next action with the same hash
-      end record;
-   pragma Convention (C_Pass_By_Copy, Action_Record);
+--     type Action_Record is
+--        record
+--           SP      : access Symbol_Kind;
+--           c_type  : aliased e_action;
+--           X       : aliased anon1015_x_union;  --  The rule, if a reduce
+--           spOpt   : access Symbol_Kind;        --  SHIFTREDUCE optimization to this symbol
+--           Next    : access Action_Record;      --  Next action for this state
+--           collide : access Action_Record;      --  Next action with the same hash
+--        end record;
+--     pragma Convention (C_Pass_By_Copy, Action_Record);
 
 
-   --  Each state of the generated parser's finite state machine
-   --  is encoded as an instance of the following structure.
+--     --  Each state of the generated parser's finite state machine
+--     --  is encoded as an instance of the following structure.
 
-   type State_Record is
-      record
-         BP           : Config_Access;        --  The basis configurations for this state
-         CFP          : Config_Access;        --  All configurations in this set
-         State_Num    : aliased Integer;      --  Sequential number for this state
-         AP           : access Action_Record; --  List of actions for this state
-         N_Tkn_Act    : aliased Integer;      --  Number of actions on terminals and nonterminals
-         N_Nt_Act     : aliased Integer;      --  yy_action[] offset for terminals and nonterms
-         Token_Offset : aliased Integer;      --  Default action is to REDUCE by this rule
-         iNtOfst      : aliased Integer;      --  The default REDUCE rule.
-         iDfltReduce  : aliased Integer;      --  True if this is an auto-reduce state
-         pDfltReduce  : access Rule_Record;
-         autoReduce   : aliased int;
-      end record;
+--     type State_Record is
+--        record
+--           BP           : Config_Access;        --  The basis configurations for this state
+--           CFP          : Config_Access;        --  All configurations in this set
+--           State_Num    : aliased Integer;      --  Sequential number for this state
+--           AP           : access Action_Record; --  List of actions for this state
+--           N_Tkn_Act    : aliased Integer;   --  Number of actions on terminals and nonterminals
+--           N_Nt_Act     : aliased Integer;      --  yy_action[] offset for terminals and nonterms
+--           Token_Offset : aliased Integer;      --  Default action is to REDUCE by this rule
+--           iNtOfst      : aliased Integer;      --  The default REDUCE rule.
+--           iDfltReduce  : aliased Integer;      --  True if this is an auto-reduce state
+--           pDfltReduce  : access Rule_Record;
+--           autoReduce   : aliased int;
+--        end record;
 
-   function Sorted_At (Extra : in Extra_Access;
+--     function Sorted_At (Extra : in Extra_Access;
+--                         Index : in Symbol_Index)
+--                        return State_Access;
+
+   function Sorted_At (Extra : in Symbols.Extra_Access;
                        Index : in Symbol_Index)
-                      return State_Access;
-
-   --  A followset propagation link indicates that the contents of one
-   --  configuration followset should be propagated to another whenever
-   --  the first changes.   pragma Convention (C_Pass_By_Copy, State_Record);
-
-   type Plink_Record is
-      record
-         cfp  : Config_Access; --  The configuration to which linked
-         next : Plink_Access;  --  The next propagate link
-      end record;
-   pragma Convention (C_Pass_By_Copy, Plink_Record);  -- lemon.h:188
-
+                      return States.State_Access;
 
    --  The state vector for the entire parser generator is recorded as
    --  follows.  (LEMON uses no global variables and makes little use of
@@ -419,7 +384,7 @@ package Lime is
 --     return Integer;
 
    procedure Output_Action_Table
-     (Action_Table : in Action_Tables.A_Action_Table;
+     (Action_Table : in Actions.A_Action_Table;
       N            : in Integer;
       No_Action    : in Integer);
    --
@@ -430,7 +395,7 @@ package Lime is
 --     return Integer;
 
    procedure Output_YY_Lookahead
-     (Action_Table : in Action_Tables.A_Action_Table;
+     (Action_Table : in Actions.A_Action_Table;
       N            : in Integer;
       Nsymbol      : in Integer);
    --

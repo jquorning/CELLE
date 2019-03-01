@@ -30,7 +30,59 @@
 --  state number.
 --
 
-package Action_Tables is
+with States;
+with Rules;
+with Symbols;
+
+package Actions is
+
+   type e_action is
+     (SHIFT,
+      c_ACCEPT,
+      REDUCE,
+      ERROR,
+      SSCONFLICT,
+      SRCONFLICT,
+      RRCONFLICT,
+      SH_RESOLVED,
+      RD_RESOLVED,
+      NOT_USED,
+      SHIFTREDUCE);
+   pragma Convention (C, e_action);  -- lemon.h:141
+
+   --  A shift/shift conflict
+   --  Was a reduce, but part of a conflict
+   --  Was a reduce, but part of a conflict
+   --  Was a shift.  Precedence resolved conflict
+   --  Was reduce.  Precedence resolved conflict
+   --  Deleted by compression
+   --  Shift first, then reduce
+   --  Every shift or reduce operation is stored as one of the following
+   --  The look-ahead symbol
+   --  The new state, if a shift
+
+   type Action_Record;
+   type Action_Access is access all Action_Record;
+
+   type anon1015_x_union (discr : Integer := 0) is record
+      case discr is
+         when 0      => stp : access States.State_Record;  -- lemon.h:161
+         when others => Rp  : access Rules.Rule_Record;  -- lemon.h:162
+      end case;
+   end record;
+   pragma Convention (C_Pass_By_Copy, anon1015_x_union);
+   pragma Unchecked_Union (anon1015_x_union);
+
+   type Action_Record is
+      record
+         SP      : access Symbols.Symbol_Kind;
+         c_type  : aliased e_action;
+         X       : aliased anon1015_x_union;    --  The rule, if a reduce
+         spOpt   : access Symbols.Symbol_Kind;  --  SHIFTREDUCE optimization to this symbol
+         Next    : access Action_Record;        --  Next action for this state
+         collide : access Action_Record;        --  Next action with the same hash
+      end record;
+   pragma Convention (C_Pass_By_Copy, Action_Record);
 
    type Lookahead_Action is
       record
@@ -72,5 +124,11 @@ package Action_Tables is
    --  Return the size of the action table without the trailing syntax error
    --  entries.
 
+   function Action_Cmp (Ap1, AP2 : in Action_Access)
+                       return Integer;
+   --  Compare two actions for sorting purposes.  Return negative, zero, or
+   --  positive if the first action is less than, equal to, or greater than
+   --  the first
 
-end Action_Tables;
+
+end Actions;
