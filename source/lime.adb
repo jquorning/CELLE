@@ -497,8 +497,8 @@ package body Lime is
             STP : State_Access;
          begin
             --  stp := lemp->sorted[i];
-            STP := Sorted_Element_At (Lemp.Extra,
-                                      Symbol_Index (I));
+            STP := Sorted_At (Lemp.Extra,
+                              Symbol_Index (I));
             --  ofst := stp->iTknOfst;
             --  Ofst := Get_Token_Offset (I);
             Ofst := STP.Token_Offset;
@@ -545,7 +545,7 @@ package body Lime is
          declare
             STP : State_Access;
          begin
-            STP := Sorted_Element_At (Lemp.Extra, Symbol_Index (I));
+            STP := Sorted_At (Lemp.Extra, Symbol_Index (I));
             Ofst := STP.iNtOfst;
          end;
          if Ofst = NO_OFFSET then
@@ -581,7 +581,7 @@ package body Lime is
       Put_Line ("static const YYACTIONTYPE yy_default[] = {");
       for I in 0 .. N - 1 loop
          declare
-            STP : constant State_Access := Sorted_Element_At (Lemp.Extra, Symbol_Index (I));
+            STP : constant State_Access := Sorted_At (Lemp.Extra, Symbol_Index (I));
          begin
 --         IDfltReduce := Get_Default_Reduce (I);
 --         stp := lemp->sorted[i];
@@ -850,13 +850,13 @@ package body Lime is
    end Lime_Partial_Database_Dump_Ada;
 
 
-   function Sorted_Element_At (Extra : in Extra_Access;
-                               Index : in Symbol_Index)
-                              return State_Access
+   function Sorted_At (Extra : in Extra_Access;
+                       Index : in Symbol_Index)
+                      return State_Access
    is
    begin
       return null; --  XXX
-   end Sorted_Element_At;
+   end Sorted_At;
 
    --  A followset propagation link indicates that the contents of one
    --  configuration followset should be propagated to another whenever

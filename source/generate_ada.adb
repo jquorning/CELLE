@@ -10,7 +10,6 @@
 with Ada.Text_IO;
 with Ada.Directories;
 
-with Lime;
 with Setup;
 with Auxiliary;
 

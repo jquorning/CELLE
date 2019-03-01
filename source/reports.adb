@@ -219,7 +219,7 @@ package body Reports is
       Open (File, Out_File, "XXX.out");
 
       for I in Symbol_Index range 0 .. Symbol_Index (Lemp.Nx_State) - 1 loop
-         STP := Sorted_Element_At (Lemp.Extra, Index => I);
+         STP := Sorted_At (Lemp.Extra, Index => I);
          Put (File, "State ");
          Put (File, Integer'Image (STP.State_Num));
          Put (File, ":");
@@ -520,7 +520,7 @@ package body Reports is
       --    exit(1);
 
          for I in Symbol_Index range 0 .. Symbol_Index (Lemp.Nx_State - 1) loop
-            STP := Sorted_Element_At (Lemp.Extra, Index => I);
+            STP := Sorted_At (Lemp.Extra, Index => I);
 
             AX (I).Token := (STP      => STP,
                              Is_Token => True,

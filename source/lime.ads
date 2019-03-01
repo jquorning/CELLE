@@ -199,9 +199,9 @@ package Lime is
          autoReduce   : aliased int;
       end record;
 
-   function Sorted_Element_At (Extra : in Extra_Access;
-                               Index : in Symbol_Index)
-                              return State_Access;
+   function Sorted_At (Extra : in Extra_Access;
+                       Index : in Symbol_Index)
+                      return State_Access;
 
    --  A followset propagation link indicates that the contents of one
    --  configuration followset should be propagated to another whenever
