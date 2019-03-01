@@ -130,5 +130,8 @@ package Actions is
    --  positive if the first action is less than, equal to, or greater than
    --  the first
 
+private
+
+   pragma Export (C, Action_Cmp, "actioncmp");
 
 end Actions;
