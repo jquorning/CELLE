@@ -17,8 +17,6 @@ limited with Rules;
 
 package Symbols is
 
-   --  use Rules;
-
    type Symbol_Kind is
      (Terminal,
       Non_Terminal,
@@ -49,13 +47,13 @@ package Symbols is
 
    use Symbol_Vectors;
 
-
---     type Symbol_Index_Array_Access  is access all Symbol_Index_Array;
---     type Symbol_Access_Array_Access is access all Symbol_Access_Array;
---     pragma Convention (C, Symbol_Access_Array_Access);
    subtype S_Set is Unbounded_String;
+
    Null_Set : S_Set renames Null_Unbounded_String;
-   function "=" (Left, Right : S_Set) return Boolean renames Ada.Strings.Unbounded."=";
+
+   function "=" (Left, Right : S_Set)
+                return Boolean
+     renames Ada.Strings.Unbounded."=";
 
    type Key_Type is new Unbounded_String;
 

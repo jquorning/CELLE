@@ -1,5 +1,6 @@
 1. Remove warnings
 1. Rewrite reports 
+1. Remove aliased of most record components
 1. Cleanup symbol sorting
 1. Complete scanner package
 1. Move Auxiliary to DK8543

@@ -19,19 +19,19 @@ package States is
    type State_Record is record
       BP           : access Configs.Config_Record;  --  The basis configurations for this state
       CFP          : access Configs.Config_Record;  --  All configurations in this set
-      State_Num    : aliased Integer;               --  Sequential number for this state
+      State_Num    : Integer;                       --  Sequential number for this state
       AP           : access Actions.Action_Record;  --  List of actions for this state
-      N_Tkn_Act    : aliased Integer;
+      N_Tkn_Act    : Integer;
       --  Number of actions on terminals and nonterminals
 
       N_Nt_Act     : aliased Integer;
       --  yy_action[] offset for terminals and nonterms
 
-      Token_Offset : aliased Integer;       --  Default action is to REDUCE by this rule
-      iNtOfst      : aliased Integer;       --  The default REDUCE rule.
+      Token_Offset : Integer;               --  Default action is to REDUCE by this rule
+      iNtOfst      : Integer;               --  The default REDUCE rule.
       iDfltReduce  : Boolean;               --  True if this is an auto-reduce state
       pDfltReduce  : access Rules.Rule_Record;
-      autoReduce   : aliased Integer;
+      autoReduce   : Integer;
    end record;
 
    type State_Access is access all State_Record;
