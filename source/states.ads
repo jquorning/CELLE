@@ -27,17 +27,13 @@ package States is
       N_Nt_Act     : aliased Integer;
       --  yy_action[] offset for terminals and nonterms
 
-      Token_Offset : aliased Integer;               --  Default action is to REDUCE by this rule
-      iNtOfst      : aliased Integer;               --  The default REDUCE rule.
-      iDfltReduce  : Boolean; --  aliased Integer;  --  True if this is an auto-reduce state
+      Token_Offset : aliased Integer;       --  Default action is to REDUCE by this rule
+      iNtOfst      : aliased Integer;       --  The default REDUCE rule.
+      iDfltReduce  : Boolean;               --  True if this is an auto-reduce state
       pDfltReduce  : access Rules.Rule_Record;
       autoReduce   : aliased Integer;
    end record;
 
    type State_Access is access all State_Record;
-
---   function Sorted_At (Extra : in Symbols.Extra_Access;
---                       Index : in Symbol_Index)
---                      return State_Access;
 
 end States;

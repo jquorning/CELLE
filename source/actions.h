@@ -7,11 +7,11 @@
 **    May you share freely, not taking more than you give.
 **/
 
-#ifndef __ACTION_TABLES_H__
-#define __ACTION_TABLES_H__
+#ifndef __ACTIONS_H__
+#define __ACTIONS_H__
 
 int actioncmp (struct action* ap1,
-               struct attion* ap2);
+               struct action* ap2);
 //
 //
 

@@ -605,16 +605,6 @@ package body Lime is
       Put_Line ("};");
    end Output_Default_Action_Table;
 
---     procedure Write_Fallback_Token
---       (Is_Fallback    : in Integer;
---        Name           : in chars_ptr;
---        Fallback_Index : in Integer;
---        Fallback_Name  : in chars_ptr)
---     is
---     begin
-
---     end Write_Fallback_Token;
-
 
    procedure Template_Print_2
      (Line        : in chars_ptr;

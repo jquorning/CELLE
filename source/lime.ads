@@ -23,7 +23,6 @@ with Symbols;
 with Parsers;
 with Actions;
 with States;
---  with Configs;
 
 package Lime is
 
@@ -102,79 +101,7 @@ package Lime is
 
    use Interfaces.C;
    use Rules;
-
-
---   type Plink_Record;
---   type Plink_Access is access all Plink_Record;
-
---   type State_Record;
---   type State_Access is access all State_Record;
-
---     type Config_Record;
---     type Config_Access is access all Config_Record;
-
---     type Config_Record is
---        record
---           RP          : access Rule_Record;   --  The rule upon which the configuration is based
---           DOT         : aliased Integer;      --  The parse point
---           Follow_Set  : Strings.chars_ptr;    --  FWS, Follow-set for this configuration only
---           FS_Forward  : Plink_Access;         --  fplp, forward propagation links
---           FS_Backward : Plink_Access;         --  bplp; Follow-set backwards propagation links
---           stp         : access States.State_Record;  --  Pointer to state which contains this
---           status      : aliased cfgstatus;    --  used during followset and shift computations
---           Next        : Config_Access;        --  Next configuration in the state
---           Basis       : Config_Access;        --  bp, The next basis configuration
---        end record;
---     pragma Convention (C_Pass_By_Copy, Config_Record);
-
-
    use Symbols;
-
---     type Action_Record;
---     type Action_Access is access all Action_Record;
-
---     type anon1015_x_union (discr : unsigned := 0) is record
---        case discr is
---           when 0      => stp : access State_Record;  -- lemon.h:161
---           when others => Rp  : access Rule_Record;  -- lemon.h:162
---        end case;
---     end record;
---     pragma Convention (C_Pass_By_Copy, anon1015_x_union);
---     pragma Unchecked_Union (anon1015_x_union);
-
---     type Action_Record is
---        record
---           SP      : access Symbol_Kind;
---           c_type  : aliased e_action;
---           X       : aliased anon1015_x_union;  --  The rule, if a reduce
---           spOpt   : access Symbol_Kind;        --  SHIFTREDUCE optimization to this symbol
---           Next    : access Action_Record;      --  Next action for this state
---           collide : access Action_Record;      --  Next action with the same hash
---        end record;
---     pragma Convention (C_Pass_By_Copy, Action_Record);
-
-
---     --  Each state of the generated parser's finite state machine
---     --  is encoded as an instance of the following structure.
-
---     type State_Record is
---        record
---           BP           : Config_Access;        --  The basis configurations for this state
---           CFP          : Config_Access;        --  All configurations in this set
---           State_Num    : aliased Integer;      --  Sequential number for this state
---           AP           : access Action_Record; --  List of actions for this state
---           N_Tkn_Act    : aliased Integer;   --  Number of actions on terminals and nonterminals
---           N_Nt_Act     : aliased Integer;      --  yy_action[] offset for terminals and nonterms
---           Token_Offset : aliased Integer;      --  Default action is to REDUCE by this rule
---           iNtOfst      : aliased Integer;      --  The default REDUCE rule.
---           iDfltReduce  : aliased Integer;      --  True if this is an auto-reduce state
---           pDfltReduce  : access Rule_Record;
---           autoReduce   : aliased int;
---        end record;
-
---     function Sorted_At (Extra : in Extra_Access;
---                         Index : in Symbol_Index)
---                        return State_Access;
 
    function Sorted_At (Extra : in Symbols.Extra_Access;
                        Index : in Symbol_Index)
@@ -264,19 +191,6 @@ package Lime is
    --  NO_OFFSET : aliased long;  -- lemon.h:247
    --  pragma Import (C, NO_OFFSET, "NO_OFFSET");
    No_Offset : aliased Integer := Integer'First;
-
---     type lime_render_record is
---        record
---           Nxstate : aliased int;  -- lemon.h:372
---           nrule : aliased int;  -- lemon.h:373
---           nterminal : aliased int;  -- lemon.h:374
---           minShiftReduce : aliased int;  -- lemon.h:375
---           errAction : aliased int;  -- lemon.h:376
---           accAction : aliased int;  -- lemon.h:377
---           noAction : aliased int;  -- lemon.h:378
---           minReduce : aliased int;  -- lemon.h:379
---        end record;
---     pragma Convention (C_Pass_By_Copy, lime_render_record);  -- lemon.h:370
 
 
    procedure Implementation_Open (File_Name : in String);
@@ -379,10 +293,6 @@ package Lime is
    --
    --
 
---   function Get_Acttab_YY_Action
---     (I : in Integer)
---     return Integer;
-
    procedure Output_Action_Table
      (Action_Table : in Actions.A_Action_Table;
       N            : in Integer;
@@ -390,20 +300,12 @@ package Lime is
    --
    --
 
---   function Get_Acttab_YY_Lookahead
---     (I : in Integer)
---     return Integer;
-
    procedure Output_YY_Lookahead
      (Action_Table : in Actions.A_Action_Table;
       N            : in Integer;
       Nsymbol      : in Integer);
    --
    --
-
---   function Get_Token_Offset
---     (I : in Integer)
---     return Integer;
 
    procedure Output_YY_Shift_Offsets
      (Lemp          : in Lime.Lemon_Record;
@@ -418,10 +320,6 @@ package Lime is
    --
    --
 
---   function Get_NT_Offset
---     (I : in Integer)
---     return Integer;
-
    procedure Output_YY_Reduce_Offsets
      (Lemp          : in Lime.Lemon_Record;
       N             : in Integer;
@@ -430,13 +328,6 @@ package Lime is
       Min_Size_Type : in chars_ptr;
       NO_OFFSET     : in Integer);
 
-   --
-   --
-   --
-
---   function Get_Default_Reduce
---     (I : in Integer)
---     return Integer;
 
    procedure Output_Default_Action_Table
      (Lemp         : in Lime.Lemon_Record;
@@ -522,32 +413,6 @@ private
    pragma Export (C, Generate_Spec,       "lime_generate_spec");
 
    pragma Export (C, Generate_Tokens,  "lime_generate_tokens");
---   pragma Import (C, Spec_Line_Callback,
---                  "lemon_generate_header_line_callback");
---   pragma Import (C, Get_Token_Callback,
---                  "lime_get_token_callback");
---   pragma Export (C, Generate_The_Defines_2, "lime_generate_the_defines_2");
---   pragma Export (C, Error_Fallback,         "lime_error_fallback");
---   pragma Export (C, Output_Action_Table,    "lime_write_action_table");
---   pragma Import (C, Get_Acttab_YY_Action,   "lime_get_acttab_yy_action");
---   pragma Export (C, Write_YY_Lookahead,     "lime_write_yy_lookahead");
---   pragma Import (C, Get_Acttab_YY_Lookahead, "lime_get_acttab_yy_lookahead");
---   pragma Export (C, Write_YY_Shift_Offsets,  "lime_write_yy_shift_offsets");
---   pragma Import (C, Get_Token_Offset,        "lime_get_token_offset");
---   pragma Export (C, Write_YY_Reduce_Offsets, "lime_write_yy_reduce_offsets");
---   pragma Import (C, Get_NT_Offset,           "lime_get_nt_offset");
---   pragma Export (C, Write_Default_Action_Table, "lime_write_default_action_table");
---   pragma Import (C, Get_Default_Reduce,         "lime_get_default_reduce");
-
---   pragma Export (C, Close_Out,         "lime_close_out");
---   pragma Export (C, Close_In,          "lime_close_in");
-
---   pragma Export (C, Write_Interface,   "lime_write_interface");
---   pragma Export (C, Write_Interface_Begin, "lime_write_interface_begin");
---   pragma Export (C, Write_Interface_End,   "lime_write_interface_end");
---   pragma Export (C, Report_Header,         "lime_report_header");
---   pragma Export (C, Generate_Reprint_Of_Grammar,
---                  "lime_generate_reprint_of_grammar");
 
    pragma Import (C, Reprint,               "lemon_reprint");
    pragma Import (C, Set_Size,              "lemon_set_size");

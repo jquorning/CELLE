@@ -128,11 +128,6 @@ package Symbols is
 
    subtype Symbol_Name is Ada.Strings.Unbounded.Unbounded_String;
 
-
---   function Sorted_At (Extra : in Extra_Access;
---                       Index : in Symbol_Index)
---                      return States.State_Access;
-
    --
    --  Routines for handling symbols of the grammar
    --
