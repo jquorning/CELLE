@@ -17,7 +17,6 @@ with Interfaces.C.Strings;
 with Setup;
 with Options;
 with Command_Line;
-with Database;
 with Lime;
 with Cherry;
 with Rules;
@@ -90,7 +89,8 @@ begin
       use Symbols;
       use Rules;
 
-      Lemon : Lime.Lemon_Record renames Database.Lemon;
+      --  Lemon : Lime.Lemon_Record renames Database.Lemon;
+      Lemon : aliased Lime.Lemon_Record;
       --  Status : Ada.Command_Line.Exit_Status;
 
       --  Success : Ada.Command_Line.Exit_Status renames Ada.Command_Line.Success;
@@ -120,11 +120,11 @@ begin
 
       --  Dump Ada mirror of lemon structure
       Put_Line ("Dumping Ada");
-      Database.Dump (Lemon);
+      --  Database.Dump (Lemon);
 
       --  Dump C mirror of lemon structure
       Put_Line ("Dumping C");
-      Lime_Partial_Database_Dump_C;
+      --  Lime_Partial_Database_Dump_C;
 
       --  Dump Ada Lemon_Input_File.
       Put_Line ("Lemon_Input_File: " & Value (Lemon_Input_File));
@@ -243,7 +243,7 @@ begin
       begin
 
          if Options.RP_Flag then
-            Reprint (Lemon);
+            Reports.Reprint (Lemon);
          else
             Put_Line ("### 2-1");
             --  Initialize the size for all follow and first sets
@@ -281,7 +281,7 @@ begin
 
             --  Compress the action tables
             if not Options.Compress then
-               Compress_Tables (Lemon);
+               Reports.Compress_Tables (Lemon);
             end if;
             Put_Line ("### 2-9");
 
@@ -289,25 +289,26 @@ begin
             --  occur at the end.  This is an optimization that helps make the
             --  generated parser tables smaller.
             if not Options.No_Resort then
-               Resort_States (Lemon);
+               Reports.Resort_States (Lemon);
             end if;
             Put_Line ("### 2-10");
 
             --   Generate a report of the parser generated.  (the "y.output" file)
             if not Options.Be_Quiet then
-               Report_Output (Lemon);
+               Reports.Report_Output (Lemon);
             end if;
 
             --  Generate the source code for the parser
-            Report_Table (Lemon);
+            Reports.Report_Table (Lemon);
 
             --  Produce a header file for use by the scanner.  (This step is
             --  omitted if the "-m" option is used because makeheaders will
             --  generate the file for us.)
             Report_Header
-              (Token_Prefix,
-               Base_Name,
-               New_String ("MODULE XXX"),
+              (Lemon,
+               Value (Token_Prefix),
+               Value (Base_Name),
+               "MODULE XXX",
                Terminal_Last);
 
          end if;

@@ -8,6 +8,7 @@
 --
 
 with Backend;
+with Lime;
 
 package Generate_C is
 
@@ -21,8 +22,8 @@ package Generate_C is
       Error_Count   : in out Integer);
 
    procedure Generate_Spec
---     (Cherry    : in     Cherry_Interface;
-     (Context   : in out Context_Type;
+     (Lemp      : in     Lime.Lemon_Record;
+      Context   : in out Context_Type;
       File_Name : in     String;
       Module    : in     String;
       Prefix    : in     String;

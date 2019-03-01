@@ -184,18 +184,15 @@ package Lime is
    --
 
    procedure Generate_Spec
-     (Base_Name : in chars_ptr;
-      Prefix    : in chars_ptr; --  Prefix of symbols in spec
-      Module    : in chars_ptr; --  Prefix of symbols in spec
+     (Lemp      : in Lime.Lemon_Record;
+      Base_Name : in String;
+      Prefix    : in String;    --  Prefix of symbols in spec
+      Module    : in String;    --  Prefix of symbols in spec
       First     : in Integer;   --  Index of first symbol
       Last      : in Integer);  --  Index of last symbol
    --  Create spec file with name File_Name including symols found by
    --  iterating from First to Last calling callback prepended with
    --  Suffix.
-
---   function Spec_Line_Callback
---     (Index : in Integer)
---     return chars_ptr;
 
    procedure Template_Print
      (Out_Name    : in String;
@@ -204,15 +201,6 @@ package Lime is
 
    procedure Write_Include
      (Include_Name : in String);
-
-   procedure Generate_Tokens
-     (Token_Prefix : in chars_ptr;
-      First        : in Integer;
-      Last         : in Integer);
-
---   function Get_Token_Callback
---     (Index : in Integer)
---     return chars_ptr;
 
    procedure Generate_The_Defines_1
      (YY_Code_Type   : in chars_ptr;
@@ -330,22 +318,17 @@ package Lime is
    procedure Write_Interface_End;
 
    procedure Report_Header
-     (Token_Prefix  : in chars_ptr;
-      Base_Name     : in chars_ptr;
-      Module_Name   : in chars_ptr;
+     (Lemp          : in Lime.Lemon_Record;
+      Token_Prefix  : in String;
+      Base_Name     : in String;
+      Module_Name   : in String;
       Terminal_Last : in Natural);
    --  Generate a header file for the Parser.
-
-   procedure Generate_Reprint_Of_Grammar
-     (Base_Name     : in chars_ptr;
-      Token_Prefix  : in chars_ptr;
-      Terminal_Last : in Natural);
-   --  Generate a reprint of the grammar, if requested on the command line.
 
    --
    --  Other way round specs
    --
-   procedure Reprint (Lemon : in out Lemon_Record);
+--   procedure Reprint (Lemon : in out Lemon_Record);
    procedure Set_Size (Size : in Natural);
    procedure Find_Rule_Precedences (Lemon : in Lemon_Record);
    procedure Find_First_Sets (Lemon : in Lemon_Record);
@@ -353,10 +336,6 @@ package Lime is
    procedure Find_Links (Lemon : in Lemon_Record);
    procedure Find_Follow_Sets (Lemon : in Lemon_Record);
    procedure Find_Actions (Lemon : in Lemon_Record);
-   procedure Compress_Tables (Lemon : in Lemon_Record);
-   procedure Resort_States (Lemon : in Lemon_Record);
-   procedure Report_Output (Lemon : in Lemon_Record);
-   procedure Report_Table (Lemon : in Lemon_Record);
 
    procedure Strsafe_Init;
    procedure State_Init;
@@ -366,9 +345,6 @@ package Lime is
 
    procedure Make_Copy_Of_Ada_Option_Strings;
 
-   procedure Lime_Partial_Database_Dump_Ada;
-   procedure Lime_Partial_Database_Dump_C;
-
 private
 
    --  Option strings has char* brother
@@ -377,11 +353,6 @@ private
    pragma Export (C, Lemon_User_Template, "lemon_user_template");
    pragma Export (C, Lemon_Output_Dir,    "lemon_output_dir");
 
-   pragma Export (C, Generate_Spec,       "lime_generate_spec");
-
-   pragma Export (C, Generate_Tokens,  "lime_generate_tokens");
-
-   pragma Import (C, Reprint,               "lemon_reprint");
    pragma Import (C, Set_Size,              "lemon_set_size");
    pragma Import (C, Find_Rule_Precedences, "lemon_find_rule_precedences");
    pragma Import (C, Find_First_Sets,       "lemon_find_first_sets");
@@ -389,18 +360,10 @@ private
    pragma Import (C, Find_Links,            "lemon_find_links");
    pragma Import (C, Find_Follow_Sets,      "lemon_find_follow_sets");
    pragma Import (C, Find_Actions,          "lemon_find_actions");
-   pragma Import (C, Compress_Tables,       "lemon_compress_tables");
-   pragma Import (C, Resort_States,         "lemon_resort_states");
-   pragma Import (C, Report_Output,         "lemon_report_output");
-   pragma Import (C, Report_Table,          "lemon_report_table");
 
    pragma Import (C, Strsafe_Init, "Strsafe_init");
    pragma Import (C, State_Init,   "State_init");
 
    pragma Import (C, Rule_Sort, "lime_rule_sort");
 
-   pragma Export (C, Lime_Partial_Database_Dump_Ada,
-                  "lime_partial_database_dump_ada");
-   pragma Import (C, Lime_Partial_Database_Dump_C,
-                  "lime_partial_database_dump_c");
 end Lime;

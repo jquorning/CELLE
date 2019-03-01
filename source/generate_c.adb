@@ -12,24 +12,22 @@ with Ada.Strings.Fixed;
 with Ada.Strings.Unbounded;
 with Ada.Directories;
 
---  with Lime;
 with Setup;
 with Auxiliary;
 with Symbols;
-with Database;
+--  with Database;
 
 package body Generate_C is
 
    procedure Open_Template
---     (Cherry        : in     Cherry_Interface;
      (Context       : in out Context_Type;
       User_Template : in     String;
       File_Name     : in     String;
       Error_Count   : in out Integer)
    is
---      pragma Unreferenced (Cherry);
-      use Ada.Strings.Unbounded;
       use Ada.Text_IO;
+      use Ada.Strings.Unbounded;
+
       Default_Template : String renames Setup.Default_Template_C;
       Template_Name    : Unbounded_String;
    begin
@@ -110,7 +108,8 @@ package body Generate_C is
    Header_Extension : constant String := ".h";
 
    procedure Generate_Spec
-     (Context   : in out Context_Type;
+     (Lemp      : in     Lime.Lemon_Record;
+      Context   : in out Context_Type;
       File_Name : in     String;
       Module    : in     String;
       Prefix    : in     String;
@@ -134,9 +133,8 @@ package body Generate_C is
       for I in First .. Last - 1 loop
          declare
             Symbol : constant String :=
-              Prefix & From_Key (Symbols.Element_At (Database.Lemon.Extra,
-                                                     Symbol_Index (I)).Name);
-            --  Lime.Get_Token (I);
+              Prefix & From_Key (Element_At (Lemp.Extra,
+                                             Symbol_Index (I)).Name);
          begin
             Put (File, "#define ");
             Put (File, Symbol);

@@ -253,7 +253,7 @@ void Configtable_clear(int(*)(struct config *));
 
 /****************** Common data structure used as global **********************/
 
-struct lemon lem;
+//struct lemon lem;
 
 /*************** End of common data structure used as global ******************/
 
@@ -281,11 +281,13 @@ lime_partial_database_dump (struct lemon *lemp)
   printf ("lemon_input_file : %s\n", lemon_input_file);
 }
 
+#if 0
 void
 lime_partial_database_dump_c (void)
 {
   lime_partial_database_dump (&lem);
 }
+#endif
 
 /****************** From the file "action.c" *******************************/
 /*

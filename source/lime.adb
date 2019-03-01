@@ -22,9 +22,7 @@ with Generate_C;
 with Setup;
 with Backend;
 with Text_Out;
-with Database;
 with Options;
---  with States;
 
 package body Lime is
 
@@ -50,15 +48,16 @@ package body Lime is
 
 
    procedure Generate_Spec
-     (Base_Name : in chars_ptr;
-      Prefix    : in chars_ptr;
-      Module    : in chars_ptr;
+     (Lemp      : in Lime.Lemon_Record;
+      Base_Name : in String;
+      Prefix    : in String;
+      Module    : in String;
       First     : in Integer;
       Last      : in Integer)
    is
-      Ada_Base_Name : constant String := Value (Base_Name);
-      Ada_Prefix    : constant String := Value (Prefix);
-      Ada_Module    : constant String := Value (Module);
+--      Ada_Base_Name : constant String := Value (Base_Name);
+--      Ada_Prefix    : constant String := Value (Prefix);
+--      Ada_Module    : constant String := Value (Module);
    begin
 
       case Options.Language is
@@ -66,18 +65,19 @@ package body Lime is
          when Options.Language_Ada =>
             Generate_Ada.Generate_Spec
               (Context   => Context,
-               Base_Name => Ada_Base_Name,
-               Module    => Ada_Module,
-               Prefix    => Ada_Prefix,
+               Base_Name => Base_Name,
+               Module    => Module,
+               Prefix    => Prefix,
                First     => First,
                Last      => Last);
 
          when Options.Language_C =>
             Generate_C.Generate_Spec
-              (Context   => Context,
-               File_Name => Ada_Base_Name,
-               Module    => Ada_Module,
-               Prefix    => Ada_Prefix,
+              (Lemp      => Lemp,
+               Context   => Context,
+               File_Name => Base_Name,
+               Module    => Module,
+               Prefix    => Prefix,
                First     => First,
                Last      => Last);
 
@@ -256,46 +256,6 @@ package body Lime is
       end if;
    end Write_Include;
 
-   procedure Generate_Tokens
-     (Token_Prefix : in chars_ptr;
-      First        : in Integer;
-      Last         : in Integer)
-   is
-      use Text_Out;
-      Prefix : chars_ptr;
-   begin
-      if Options.MH_Flag then
-         --  const char *prefix; */
-         Put_Line ("#if INTERFACE");
---         Line_Number := Line_Number + 1;
-         if Token_Prefix /= Null_Ptr then
-            Prefix := Token_Prefix;
-         else
-            Prefix := New_String ("");
-         end if;
-
-         for I in First .. Last loop
---              Put_Line (Context.File_Implementation,
---                        "#define " &
---                          Value (Prefix)   &
---                          Value (Get_Token_Callback (I)) &
---                          " " & Integer'Image (I));
---              Line_Number := Line_Number + 1;
-            Put ("#define ");
-            Put_CP (Prefix);
-            --  Put_CP (Get_Token_Callback (I));
-            --  return lime_lemp_copy->symbols[index]->name;
-            Put (From_Key
-                   (Element_At
-                      (Database.Lemon.Extra,
-                       Symbol_Index (I)).Name));
-            Put (" ");
-            Put_Int (I);
-            New_Line;
-         end loop;
-         Put_Line ("#endif");
-      end if;
-   end Generate_Tokens;
 
 
    procedure Generate_The_Defines_1
@@ -728,100 +688,34 @@ package body Lime is
 
 
    procedure Report_Header
-     (Token_Prefix  : in chars_ptr;
-      Base_Name     : in chars_ptr;
-      Module_Name   : in chars_ptr;
+     (Lemp          : in Lime.Lemon_Record;
+      Token_Prefix  : in String;
+      Base_Name     : in String;
+      Module_Name   : in String;
       Terminal_Last : in Natural)
    is
       use Ada.Text_IO;
-      Prefix : chars_ptr := Token_Prefix;
+      Prefix : constant String := Token_Prefix;
    begin
 
       if not Options.MH_Flag then
          return;
       end if;
 
-      if Token_Prefix = Null_Ptr then
-         Prefix := New_String ("");
-      end if;
+--      if Token_Prefix = Null_Ptr then
+--         Prefix := New_String ("");
+--      end if;
 
       --  Generate parse.h.ads
-      Generate_Spec (Base_Name, Prefix, Module_Name,
+      Generate_Spec (Lemp,
+                     Base_Name, Prefix, Module_Name,
                      First => 1,
                      Last  => Terminal_Last);
    end Report_Header;
 
-   Lemon_Lemp : Lemon_Record;
-   pragma Import (C, Lemon_Lemp, "lem");
+--   Lemon_Lemp : Lemon_Record;
+--   pragma Import (C, Lemon_Lemp, "lem");
 
-   procedure Generate_Reprint_Of_Grammar
-     (Base_Name     : in chars_ptr;
-      Token_Prefix  : in chars_ptr;
-      Terminal_Last : in Natural)
-   is
-      use Ada.Text_IO;
-   begin
-      if Options.RP_Flag then
-         Reprint (Lemon_Lemp);
-      else
-         Put_Line ("### 2-1");
-         --  Initialize the size for all follow and first sets
-         Set_Size (Terminal_Last + 1);
-         Put_Line ("### 2-2");
-         --  Find the precedence for every production rule (that has one)
-         Find_Rule_Precedences (Lemon_Lemp);
-         Put_Line ("### 2-3");
-         --  Compute the lambda-nonterminals and the first-sets for every
-         --  nonterminal
-         Find_First_Sets (Lemon_Lemp);
-         Put_Line ("### 2-4");
-         --  Compute all LR(0) states.  Also record follow-set propagation
-         --  links so that the follow-set can be computed later
-         Compute_LR_States (Lemon_Lemp);
-         Put_Line ("### 2-5");
-         --         Lemon_Lemp->nstate = 0;
---         FindStates (Lemon_lemp);
---         Lemon_Lemp->sorted = State_arrayof();
-
-         --  Tie up loose ends on the propagation links
-         Find_Links (Lemon_Lemp);
-         Put_Line ("### 2-6");
-         --  Compute the follow set of every reducible configuration
-         Find_Follow_Sets (Lemon_Lemp);
-         Put_Line ("### 2-7");
-         --  Compute the action tables
-         Find_Actions (Lemon_Lemp);
-         Put_Line ("### 2-8");
-         --  Compress the action tables
-         if not Options.Compress then
-            Compress_Tables (Lemon_Lemp);
-         end if;
-         Put_Line ("### 2-9");
-         --  Reorder and renumber the states so that states with fewer choices
-         --  occur at the end.  This is an optimization that helps make the
-         --  generated parser tables smaller.
-         if not Options.No_Resort then
-            Resort_States (Lemon_Lemp);
-         end if;
-         Put_Line ("### 2-10");
-         --   Generate a report of the parser generated.  (the "y.output" file)
-         if not Options.Be_Quiet then
-            Report_Output (Lemon_Lemp);
-         end if;
-
-         --  Generate the source code for the parser
-         Report_Table (Lemon_Lemp);
-
-         --  Produce a header file for use by the scanner.  (This step is
-         --  omitted if the "-m" option is used because makeheaders will
-         --  generate the file for us.)
-         Report_Header
-           (Token_Prefix,
-            Base_Name, -- File_Makename (Lemon_Lemp, ""),
-            New_String ("MODULE XXX"),
-            Terminal_Last);
-      end if;
-   end Generate_Reprint_Of_Grammar;
 
 
    procedure Make_Copy_Of_Ada_Option_Strings
@@ -834,11 +728,11 @@ package body Lime is
    end Make_Copy_Of_Ada_Option_Strings;
 
 
-   procedure Lime_Partial_Database_Dump_Ada is
-      use Database;
-   begin
-      Dump (Lemon);
-   end Lime_Partial_Database_Dump_Ada;
+--     procedure Lime_Partial_Database_Dump_Ada is
+--        use Database;
+--     begin
+--        Dump (Lemon);
+--     end Lime_Partial_Database_Dump_Ada;
 
 
    function Sorted_At (Extra : in Extra_Access;

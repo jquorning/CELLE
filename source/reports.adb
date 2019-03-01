@@ -20,6 +20,7 @@ with Text_Out;
 with Actions;
 with Configs;
 with States;
+with Options;
 
 package body Reports is
 
@@ -112,6 +113,17 @@ package body Reports is
    procedure Rule_Print (RP : in Rules.Rule_Access);
    --  Print the text of a rule
 
+   procedure Generate_Tokens
+     (Lemon        : in Lime.Lemon_Record;
+      Token_Prefix : in String;
+      First        : in Integer;
+      Last         : in Integer);
+
+   procedure Generate_Reprint_Of_Grammar
+     (Lemon_Lemp    : in out Lime.Lemon_Record;
+      Base_Name     : in     String;
+      Token_Prefix  : in     String;
+      Terminal_Last : in     Natural);
 
    --
    --  Each state contains a set of token transaction and a set of
@@ -435,7 +447,7 @@ package body Reports is
       --  Generate #defines for all tokens
 --  XXX    Lime_Lemp_Copy := Lemp;
       --  lime_generate_tokens (lime_get_mh_flag(), lemp->tokenprefix, 1, lemp->nterminal);
-      Generate_Tokens (Lemp.Token_Prefix, 1, Integer (Lemp.N_Terminal));
+      Generate_Tokens (Lemp, Value (Lemp.Token_Prefix), 1, Integer (Lemp.N_Terminal));
 
       Template_Transfer (Lemp_Name);
 
@@ -1689,5 +1701,129 @@ package body Reports is
 --      }
 --    }
 --  }
+
+   procedure Generate_Tokens
+     (Lemon        : in Lime.Lemon_Record;
+      Token_Prefix : in String;
+      First        : in Integer;
+      Last         : in Integer)
+   is
+
+      function Get_Prefix return String;
+
+      function Get_Prefix return String is
+      begin
+         if Token_Prefix /= "" then
+            return Token_Prefix;
+         else
+            return "";
+         end if;
+      end Get_Prefix;
+
+      use Text_Out;
+      use Symbols;
+      Prefix : constant String := Get_Prefix;
+   begin
+      if Options.MH_Flag then
+         --  const char *prefix; */
+         Put_Line ("#if INTERFACE");
+--         Line_Number := Line_Number + 1;
+
+         for I in First .. Last loop
+--              Put_Line (Context.File_Implementation,
+--                        "#define " &
+--                          Value (Prefix)   &
+--                          Value (Get_Token_Callback (I)) &
+--                          " " & Integer'Image (I));
+--              Line_Number := Line_Number + 1;
+            Put ("#define ");
+            Put (Prefix);
+            --  Put_CP (Get_Token_Callback (I));
+            --  return lime_lemp_copy->symbols[index]->name;
+            Put (From_Key
+                   (Element_At
+                      (Lemon.Extra,
+                       Symbol_Index (I)).Name));
+            Put (" ");
+            Put_Int (I);
+            New_Line;
+         end loop;
+         Put_Line ("#endif");
+      end if;
+   end Generate_Tokens;
+
+
+   procedure Generate_Reprint_Of_Grammar
+     (Lemon_Lemp    : in out Lime.Lemon_Record;
+      Base_Name     : in     String;
+      Token_Prefix  : in     String;
+      Terminal_Last : in     Natural)
+   is
+      use Ada.Text_IO;
+      use Lime;
+   begin
+      if Options.RP_Flag then
+         Reports.Reprint (Lemon_Lemp);
+      else
+         Put_Line ("### 2-1");
+         --  Initialize the size for all follow and first sets
+         Set_Size (Terminal_Last + 1);
+         Put_Line ("### 2-2");
+         --  Find the precedence for every production rule (that has one)
+         Find_Rule_Precedences (Lemon_Lemp);
+         Put_Line ("### 2-3");
+         --  Compute the lambda-nonterminals and the first-sets for every
+         --  nonterminal
+         Find_First_Sets (Lemon_Lemp);
+         Put_Line ("### 2-4");
+         --  Compute all LR(0) states.  Also record follow-set propagation
+         --  links so that the follow-set can be computed later
+         Compute_LR_States (Lemon_Lemp);
+         Put_Line ("### 2-5");
+         --         Lemon_Lemp->nstate = 0;
+--         FindStates (Lemon_lemp);
+--         Lemon_Lemp->sorted = State_arrayof();
+
+         --  Tie up loose ends on the propagation links
+         Find_Links (Lemon_Lemp);
+         Put_Line ("### 2-6");
+         --  Compute the follow set of every reducible configuration
+         Find_Follow_Sets (Lemon_Lemp);
+         Put_Line ("### 2-7");
+         --  Compute the action tables
+         Find_Actions (Lemon_Lemp);
+         Put_Line ("### 2-8");
+         --  Compress the action tables
+         if not Options.Compress then
+            Reports.Compress_Tables (Lemon_Lemp);
+         end if;
+         Put_Line ("### 2-9");
+         --  Reorder and renumber the states so that states with fewer choices
+         --  occur at the end.  This is an optimization that helps make the
+         --  generated parser tables smaller.
+         if not Options.No_Resort then
+            Reports.Resort_States (Lemon_Lemp);
+         end if;
+         Put_Line ("### 2-10");
+         --   Generate a report of the parser generated.  (the "y.output" file)
+         if not Options.Be_Quiet then
+            Reports.Report_Output (Lemon_Lemp);
+         end if;
+
+         --  Generate the source code for the parser
+         Reports.Report_Table (Lemon_Lemp);
+
+         --  Produce a header file for use by the scanner.  (This step is
+         --  omitted if the "-m" option is used because makeheaders will
+         --  generate the file for us.)
+         Report_Header
+           (Lemon_Lemp,
+            Token_Prefix,
+            Base_Name, -- File_Makename (Lemon_Lemp, ""),
+            "MODULE XXX",
+            Terminal_Last);
+      end if;
+   end Generate_Reprint_Of_Grammar;
+
 
 end Reports;
