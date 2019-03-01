@@ -177,6 +177,7 @@ struct plink {
 };
 #endif
 
+#if 1
 /* The state vector for the entire parser generator is recorded as
 ** follows.  (LEMON uses no global variables and makes little use of
 ** static variables.  Fields in the following structure can be thought
@@ -227,6 +228,7 @@ struct lemon {
   int nolinenosflag;       /* True if #line statements should not be printed */
   char *argv0;             /* Name of the program */
 };
+#endif
 
 /**********************************************************************/
 //#define NO_OFFSET (-2147483647)

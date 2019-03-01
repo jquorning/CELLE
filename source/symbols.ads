@@ -45,8 +45,6 @@ package Symbols is
      (Positive,
       Unbounded_String);
 
-   use Symbol_Vectors;
-
    subtype S_Set is Unbounded_String;
 
    Null_Set : S_Set renames Null_Unbounded_String;
@@ -190,8 +188,6 @@ private
 
    type Cursor_Type;
    type Symbol_Cursor is access Cursor_Type;
-
-   pragma Export (C, Symbol_New, "symbols_symbol_new");
 
 end Symbols;
 
