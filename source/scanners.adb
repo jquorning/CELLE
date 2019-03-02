@@ -35,15 +35,15 @@ package body Scanners is
    procedure Parse_One_Token (Lemon   : in out Lime.Lemon_Record;
                               Scanner : in out Scanner_Record;
                               Line    : in     Line_Record);
+   --  Parse a single Token.
 
    procedure Parse_On_Mode (Lemon   : in out Lime.Lemon_Record;
                             Scanner : in out Scanner_Record;
                             Line    : in out Line_Record;
                             Break   :    out Boolean);
 
-   procedure Get_Line_Without_EOL_Comment (Line : out Line_Record);
-
-   procedure Comment_C_Filter (Line : in out Line_Record);
+   procedure Get_Line_Without_EOL_Comment (File : in     Ada.Text_IO.File_Type;
+                                           Line :    out Line_Record);
 
    procedure Parse_Current_Character (Lemon   : in out Lime.Lemon_Record;
                                       Scanner : in out Scanner_Record;
@@ -59,7 +59,6 @@ package body Scanners is
                               Scanner : in out Scanner_Record;
                               Line    : in     Line_Record)
    is separate;
-   --  Parse a single Token.
 
 
    Comment_CPP     : constant String := "//";
@@ -74,41 +73,19 @@ package body Scanners is
    use Errors;
    use Ada.Text_IO;
 
-   File    : File_Type;
-   Line    : Line_Record;
---   Scanner : Scanner_Record;
+   Line  : Line_Record;
 
-
-   procedure Get_Line_Without_EOL_Comment (Line : out Line_Record)
+   procedure Get_Line_Without_EOL_Comment (File : in     Ada.Text_IO.File_Type;
+                                           Line :    out Line_Record)
    is
       use DK8543.Text;
    begin
-      Ada.Text_IO.Get_Line (Line.Item, Line.Last);
-      Line.First := Line.Item'First;
+      Line.First := 1;
+      Ada.Text_IO.Get_Line (File, Line.Item, Last => Line.Last);
       Utility.Strip_End_Of_Line (From  => Line.Item,
                                  Strip => Comment_CPP,
                                  Last  => Line.Last);
    end Get_Line_Without_EOL_Comment;
-
-
-
-   Comment_C_Start : Natural;
-   Comment_C_Stop  : Natural;
-
-   procedure Comment_C_Filter (Line : in out Line_Record)
-   is
-      use Ada.Strings.Fixed;
-   begin
-      loop
-         Get_Line_Without_EOL_Comment (Line);
-         Comment_C_Stop :=
-           Index (Line.Item (Line.First .. Line.Last), Comment_C_End);
-         if Comment_C_Stop /= 0 then
-            Line.First := Comment_C_Stop + Comment_C_End'Length;
-            exit;
-         end if;
-      end loop;
-   end Comment_C_Filter;
 
 
    procedure Parse_Current_Character (Lemon   : in out Lime.Lemon_Record;
@@ -214,8 +191,8 @@ package body Scanners is
    exception
       when Constraint_Error =>
          Error (E101);
-         --  ("String starting on this line is not terminated before the end of the file.");
    end Parse_Quoted_Identifier;
+
 
    procedure Parse_On_Mode (Lemon   : in out Lime.Lemon_Record;
                             Scanner : in out Scanner_Record;
@@ -226,13 +203,36 @@ package body Scanners is
    begin
       case Line.Mode is
 
-         when String_Literal => null;
+         when C_Comment_Block =>
+            declare
+               use Ada.Strings.Fixed;
+               Position_C_Comment_End : constant Natural :=
+                 Index (Line.Item (Line.First .. Line.Last), Comment_C_End);
+            begin
+               if Position_C_Comment_End /= 0 then
+                  Line.Mode := Root;
+                  Break     := True;
+--               else
+--                  Line.Last := 0;
+               end if;
+            end;
 
-         when Identifier =>  null;
-         when C_Code_Block =>  null;
+         when String_Literal =>
+            Ada.Text_IO.Put_Line ("##3-1");
 
-         when Quoted_Identifier =>  Parse_Quoted_Identifier (Line);
-         when Root              =>  Parse_Current_Character (Lemon, Scanner, Line);
+         when Identifier =>
+            Ada.Text_IO.Put_Line ("##3-2");
+
+         when C_Code_Block =>
+            Ada.Text_IO.Put_Line ("##3-3");
+
+         when Quoted_Identifier =>
+            Ada.Text_IO.Put_Line ("##3-4");
+            Parse_Quoted_Identifier (Line);
+
+         when Root =>
+            --  Ada.Text_IO.Put_Line ("##3-5");
+            Parse_Current_Character (Lemon, Scanner, Line);
 
       end case;
 
@@ -252,76 +252,95 @@ package body Scanners is
    end Parse_On_Mode;
 
 
+   procedure Detect_Start_Of_C_Comment_Block (Line    : in out Line_Record;
+                                              Scanner : in out Scanner_Record);
+
+   procedure Detect_Start_Of_C_Comment_Block (Line    : in out Line_Record;
+                                              Scanner : in out Scanner_Record)
+   is
+      use Ada.Strings.Fixed;
+      use DK8543.Text;
+
+      Comment_C_Start : constant Natural :=
+        Index (Line.Item (Line.First .. Line.Last), Comment_C_Begin);
+   begin
+      if Comment_C_Start /= 0 then
+         Scanner.Token_Start  := Comment_C_Start; --  Mark the beginning of the token
+         Scanner.Token_Lineno := IO.Line_Number;  --  Linenumber on which token begins
+         Line.First := Comment_C_Start;
+         Line.Mode  := C_Comment_Block;
+      end if;
+   end Detect_Start_Of_C_Comment_Block;
+
+
    procedure Parse (Lemon : in out Lime.Lemon_Record)
    is
       use Ada.Strings.Unbounded;
       use Ada.Strings.Fixed;
       use DK8543.Text;
 
-      Scanner   : Scanner_Record;
-      Break_Out : Boolean;
+      Input_File : File_Type;
+      Scanner    : Scanner_Record;
+      Break_Out  : Boolean;
    begin
---      Scanner.GP          := Lemon;
       Scanner.File_Name   := Lemon.File_Name;
---        To_Unbounded_String (Interfaces.C.Strings.Value (GP.File_Name));
       Scanner.Error_Count := 0;
       Scanner.Scan_State  := INITIALIZE;
 
       --  Begin by opening the input file
-      Open (File, In_File, To_String (Scanner.File_Name));
+      Open (Input_File, In_File, To_String (Scanner.File_Name));
 
       --  Make an initial pass through the file to handle %ifdef and %ifndef.
       --  Preprocess_Input (filebuf);
 
       --  Now scan the text of the input file.
       loop
-         Get_Line_Without_EOL_Comment (Line);
+         Get_Line_Without_EOL_Comment (Input_File, Line);
 
          --  Preprocess
-         if Line.First = Line.Item'First then
-            if In_First_Part (Line.Item, Preproc_Ifdef) then
-               null;
-            elsif In_First_Part (Line.Item, Preproc_Ifndef) then
-               null;
-            elsif In_First_Part (Line.Item, Preproc_Endif) then
-               null;
-            else
-               null;
-            end if;
-         end if;
-
-         Comment_C_Start := Index (Line.Item (Line.First .. Line.Last), Comment_C_Begin);
-         exit when Comment_C_Start = 0;
-
+--           if Line.First = Line.Item'First then
+--              if In_First_Part (Line.Item, Preproc_Ifdef) then
+--                 null;
+--              elsif In_First_Part (Line.Item, Preproc_Ifndef) then
+--                 null;
+--              elsif In_First_Part (Line.Item, Preproc_Endif) then
+--                 null;
+--              else
+--                 null;
+--              end if;
+--           end if;
          --  Skip C comments
-         Comment_C_Filter (Line);
+         --  Comment_C_Filter (Input_File, Line);
+--         Parse_On_Mode (Lemon, Scanner, Line, Break_Out);
+
+         --  Detect start of C comment block
+         Detect_Start_Of_C_Comment_Block (Line, Scanner);
 
          --  Trim leading spaces
          DK8543.Text.Trim (Line.Item, Line.First, Line.Last,
                            Side => Ada.Strings.Left);
 
+         --  Debug
+         Ada.Text_IO.Put (Line.Item (Line.First .. Line.Last));
+         Ada.Text_IO.New_Line;
+
+         Parse_On_Mode (Lemon, Scanner, Line, Break_Out);
+
          Scanner.Token_Start  := Line.First;       --  Mark the beginning of the token
          Scanner.Token_Lineno := IO.Line_Number;   --  Linenumber on which token begins
-
-         loop
-            Parse_On_Mode (Lemon, Scanner, Line, Break_Out);
-            exit when Break_Out;
-         end loop;
 
       end loop;
 
    exception
 
       when End_Error =>
-         Close (File);
+         Close (Input_File);
          Lemon.Rule      := Rules.Rule_Access (Scanner.First_Rule);
          Lemon.Error_Cnt := Scanner.Error_Count;
 
       when others =>
---           Auxiliary.Errors.Error
---             (To_String (PS.File_Name), 0, "Can't open this file for reading.");
---           GP.Error_Cnt := GP.Error_Cnt + 1;
          Error (E103);
+         raise;
 
    end Parse;
 

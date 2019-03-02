@@ -36,9 +36,13 @@ is
       Lemon.N_Rule := 0;
    end Do_Initialize;
 
-   X : constant String := Line.Item (Scanner.Token_Start .. Line.Last);
+   X : constant String := Line.Item; --   (Scanner.Token_Start .. Line.Last);
    PSP : Scanner_Record renames Scanner;
 begin
+   --  Debug
+--   Ada.Text_IO.Put (Line.Item (Line.First .. Line.Last));
+--   Ada.Text_IO.New_Line;
+
 --    const char *x;
 --    x = Strsafe(psp->tokenstart);     /* Save the token permanently */
 --  #if 0
@@ -95,7 +99,7 @@ begin
 
       when PRECEDENCE_MARK_1 =>
 
-         if X (0) not in 'A' .. 'Z' then
+         if X (X'First) not in 'A' .. 'Z' then
             Error (E004);
 --               Error ("The precedence symbol must be a terminal.");
 
@@ -116,7 +120,7 @@ begin
 
 
       when PRECEDENCE_MARK_2 =>
-         if X (0) /= ']' then
+         if X (X'First) /= ']' then
             --  Error ("Missing ']' on precedence mark.");
             Error (E007);
          end if;
@@ -161,7 +165,7 @@ begin
          end if;
 
       when LHS_ALIAS_2 =>
-         if X (0)  = ')' then
+         if X (X'First)  = ')' then
             PSP.Scan_State := LHS_ALIAS_3;
          else
 --            Error (E010, (1 => To_Unbounded_String
@@ -172,7 +176,7 @@ begin
 
 
       when LHS_ALIAS_3 =>
-         if X (0 .. 2) = "::=" then
+         if X (X'First .. X'First + 2) = "::=" then
             PSP.Scan_State := IN_RHS;
          else
             Error (E011, (1 => To_Unbounded_String

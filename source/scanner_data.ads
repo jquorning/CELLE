@@ -29,6 +29,7 @@ package Scanner_Data is
 
    type Mode_Identifier is
      (Root,             --  On outer level
+      C_Comment_Block,
       String_Literal,
       C_Code_Block,
       Identifier,       --  Identifier
@@ -38,12 +39,12 @@ package Scanner_Data is
    use Ada.Strings.Unbounded;
    type Line_Record is
       record
-         Current : Line_Pos;          --  Position in Item of examined character
-         First   : Line_Pos;          --  First position in Item
-         Last    : Line_Pos;          --  Last position in Item
-         Item    : String (Line_Pos); --  Full line read from input
-         Mode    : Mode_Identifier;   --  Mode
-         Buffer  : Unbounded_String;  --  Holder for identifiers etc.
+         Current : Line_Pos;            --  Position in Item of examined character
+         First   : Line_Pos     := Line_Pos'First;      --  First position in Item
+         Last    : Extended_Pos := Extended_Pos'First;  --  Last position in Item
+         Item    : String (Line_Pos);   --  Full line read from input
+         Mode    : Mode_Identifier;     --  Mode
+         Buffer  : Unbounded_String;    --  Holder for identifiers etc.
       end record;
 
    --
@@ -102,7 +103,7 @@ package Scanner_Data is
    use Symbols;
    type Scanner_Record is
       record
-         Token_Start   : Line_Pos;                  --  Text of current token
+         Token_Start   : Extended_Pos;              --  Text of current token
          Token_Lineno  : Natural;                   --  Linenumber at which current token starts
          Error_Count   : Natural;                   --  Number of errors so far
 --         GP            : access Lime.Lemon_Record;  --  Global state vector
