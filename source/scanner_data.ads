@@ -12,7 +12,6 @@ with Ada.Containers.Vectors;
 
 with Interfaces.C.Strings;
 
-with Lime;
 with Symbols;
 with Rules;
 
@@ -22,10 +21,10 @@ package Scanner_Data is
    --  Line_Record
    --
 
-   Max_Line_Length : constant := 250;   --  Should do for the most
+   Max_Line_Length : constant := 1000;   --  Should do for the most
 
-   subtype Extended_Pos is Natural      range 0 .. Max_Line_Length;
-   subtype Line_Pos     is Extended_Pos range 1 .. Extended_Pos'Last;
+--   subtype Extended_Pos is Natural      range 0 .. Max_Line_Length;
+--   subtype Line_Pos     is Extended_Pos range 1 .. Extended_Pos'Last;
 
    type Mode_Identifier is
      (Root,             --  On outer level
@@ -37,15 +36,15 @@ package Scanner_Data is
      );
 
    use Ada.Strings.Unbounded;
-   type Line_Record is
-      record
-         Current : Line_Pos;            --  Position in Item of examined character
-         First   : Line_Pos     := Line_Pos'First;      --  First position in Item
-         Last    : Extended_Pos := Extended_Pos'First;  --  Last position in Item
-         Item    : String (Line_Pos);   --  Full line read from input
-         Mode    : Mode_Identifier;     --  Mode
-         Buffer  : Unbounded_String;    --  Holder for identifiers etc.
-      end record;
+--     type Line_Record is
+--        record
+--           Current : Line_Pos;            --  Position in Item of examined character
+--           First   : Line_Pos     := Line_Pos'First;      --  First position in Item
+--           Last    : Extended_Pos := Extended_Pos'First;  --  Last position in Item
+--           Item    : String (Line_Pos);   --  Full line read from input
+--           Mode    : Mode_Identifier;     --  Mode
+--           Buffer  : Unbounded_String;    --  Holder for identifiers etc.
+--        end record;
 
    --
    --  Scanner_Record
@@ -55,7 +54,6 @@ package Scanner_Data is
      (Root,
       Ifdef,
       Ifndef);
-
 
    --
    --  The state of the parser
@@ -103,10 +101,9 @@ package Scanner_Data is
    use Symbols;
    type Scanner_Record is
       record
-         Token_Start   : Extended_Pos;              --  Text of current token
+         Token_Start   : Natural;                   --  Text of current token
          Token_Lineno  : Natural;                   --  Linenumber at which current token starts
          Error_Count   : Natural;                   --  Number of errors so far
---         GP            : access Lime.Lemon_Record;  --  Global state vector
          Preproc_State : State_Preproc;
          Scan_State    : State_Scanner;             --  The state of the parser
          Fallback : access Symbols.Symbol_Record;   --  The fallback token
@@ -139,6 +136,14 @@ package Scanner_Data is
          First_Rule   : access Rules.Rule_Record; --  Pointer to first rule in the grammar
          Last_Rule    : access Rules.Rule_Record; --  Pointer to the most recently parsed rule
          File_Name    : Unbounded_String;         --  Name of the input file
+
+         --  From Line_Record
+         Current : Positive;                      --  Position in Item of examined character
+         First   : Positive := Positive'First;    --  First position in Item
+         Last    : Natural  := Natural'First;     --  Last position in Item
+         Item    : String (1 .. Max_Line_Length); --  Full line read from input
+         Mode    : Mode_Identifier;               --  Mode
+         Buffer  : Unbounded_String;              --  Holder for identifiers etc.
       end record;
 
 

@@ -15,8 +15,7 @@ with Scanner_Errors;
 
 separate (Scanners)
 procedure Parse_One_Token (Lemon   : in out Lime.Lemon_Record;
-                           Scanner : in out Scanner_Record;
-                           Line    : in     Line_Record)
+                           Scanner : in out Scanner_Record)
 is
    use Ada.Strings.Unbounded;
 
@@ -25,6 +24,9 @@ is
    use Rules;
 
    procedure Do_Initialize;
+   procedure Do_State_In_RHS;
+
+   X : String renames Scanner.Item (Scanner.Token_Start .. Scanner.Last);
 
    procedure Do_Initialize is
    begin
@@ -36,12 +38,133 @@ is
       Lemon.N_Rule := 0;
    end Do_Initialize;
 
-   X : constant String := Line.Item; --   (Scanner.Token_Start .. Line.Last);
+   procedure Do_State_In_RHS is
+   begin
+      if X (X'First) = '.' then
+         declare
+            use Symbols;
+            Rule : constant access Rules.Rule_Record := new Rules.Rule_Record;
+         begin
+            --  Rp := (struct rule *)calloc( sizeof(struct rule) +
+            --                               sizeof(struct symbol*)*psp->nrhs +
+            --                               sizeof(char*)*psp->nrhs, 1);
+            --               RP := new Rules.Rule_Record;
+            --  if Rp = 0 then
+            --   ErrorMsg(psp->filename,psp->tokenlineno,
+            --            "Can't allocate enough memory for this rule.");
+            --   psp->errorcnt++;
+            --   Psp.Prev_Rule := 0;
+            --  else
+            Rule.Rule_Line := Scanner.Token_Lineno;
+            --  Rp.rhs      := (struct symbol**)&rp[1];
+            --  Rp.rhsalias := (const char**)&(rp->rhs[psp->nrhs]);
+
+            --                    for I in 0 .. PSP.N_RHS - 1 loop
+            --                       RP.RHS       (I) := PSP.RHS   (I);
+            --                       RP.RHS_Alias (I) := PSP.Alias (I);
+            --                       if RP.RHS_Alias (I) /= null then
+            --                          RP.RHS (I).Content := True;
+            --                       end if;
+            --                    end loop;
+
+            declare
+               subtype Index_Range is Positive range
+                 Scanner.RHS.First_Index .. Scanner.RHS.Last_Index;
+            begin
+               for I in Index_Range loop
+                  Rule.RHS       (I) := Scanner.RHS   (I);
+                  --  XXX                       RP.RHS_Alias (I) := PSP.Alias.Element (I);
+                  --  if Symbols."/=" (RP.RHS_Alias (I), Null_Unbounded_String) then
+                  --                        declare
+                  --                           use
+                  --                        begin
+                  --  if RP.RHS_Alias (I) /= Null_Unbounded_String then
+                  if Length (Rule.RHS_Alias (I)) /= 0 then
+                     Rule.RHS (I).Content := True;
+                  end if;
+                  --                        end;
+               end loop;
+            end;
+
+            Rule.LHS        := Scanner.LHS.First_Element;
+            Rule.LHS_Alias  := Scanner.LHS_Alias.First_Element;
+            Rule.Code       := Null_Code; --  New Unbounded_String'(Null_Unbounded_String);
+            Rule.No_Code    := True;
+            Rule.Prec_Sym   := null;
+
+            Lemon.N_Rule  := Lemon.N_Rule + 1;
+
+            Rule.Index      := Lemon.N_Rule;
+            Rule.LHS   := null;  --  ???
+            Rule.Next_LHS   := Rule.LHS.Rule;
+            Rule.LHS.Rule   := Rule;
+            Rule.Next       := null;
+            if Scanner.First_Rule = null then
+               Scanner.First_Rule := Rule;
+               Scanner.Last_Rule  := Rule;
+            else
+               Scanner.Last_Rule.Next := Rule;
+               Scanner.Last_Rule      := Rule;
+            end if;
+            Scanner.Prev_Rule := Rule;
+            --  end if;
+         end;
+         Scanner.Scan_State := WAITING_FOR_DECL_OR_RULE;
+
+      elsif
+        X (X'First) in 'a' .. 'z' or
+        X (X'First) in 'A' .. 'Z'
+      then
+         Scanner.RHS  .Append (Symbols.Lime_Symbol_New (Interfaces.C.Strings.New_String (X)));
+         Scanner.Alias.Append (Null_Unbounded_String);
+         --            end if;
+
+      elsif
+        (X (X'First) = '|' or
+           X (X'First) = '/') and not Scanner.RHS.Is_Empty
+      then
+         declare
+            use Symbols;
+            Symbol : Symbols.Symbol_Access := Scanner.RHS.Last_Element;
+         begin
+            if Symbol.Kind /= Symbols.Multi_Terminal then
+               declare
+                  Orig_Symbol : constant Symbol_Access := Symbol;
+               begin
+                  Symbol := new Symbol_Record;
+                  Symbol.Kind    := Symbols.Multi_Terminal;
+                  Symbol.Sub_Sym := Symbol_Vectors.Empty_Vector;
+                  Symbol.Sub_Sym.Append (Orig_Symbol);
+
+                  Symbol.Name := Orig_Symbol.Name;
+
+                  Scanner.RHS.Append (Symbol);
+               end;
+            end if;
+
+            Symbol.Sub_Sym.Append
+              (Symbols.Lime_Symbol_New
+                 (Interfaces.C.Strings.New_String (X (X'First + 1 .. X'Last))));
+
+            if
+              X (X'First + 1) in 'a' .. 'z' or
+              To_String (Symbol.Sub_Sym.First_Element.Name) (1) in 'a' .. 'z'
+            then
+               Errors.Error (E201, Line_Number => Scanner.Token_Lineno);
+            end if;
+         end;
+
+      elsif X (X'First) = '(' and not Scanner.RHS.Is_Empty then
+         Scanner.Scan_State := RHS_ALIAS_1;
+
+      else
+         Error (E202, (1 => To_Unbounded_String (X)));
+         Scanner.Scan_State := RESYNC_AFTER_RULE_ERROR;
+      end if;
+   end Do_State_In_RHS;
+
    PSP : Scanner_Record renames Scanner;
 begin
-   --  Debug
---   Ada.Text_IO.Put (Line.Item (Line.First .. Line.Last));
---   Ada.Text_IO.New_Line;
 
 --    const char *x;
 --    x = Strsafe(psp->tokenstart);     /* Save the token permanently */
@@ -189,128 +312,7 @@ begin
          end if;
 
 
-      when IN_RHS =>
-         if X (X'First) = '.' then
-            declare
-               use Symbols;
-               RP : Rules.Rule_Access;
-            begin
-               --  Rp := (struct rule *)calloc( sizeof(struct rule) +
-               --                               sizeof(struct symbol*)*psp->nrhs +
-               --                               sizeof(char*)*psp->nrhs, 1);
-               RP := new Rules.Rule_Record;
-               --  if Rp = 0 then
-               --   ErrorMsg(psp->filename,psp->tokenlineno,
-               --            "Can't allocate enough memory for this rule.");
-               --   psp->errorcnt++;
-               --   Psp.Prev_Rule := 0;
-               --  else
-                  RP.Rule_Line := PSP.Token_Lineno;
-                  --  Rp.rhs      := (struct symbol**)&rp[1];
-                  --  Rp.rhsalias := (const char**)&(rp->rhs[psp->nrhs]);
-
---                    for I in 0 .. PSP.N_RHS - 1 loop
---                       RP.RHS       (I) := PSP.RHS   (I);
---                       RP.RHS_Alias (I) := PSP.Alias (I);
---                       if RP.RHS_Alias (I) /= null then
---                          RP.RHS (I).Content := True;
---                       end if;
---                    end loop;
-
-                  declare
-                     subtype Index_Range is Positive range
-                       PSP.RHS.First_Index .. PSP.RHS.Last_Index;
-                  begin
-                     for I in Index_Range loop
-                        RP.RHS       (I) := PSP.RHS   (I);
---  XXX                       RP.RHS_Alias (I) := PSP.Alias.Element (I);
-                        --  if Symbols."/=" (RP.RHS_Alias (I), Null_Unbounded_String) then
---                        declare
---                           use
---                        begin
---  if RP.RHS_Alias (I) /= Null_Unbounded_String then
-                        if Length (RP.RHS_Alias (I)) /= 0 then
-                           RP.RHS (I).Content := True;
-                        end if;
-                        --                        end;
-                     end loop;
-                  end;
-
-                  RP.LHS        := PSP.LHS.First_Element;
-                  RP.LHS_Alias  := PSP.LHS_Alias.First_Element;
-                  RP.Code       := Null_Code; --  New Unbounded_String'(Null_Unbounded_String);
-                  RP.No_Code    := True;
-                  RP.Prec_Sym   := null;
-
-                  Lemon.N_Rule  := Lemon.N_Rule + 1;
-
-                  RP.Index      := Lemon.N_Rule;
-                  RP.Next_LHS   := RP.LHS.Rule;
-                  RP.LHS.Rule   := RP;
-                  RP.Next       := null;
-                  if PSP.First_Rule = null then
-                     PSP.First_Rule := RP;
-                     PSP.Last_Rule  := RP;
-                  else
-                     PSP.Last_Rule.Next := RP;
-                     PSP.Last_Rule      := RP;
-                  end if;
-                  PSP.Prev_Rule := RP;
-               --  end if;
-            end;
-            PSP.Scan_State := WAITING_FOR_DECL_OR_RULE;
-
-         elsif
-           X (X'First) in 'a' .. 'z' or
-           X (X'First) in 'A' .. 'Z'
-         then
-               PSP.RHS  .Append (Symbols.Lime_Symbol_New (Interfaces.C.Strings.New_String (X)));
-               PSP.Alias.Append (Null_Unbounded_String);
---            end if;
-
-         elsif
-           (X (X'First) = '|' or
-              X (X'First) = '/') and not PSP.RHS.Is_Empty
-         then
-            declare
-               use Symbols;
-               MSP : Symbols.Symbol_Access := PSP.RHS.Last_Element;
-            begin
-               if MSP.Kind /= Symbols.Multi_Terminal then
-                  declare
-                     Orig_SP : constant Symbols.Symbol_Access := MSP;
-                  begin
-                     MSP := new Symbols.Symbol_Record;
-                     MSP.Kind       := Symbols.Multi_Terminal;
-                     MSP.Sub_Sym := Symbol_Vectors.Empty_Vector;
-                     MSP.Sub_Sym.Append (Orig_SP);
-
-                     MSP.Name := Orig_SP.Name;
-
-                     PSP.RHS.Append (MSP);
-                  end;
-               end if;
-
-               MSP.Sub_Sym.Append
-                 (Symbols.Lime_Symbol_New
-                    (Interfaces.C.Strings.New_String (X (X'First + 1 .. X'Last))));
-
-               if
-                 X (X'First + 1)          in 'a' .. 'z' or
-                 To_String (MSP.Sub_Sym.First_Element.Name) (1) in 'a' .. 'z'
-               then
-                  Errors.Error (E201, Line_Number => PSP.Token_Lineno);
-               end if;
-            end;
-
-         elsif X (X'First) = '(' and not PSP.RHS.Is_Empty then
-            PSP.Scan_State := RHS_ALIAS_1;
-
-         else
-            Error (E202, (1 => To_Unbounded_String (X)));
-            PSP.Scan_State := RESYNC_AFTER_RULE_ERROR;
-         end if;
-
+      when IN_RHS =>   Do_State_In_RHS;
 
       when RHS_ALIAS_1 =>
 

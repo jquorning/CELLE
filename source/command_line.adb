@@ -14,13 +14,11 @@ with Interfaces.C.Strings;
 
 with GNAT.Command_Line;
 
-with Lime;
 with Options;
 
 package body Command_Line is
 
    use Interfaces.C.Strings;
-   use Lime;
 
    procedure Getopt_Callback
      (Switch  : String;  Param : String;  Section : String);

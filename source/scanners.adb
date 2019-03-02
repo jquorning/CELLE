@@ -33,31 +33,27 @@ package body Scanners is
    --  between is also commented out as appropriate.
 
    procedure Parse_One_Token (Lemon   : in out Lime.Lemon_Record;
-                              Scanner : in out Scanner_Record;
-                              Line    : in     Line_Record);
+                              Scanner : in out Scanner_Record);
    --  Parse a single Token.
 
    procedure Parse_On_Mode (Lemon   : in out Lime.Lemon_Record;
                             Scanner : in out Scanner_Record;
-                            Line    : in out Line_Record;
                             Break   :    out Boolean);
 
-   procedure Get_Line_Without_EOL_Comment (File : in     Ada.Text_IO.File_Type;
-                                           Line :    out Line_Record);
+   procedure Get_Line_Without_EOL_Comment (File    : in     Ada.Text_IO.File_Type;
+                                           Scanner : in out Scanner_Record);
 
    procedure Parse_Current_Character (Lemon   : in out Lime.Lemon_Record;
-                                      Scanner : in out Scanner_Record;
-                                      Line    : in out Line_Record);
+                                      Scanner : in out Scanner_Record);
 
-   procedure Parse_Quoted_Identifier (Line : in out Line_Record);
+   procedure Parse_Quoted_Identifier (Scanner : in out Scanner_Record);
 
    --
    --
    --
 
    procedure Parse_One_Token (Lemon   : in out Lime.Lemon_Record;
-                              Scanner : in out Scanner_Record;
-                              Line    : in     Line_Record)
+                              Scanner : in out Scanner_Record)
    is separate;
 
 
@@ -73,33 +69,30 @@ package body Scanners is
    use Errors;
    use Ada.Text_IO;
 
-   Line  : Line_Record;
-
-   procedure Get_Line_Without_EOL_Comment (File : in     Ada.Text_IO.File_Type;
-                                           Line :    out Line_Record)
+   procedure Get_Line_Without_EOL_Comment (File    : in     Ada.Text_IO.File_Type;
+                                           Scanner : in out Scanner_Record)
    is
       use DK8543.Text;
    begin
-      Line.First := 1;
-      Ada.Text_IO.Get_Line (File, Line.Item, Last => Line.Last);
-      Utility.Strip_End_Of_Line (From  => Line.Item,
+      Scanner.First := 1;
+      Ada.Text_IO.Get_Line (File, Scanner.Item, Last => Scanner.Last);
+      Utility.Strip_End_Of_Line (From  => Scanner.Item,
                                  Strip => Comment_CPP,
-                                 Last  => Line.Last);
+                                 Last  => Scanner.Last);
    end Get_Line_Without_EOL_Comment;
 
 
    procedure Parse_Current_Character (Lemon   : in out Lime.Lemon_Record;
-                                      Scanner : in out Scanner_Record;
-                                      Line    : in out Line_Record)
+                                      Scanner : in out Scanner_Record)
    is
       use Ada.Strings.Unbounded;
-      Current : constant Character := Line.Item (Line.Current);
+      Current : constant Character := Scanner.Item (Scanner.Current);
    begin
       case Current is
 
          when '"' =>                     --   String literals
-            Line.Mode   := Quoted_Identifier;
-            Line.Buffer := Null_Unbounded_String;
+            Scanner.Mode   := Quoted_Identifier;
+            Scanner.Buffer := Null_Unbounded_String;
 
          when '{' =>
 --      }else if( c=='{' ){               /* A block of C code */
@@ -172,46 +165,47 @@ package body Scanners is
       end case;
 --      c = *cp;
 --      *cp = 0;                        /* Null terminate the token */
-      Parse_One_Token (Lemon, Scanner, Line); --  Parse the token
+      Parse_One_Token (Lemon, Scanner); --  Parse the token
 --    *cp = (char)c;                  /* Restore the buffer */
 --    cp = nextcp;
    end Parse_Current_Character;
 
 
-   procedure Parse_Quoted_Identifier (Line : in out Line_Record)
+   procedure Parse_Quoted_Identifier (Scanner : in out Scanner_Record)
    is
       use Ada.Strings.Unbounded;
-      Current : Character renames Line.Item (Line.Current);
+      Current : Character renames Scanner.Item (Scanner.Current);
    begin
       if Current = '"' then
-         Line.Mode := Root;
+         Scanner.Mode := Root;
       else
-         Line.Buffer := Line.Buffer & Current;
+         Scanner.Buffer := Scanner.Buffer & Current;
       end if;
+
    exception
-      when Constraint_Error =>
-         Error (E101);
+
+      when Constraint_Error =>  Error (E101);
+
    end Parse_Quoted_Identifier;
 
 
    procedure Parse_On_Mode (Lemon   : in out Lime.Lemon_Record;
                             Scanner : in out Scanner_Record;
-                            Line    : in out Line_Record;
                             Break   :    out Boolean)
    is
-      Current : Character renames Line.Item (Line.Current);
+      Current : Character renames Scanner.Item (Scanner.Current);
    begin
-      case Line.Mode is
+      case Scanner.Mode is
 
          when C_Comment_Block =>
             declare
                use Ada.Strings.Fixed;
                Position_C_Comment_End : constant Natural :=
-                 Index (Line.Item (Line.First .. Line.Last), Comment_C_End);
+                 Index (Scanner.Item (Scanner.First .. Scanner.Last), Comment_C_End);
             begin
                if Position_C_Comment_End /= 0 then
-                  Line.Mode := Root;
-                  Break     := True;
+                  Scanner.Mode := Root;
+                  Break        := True;
 --               else
 --                  Line.Last := 0;
                end if;
@@ -228,18 +222,17 @@ package body Scanners is
 
          when Quoted_Identifier =>
             Ada.Text_IO.Put_Line ("##3-4");
-            Parse_Quoted_Identifier (Line);
+            Parse_Quoted_Identifier (Scanner);
 
          when Root =>
-            --  Ada.Text_IO.Put_Line ("##3-5");
-            Parse_Current_Character (Lemon, Scanner, Line);
+            Parse_Current_Character (Lemon, Scanner);
 
       end case;
 
    exception
 
       when Constraint_Error =>
-         case Line.Mode is
+         case Scanner.Mode is
 
             when Quoted_Identifier =>
                Error (E102);
@@ -252,23 +245,21 @@ package body Scanners is
    end Parse_On_Mode;
 
 
-   procedure Detect_Start_Of_C_Comment_Block (Line    : in out Line_Record;
-                                              Scanner : in out Scanner_Record);
+   procedure Detect_Start_Of_C_Comment_Block (Scanner : in out Scanner_Record);
 
-   procedure Detect_Start_Of_C_Comment_Block (Line    : in out Line_Record;
-                                              Scanner : in out Scanner_Record)
+   procedure Detect_Start_Of_C_Comment_Block (Scanner : in out Scanner_Record)
    is
       use Ada.Strings.Fixed;
       use DK8543.Text;
 
       Comment_C_Start : constant Natural :=
-        Index (Line.Item (Line.First .. Line.Last), Comment_C_Begin);
+        Index (Scanner.Item (Scanner.First .. Scanner.Last), Comment_C_Begin);
    begin
       if Comment_C_Start /= 0 then
          Scanner.Token_Start  := Comment_C_Start; --  Mark the beginning of the token
          Scanner.Token_Lineno := IO.Line_Number;  --  Linenumber on which token begins
-         Line.First := Comment_C_Start;
-         Line.Mode  := C_Comment_Block;
+         Scanner.First        := Comment_C_Start;
+         Scanner.Mode         := C_Comment_Block;
       end if;
    end Detect_Start_Of_C_Comment_Block;
 
@@ -295,7 +286,7 @@ package body Scanners is
 
       --  Now scan the text of the input file.
       loop
-         Get_Line_Without_EOL_Comment (Input_File, Line);
+         Get_Line_Without_EOL_Comment (Input_File, Scanner);
 
          --  Preprocess
 --           if Line.First = Line.Item'First then
@@ -314,19 +305,19 @@ package body Scanners is
 --         Parse_On_Mode (Lemon, Scanner, Line, Break_Out);
 
          --  Detect start of C comment block
-         Detect_Start_Of_C_Comment_Block (Line, Scanner);
+         Detect_Start_Of_C_Comment_Block (Scanner);
 
          --  Trim leading spaces
-         DK8543.Text.Trim (Line.Item, Line.First, Line.Last,
+         DK8543.Text.Trim (Scanner.Item, Scanner.First, Scanner.Last,
                            Side => Ada.Strings.Left);
 
          --  Debug
-         Ada.Text_IO.Put (Line.Item (Line.First .. Line.Last));
+         Ada.Text_IO.Put (Scanner.Item (Scanner.First .. Scanner.Last));
          Ada.Text_IO.New_Line;
 
-         Parse_On_Mode (Lemon, Scanner, Line, Break_Out);
+         Parse_On_Mode (Lemon, Scanner, Break_Out);
 
-         Scanner.Token_Start  := Line.First;       --  Mark the beginning of the token
+         Scanner.Token_Start  := Scanner.First;    --  Mark the beginning of the token
          Scanner.Token_Lineno := IO.Line_Number;   --  Linenumber on which token begins
 
       end loop;
