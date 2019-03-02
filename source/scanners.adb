@@ -13,8 +13,8 @@ with Ada.Strings.Unbounded;
 
 with Interfaces.C.Strings;
 
-with DK8543.Text.IO;
-with DK8543.Text.Utility;
+with DK8543.Text_IO;
+with DK8543.Strings.Utility;
 
 with Scanner_Data;
 with Scanner_Errors;
@@ -72,7 +72,7 @@ package body Scanners is
    procedure Get_Line_Without_EOL_Comment (File    : in     Ada.Text_IO.File_Type;
                                            Scanner : in out Scanner_Record)
    is
-      use DK8543.Text;
+      use DK8543.Strings;
    begin
       Scanner.First := 1;
       Ada.Text_IO.Get_Line (File, Scanner.Item, Last => Scanner.Last);
@@ -250,14 +250,14 @@ package body Scanners is
    procedure Detect_Start_Of_C_Comment_Block (Scanner : in out Scanner_Record)
    is
       use Ada.Strings.Fixed;
-      use DK8543.Text;
+      use DK8543;
 
       Comment_C_Start : constant Natural :=
         Index (Scanner.Item (Scanner.First .. Scanner.Last), Comment_C_Begin);
    begin
       if Comment_C_Start /= 0 then
          Scanner.Token_Start  := Comment_C_Start; --  Mark the beginning of the token
-         Scanner.Token_Lineno := IO.Line_Number;  --  Linenumber on which token begins
+         Scanner.Token_Lineno := Text_IO.Line_Number;  --  Linenumber on which token begins
          Scanner.First        := Comment_C_Start;
          Scanner.Mode         := C_Comment_Block;
       end if;
@@ -268,7 +268,7 @@ package body Scanners is
    is
       use Ada.Strings.Unbounded;
       use Ada.Strings.Fixed;
-      use DK8543.Text;
+      use DK8543;
 
       Input_File : File_Type;
       Scanner    : Scanner_Record;
@@ -308,8 +308,8 @@ package body Scanners is
          Detect_Start_Of_C_Comment_Block (Scanner);
 
          --  Trim leading spaces
-         DK8543.Text.Trim (Scanner.Item, Scanner.First, Scanner.Last,
-                           Side => Ada.Strings.Left);
+         DK8543.Strings.Trim (Scanner.Item, Scanner.First, Scanner.Last,
+                              Side => Ada.Strings.Left);
 
          --  Debug
          Ada.Text_IO.Put (Scanner.Item (Scanner.First .. Scanner.Last));
@@ -317,8 +317,8 @@ package body Scanners is
 
          Parse_On_Mode (Lemon, Scanner, Break_Out);
 
-         Scanner.Token_Start  := Scanner.First;    --  Mark the beginning of the token
-         Scanner.Token_Lineno := IO.Line_Number;   --  Linenumber on which token begins
+         Scanner.Token_Start  := Scanner.First;       --  Mark the beginning of the token
+         Scanner.Token_Lineno := Text_IO.Line_Number; --  Linenumber on which token begins
 
       end loop;
 
