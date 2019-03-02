@@ -127,6 +127,7 @@ package Scanner_Data is
          Decl_Keyword  : Unbounded_String;   --  Keyword of a declaration
 
          --  Decl_Arg_Slot : access Unbounded_String;
+         --  Decl_Arg_Slot : access Unbounded_String; -- Access Interfaces.C.Strings.chars_ptr;
          Decl_Arg_Slot : access Interfaces.C.Strings.chars_ptr;
          --    char **declargslot;                --  Where the declaration argument should be put
          Insert_Line_Macro : Boolean;             --  Add #line before declaration insert

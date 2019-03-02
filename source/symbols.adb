@@ -80,7 +80,7 @@ package body Symbols is
 
    function "=" (Left, Right : in Symbol_Cursor) return Boolean
    is
-      use Interfaces.C.Strings;
+--      use Interfaces.C.Strings;
       Element_Left  : constant Symbol_Record := Symbol_Lists.Element (From_Cursor (Left));
       Element_Right : constant Symbol_Record := Symbol_Lists.Element (From_Cursor (Right));
       Name_Left     : constant String := To_String (Element_Left.Name);
@@ -288,7 +288,7 @@ package body Symbols is
       function Value_Of (Item : in Symbol_Record) return Integer;
 
       function Value_Of (Item : in Symbol_Record) return Integer is
-         use Interfaces.C.Strings;
+--         use Interfaces.C.Strings;
          Kind : constant Symbol_Kind := Item.Kind;
          Name : constant String      := To_String (Item.Name);
          Char : constant Character   := Name (Name'First);
@@ -401,30 +401,44 @@ package body Symbols is
    end Symbol_Allocate;
 
 
-   function Lime_Symbol_New
-     (Name : in Interfaces.C.Strings.chars_ptr)
-     return Symbol_Access
+   function Symbol_New (Name : in String)
+                       return Symbol_Access
    is
-      use Interfaces.C.Strings;
-      Cursor : Symbol_Cursor;
-      Symbol : Symbol_Access;
    begin
-      Cursor := Symbol_New (Value (Name));
-      return Symbol;
-   end Lime_Symbol_New;
+      return null;
+   end Symbol_New;
+
+--     is--     function Lime_Symbol_New
+--       (Name : in Interfaces.C.Strings.chars_ptr)
+--       return Symbol_Access
+--     is
+--        use Interfaces.C.Strings;
+--        Cursor : Symbol_Cursor;
+--        Symbol : Symbol_Access;
+--     begin
+--        Cursor := Symbol_New (Value (Name));
+--        return Symbol;
+--     end Lime_Symbol_New;
 
 
-   function Lime_Symbol_Find
-     (Name : in Interfaces.C.Strings.chars_ptr)
-     return Symbol_Access
+   function Symbol_Find (Key : in String)
+                        return Symbol_Access
    is
-      use Interfaces.C.Strings;
-      Cursor : Symbol_Cursor;
-      Symbol : Symbol_Access;
    begin
-      Cursor := Symbol_Find (Value (Name));
-      return Symbol;
-   end Lime_Symbol_Find;
+      return null;
+   end Symbol_Find;
+
+--     function Lime_Symbol_Find
+--       (Name : in Interfaces.C.Strings.chars_ptr)
+--       return Symbol_Access
+--     is
+--        use Interfaces.C.Strings;
+--        Cursor : Symbol_Cursor;
+--        Symbol : Symbol_Access;
+--     begin
+--        Cursor := Symbol_Find (Value (Name));
+--        return Symbol;
+--     end Lime_Symbol_Find;
 
 
 

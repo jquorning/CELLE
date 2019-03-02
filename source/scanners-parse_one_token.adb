@@ -51,7 +51,7 @@ is
          Scanner.State := WAITING_FOR_DECL_KEYWORD;
 
       elsif C in 'a' .. 'z' then
-         Scanner.LHS.Append (Symbols.Lime_Symbol_New (Interfaces.C.Strings.New_String (X)));
+         Scanner.LHS.Append (Symbols.Symbol_New (X));
          --            PSP.N_RHS      := 0;
 
          Scanner.RHS        := Symbols.Symbol_Vectors.Empty_Vector;
@@ -106,7 +106,7 @@ is
 
       else
          Scanner.Prev_Rule.Prec_Sym :=
-           Symbols.Lime_Symbol_New (Interfaces.C.Strings.New_String (X));
+           Symbols.Symbol_New (X);
       end if;
 
       Scanner.State := PRECEDENCE_MARK_2;
@@ -202,7 +202,7 @@ is
         C in 'a' .. 'z' or
         C in 'A' .. 'Z'
       then
-         Scanner.RHS  .Append (Symbols.Lime_Symbol_New (Interfaces.C.Strings.New_String (X)));
+         Scanner.RHS  .Append (Symbols.Symbol_New (X));
          Scanner.Alias.Append (Null_Unbounded_String);
          --            end if;
 
@@ -230,8 +230,7 @@ is
             end if;
 
             Symbol.Sub_Sym.Append
-              (Symbols.Lime_Symbol_New
-                 (Interfaces.C.Strings.New_String (X (X'First + 1 .. X'Last))));
+              (Symbols.Symbol_New (X (X'First + 1 .. X'Last)));
 
             if
               X (X'First + 1) in 'a' .. 'z' or
@@ -474,7 +473,7 @@ begin
          else
             declare
                use Interfaces.C.Strings;
-               Symbol : Symbols.Symbol_Access := Symbols.Lime_Symbol_New (New_String (X));
+               Symbol : Symbols.Symbol_Access := Symbols.Symbol_New (X);
             begin
                Scanner.Decl_Arg_Slot     :=
                  new chars_ptr'(New_String (To_String (Symbol.Destructor))); -- XXX
@@ -496,7 +495,7 @@ begin
             declare
                use Interfaces.C.Strings;
                use Symbols;
-               Symbol : Symbols.Symbol_Access := Symbols.Lime_Symbol_Find (New_String (X));
+               Symbol : Symbols.Symbol_Access := Symbols.Symbol_Find (X);
             begin
                if
                  Symbol /= null and then
@@ -507,7 +506,7 @@ begin
                   Scanner.State := RESYNC_AFTER_DECL_ERROR;
                else
                   if Symbol = null then
-                     Symbol := Lime_Symbol_New (New_String (X));
+                     Symbol := Symbol_New (X);
                   end if;
                   Scanner.Decl_Arg_Slot     :=
                     new chars_ptr'(New_String (To_String (Symbol.Data_Type)));
@@ -653,10 +652,10 @@ begin
                Arguments   => (1 => To_Unbounded_String (X)));
          else
             declare
-               use Interfaces.C.Strings;
+--               use Interfaces.C.Strings;
                use Symbols;
 
-               Symbol : Symbol_Access := Lime_Symbol_New (New_String (X));
+               Symbol : constant Symbol_Access := Symbol_New (X);
             begin
 --               if Scanner.Gp.Wildcard = 0 then
 --                  Scanner.Gp.wildcard := Symbol;
@@ -674,7 +673,7 @@ begin
 
       when WAITING_FOR_CLASS_ID =>
          declare
-            use Interfaces.C.Strings;
+--            use Interfaces.C.Strings;
             use Symbols;
          begin
             if C not in 'a' .. 'z' then
@@ -684,7 +683,7 @@ begin
                   Arguments   => (1 => To_Unbounded_String (X)));
                Scanner.State := RESYNC_AFTER_DECL_ERROR;
 
-            elsif Lime_Symbol_Find (New_String (X)) /= null then
+            elsif Symbol_Find (X) /= null then
                Errors.Error
                  (E210,
                   Line_Number => Scanner.Token_Lineno,
@@ -692,7 +691,7 @@ begin
                Scanner.State := RESYNC_AFTER_DECL_ERROR;
 
             else
-               Scanner.Token_Class      := Lime_Symbol_New (New_String (X));
+               Scanner.Token_Class      := Symbol_New (X);
                Scanner.Token_Class.Kind := Multi_Terminal;
                Scanner.State       := WAITING_FOR_CLASS_TOKEN;
 
@@ -712,7 +711,7 @@ begin
             declare
                use Symbols;
 
-               Symbol : Symbol_Access := Scanner.Token_Class; -- ???
+               Symbol : constant Symbol_Access := Scanner.Token_Class; -- ???
                First  : Natural := X'First;
             begin
                --  Symbol.N_Sub_Sym := Symbol.N_Sub_Sym + 1;
@@ -722,9 +721,7 @@ begin
                   First := X'First + 1;
                end if;
                --  Symbol.Sub_Sym (symbol.N_Sub_Sym - 1) := Lime_Symbol_New (X (First .. X'Last));
-               Symbol.Sub_Sym.Append
-                 (Lime_Symbol_New
-                    (Interfaces.C.Strings.New_String (X (First .. X'Last))));
+               Symbol.Sub_Sym.Append (Symbol_New (X (First .. X'Last)));
             end;
          else
             Errors.Error

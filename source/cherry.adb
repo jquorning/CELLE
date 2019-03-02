@@ -36,7 +36,7 @@ package body Cherry is
       --  lime_partial_database_dump_ada ();
 
       if Lemp.Names.Start /= Null_Ptr then
-         SP := Lime_Symbol_Find (Lemp.Names.Start);
+         SP := Symbol_Find (Value (Lemp.Names.Start));
          if SP = null then
             Errors.Error_Plain
               (File_Name   => Lemp.File_Name,
@@ -109,7 +109,7 @@ package body Cherry is
       use Symbols;
    begin
       if Lemp.Names.Start /= Null_Ptr then
-         SP := Lime_Symbol_Find (Lemp.Names.Start);
+         SP := Symbol_Find (Value (Lemp.Names.Start));
          if SP = null then
             SP := Symbol_Access (Lemp.Start_Rule.LHS);
          end if;
