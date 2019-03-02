@@ -78,24 +78,25 @@ package Lime is
    --  follows.  (LEMON uses no global variables and makes little use of
    --  static variables.  Fields in the following structure can be thought
    --  of as begin global variables in the program.)
-
+   use Ada.Strings.Unbounded;
+   E : Unbounded_String renames Null_Unbounded_String;
    type Parser_Names_Record is record
-      Name       : aliased chars_ptr := Null_Ptr;  --  Name of the generated parser
-      ARG2       : aliased chars_ptr := Null_Ptr;  --  Declaration of the 3th argument to parser
-      CTX2       : aliased chars_ptr := Null_Ptr;  --  Declaration of 2nd argument to constructor
-      Token_Type : aliased chars_ptr := Null_Ptr;  --  Type of terminal symbols in the parser stack
-      Var_Type   : aliased chars_ptr := Null_Ptr;  --  The default type of non-terminal symbols
-      Start      : aliased chars_ptr := Null_Ptr;  --  Name of the start symbol for the grammar
-      Stack_Size : aliased chars_ptr := Null_Ptr;  --  Size of the parser stack
-      Include    : aliased chars_ptr := Null_Ptr;  --  Code to put at the start of the C file
-      Error      : aliased chars_ptr := Null_Ptr;  --  Code to execute when an error is seen
-      Overflow   : aliased chars_ptr := Null_Ptr;  --  Code to execute on a stack overflow
-      Failure    : aliased chars_ptr := Null_Ptr;  --  Code to execute on parser failure
-      C_Accept   : aliased chars_ptr := Null_Ptr;  --  Code to execute when the parser excepts
-      Extra_Code : aliased chars_ptr := Null_Ptr;  --  Code appended to the generated file
-      Token_Dest : aliased chars_ptr := Null_Ptr;  --  Code to execute to destroy token data
-      Var_Dest   : aliased chars_ptr := Null_Ptr;  --  Code for the default non-terminal destructor
-      Token_Prefix : aliased chars_ptr := Null_Ptr;
+      Name       : aliased Unbounded_String := E;  --  Name of the generated parser
+      ARG2       : aliased Unbounded_String := E;  --  Declaration of the 3th argument to parser
+      CTX2       : aliased Unbounded_String := E;  --  Declaration of 2nd argument to constructor
+      Token_Type : aliased Unbounded_String := E;  --  Type of terminal symbols in the parser stack
+      Var_Type   : aliased Unbounded_String := E;  --  The default type of non-terminal symbols
+      Start      : aliased Unbounded_String := E;  --  Name of the start symbol for the grammar
+      Stack_Size : aliased Unbounded_String := E;  --  Size of the parser stack
+      Include    : aliased Unbounded_String := E;  --  Code to put at the start of the C file
+      Error      : aliased Unbounded_String := E;  --  Code to execute when an error is seen
+      Overflow   : aliased Unbounded_String := E;  --  Code to execute on a stack overflow
+      Failure    : aliased Unbounded_String := E;  --  Code to execute on parser failure
+      C_Accept   : aliased Unbounded_String := E;  --  Code to execute when the parser excepts
+      Extra_Code : aliased Unbounded_String := E;  --  Code appended to the generated file
+      Token_Dest : aliased Unbounded_String := E;  --  Code to execute to destroy token data
+      Var_Dest   : aliased Unbounded_String := E;  --  Code for the default non-terminal destructor
+      Token_Prefix : aliased Unbounded_String := E;
       --  A prefix added to token names in the .h file
    end record;
 

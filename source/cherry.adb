@@ -9,8 +9,6 @@
 
 with Ada.Strings.Unbounded;
 
-with Interfaces.C.Strings;
-
 with Rules;
 with Errors;
 with Lemon_Bind;
@@ -22,10 +20,10 @@ package body Cherry is
      (Lemp : in out Lime.Lemon_Record)
    is
       use Ada.Strings.Unbounded;
-      use Interfaces.C.Strings;
       use Lemon_Bind;
       use Symbols;
       use Rules;
+
       SP : Symbol_Access;
       RP : Rule_Access;
    begin
@@ -35,8 +33,8 @@ package body Cherry is
       --  lime_partial_database_dump_c ();
       --  lime_partial_database_dump_ada ();
 
-      if Lemp.Names.Start /= Null_Ptr then
-         SP := Symbol_Find (Value (Lemp.Names.Start));
+      if Lemp.Names.Start /= "" then
+         SP := Symbol_Find (To_String (Lemp.Names.Start));
          if SP = null then
             Errors.Error_Plain
               (File_Name   => Lemp.File_Name,
@@ -44,7 +42,7 @@ package body Cherry is
                Text        =>
                  "The specified start symbol '%1' Start is not in a nonterminal " &
                  "of the grammar.  '%2' will be used as the start symbol instead.",
-               Arguments   => (1 => To_Unbounded_String (Value (Lemp.Names.Start)),
+               Arguments   => (1 => Lemp.Names.Start,
                                2 => To_Unbounded_String (From_Key (Lemp.Start_Rule.LHS.all.Name)))
               );
             Lemp.Error_Cnt := Lemp.Error_Cnt + 1;
@@ -105,11 +103,11 @@ package body Cherry is
      (Lemp : in out Lime.Lemon_Record;
       SP   : in out Symbols.Symbol_Access)
    is
-      use Interfaces.C.Strings;
+      use Ada.Strings.Unbounded;
       use Symbols;
    begin
-      if Lemp.Names.Start /= Null_Ptr then
-         SP := Symbol_Find (Value (Lemp.Names.Start));
+      if Lemp.Names.Start /= "" then
+         SP := Symbol_Find (To_String (Lemp.Names.Start));
          if SP = null then
             SP := Symbol_Access (Lemp.Start_Rule.LHS);
          end if;

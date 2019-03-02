@@ -86,7 +86,8 @@ package body Scanners is
                                       Scanner : in out Scanner_Record)
    is
       use Ada.Strings.Unbounded;
-      Current : constant Character := Scanner.Item (Scanner.Current);
+      --  Current : constant Character := Scanner.Item (Scanner.Current);
+      Current : constant Character := Scanner.Item (Scanner.First);
    begin
       case Current is
 
@@ -193,7 +194,7 @@ package body Scanners is
                             Scanner : in out Scanner_Record;
                             Break   :    out Boolean)
    is
-      Current : Character renames Scanner.Item (Scanner.Current);
+--      Current : Character renames Scanner.Item (Scanner.Current);
    begin
       case Scanner.Mode is
 

@@ -475,8 +475,8 @@ begin
                use Interfaces.C.Strings;
                Symbol : Symbols.Symbol_Access := Symbols.Symbol_New (X);
             begin
-               Scanner.Decl_Arg_Slot     :=
-                 new chars_ptr'(New_String (To_String (Symbol.Destructor))); -- XXX
+               Scanner.Decl_Arg_Slot     := new Unbounded_String'(Symbol.Destructor);
+--                 new chars_ptr'(New_String (To_String (Symbol.Destructor))); -- XXX
                Scanner.Decl_Lineno_Slot  := Symbol.Dest_Lineno'Access;
                Scanner.Insert_Line_Macro := True;
             end;
@@ -508,8 +508,8 @@ begin
                   if Symbol = null then
                      Symbol := Symbol_New (X);
                   end if;
-                  Scanner.Decl_Arg_Slot     :=
-                    new chars_ptr'(New_String (To_String (Symbol.Data_Type)));
+                  Scanner.Decl_Arg_Slot := new Unbounded_String'(Symbol.Data_Type);
+                  --  new chars_ptr'(New_String (To_String (Symbol.Data_Type)));
                   Scanner.Insert_Line_Macro := False;
                   Scanner.State        := WAITING_FOR_DECL_ARG;
                end if;

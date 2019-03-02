@@ -10,8 +10,6 @@
 with Ada.Strings.Unbounded;
 with Ada.Containers.Vectors;
 
-with Interfaces.C.Strings;
-
 with Symbols;
 with Rules;
 
@@ -126,9 +124,9 @@ package Scanner_Data is
          Prev_Rule     : access Rules.Rule_Record;     --  Previous rule parsed
          Decl_Keyword  : Unbounded_String;   --  Keyword of a declaration
 
-         --  Decl_Arg_Slot : access Unbounded_String;
+         Decl_Arg_Slot : access Unbounded_String;
          --  Decl_Arg_Slot : access Unbounded_String; -- Access Interfaces.C.Strings.chars_ptr;
-         Decl_Arg_Slot : access Interfaces.C.Strings.chars_ptr;
+         --  Decl_Arg_Slot : access Interfaces.C.Strings.chars_ptr;
          --    char **declargslot;                --  Where the declaration argument should be put
          Insert_Line_Macro : Boolean;             --  Add #line before declaration insert
          Decl_Lineno_Slot : access Integer;       --  Where to write declaration line number
