@@ -96,6 +96,7 @@ package Symbols is
          Sub_Sym   : Vector;   --  Array of constituent symbols
       end record;
 
+
    type Symbol_Access_Array is
      array (Natural range <>) of Symbols.Symbol_Access;
 
@@ -111,6 +112,9 @@ package Symbols is
 
    function Get_Wildcard (Extra : in Extra_Access)
                          return Symbol_Access;
+
+   procedure Set_Wildcard (Extra    : in Extra_Access;
+                           Wildcard : in Symbol_Access);
 
    subtype Symbol_Name is Ada.Strings.Unbounded.Unbounded_String;
 

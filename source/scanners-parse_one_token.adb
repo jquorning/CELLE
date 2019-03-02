@@ -23,12 +23,16 @@ is
    use Scanner_Errors;
    use Rules;
 
-   procedure Do_Initialize;
+   procedure Do_State_Initialize;
+   procedure Do_State_Waiting_For_Decl_Or_Rule;
+   procedure Do_State_Precedence_Mark_1;
+   procedure Do_State_Precedence_Mark_2;
    procedure Do_State_In_RHS;
 
-   X : String renames Scanner.Item (Scanner.Token_Start .. Scanner.Last);
+   X : String    renames Scanner.Item (Scanner.Token_Start .. Scanner.Last);
+   C : Character renames X (X'First);
 
-   procedure Do_Initialize is
+   procedure Do_State_Initialize is
    begin
       Scanner.Prev_Rule    := null;
       Scanner.Prec_Counter := 0;
@@ -36,11 +40,95 @@ is
       Scanner.Last_Rule    := null;
 
       Lemon.N_Rule := 0;
-   end Do_Initialize;
+   end Do_State_Initialize;
+
+
+   procedure Do_State_Waiting_For_Decl_Or_Rule is
+   begin
+      Do_State_Initialize;
+
+      if C = '%' then
+         Scanner.Scan_State := WAITING_FOR_DECL_KEYWORD;
+
+      elsif C in 'a' .. 'z' then
+         Scanner.LHS.Append (Symbols.Lime_Symbol_New (Interfaces.C.Strings.New_String (X)));
+         --            PSP.N_RHS      := 0;
+
+         Scanner.RHS        := Symbols.Symbol_Vectors.Empty_Vector;
+         --            PSP.LHS_Alias  := Interfaces.C.Strings.Null_Ptr;
+         Scanner.LHS_Alias  := Scanner_Data.Alias_Vectors.Empty_Vector;
+         Scanner.Scan_State := WAITING_FOR_ARROW;
+
+      elsif C = '{' then
+
+         if Scanner.Prev_Rule = null then
+            Error (E001);
+            --                  Error ("There is no prior rule upon which to attach the code " &
+            --                           "fragment which begins on this line.");
+
+         elsif Rules."/=" (Scanner.Prev_Rule.Code, Null_Code) then
+            Error (E002);
+            --                  Error ("Code fragment beginning on this line is not the first " &
+            --                           "to follow the previous rule.");
+
+         else
+            Scanner.Prev_Rule.Line := Scanner.Token_Lineno;
+            Scanner.Prev_Rule.Code :=
+              Unbounded_String'(To_Unbounded_String (X (X'First + 1 .. X'Last)));
+            --  new Unbounded_String'(To_Unbounded_String (X (X'First + 1 .. X'Last)));
+            Scanner.Prev_Rule.No_Code := False;
+         end if;
+
+      elsif C = '[' then
+         Scanner.Scan_State := PRECEDENCE_MARK_1;
+
+      else
+         Error (E003);
+         --               Error ("Token '" & X & "' should be either '%%' or a nonterminal name.");
+      end if;
+   end Do_State_Waiting_For_Decl_Or_Rule;
+
+
+   procedure Do_State_Precedence_Mark_1 is
+   begin
+      if C not in 'A' .. 'Z' then
+         Error (E004);
+         --  Error ("The precedence symbol must be a terminal.");
+
+      elsif Scanner.Prev_Rule = null then
+         Error (E005);
+         --  Error ("There is no prior rule to assign precedence '[" & X & "]'.");
+
+      elsif Scanner.Prev_Rule.Prec_Sym /= null then
+         Error (E006);
+         --  Error ("Precedence mark on this line is not the first " &
+         --         "to follow the previous rule.");
+
+      else
+         Scanner.Prev_Rule.Prec_Sym :=
+           Symbols.Lime_Symbol_New (Interfaces.C.Strings.New_String (X));
+      end if;
+
+      Scanner.Scan_State := PRECEDENCE_MARK_2;
+
+   end Do_State_Precedence_Mark_1;
+
+
+   procedure Do_State_Precedence_Mark_2 is
+   begin
+      if C /= ']' then
+         --  Error ("Missing ']' on precedence mark.");
+         Error (E007);
+      end if;
+
+      Scanner.Scan_State := WAITING_FOR_DECL_OR_RULE;
+
+   end Do_State_Precedence_Mark_2;
+
 
    procedure Do_State_In_RHS is
    begin
-      if X (X'First) = '.' then
+      if C = '.' then
          declare
             use Symbols;
             Rule : constant access Rules.Rule_Record := new Rules.Rule_Record;
@@ -95,7 +183,6 @@ is
             Lemon.N_Rule  := Lemon.N_Rule + 1;
 
             Rule.Index      := Lemon.N_Rule;
-            Rule.LHS   := null;  --  ???
             Rule.Next_LHS   := Rule.LHS.Rule;
             Rule.LHS.Rule   := Rule;
             Rule.Next       := null;
@@ -112,16 +199,16 @@ is
          Scanner.Scan_State := WAITING_FOR_DECL_OR_RULE;
 
       elsif
-        X (X'First) in 'a' .. 'z' or
-        X (X'First) in 'A' .. 'Z'
+        C in 'a' .. 'z' or
+        C in 'A' .. 'Z'
       then
          Scanner.RHS  .Append (Symbols.Lime_Symbol_New (Interfaces.C.Strings.New_String (X)));
          Scanner.Alias.Append (Null_Unbounded_String);
          --            end if;
 
       elsif
-        (X (X'First) = '|' or
-           X (X'First) = '/') and not Scanner.RHS.Is_Empty
+        (C = '|' or C = '/') and not
+        Scanner.RHS.Is_Empty
       then
          declare
             use Symbols;
@@ -154,7 +241,7 @@ is
             end if;
          end;
 
-      elsif X (X'First) = '(' and not Scanner.RHS.Is_Empty then
+      elsif C = '(' and not Scanner.RHS.Is_Empty then
          Scanner.Scan_State := RHS_ALIAS_1;
 
       else
@@ -166,89 +253,12 @@ is
    PSP : Scanner_Record renames Scanner;
 begin
 
---    const char *x;
---    x = Strsafe(psp->tokenstart);     /* Save the token permanently */
---  #if 0
---    printf("%s:%d: Token=[%s] state=%d\n",psp->filename,psp->tokenlineno,
---      x,psp->state);
---  #endif
    case Scanner.Scan_State is
 
-      when INITIALIZE =>
-         Do_Initialize;
-
-      when WAITING_FOR_DECL_OR_RULE =>
-         Do_Initialize;
-
-         if X (X'First) = '%' then
-            PSP.Scan_State := WAITING_FOR_DECL_KEYWORD;
-
-         elsif X (X'First) in 'a' .. 'z' then
-            PSP.LHS.Append (Symbols.Lime_Symbol_New (Interfaces.C.Strings.New_String (X)));
---            PSP.N_RHS      := 0;
-            PSP.RHS        := Symbols.Symbol_Vectors.Empty_Vector;
---            PSP.LHS_Alias  := Interfaces.C.Strings.Null_Ptr;
-            PSP.LHS_Alias  := Scanner_Data.Alias_Vectors.Empty_Vector;
-            PSP.Scan_State := WAITING_FOR_ARROW;
-
-         elsif X (X'First) = '{' then
-
-            if PSP.Prev_Rule = null then
-               Error (E001);
---                  Error ("There is no prior rule upon which to attach the code " &
---                           "fragment which begins on this line.");
-
-            elsif Rules."/=" (PSP.Prev_Rule.Code, Null_Code) then
-               Error (E002);
---                  Error ("Code fragment beginning on this line is not the first " &
---                           "to follow the previous rule.");
-
-            else
-               PSP.Prev_Rule.Line    := PSP.Token_Lineno;
-               PSP.Prev_Rule.Code    :=
-                 Unbounded_String'(To_Unbounded_String (X (X'First + 1 .. X'Last)));
-               --  new Unbounded_String'(To_Unbounded_String (X (X'First + 1 .. X'Last)));
-               PSP.Prev_Rule.No_Code := False;
-            end if;
-
-         elsif X (X'First) = '[' then
-            PSP.Scan_State := PRECEDENCE_MARK_1;
-
-         else
-            Error (E003);
---               Error ("Token '" & X & "' should be either '%%' or a nonterminal name.");
-         end if;
-
-
-      when PRECEDENCE_MARK_1 =>
-
-         if X (X'First) not in 'A' .. 'Z' then
-            Error (E004);
---               Error ("The precedence symbol must be a terminal.");
-
-         elsif PSP.Prev_Rule = null then
-            Error (E005); --  , X
---               Error ("There is no prior rule to assign precedence '[" & X & "]'.");
-
-         elsif PSP.Prev_Rule.Prec_Sym /= null then
-            Error (E006);
---               Error ("Precedence mark on this line is not the first " &
---                        "to follow the previous rule.");
-
-         else
-            PSP.Prev_Rule.Prec_Sym :=
-              Symbols.Lime_Symbol_New (Interfaces.C.Strings.New_String (X));
-         end if;
-         PSP.Scan_State := PRECEDENCE_MARK_2;
-
-
-      when PRECEDENCE_MARK_2 =>
-         if X (X'First) /= ']' then
-            --  Error ("Missing ']' on precedence mark.");
-            Error (E007);
-         end if;
-         PSP.Scan_State := WAITING_FOR_DECL_OR_RULE;
-
+      when INITIALIZE               =>  Do_State_Initialize;
+      when WAITING_FOR_DECL_OR_RULE =>  Do_State_Waiting_For_Decl_Or_Rule;
+      when PRECEDENCE_MARK_1        =>  Do_State_Precedence_Mark_1;
+      when PRECEDENCE_MARK_2        =>  Do_State_Precedence_Mark_2;
 
       when WAITING_FOR_ARROW =>
 
@@ -634,69 +644,110 @@ begin
          null;
 
       when WAITING_FOR_WILDCARD_ID =>
---        if( x[0]=='.' ){
---          psp->state = WAITING_FOR_DECL_OR_RULE;
---        }else if( !ISUPPER(x[0]) ){
---          ErrorMsg(psp->filename, psp->tokenlineno,
---            "%%wildcard argument \"%s\" should be a token", x);
---          psp->errorcnt++;
---        }else{
---          struct symbol *sp = lime_symbol_new(x);
---          if( psp->gp->wildcard==0 ){
---            psp->gp->wildcard = sp;
---          }else{
---            ErrorMsg(psp->filename, psp->tokenlineno,
---              "Extra wildcard to token: %s", x);
---            psp->errorcnt++;
---          }
---        }
-         null;
+         if C = '.' then
+            Scanner.Scan_State := WAITING_FOR_DECL_OR_RULE;
+
+         elsif C not in 'A' .. 'Z' then
+            Errors.Error
+              (E211,
+               Line_Number => Scanner.Token_Lineno,
+               Arguments   => (1 => To_Unbounded_String (X)));
+         else
+            declare
+               use Interfaces.C.Strings;
+               use Symbols;
+
+               Symbol : Symbol_Access := Lime_Symbol_New (New_String (X));
+            begin
+--               if Scanner.Gp.Wildcard = 0 then
+--                  Scanner.Gp.wildcard := Symbol;
+               if Get_Wildcard (Lemon.Extra) = null then
+                  Set_Wildcard (Lemon.Extra, Symbol);
+               else
+                  Errors.Error
+                    (E212,
+                     Line_Number => Scanner.Token_Lineno,
+                     Arguments   => (1 => To_Unbounded_String (X)));
+               end if;
+            end;
+         end if;
+
 
       when WAITING_FOR_CLASS_ID =>
---        if( !ISLOWER(x[0]) ){
---          ErrorMsg(psp->filename, psp->tokenlineno,
---            "%%token_class must be followed by an identifier: ", x);
---          psp->errorcnt++;
---          psp->state = RESYNC_AFTER_DECL_ERROR;
---       }else if( lime_symbol_find(x) ){
---          ErrorMsg(psp->filename, psp->tokenlineno,
---            "Symbol \"%s\" already used", x);
---          psp->errorcnt++;
---          psp->state = RESYNC_AFTER_DECL_ERROR;
---        }else{
---          psp->tkclass = lime_symbol_new(x);
---          psp->tkclass->type = MULTITERMINAL;
---          psp->state = WAITING_FOR_CLASS_TOKEN;
---        }
-         null;
+         declare
+            use Interfaces.C.Strings;
+            use Symbols;
+         begin
+            if C not in 'a' .. 'z' then
+               Errors.Error
+                 (E209,
+                  Line_Number => Scanner.Token_Lineno,
+                  Arguments   => (1 => To_Unbounded_String (X)));
+               Scanner.Scan_State := RESYNC_AFTER_DECL_ERROR;
+
+            elsif Lime_Symbol_Find (New_String (X)) /= null then
+               Errors.Error
+                 (E210,
+                  Line_Number => Scanner.Token_Lineno,
+                  Arguments   => (1 => To_Unbounded_String (X)));
+               Scanner.Scan_State := RESYNC_AFTER_DECL_ERROR;
+
+            else
+               Scanner.Token_Class      := Lime_Symbol_New (New_String (X));
+               Scanner.Token_Class.Kind := Multi_Terminal;
+               Scanner.Scan_State       := WAITING_FOR_CLASS_TOKEN;
+
+            end if;
+         end;
 
       when WAITING_FOR_CLASS_TOKEN =>
---        if( x[0]=='.' ){
---          psp->state = WAITING_FOR_DECL_OR_RULE;
---        }else if( ISUPPER(x[0]) || ((x[0]=='|' || x[0]=='/') && ISUPPER(x[1])) ){
---          struct symbol *msp = psp->tkclass;
---          msp->nsubsym++;
---          msp->subsym = (struct symbol **) realloc(msp->subsym,
---            sizeof(struct symbol*)*msp->nsubsym);
---          if( !ISUPPER(x[0]) ) x++;
---          msp->subsym[msp->nsubsym-1] = lime_symbol_new(x);
---        }else{
---          ErrorMsg(psp->filename, psp->tokenlineno,
---            "%%token_class argument \"%s\" should be a token", x);
---          psp->errorcnt++;
---          psp->state = RESYNC_AFTER_DECL_ERROR;
---        }
-         null;
+
+         if C = '.' then
+            Scanner.Scan_State := WAITING_FOR_DECL_OR_RULE;
+
+         elsif
+           (C in 'A' .. 'Z') or
+           ((C = '|' or C = '/') and
+              X (X'First + 1) in 'A' .. 'Z')
+         then
+            declare
+               use Symbols;
+
+               Symbol : Symbol_Access := Scanner.Token_Class; -- ???
+               First  : Natural := X'First;
+            begin
+               --  Symbol.N_Sub_Sym := Symbol.N_Sub_Sym + 1;
+               --  Symbol.Sub_Sym := (struct symbol **) realloc(msp->subsym,
+               --                    sizeof(struct symbol*)*msp->nsubsym);
+               if C not in 'A' .. 'Z' then
+                  First := X'First + 1;
+               end if;
+               --  Symbol.Sub_Sym (symbol.N_Sub_Sym - 1) := Lime_Symbol_New (X (First .. X'Last));
+               Symbol.Sub_Sym.Append
+                 (Lime_Symbol_New
+                    (Interfaces.C.Strings.New_String (X (First .. X'Last))));
+            end;
+         else
+            Errors.Error
+              (E208,
+               Line_Number => Scanner.Token_Lineno,
+               Arguments   => (1 => To_Unbounded_String (X)));
+
+            Scanner.Scan_State := RESYNC_AFTER_DECL_ERROR;
+
+         end if;
 
       when RESYNC_AFTER_RULE_ERROR =>
---  /*      if( x[0]=='.' ) psp->state = WAITING_FOR_DECL_OR_RULE;
---  **      break; */
+         --  // if( x[0]=='.' ) psp->state = WAITING_FOR_DECL_OR_RULE;
+         --  // break;
          null;
 
       when RESYNC_AFTER_DECL_ERROR =>
---        if( x[0]=='.' ) psp->state = WAITING_FOR_DECL_OR_RULE;
---        if( x[0]=='%' ) psp->state = WAITING_FOR_DECL_KEYWORD;
-         null;
+         case C is
+            when '.' =>  Scanner.Scan_State := WAITING_FOR_DECL_OR_RULE;
+            when '%' =>  Scanner.Scan_State := WAITING_FOR_DECL_KEYWORD;
+            when others => null;
+         end case;
 
    end case;
 

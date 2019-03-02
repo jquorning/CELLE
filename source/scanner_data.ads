@@ -101,14 +101,14 @@ package Scanner_Data is
    use Symbols;
    type Scanner_Record is
       record
-         Token_Start   : Natural;                   --  Text of current token
-         Token_Lineno  : Natural;                   --  Linenumber at which current token starts
-         Error_Count   : Natural;                   --  Number of errors so far
+         Token_Start   : Natural;                      --  Text of current token
+         Token_Lineno  : Natural;                      --  Linenumber at which current token starts
+         Error_Count   : Natural;                      --  Number of errors so far
          Preproc_State : State_Preproc;
-         Scan_State    : State_Scanner;             --  The state of the parser
-         Fallback : access Symbols.Symbol_Record;   --  The fallback token
---    struct symbol *tkclass;    --  Token class symbol
---         LHS       : Symbols.Symbol_Access;           --  Left-hand side of current rule
+         Scan_State    : State_Scanner;                --  The state of the parser
+         Fallback      : access Symbols.Symbol_Record; --  The fallback token
+         Token_Class   : access Symbols.Symbol_Record; --  Token class symbol
+--         LHS       : Symbols.Symbol_Access;          --  Left-hand side of current rule
          LHS : Symbol_Vectors.Vector;
 --         LHS_Alias : Interfaces.C.Strings.chars_ptr;  --  Alias for the LHS
          LHS_Alias : Alias_Vectors.Vector;
@@ -128,10 +128,10 @@ package Scanner_Data is
 
          --  Decl_Arg_Slot : access Unbounded_String;
          Decl_Arg_Slot : access Interfaces.C.Strings.chars_ptr;
-         --    char **declargslot;        --  Where the declaration argument should be put
-         Insert_Line_Macro : Boolean;       --  Add #line before declaration insert
+         --    char **declargslot;                --  Where the declaration argument should be put
+         Insert_Line_Macro : Boolean;             --  Add #line before declaration insert
          Decl_Lineno_Slot : access Integer;       --  Where to write declaration line number
-         Decl_Assoc   : E_Assoc;      --  Assign this association to decl arguments
+         Decl_Assoc   : E_Assoc;                  --  Assign this association to decl arguments
          Prec_Counter : Integer;                  --  Assign this precedence to decl arguments
          First_Rule   : access Rules.Rule_Record; --  Pointer to first rule in the grammar
          Last_Rule    : access Rules.Rule_Record; --  Pointer to the most recently parsed rule
