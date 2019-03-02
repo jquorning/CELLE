@@ -48,7 +48,7 @@ is
       Do_State_Initialize;
 
       if C = '%' then
-         Scanner.Scan_State := WAITING_FOR_DECL_KEYWORD;
+         Scanner.State := WAITING_FOR_DECL_KEYWORD;
 
       elsif C in 'a' .. 'z' then
          Scanner.LHS.Append (Symbols.Lime_Symbol_New (Interfaces.C.Strings.New_String (X)));
@@ -57,7 +57,7 @@ is
          Scanner.RHS        := Symbols.Symbol_Vectors.Empty_Vector;
          --            PSP.LHS_Alias  := Interfaces.C.Strings.Null_Ptr;
          Scanner.LHS_Alias  := Scanner_Data.Alias_Vectors.Empty_Vector;
-         Scanner.Scan_State := WAITING_FOR_ARROW;
+         Scanner.State := WAITING_FOR_ARROW;
 
       elsif C = '{' then
 
@@ -80,7 +80,7 @@ is
          end if;
 
       elsif C = '[' then
-         Scanner.Scan_State := PRECEDENCE_MARK_1;
+         Scanner.State := PRECEDENCE_MARK_1;
 
       else
          Error (E003);
@@ -109,7 +109,7 @@ is
            Symbols.Lime_Symbol_New (Interfaces.C.Strings.New_String (X));
       end if;
 
-      Scanner.Scan_State := PRECEDENCE_MARK_2;
+      Scanner.State := PRECEDENCE_MARK_2;
 
    end Do_State_Precedence_Mark_1;
 
@@ -121,7 +121,7 @@ is
          Error (E007);
       end if;
 
-      Scanner.Scan_State := WAITING_FOR_DECL_OR_RULE;
+      Scanner.State := WAITING_FOR_DECL_OR_RULE;
 
    end Do_State_Precedence_Mark_2;
 
@@ -196,7 +196,7 @@ is
             Scanner.Prev_Rule := Rule;
             --  end if;
          end;
-         Scanner.Scan_State := WAITING_FOR_DECL_OR_RULE;
+         Scanner.State := WAITING_FOR_DECL_OR_RULE;
 
       elsif
         C in 'a' .. 'z' or
@@ -242,18 +242,18 @@ is
          end;
 
       elsif C = '(' and not Scanner.RHS.Is_Empty then
-         Scanner.Scan_State := RHS_ALIAS_1;
+         Scanner.State := RHS_ALIAS_1;
 
       else
          Error (E202, (1 => To_Unbounded_String (X)));
-         Scanner.Scan_State := RESYNC_AFTER_RULE_ERROR;
+         Scanner.State := RESYNC_AFTER_RULE_ERROR;
       end if;
    end Do_State_In_RHS;
 
    PSP : Scanner_Record renames Scanner;
 begin
 
-   case Scanner.Scan_State is
+   case Scanner.State is
 
       when INITIALIZE               =>  Do_State_Initialize;
       when WAITING_FOR_DECL_OR_RULE =>  Do_State_Waiting_For_Decl_Or_Rule;
@@ -263,10 +263,10 @@ begin
       when WAITING_FOR_ARROW =>
 
          if X (1 .. 3) = "::=" then
-            PSP.Scan_State := IN_RHS;
+            PSP.State := IN_RHS;
 
          elsif X (1) = '(' then
-            PSP.Scan_State := LHS_ALIAS_1;
+            PSP.State := LHS_ALIAS_1;
 
          else
             declare
@@ -275,7 +275,7 @@ begin
 --               Error (E008, (1 => To_Unbounded_String (From_Key (PSP.LHS.Name))));
                Error (E008, (1 => To_Unbounded_String
                                (From_Key (PSP.LHS.First_Element.Name))));
-               PSP.Scan_State := RESYNC_AFTER_RULE_ERROR;
+               PSP.State := RESYNC_AFTER_RULE_ERROR;
             end;
          end if;
 
@@ -288,29 +288,29 @@ begin
 --            PSP.LHS_Alias  := Interfaces.C.Strings.New_String (X);
 --            PSP.LHS_Alias.Append (Interfaces.C.Strings.New_String (X));
             PSP.LHS_Alias.Append (To_Alias (X));
-            PSP.Scan_State := LHS_ALIAS_2;
+            PSP.State := LHS_ALIAS_2;
          else
             Error (E009, (1 => To_Unbounded_String (X),
 --                          2 => To_Unbounded_String (Symbols.From_Key (PSP.LHS.Name))));
                           2 => To_Unbounded_String
                             (Symbols.From_Key (PSP.LHS.First_Element.Name))));
-            PSP.Scan_State := RESYNC_AFTER_RULE_ERROR;
+            PSP.State := RESYNC_AFTER_RULE_ERROR;
          end if;
 
       when LHS_ALIAS_2 =>
          if X (X'First)  = ')' then
-            PSP.Scan_State := LHS_ALIAS_3;
+            PSP.State := LHS_ALIAS_3;
          else
 --            Error (E010, (1 => To_Unbounded_String
 --                            (Interfaces.C.Strings.Value (PSP.LHS_Alias))));
             Error (E010, (1 => PSP.LHS_Alias.First_Element));
-            PSP.Scan_State := RESYNC_AFTER_RULE_ERROR;
+            PSP.State := RESYNC_AFTER_RULE_ERROR;
          end if;
 
 
       when LHS_ALIAS_3 =>
          if X (X'First .. X'First + 2) = "::=" then
-            PSP.Scan_State := IN_RHS;
+            PSP.State := IN_RHS;
          else
             Error (E011, (1 => To_Unbounded_String
 --                            (Symbols.From_Key (PSP.LHS.Name)),
@@ -318,7 +318,7 @@ begin
 --                          2 => To_Unbounded_String
 --                            (Interfaces.C.Strings.Value (PSP.LHS_Alias))));
                           2 => PSP.LHS_Alias.First_Element));
-            PSP.Scan_State := RESYNC_AFTER_RULE_ERROR;
+            PSP.State := RESYNC_AFTER_RULE_ERROR;
          end if;
 
 
@@ -331,13 +331,13 @@ begin
            X (X'First) in 'A' .. 'Z'
          then
             PSP.Alias.Append (To_Alias (X));
-            PSP.Scan_State   := RHS_ALIAS_2;
+            PSP.State   := RHS_ALIAS_2;
 
          else
             Error (E012, (1 => To_Unbounded_String (X),
                           2 => To_Unbounded_String
                             (Symbols.From_Key (PSP.RHS.Last_Element.Name))));
-            PSP.Scan_State := RESYNC_AFTER_RULE_ERROR;
+            PSP.State := RESYNC_AFTER_RULE_ERROR;
 
          end if;
 
@@ -345,11 +345,11 @@ begin
       when RHS_ALIAS_2 =>
 
          if X (X'First) = ')' then
-            PSP.Scan_State := IN_RHS;
+            PSP.State := IN_RHS;
 
          else
             Error (E013, (1 => PSP.LHS_Alias.First_Element));
-            PSP.Scan_State := RESYNC_AFTER_RULE_ERROR;
+            PSP.State := RESYNC_AFTER_RULE_ERROR;
 
          end if;
 
@@ -363,7 +363,7 @@ begin
             PSP.Decl_Arg_Slot     := null;
             PSP.Decl_Lineno_Slot  := null;
             PSP.Insert_Line_Macro := True;
-            PSP.Scan_State := WAITING_FOR_DECL_ARG;
+            PSP.State := WAITING_FOR_DECL_ARG;
 
             if X = "name" then
                PSP.Decl_Arg_Slot := Lemon.Names.Name'Access;
@@ -424,44 +424,44 @@ begin
             elsif X = "left" then
                PSP.Prec_Counter := PSP.Prec_Counter + 1;
                PSP.Decl_Assoc   := Symbols.Left;
-               PSP.Scan_State   := WAITING_FOR_PRECEDENCE_SYMBOL;
+               PSP.State   := WAITING_FOR_PRECEDENCE_SYMBOL;
 
             elsif X = "right" then
                PSP.Prec_Counter := PSP.Prec_Counter + 1;
                PSP.Decl_Assoc   := Symbols.Right;
-               PSP.Scan_State   := WAITING_FOR_PRECEDENCE_SYMBOL;
+               PSP.State   := WAITING_FOR_PRECEDENCE_SYMBOL;
 
             elsif X = "nonassoc" then
                PSP.Prec_Counter := PSP.Prec_Counter + 1;
                PSP.Decl_Assoc   := Symbols.None;
-               PSP.Scan_State   := WAITING_FOR_PRECEDENCE_SYMBOL;
+               PSP.State   := WAITING_FOR_PRECEDENCE_SYMBOL;
 
             elsif X = "destructor" then
-               PSP.Scan_State := WAITING_FOR_DESTRUCTOR_SYMBOL;
+               PSP.State := WAITING_FOR_DESTRUCTOR_SYMBOL;
 
             elsif X = "type" then
-               PSP.Scan_State := WAITING_FOR_DATATYPE_SYMBOL;
+               PSP.State := WAITING_FOR_DATATYPE_SYMBOL;
 
             elsif X = "fallback" then
                PSP.Fallback := null;
-               PSP.Scan_State := WAITING_FOR_FALLBACK_ID;
+               PSP.State := WAITING_FOR_FALLBACK_ID;
 
             elsif X = "token" then
-               PSP.Scan_State := WAITING_FOR_TOKEN_NAME;
+               PSP.State := WAITING_FOR_TOKEN_NAME;
 
             elsif X = "wildcard" then
-               PSP.Scan_State := WAITING_FOR_WILDCARD_ID;
+               PSP.State := WAITING_FOR_WILDCARD_ID;
 
             elsif X = "token_class" then
-               PSP.Scan_State := WAITING_FOR_CLASS_ID;
+               PSP.State := WAITING_FOR_CLASS_ID;
 
             else
                Error (E203, (1 => To_Unbounded_String (X)), Line_Number => PSP.Token_Lineno);
-               PSP.Scan_State := RESYNC_AFTER_DECL_ERROR;
+               PSP.State := RESYNC_AFTER_DECL_ERROR;
             end if;
          else
             Error (E204, (1 => To_Unbounded_String (X)), Line_Number => PSP.Token_Lineno);
-            PSP.Scan_State := RESYNC_AFTER_DECL_ERROR;
+            PSP.State := RESYNC_AFTER_DECL_ERROR;
          end if;
 
 
@@ -471,7 +471,7 @@ begin
            X (X'First) not in 'A' .. 'Z'
          then
             Errors.Error (E205, Line_Number => PSP.Token_Lineno);
-            PSP.Scan_State := RESYNC_AFTER_DECL_ERROR;
+            PSP.State := RESYNC_AFTER_DECL_ERROR;
          else
             declare
                use Interfaces.C.Strings;
@@ -482,7 +482,7 @@ begin
                PSP.Decl_Lineno_Slot  := Symbol.Dest_Lineno'Access;
                PSP.Insert_Line_Macro := True;
             end;
-            PSP.Scan_State := WAITING_FOR_DECL_ARG;
+            PSP.State := WAITING_FOR_DECL_ARG;
          end if;
 
 
@@ -492,7 +492,7 @@ begin
            X (X'First) not in 'A' .. 'Z'
          then
             Errors.Error (E206, Line_Number => PSP.Token_Lineno);
-            PSP.Scan_State := RESYNC_AFTER_DECL_ERROR;
+            PSP.State := RESYNC_AFTER_DECL_ERROR;
          else
             declare
                use Interfaces.C.Strings;
@@ -505,7 +505,7 @@ begin
                then
                   Error (E207, (1 => To_Unbounded_String (X)),
                          Line_Number => PSP.Token_Lineno);
-                  PSP.Scan_State := RESYNC_AFTER_DECL_ERROR;
+                  PSP.State := RESYNC_AFTER_DECL_ERROR;
                else
                   if Symbol = null then
                      Symbol := Lime_Symbol_New (New_String (X));
@@ -513,7 +513,7 @@ begin
                   PSP.Decl_Arg_Slot     :=
                     new chars_ptr'(New_String (To_String (Symbol.Data_Type)));
                   PSP.Insert_Line_Macro := False;
-                  PSP.Scan_State        := WAITING_FOR_DECL_ARG;
+                  PSP.State        := WAITING_FOR_DECL_ARG;
                end if;
             end;
          end if;
@@ -645,7 +645,7 @@ begin
 
       when WAITING_FOR_WILDCARD_ID =>
          if C = '.' then
-            Scanner.Scan_State := WAITING_FOR_DECL_OR_RULE;
+            Scanner.State := WAITING_FOR_DECL_OR_RULE;
 
          elsif C not in 'A' .. 'Z' then
             Errors.Error
@@ -683,19 +683,19 @@ begin
                  (E209,
                   Line_Number => Scanner.Token_Lineno,
                   Arguments   => (1 => To_Unbounded_String (X)));
-               Scanner.Scan_State := RESYNC_AFTER_DECL_ERROR;
+               Scanner.State := RESYNC_AFTER_DECL_ERROR;
 
             elsif Lime_Symbol_Find (New_String (X)) /= null then
                Errors.Error
                  (E210,
                   Line_Number => Scanner.Token_Lineno,
                   Arguments   => (1 => To_Unbounded_String (X)));
-               Scanner.Scan_State := RESYNC_AFTER_DECL_ERROR;
+               Scanner.State := RESYNC_AFTER_DECL_ERROR;
 
             else
                Scanner.Token_Class      := Lime_Symbol_New (New_String (X));
                Scanner.Token_Class.Kind := Multi_Terminal;
-               Scanner.Scan_State       := WAITING_FOR_CLASS_TOKEN;
+               Scanner.State       := WAITING_FOR_CLASS_TOKEN;
 
             end if;
          end;
@@ -703,7 +703,7 @@ begin
       when WAITING_FOR_CLASS_TOKEN =>
 
          if C = '.' then
-            Scanner.Scan_State := WAITING_FOR_DECL_OR_RULE;
+            Scanner.State := WAITING_FOR_DECL_OR_RULE;
 
          elsif
            (C in 'A' .. 'Z') or
@@ -733,7 +733,7 @@ begin
                Line_Number => Scanner.Token_Lineno,
                Arguments   => (1 => To_Unbounded_String (X)));
 
-            Scanner.Scan_State := RESYNC_AFTER_DECL_ERROR;
+            Scanner.State := RESYNC_AFTER_DECL_ERROR;
 
          end if;
 
@@ -744,8 +744,8 @@ begin
 
       when RESYNC_AFTER_DECL_ERROR =>
          case C is
-            when '.' =>  Scanner.Scan_State := WAITING_FOR_DECL_OR_RULE;
-            when '%' =>  Scanner.Scan_State := WAITING_FOR_DECL_KEYWORD;
+            when '.' =>  Scanner.State := WAITING_FOR_DECL_OR_RULE;
+            when '%' =>  Scanner.State := WAITING_FOR_DECL_KEYWORD;
             when others => null;
          end case;
 

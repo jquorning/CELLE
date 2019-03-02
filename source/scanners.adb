@@ -276,7 +276,7 @@ package body Scanners is
    begin
       Scanner.File_Name   := Lemon.File_Name;
       Scanner.Error_Count := 0;
-      Scanner.Scan_State  := INITIALIZE;
+      Scanner.State       := INITIALIZE;
 
       --  Begin by opening the input file
       Open (Input_File, In_File, To_String (Scanner.File_Name));

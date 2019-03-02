@@ -105,7 +105,7 @@ package Scanner_Data is
          Token_Lineno  : Natural;                      --  Linenumber at which current token starts
          Error_Count   : Natural;                      --  Number of errors so far
          Preproc_State : State_Preproc;
-         Scan_State    : State_Scanner;                --  The state of the parser
+         State         : State_Scanner;                --  The state of the parser
          Fallback      : access Symbols.Symbol_Record; --  The fallback token
          Token_Class   : access Symbols.Symbol_Record; --  Token class symbol
 --         LHS       : Symbols.Symbol_Access;          --  Left-hand side of current rule
