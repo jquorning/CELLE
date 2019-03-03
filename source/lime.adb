@@ -220,7 +220,8 @@ package body Lime is
          Line : constant String := Value (Include);
       begin
          --  Transfer line incrementing line numbers on ASCII.LF
-         Text_Out.Put_Line_CP (New_String (Line));
+         --  Text_Out.Put_Line_CP (New_String (Line));
+         Text_Out.Put_Line (Line);
          --  for I in Line'Range loop
          --  Put (Context.File_Implementation, Line (I));
          --  if Line (I) = ASCII.LF then
@@ -257,18 +258,17 @@ package body Lime is
    end Write_Include;
 
 
-
    procedure Generate_The_Defines_1
-     (YY_Code_Type   : in chars_ptr;
+     (YY_Code_Type   : in String;
       Symbol_Count   : in Integer;
-      YY_Action_Type : in chars_ptr;
+      YY_Action_Type : in String;
       Is_Wildcard    : in Boolean;
       Wildcard_Index : in Symbol_Index) --  Chars_Ptr)
    is
       use Text_Out;
    begin
       Put ("#define YYCODETYPE ");
-      Put_CP (YY_Code_Type);
+      Put (YY_Code_Type);
       New_Line;
 
       Put ("#define YYNOCODE ");
@@ -276,7 +276,7 @@ package body Lime is
       New_Line;
 
       Put ("#define YYACTIONTYPE ");
-      Put_CP (YY_Action_Type);
+      Put (YY_Action_Type);
       New_Line;
 
       if Is_Wildcard then
@@ -286,15 +286,16 @@ package body Lime is
       end if;
    end Generate_The_Defines_1;
 
+
    procedure Generate_The_Defines_2
-     (Stack_Size : in chars_ptr)
+     (Stack_Size : in String)
    is
       use Text_Out;
    begin
       Put_Line ("#ifndef YYSTACKDEPTH");
-      if Stack_Size /= Null_Ptr then
+      if Stack_Size /= "" then
          Put ("#define YYSTACKDEPTH ");
-         Put_CP (Stack_Size);
+         Put (Stack_Size);
          New_Line;
       else
          Put_Line ("#define YYSTACKDEPTH 100");
@@ -304,14 +305,14 @@ package body Lime is
 
 
    procedure Error_Fallback
-     (Error_Sym    : in     chars_ptr;
-      Struct       : in     Struct_Access;
-      Has_Fallback : in     Integer)
+     (Error_Sym    : in String;
+      Struct       : in Struct_Access;
+      Has_Fallback : in Integer)
    is
       use Text_Out;
    begin
 
-      if Error_Sym /= Null_Ptr and Struct.Use_Count /= 0 then
+      if Error_Sym /= "" and Struct.Use_Count /= 0 then
          Put ("#define YYERRORSYMBOL ");
          Put_Int (Struct.Index);
          New_Line;
@@ -439,7 +440,7 @@ package body Lime is
       N             : in Integer;
       MnTknOfst     : in Integer;
       MxTknOfst     : in Integer;
-      Min_Size_Type : in chars_ptr;
+      Min_Size_Type : in String;
       Nactiontab    : in Integer;
       NO_OFFSET     : in Integer)
    is
@@ -451,7 +452,10 @@ package body Lime is
       Put_Line ("#define YY_SHIFT_COUNT    (" & Image (N - 1) & ")");
       Put_Line ("#define YY_SHIFT_MIN      (" & Image (MnTknOfst) & ")");
       Put_Line ("#define YY_SHIFT_MAX      (" & Image (MxTknOfst) & ")");
-      Put_Line ("static const " & Value (Min_Size_Type) & " yy_shift_ofst[] = {");
+      Put ("static const ");
+      Put (Min_Size_Type);
+      Put (" yy_shift_ofst[] = {");
+      New_Line;
 --  lemp->tablesize += n*sz;
       for I in 0 .. N - 1 loop
          declare
@@ -488,7 +492,7 @@ package body Lime is
       N             : in Integer;
       MnNtOfst      : in Integer;
       MxNtOfst      : in Integer;
-      Min_Size_Type : in chars_ptr;
+      Min_Size_Type : in String;
       NO_OFFSET     : in Integer)
    is
       use Text_Out;
@@ -499,7 +503,7 @@ package body Lime is
       Put_Line ("#define YY_REDUCE_COUNT (" & Image (N - 1) & ")");
       Put_Line ("#define YY_REDUCE_MIN   (" & Image (MnNtOfst) & ")");
       Put_Line ("#define YY_REDUCE_MAX   (" & Image (MxNtOfst) & ")");
-      Put_Line ("static const " & Value (Min_Size_Type) & " yy_reduce_ofst[] = {");
+      Put_Line ("static const " & Min_Size_Type & " yy_reduce_ofst[] = {");
 
 --  lemp->tablesize += n*sz;
       for I in 0 .. N - 1 loop
@@ -567,18 +571,18 @@ package body Lime is
 
 
    procedure Template_Print_2
-     (Line        : in chars_ptr;
+     (Line        : in String;
       No_Line_Nos : in Integer;
 --      Line_Number : in Line_Number_Index;
       Out_Name    : in String)
    is
 --      pragma Unreferenced (Out_Name);
    begin
-      if Line = Null_Ptr then
+      if Line = "" then
          Ada.Text_IO.Put_Line ("RETURN");
          return;
       end if;
-      Text_Out.Put_Line_CP (Line);
+      Text_Out.Put_Line (Line);
 
       --  XXX mystisk kode
 --      if( str[-1]!='\n' ){
@@ -646,8 +650,8 @@ package body Lime is
 
 
    procedure Write_Interface
-     (Name      : in chars_ptr;
-      Tokentype : in chars_ptr)
+     (Name      : in String;
+      Tokentype : in String)
    is
       use Text_Out;
    begin
@@ -656,9 +660,9 @@ package body Lime is
       end if;
 
       Put ("#define ");
-      Put_CP (Name);
+      Put (Name);
       Put ("TOKENTYPE ");
-      Put_CP (Tokentype);
+      Put (Tokentype);
       New_Line;
 
       if Options.MH_Flag then

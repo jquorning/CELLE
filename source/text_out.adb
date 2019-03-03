@@ -30,12 +30,11 @@ package body Text_Out is
    end Close_Out;
 
 
-   procedure Put_CP (Item : in chars_ptr)
-   is
---      use Text_Out;
-   begin
-      Put (Value (Item));
-   end Put_CP;
+--     procedure Put_CP (Item : in chars_ptr)
+--     is
+--     begin
+--        Put (Value (Item));
+--     end Put_CP;
 
 
    procedure Put_Int (Item : in Integer)
@@ -46,11 +45,10 @@ package body Text_Out is
    end Put_Int;
 
 
-   procedure Put_Line_CP (Item : in chars_ptr) is
---      use Text_Out;
-   begin
-      Put_Line (Value (Item));
-   end Put_Line_CP;
+--     procedure Put_Line_CP (Item : in chars_ptr) is
+--     begin
+--        Put_Line (Value (Item));
+--     end Put_Line_CP;
 
 
    procedure Put (Item : in String) is

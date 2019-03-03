@@ -102,7 +102,6 @@ package Lime is
 
    Parser_Names : aliased Parser_Names_Record;
 
-   use Ada.Strings.Unbounded;
    type Lemon_Record is
       record
          Sorted           : Rule_Access;        --  Table of states sorted by state number
@@ -123,21 +122,6 @@ package Lime is
          Error_Cnt        : Integer;            --  Number of errors
          Err_Sym2         : Integer; --  Symbol_Access;      --  The error symbol
          Wildcard2        : Integer; --  Symbol_Access;      --  Token that matches anything
---           Name             : aliased chars_ptr;  --  Name of the generated parser
---           ARG2             : aliased chars_ptr;  --  Declaration of the 3th argument to parser
---           CTX2             : aliased chars_ptr;  --  Declaration of 2nd argument to constructor
---           Token_Type    : aliased chars_ptr;  --  Type of terminal symbols in the parser stack
---           Var_Type         : aliased chars_ptr;  --  The default type of non-terminal symbols
---           Start            : aliased chars_ptr;  --  Name of the start symbol for the grammar
---           Stack_Size       : aliased chars_ptr;  --  Size of the parser stack
---           Include          : aliased chars_ptr;  --  Code to put at the start of the C file
---           Error            : aliased chars_ptr;  --  Code to execute when an error is seen
---           Overflow         : aliased chars_ptr;  --  Code to execute on a stack overflow
---           Failure          : aliased chars_ptr;  --  Code to execute on parser failure
---           C_Accept         : aliased chars_ptr;  --  Code to execute when the parser excepts
---           Extra_Code       : aliased chars_ptr;  --  Code appended to the generated file
---           Token_Dest       : aliased chars_ptr;  --  Code to execute to destroy token data
---           Var_Dest      : aliased chars_ptr;  --  Code for the default non-terminal destructor
          Names            : access Parser_Names_Record;
          File_Name        : Unbounded_String;   --  Name of the input file
          Out_Name         : Unbounded_String;   --  Name of the current output file
@@ -228,14 +212,14 @@ package Lime is
      (Include_Name : in String);
 
    procedure Generate_The_Defines_1
-     (YY_Code_Type   : in chars_ptr;
+     (YY_Code_Type   : in String;
       Symbol_Count   : in Integer;
-      YY_Action_Type : in chars_ptr;
+      YY_Action_Type : in String;
       Is_Wildcard    : in Boolean;
       Wildcard_Index : in Symbol_Index);
 
    procedure Generate_The_Defines_2
-     (Stack_Size : in chars_ptr);
+     (Stack_Size : in String);
 
    type Mystruct_Record is record
       Use_Count : Integer;
@@ -248,7 +232,7 @@ package Lime is
    pragma Convention (C, Struct_Access);
 
    procedure Error_Fallback
-     (Error_Sym    : in chars_ptr;
+     (Error_Sym    : in String;
       Struct       : in Struct_Access;
       Has_Fallback : in Integer);
    --
@@ -292,7 +276,7 @@ package Lime is
       N             : in Integer;
       MnTknOfst     : in Integer;
       MxTknOfst     : in Integer;
-      Min_Size_Type : in chars_ptr;
+      Min_Size_Type : in String;
       Nactiontab    : in Integer;
       NO_OFFSET     : in Integer);
 
@@ -305,7 +289,7 @@ package Lime is
       N             : in Integer;
       MnNtOfst      : in Integer;
       MxNtOfst      : in Integer;
-      Min_Size_Type : in chars_ptr;
+      Min_Size_Type : in String;
       NO_OFFSET     : in Integer);
 
 
@@ -316,7 +300,7 @@ package Lime is
       Min_Reduce   : in Integer);
 
    procedure Template_Print_2
-     (Line        : in chars_ptr;
+     (Line        : in String;
       No_Line_Nos : in Integer;
       Out_Name    : in String);
    --  Print a string to the file and keep the linenumber up to date
@@ -335,8 +319,8 @@ package Lime is
    --  Close in file
 
    procedure Write_Interface
-     (Name      : in chars_ptr;
-      Tokentype : in chars_ptr);
+     (Name      : in String;
+      Tokentype : in String);
    --
 
    procedure Write_Interface_Begin;
