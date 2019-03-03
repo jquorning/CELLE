@@ -67,7 +67,7 @@ package body Reports is
    function Minimum_Size_Type (LWS     : in     Integer;
                                UPR     : in     Integer;
                                PnBytes :    out Integer)
-                              return Interfaces.C.Strings.chars_ptr;
+                              return String;
 
 
    --  Return the name of a C datatype able to represent values between
@@ -118,12 +118,6 @@ package body Reports is
       Token_Prefix : in String;
       First        : in Integer;
       Last         : in Integer);
-
-   procedure Generate_Reprint_Of_Grammar
-     (Lemon_Lemp    : in out Lime.Lemon_Record;
-      Base_Name     : in     String;
-      Token_Prefix  : in     String;
-      Terminal_Last : in     Natural);
 
    --
    --  Each state contains a set of token transaction and a set of
@@ -455,12 +449,12 @@ package body Reports is
 
       --  Generate the defines
       declare
---         use Interfaces.C.Strings;
          use Symbols;
-         Code     : constant chars_ptr := Minimum_Size_Type (0, Integer (Lemp.N_Symbol),
-                                                             Size_Of_Code_Type);
-         Action   : constant chars_ptr := Minimum_Size_Type (0, Lemp.Max_Action,
-                                                             Size_Of_Action_Type);
+
+         Code     : constant String := Minimum_Size_Type (0, Integer (Lemp.N_Symbol),
+                                                          Size_Of_Code_Type);
+         Action   : constant String := Minimum_Size_Type (0, Lemp.Max_Action,
+                                                          Size_Of_Action_Type);
          Wildcard    : constant Symbol_Access := Get_Wildcard (Lemp.Extra);
          Is_Wildcard : constant Boolean       := (Wildcard /= null);
       begin
@@ -483,7 +477,7 @@ package body Reports is
 
       --  print_stack_union (lemp, lime_get_mh_flag());
       Print_Stack_Union (Lemp);
-      Generate_The_Defines_2 (New_String (To_String (Lemp.Names.Stack_Size)));
+      Generate_The_Defines_2 (To_String (Lemp.Names.Stack_Size));
 
 --    //if( lime_get_mh_flag() ){
 --    //  lime_put_line ("#if INTERFACE");
@@ -1340,7 +1334,7 @@ package body Reports is
    function Minimum_Size_Type (LWS     : in     Integer;
                                UPR     : in     Integer;
                                PnBytes :    out Integer)
-                              return Interfaces.C.Strings.chars_ptr
+                              return String
    is
       pragma Unreferenced (LWS, UPR, PnBytes);
    begin
@@ -1368,7 +1362,7 @@ package body Reports is
 --    if( pnByte ) *pnByte = nByte;
 --    return zType;
 --  }
-      return Interfaces.C.Strings.Null_Ptr;
+      return "";
    end Minimum_Size_Type;
 
 
@@ -1755,7 +1749,7 @@ package body Reports is
    end Generate_Tokens;
 
 
-   procedure Generate_Reprint_Of_Grammar
+   procedure Reprint_Of_Grammar
      (Lemon_Lemp    : in out Lime.Lemon_Record;
       Base_Name     : in     String;
       Token_Prefix  : in     String;
@@ -1764,9 +1758,9 @@ package body Reports is
       use Ada.Text_IO;
       use Lime;
    begin
-      if Options.RP_Flag then
-         Reports.Reprint (Lemon_Lemp);
-      else
+--      if Options.RP_Flag then
+--         Reports.Reprint (Lemon_Lemp);
+--      else
          Put_Line ("### 2-1");
          --  Initialize the size for all follow and first sets
          Set_Size (Terminal_Last + 1);
@@ -1824,8 +1818,8 @@ package body Reports is
             Base_Name, -- File_Makename (Lemon_Lemp, ""),
             "MODULE XXX",
             Terminal_Last);
-      end if;
-   end Generate_Reprint_Of_Grammar;
+--      end if;
+   end Reprint_Of_Grammar;
 
 
 end Reports;

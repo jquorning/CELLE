@@ -233,86 +233,15 @@ begin
       Lemon.Rule       := Rule_Sort (Lemon.Rule);
 
       --  Generate a reprint of the grammar, if requested on the command line
-      declare
-         --  procedure Generate_Reprint_Of_Grammar
-         Base_Name     : constant chars_ptr  := New_String ("XXX"); --  in chars_ptr;
-         Token_Prefix  : constant chars_ptr  := New_String ("XXX"); --  in chars_ptr;
-         Terminal_Last : constant Natural := 999; --  in Natural);
-
-         --  Generate a reprint of the grammar, if requested on the command line.
-      begin
-
-         if Options.RP_Flag then
-            Reports.Reprint (Lemon);
-         else
-            Put_Line ("### 2-1");
-            --  Initialize the size for all follow and first sets
-            Set_Size (Terminal_Last + 1);
-            Put_Line ("### 2-2");
-
-            --  Find the precedence for every production rule (that has one)
-            Find_Rule_Precedences (Lemon);
-            Put_Line ("### 2-3");
-
-            --  Compute the lambda-nonterminals and the first-sets for every
-            --  nonterminal
-            Find_First_Sets (Lemon);
-            Put_Line ("### 2-4");
-
-            --  Compute all LR(0) states.  Also record follow-set propagation
-            --  links so that the follow-set can be computed later
-            Compute_LR_States (Lemon);
-            Put_Line ("### 2-5");
-            --         Lemon_Lemp->nstate = 0;
-            --         FindStates (Lemon_lemp);
-            --         Lemon_Lemp->sorted = State_arrayof();
-
-            --  Tie up loose ends on the propagation links
-            Find_Links (Lemon);
-            Put_Line ("### 2-6");
-
-            --  Compute the follow set of every reducible configuration
-            Find_Follow_Sets (Lemon);
-            Put_Line ("### 2-7");
-
-            --  Compute the action tables
-            Find_Actions (Lemon);
-            Put_Line ("### 2-8");
-
-            --  Compress the action tables
-            if not Options.Compress then
-               Reports.Compress_Tables (Lemon);
-            end if;
-            Put_Line ("### 2-9");
-
-            --  Reorder and renumber the states so that states with fewer choices
-            --  occur at the end.  This is an optimization that helps make the
-            --  generated parser tables smaller.
-            if not Options.No_Resort then
-               Reports.Resort_States (Lemon);
-            end if;
-            Put_Line ("### 2-10");
-
-            --   Generate a report of the parser generated.  (the "y.output" file)
-            if not Options.Be_Quiet then
-               Reports.Report_Output (Lemon);
-            end if;
-
-            --  Generate the source code for the parser
-            Reports.Report_Table (Lemon);
-
-            --  Produce a header file for use by the scanner.  (This step is
-            --  omitted if the "-m" option is used because makeheaders will
-            --  generate the file for us.)
-            Report_Header
-              (Lemon,
-               Value (Token_Prefix),
-               Value (Base_Name),
-               "MODULE XXX",
-               Terminal_Last);
-
-         end if;
-      end;
+      if Options.RP_Flag then
+         Reports.Reprint (Lemon);
+      else
+         Reports.Reprint_Of_Grammar
+           (Lemon,
+            Base_Name     => "XXX",
+            Token_Prefix  => "YYY",
+            Terminal_Last => 999);
+      end if;
 
       if Options.Statistics then
          declare

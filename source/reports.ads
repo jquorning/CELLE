@@ -41,6 +41,14 @@ package Reports is
 
    procedure Dummy;
 
+
+   procedure Reprint_Of_Grammar
+     (Lemon_Lemp    : in out Lime.Lemon_Record;
+      Base_Name     : in     String;
+      Token_Prefix  : in     String;
+      Terminal_Last : in     Natural);
+
+
 private
 
    pragma Export (C, Reprint_C,         "lemon_reprint");
