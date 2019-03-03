@@ -86,7 +86,7 @@ package body Cherry is
          begin
             RP.LHS_Start := True;
             New_CFP := Configlist_Add_Basis (RP, 0);
-            Set_Add (New_CFP.Follow_Set, 0);
+            Set_Add (To_String (New_CFP.Follow_Set), 0);
          end;
          RP := RP.Next_LHS;
       end loop;

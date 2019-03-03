@@ -7,7 +7,7 @@
 --    May you share freely, not taking more than you give.
 --
 
-with Interfaces.C.Strings;
+with Ada.Strings.Unbounded;
 
 with Rules;
 limited with States;
@@ -37,7 +37,10 @@ package Configs is
    type Config_Record is record
       RP          : Rules.Rule_Access;         --  The rule upon which the configuration is based
       DOT         : Integer;                   --  The parse point
-      Follow_Set  : Interfaces.C.Strings.chars_ptr; --  FWS, Follow-set for this configuration only
+
+      Follow_Set  : Ada.Strings.Unbounded.Unbounded_String;
+      --  FWS, Follow-set for this configuration only
+
       FS_Forward  : access Plink_Record;            --  fplp, forward propagation links
       FS_Backward : access Plink_Record;         --  bplp; Follow-set backwards propagation links
       stp         : access States.State_Record;  --  Pointer to state which contains this

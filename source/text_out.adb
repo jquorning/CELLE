@@ -9,6 +9,8 @@
 
 with Ada.Text_IO;
 
+with DK8543.Text_IO;
+
 with Auxiliary;
 
 package body Text_Out is
@@ -16,11 +18,10 @@ package body Text_Out is
    File_Out    : Ada.Text_IO.File_Type;
    Line_Number : Line_Number_Index := 1;
 
-   procedure Implementation_Open (File_Name : in String)
-   is
-      use Ada.Text_IO;
+
+   procedure Implementation_Open (File_Name : in String) is
    begin
-      Auxiliary.Recreate (File_Out, Out_File, File_Name);
+      DK8543.Text_IO.Recreate (File_Out, Ada.Text_IO.Out_File, File_Name);
    end Implementation_Open;
 
 
@@ -30,25 +31,12 @@ package body Text_Out is
    end Close_Out;
 
 
---     procedure Put_CP (Item : in chars_ptr)
---     is
---     begin
---        Put (Value (Item));
---     end Put_CP;
-
-
    procedure Put_Int (Item : in Integer)
    is
       use Auxiliary;
    begin
       Put (Image (Item));
    end Put_Int;
-
-
---     procedure Put_Line_CP (Item : in chars_ptr) is
---     begin
---        Put_Line (Value (Item));
---     end Put_Line_CP;
 
 
    procedure Put (Item : in String) is
@@ -66,6 +54,7 @@ package body Text_Out is
    begin
       Put_Line ("");
    end New_Line;
+
 
    procedure Put_Line_Directive (File_Name : in String)
    is
@@ -85,5 +74,6 @@ package body Text_Out is
       Put (File_Name);
       Put_Line ("""");
    end Put_Line_Directive;
+
 
 end Text_Out;

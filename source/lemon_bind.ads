@@ -21,7 +21,9 @@ package Lemon_Bind is
      (RP : in Rules.Rule_Access;
       I  : in Integer) return Configs.Config_Access;
 
-   procedure Set_Add (Config : in Interfaces.C.Strings.chars_ptr;
+   procedure Set_Add (Config : in String;
+                      I      : in Integer);
+   procedure Set_Add_C (Config : in Interfaces.C.Strings.chars_ptr;
                       I      : in Integer);
 
    procedure Get_State (Lem : in out Lime.Lemon_Record);
@@ -30,7 +32,7 @@ private
 
    pragma Import (C, Configlist_Init,      "lemon_configlist_init");
    pragma Import (C, Configlist_Add_Basis, "lemon_configlist_add_basis");
-   pragma Import (C, Set_Add,              "lemon_set_add");
+   pragma Import (C, Set_Add_C,            "lemon_set_add");
    pragma Import (C, Get_State,            "lemon_get_state");
 
 end Lemon_Bind;
