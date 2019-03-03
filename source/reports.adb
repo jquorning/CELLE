@@ -78,7 +78,7 @@ package body Reports is
                            Extension : in String) return String;
 
 
-   procedure Write_Rule_Text (RP : in Rules.Rule_Access);
+   procedure Write_Rule_Text (Rule : in Rules.Rule_Access);
    --  Write text on "out" that describes the rule "rp".
 
    procedure Emit_Destructor_Code
@@ -1383,29 +1383,33 @@ package body Reports is
    end File_Makename;
 
 
-   procedure Write_Rule_Text (RP : in Rules.Rule_Access)
+   procedure Write_Rule_Text (Rule : in Rules.Rule_Access)
    is
       use Text_Out;
       use Symbols;
+
+      Symbol : Symbol_Access;
    begin
-      Put (From_Key (RP.LHS.Name));
+      Put (From_Key (Rule.LHS.Name));
       Put (" ::=");
-      for J in 0 .. RP.RHS'Length - 1 loop
-         declare
-            SP : constant Symbol_Access := RP.RHS (J);
-         begin
-            if SP.Kind /= Multi_Terminal then
-               Put (" ");
-               Put (From_Key (SP.Name));
-            else
-               Put (" ");
-               Put ("XXX"); --  XXX Put (SP.Sub_Sym (0).Name);
-               for K in 1 .. SP.N_Sub_Sym loop
-                  Put ("|");
-                  Put ("XXX"); --  XXX Put (SP.Sub_Sym (K).Name);
-               end loop;
-            end if;
-         end;
+      for J in 0 .. Rule.RHS'Length - 1 loop
+
+         Symbol := Rule.RHS (J);
+
+         if Symbol.Kind /= Multi_Terminal then
+            Put (" ");
+            Put (From_Key (Symbol.Name));
+
+         else
+            Put (" ");
+            Put (From_Key (Symbol.Sub_Sym.First_Element.Name));
+
+            for K in 1 .. Symbol.Sub_Sym.Last_Index loop
+               Put ("|");
+               Put (From_Key (Symbol.Sub_Sym.Element (K).Name));
+            end loop;
+         end if;
+
       end loop;
    end Write_Rule_Text;
 

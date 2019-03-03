@@ -11,8 +11,6 @@ with Ada.Containers;
 with Ada.Strings.Unbounded;
 with Ada.Containers.Vectors;
 
---  with Interfaces.C.Strings;
-
 limited with Rules;
 
 package Symbols is
@@ -92,8 +90,7 @@ package Symbols is
          --  it is ever more than just syntax
 
          --  The following fields are used by MULTITERMINALs only
-         N_Sub_Sym : Integer;  --  Number of constituent symbols in the MULTI
-         Sub_Sym   : Vector;   --  Array of constituent symbols
+         Sub_Sym : Vector;   --  Array of constituent symbols
       end record;
 
 
