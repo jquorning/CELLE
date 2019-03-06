@@ -12,8 +12,6 @@ with Ada.Strings.Unbounded;
 with Ada.Command_Line;
 with Ada.Containers;
 
-with Interfaces.C.Strings;
-
 with Setup;
 with Options;
 with Command_Line;
@@ -54,7 +52,6 @@ procedure Cherry_Program is
       New_Line;
    end Put_Version;
 
-   use Interfaces.C;
    use Ada.Command_Line;
 
    Parse_Success : Boolean;
@@ -78,12 +75,8 @@ begin
 
    Options.Set_Language;
 
-   --  Make lemon copy of Ada option strings.
-   Lime.Make_Copy_Of_Ada_Option_Strings;
-
    declare
       use Ada.Strings.Unbounded;
-      use Interfaces.C.Strings;
       use Ada.Text_IO;
       use Lime;
       use Symbols;
@@ -107,27 +100,13 @@ begin
       Symbols.Symbol_Init;
       Lime.State_Init;
 
-      Lemon.Argv0           := New_String (Options.Program_Name.all);
---      Lemon.File_Name       := (Lime.Option_Input_File.all);
+      Lemon.Argv0           := To_Unbounded_String (Options.Program_Name.all);
       Lemon.File_Name       := To_Unbounded_String (Options.Input_File.all);
       Lemon.Basis_Flag      := Options.Basis_Flag;
       Lemon.No_Linenos_Flag := Options.No_Line_Nos;
---      Lemon.Basis_Flag      := Boolean'Pos (Options.Basis_Flag);
---      Lemon.No_Linenos_Flag := Boolean'Pos (Options.No_Line_Nos);
 
       --  Extras.Symbol_New_Proc (Extras.To_Name ("$"));
       Symbols.Symbol_Append (Key => "$");
-
-      --  Dump Ada mirror of lemon structure
-      Put_Line ("Dumping Ada");
-      --  Database.Dump (Lemon);
-
-      --  Dump C mirror of lemon structure
-      Put_Line ("Dumping C");
-      --  Lime_Partial_Database_Dump_C;
-
-      --  Dump Ada Lemon_Input_File.
-      Put_Line ("Lemon_Input_File: " & Value (Lemon_Input_File));
 
       --  Parse the input file
       Scanners.Parse (Lemon);

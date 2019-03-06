@@ -11,8 +11,6 @@ with Ada.Text_IO;
 with Ada.Strings.Fixed;
 with Ada.Strings.Unbounded;
 
-with Interfaces.C.Strings;
-
 with DK8543.Auxiliary;
 
 with Rules;
@@ -39,7 +37,9 @@ package body Reports is
 
    procedure Report_Table_C (Lemp : access Lime.Lemon_Record) is
    begin
-      Report_Table (Lemp.all);
+      Report_Table
+        (Lemp.all,
+        User_Template_Name => Options.User_Template.all);
    end Report_Table_C;
 
    procedure Compress_Tables_C (Lemp : access Lime.Lemon_Record) is
@@ -460,10 +460,11 @@ package body Reports is
    end Report_Output;
 
 
-   procedure Report_Table (Lemp : in out Lime.Lemon_Record)
+   procedure Report_Table
+     (Lemp               : in out Lime.Lemon_Record;
+      User_Template_Name : in     String)
    is
       use Ada.Strings.Unbounded;
-      use Interfaces.C.Strings;
       use Lime;
       use Rules;
       package Acttab renames Actions;
@@ -497,7 +498,7 @@ package body Reports is
       Lemp.Min_Reduce       := Lemp.No_Action + 1;
       Lemp.Max_Action       := Lemp.Min_Reduce + Lemp.N_Rule;
 
-      Template_Open (Value (Lemon_User_Template), Error_Count, Template_Open_Success);
+      Template_Open (User_Template_Name, Error_Count, Template_Open_Success);
       Implementation_Open (File_Makename (Lemp, ".c"));
 
       Template_Transfer (Lemp_Name);
@@ -506,7 +507,7 @@ package body Reports is
       --  Lime_Print (Lemp.Outname, Lemp.No_Linenos_Flag, Lemp.Include);
       Template_Print (Ada.Strings.Unbounded.To_String (Lemp.Out_Name),
                       Boolean'Pos (Lemp.No_Linenos_Flag),
-                      New_String (To_String (Lemp.Names.Include)));
+                      To_String (Lemp.Names.Include));
       --  lime_print (lime_get_ouüt_name (), lemp->nolinenosflag, lemap->include);
       --  lime_write_include (lime_get_mh_flag(), file_makename(lemp, ".h"));
       Write_Include (File_Makename (Lemp, ".h"));
@@ -1885,7 +1886,9 @@ package body Reports is
          end if;
 
          --  Generate the source code for the parser
-         Reports.Report_Table (Lemon_Lemp);
+         Reports.Report_Table
+           (Lemon_Lemp,
+           User_Template_Name => Options.User_Template.all);
 
          --  Produce a header file for use by the scanner.  (This step is
          --  omitted if the "-m" option is used because makeheaders will

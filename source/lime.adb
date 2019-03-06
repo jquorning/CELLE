@@ -194,37 +194,35 @@ package body Lime is
    procedure Template_Print
      (Out_Name    : in String;
       No_Line_Nos : in Integer;
-      Include     : in chars_ptr)
+      Include     : in String)
    is
    begin
-      if Include = Null_Ptr then return; end if;
+      if Include = "" then
+         return;
+      end if;
 
-      declare
-         Line : constant String := Value (Include);
-      begin
-         --  Transfer line incrementing line numbers on ASCII.LF
-         --  Text_Out.Put_Line_CP (New_String (Line));
-         Text_Out.Put_Line (Line);
-         --  for I in Line'Range loop
-         --  Put (Context.File_Implementation, Line (I));
-         --  if Line (I) = ASCII.LF then
-         --     Line_Number := Line_Number + 1;
-         --  end if;
-         --  end loop;
+      --  Transfer line incrementing line numbers on ASCII.LF
+      --  Text_Out.Put_Line_CP (New_String (Line));
+      Text_Out.Put_Line (Include);
+      --  for I in Line'Range loop
+      --  Put (Context.File_Implementation, Line (I));
+      --  if Line (I) = ASCII.LF then
+      --     Line_Number := Line_Number + 1;
+      --  end if;
+      --  end loop;
 
-         --  if Line (Line'Last) /= ASCII.LF then
-         --     New_Line (Context.File_Implementation);
-         --     Line_Number := Line_Number + 1;
-         --  end if;
+      --  if Line (Line'Last) /= ASCII.LF then
+      --     New_Line (Context.File_Implementation);
+      --     Line_Number := Line_Number + 1;
+      --  end if;
 
-         --  Optionally add source line number comments
-         Ada.Text_IO.Put ("WLD - ");
-         if No_Line_Nos /= 0 then
-            Ada.Text_IO.Put_Line ("1");
-            --  Write_Line_Directive (Line_Number, Out_Name);
-            Text_Out.Put_Line_Directive (Out_Name);
-         end if;
-      end;
+      --  Optionally add source line number comments
+      Ada.Text_IO.Put ("WLD - ");
+      if No_Line_Nos /= 0 then
+         Ada.Text_IO.Put_Line ("1");
+         --  Write_Line_Directive (Line_Number, Out_Name);
+         Text_Out.Put_Line_Directive (Out_Name);
+      end if;
    end Template_Print;
 
 
@@ -391,21 +389,6 @@ package body Lime is
                      First => 1,
                      Last  => Terminal_Last);
    end Report_Header;
-
---   Lemon_Lemp : Lemon_Record;
---   pragma Import (C, Lemon_Lemp, "lem");
-
-
-
-   procedure Make_Copy_Of_Ada_Option_Strings
-   is
-   begin
-      Lemon_Program_Name  := New_String (Options.Program_Name.all);
-      Lemon_Input_File    := New_String (Options.Input_File.all);
-      Lemon_User_Template := New_String (Options.User_Template.all);
-      Lemon_Output_Dir    := New_String (Options.Output_Dir.all);
-   end Make_Copy_Of_Ada_Option_Strings;
-
 
 
    --  A followset propagation link indicates that the contents of one

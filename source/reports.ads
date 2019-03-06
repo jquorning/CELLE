@@ -21,7 +21,8 @@ package Reports is
    --  Generate the "*.out" log file
 
    procedure Report_Table_C (Lemp : access Lime.Lemon_Record);
-   procedure Report_Table (Lemp : in out Lime.Lemon_Record);
+   procedure Report_Table (Lemp               : in out Lime.Lemon_Record;
+                           User_Template_Name : in     String);
    --  Generate C source code for the parser
 
    procedure Compress_Tables_C (Lemp : access Lime.Lemon_Record);

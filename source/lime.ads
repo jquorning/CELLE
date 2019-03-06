@@ -15,20 +15,17 @@
 with Ada.Text_IO;
 with Ada.Strings.Unbounded;
 
-with Interfaces.C;
-with Interfaces.C.Strings;
-
 with Rules;
 with Symbols;
 with Parsers;
 
 package Lime is
 
-   use Interfaces.C.Strings;
-   Lemon_Program_Name  : aliased chars_ptr := New_String ("");
-   Lemon_Input_File    : aliased chars_ptr := New_String ("");
-   Lemon_User_Template : aliased chars_ptr := New_String ("");
-   Lemon_Output_Dir    : aliased chars_ptr := New_String ("");
+--   use Interfaces.C.Strings;
+--   Lemon_Program_Name  : aliased chars_ptr := New_String ("");
+--   Lemon_Input_File    : aliased chars_ptr := New_String ("");
+--   Lemon_User_Template : aliased chars_ptr := New_String ("");
+--   Lemon_Output_Dir    : aliased chars_ptr := New_String ("");
 
    --********* From the file "struct.h" ************************************
    --** Principal data structures for the LEMON parser generator.
@@ -64,7 +61,6 @@ package Lime is
    --  True if this symbol ever carries content - if
    --                           ** it is ever more than just syntax
 
-   use Interfaces.C;
    use Rules;
    use Symbols;
 
@@ -127,7 +123,7 @@ package Lime is
          Basis_Flag       : Boolean;            --  Print only basis configurations
          Has_Fallback     : Boolean;            --  True if any %fallback is seen in the grammar
          No_Linenos_Flag  : Boolean;            --  True if #line statements should not be printed
-         Argv0            : Strings.chars_ptr;  --  Name of the program
+         Argv0            : Unbounded_String;   --  Name of the program
 
          Extra            : Symbols.Extra_Access;
          Parser           : Parsers.Context_Access;
@@ -152,7 +148,7 @@ package Lime is
 --      Token_Prefix => Null_Ptr,
       N_Conflict   => 0,        N_Action_Tab => 0,         N_Lookahead_Tab  => 0,
       Table_Size   => 0,        Basis_Flag   => False,     Has_Fallback     => False,
-      No_Linenos_Flag => False, Argv0       => Null_Ptr,
+      No_Linenos_Flag => False, Argv0        => Null_Unbounded_String,
       Extra           => Symbols.Get_Extra,
       Parser          => Parsers.Get_Context);
 
@@ -200,7 +196,7 @@ package Lime is
    procedure Template_Print
      (Out_Name    : in String;
       No_Line_Nos : in Integer;
-      Include     : in chars_ptr);
+      Include     : in String);
 
    procedure Write_Include
      (Include_Name : in String);
@@ -272,15 +268,7 @@ package Lime is
    function Rule_Sort (Rule : in Rules.Rule_Access)
                       return Rules.Rule_Access;
 
-   procedure Make_Copy_Of_Ada_Option_Strings;
-
 private
-
-   --  Option strings has char* brother
-   pragma Export (C, Lemon_Program_Name,  "lemon_program_name");
-   pragma Export (C, Lemon_Input_File,    "lemon_input_file");
-   pragma Export (C, Lemon_User_Template, "lemon_user_template");
-   pragma Export (C, Lemon_Output_Dir,    "lemon_output_dir");
 
    pragma Import (C, Set_Size,              "lemon_set_size");
    pragma Import (C, Find_Rule_Precedences, "lemon_find_rule_precedences");
