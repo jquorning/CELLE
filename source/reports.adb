@@ -164,7 +164,6 @@ package body Reports is
    is
       use Ada.Text_IO;
       use Ada.Strings.Unbounded;
-      use Interfaces.C.Strings;
       use Symbols;
       use Rules;
 
@@ -1371,7 +1370,7 @@ package body Reports is
    is
       use Ada.Strings;
       use Ada.Strings.Unbounded;
-      use Interfaces.C.Strings;
+
       File_Name    : constant String  := To_String (Global.File_Name);
       Dot_Position : constant Natural := Fixed.Index (File_Name, ".", Backward);
    begin

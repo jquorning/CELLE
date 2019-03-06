@@ -20,7 +20,6 @@ package body Errors is
                           Arguments   : in Argument_List)
    is
       pragma Unreferenced (Arguments);
-      use DK8543.Errors;
    begin
       DK8543.Errors.Error
         (Ada.Strings.Unbounded.To_String (File_Name), Line_Number, Text);

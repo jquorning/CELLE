@@ -86,7 +86,6 @@ package Scanner_Data is
    MAX_RHS : constant := 1000;
 
    use Ada.Strings.Unbounded;
-   --  type RHS_Array   is array (0 .. MAX_RHS - 1) of Symbols.Symbol_Access;
    subtype S_Alias is Unbounded_String;
    function To_Alias (Item : String) return S_Alias renames To_Unbounded_String;
 
@@ -94,7 +93,8 @@ package Scanner_Data is
       new Ada.Containers.Vectors
      (Positive,
       S_Alias);
-   --  type Alias_Array is array (0 .. MAX_RHS - 1) of Unbounded_String;
+
+   type A_Declaration is access all Unbounded_String;
 
    use Symbols;
    type Scanner_Record is
@@ -124,7 +124,7 @@ package Scanner_Data is
          Prev_Rule     : access Rules.Rule_Record;     --  Previous rule parsed
          Decl_Keyword  : Unbounded_String;   --  Keyword of a declaration
 
-         Decl_Arg_Slot : access Unbounded_String;
+         Decl_Arg_Slot : A_Declaration;
          --  Decl_Arg_Slot : access Unbounded_String; -- Access Interfaces.C.Strings.chars_ptr;
          --  Decl_Arg_Slot : access Interfaces.C.Strings.chars_ptr;
          --    char **declargslot;                --  Where the declaration argument should be put

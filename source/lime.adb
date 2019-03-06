@@ -26,25 +26,13 @@ with Options;
 
 package body Lime is
 
-   use Backend;
+   function Default_Template_Name return String;
 
-   procedure Implementation_Open (File_Name : in String)
-   is
-      use Text_Out;
+
+   procedure Implementation_Open (File_Name : in String) is
    begin
       Text_Out.Implementation_Open (File_Name);
    end Implementation_Open;
-
---   function Is_Alpha (C : Character) return Boolean;
-   function Default_Template_Name return String;
-
---     function Get_Token (Index : in Integer) return String
---     is
---        function Callback (Index : in Integer) return chars_ptr;
---        --  pragma Import (C, Callback, "lem$$$$on_generate_header_line_callback");
---     begin
---        return Value (Callback (Index));
---     end Get_Token;
 
 
    procedure Generate_Spec
@@ -55,9 +43,7 @@ package body Lime is
       First     : in Integer;
       Last      : in Integer)
    is
---      Ada_Base_Name : constant String := Value (Base_Name);
---      Ada_Prefix    : constant String := Value (Prefix);
---      Ada_Module    : constant String := Value (Module);
+      use Backend;
    begin
 
       case Options.Language is
@@ -110,6 +96,7 @@ package body Lime is
       end;
    end Open_If_Possible;
 
+
    function Default_Template_Name return String
    is
       use Options;
@@ -126,6 +113,8 @@ package body Lime is
       Error_Count   : in out Integer;
       Success       :    out Integer)
    is
+      use Backend;
+
       Template     : String renames User_Template;
       Open_Success : Boolean;
    begin
@@ -156,15 +145,10 @@ package body Lime is
    end Template_Open;
 
 
---   function Is_Alpha (C : Character) return Boolean is
---   begin
---      return (C in 'a' .. 'z') or (C in 'A' .. 'Z');
---   end Is_Alpha;
-
-
-   procedure Template_Transfer
-     (Name : in String)
+   procedure Template_Transfer (Name : in String)
    is
+      use Backend;
+
       Parse : constant String := "Parse";
       Start : Natural;
    begin
@@ -263,7 +247,7 @@ package body Lime is
       Symbol_Count   : in Integer;
       YY_Action_Type : in String;
       Is_Wildcard    : in Boolean;
-      Wildcard_Index : in Symbol_Index) --  Chars_Ptr)
+      Wildcard_Index : in Symbol_Index)
    is
       use Text_Out;
    begin
@@ -362,6 +346,7 @@ package body Lime is
       I := Render.Min_Reduce + Render.N_Rule;
       Put ("#define YY_MAX_REDUCE        ", I - 1);
    end Render_Constants;
+
 
    --  lemon.c:4377
    procedure Output_Action_Table
@@ -608,10 +593,6 @@ package body Lime is
       Arg     : in String;
       Arg_I   : in String)
    is
---      Ada_Name    : constant String := Name;
---      Ada_Arg_Ctx : constant String := Arg_Ctx;
---      Ada_Arg     : constant String := Arg;
---      Ada_Arg_I   : constant String := Arg_I;
 
       procedure Write (Decl : in String);
 
@@ -645,7 +626,7 @@ package body Lime is
 
    procedure Close_In is
    begin
-      Ada.Text_IO.Close (Context.File_Template);
+      Ada.Text_IO.Close (Backend.Context.File_Template);
    end Close_In;
 
 
@@ -698,7 +679,6 @@ package body Lime is
       Module_Name   : in String;
       Terminal_Last : in Natural)
    is
-      use Ada.Text_IO;
       Prefix : constant String := Token_Prefix;
    begin
 
@@ -730,13 +710,6 @@ package body Lime is
       Lemon_User_Template := New_String (Options.User_Template.all);
       Lemon_Output_Dir    := New_String (Options.Output_Dir.all);
    end Make_Copy_Of_Ada_Option_Strings;
-
-
---     procedure Lime_Partial_Database_Dump_Ada is
---        use Database;
---     begin
---        Dump (Lemon);
---     end Lime_Partial_Database_Dump_Ada;
 
 
    function Sorted_At (Extra : in Extra_Access;

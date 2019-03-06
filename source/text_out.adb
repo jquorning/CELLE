@@ -58,8 +58,6 @@ package body Text_Out is
 
    procedure Put_Line_Directive (File_Name : in String)
    is
---      pragma Unreferenced (Line_Number);
-      use Text_Out;
    begin
       Ada.Text_IO.Put_Line ("Write_line_directive 616 ca");
       Put ("#line ");

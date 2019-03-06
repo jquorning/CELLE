@@ -7,8 +7,6 @@
 --    May you share freely, not taking more than you give.
 --
 
---  with DK8543.Interfaces.C.Strings;
-
 with Symbols;
 with Errors;
 with Scanner_Errors;
@@ -472,7 +470,6 @@ begin
             Scanner.State := RESYNC_AFTER_DECL_ERROR;
          else
             declare
-               use Interfaces.C.Strings;
                Symbol : Symbols.Symbol_Access := Symbols.Symbol_New (X);
             begin
                Scanner.Decl_Arg_Slot     := new Unbounded_String'(Symbol.Destructor);
@@ -493,9 +490,9 @@ begin
             Scanner.State := RESYNC_AFTER_DECL_ERROR;
          else
             declare
-               use Interfaces.C.Strings;
                use Symbols;
-               Symbol : Symbols.Symbol_Access := Symbols.Symbol_Find (X);
+
+               Symbol : Symbol_Access := Symbol_Find (X);
             begin
                if
                  Symbol /= null and then

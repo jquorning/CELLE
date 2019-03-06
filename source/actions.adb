@@ -229,7 +229,6 @@ package body Actions is
    function Action_Cmp (Left, Right : in Action_Record)
                        return Integer
    is
-      use Symbols;
       RC : Integer;
    begin
       RC := Integer (Left.Symbol.Index) - Integer (Right.Symbol.Index);

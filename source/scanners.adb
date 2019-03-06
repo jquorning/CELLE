@@ -11,8 +11,6 @@ with Ada.Text_IO;
 with Ada.Strings.Fixed;
 with Ada.Strings.Unbounded;
 
-with Interfaces.C.Strings;
-
 with DK8543.Text_IO;
 with DK8543.Strings.Utility;
 
@@ -268,7 +266,6 @@ package body Scanners is
    procedure Parse (Lemon : in out Lime.Lemon_Record)
    is
       use Ada.Strings.Unbounded;
-      use Ada.Strings.Fixed;
       use DK8543;
 
       Input_File : File_Type;
