@@ -13,6 +13,8 @@ with Ada.Strings.Unbounded;
 
 with Interfaces.C.Strings;
 
+with DK8543.Auxiliary;
+
 with Rules;
 with Symbols;
 with Parsers;
@@ -21,6 +23,7 @@ with Actions;
 with Configs;
 with States;
 with Options;
+with Delme;
 
 package body Reports is
 
@@ -118,6 +121,77 @@ package body Reports is
       Token_Prefix : in String;
       First        : in Integer;
       Last         : in Integer);
+
+   type Render_Record is
+      record
+         Nx_State         : Integer;
+         N_Rule           : Integer;
+         N_Terminal       : Integer;
+         Min_Shift_Reduce : Integer;
+         Err_Action       : Integer;
+         Acc_Action       : Integer;
+         No_Action        : Integer;
+         Min_Reduce       : Integer;
+      end record;
+
+   procedure Render_Constants (Render : in Render_Record);
+   --
+   --
+
+   procedure Output_Action_Table
+     (Action_Table : in Actions.A_Action_Table;
+      N            : in Integer;
+      No_Action    : in Integer);
+   --
+   --
+
+   procedure Output_YY_Lookahead
+     (Action_Table : in Actions.A_Action_Table;
+      N            : in Integer;
+      Nsymbol      : in Integer);
+   --
+   --
+
+   procedure Output_YY_Shift_Offsets
+     (Lemp          : in Lime.Lemon_Record;
+      N             : in Integer;
+      MnTknOfst     : in Integer;
+      MxTknOfst     : in Integer;
+      Min_Size_Type : in String;
+      Nactiontab    : in Integer;
+      NO_OFFSET     : in Integer);
+
+   --
+   --
+   --
+
+   procedure Output_YY_Reduce_Offsets
+     (Lemp          : in Lime.Lemon_Record;
+      N             : in Integer;
+      MnNtOfst      : in Integer;
+      MxNtOfst      : in Integer;
+      Min_Size_Type : in String;
+      NO_OFFSET     : in Integer);
+
+
+   procedure Output_Default_Action_Table
+     (Lemp         : in Lime.Lemon_Record;
+      N            : in Integer;
+      Error_Action : in Integer;
+      Min_Reduce   : in Integer);
+
+--     procedure Template_Print_2
+--       (Line        : in String;
+--        No_Line_Nos : in Integer;
+--        Out_Name    : in String);
+   --  Print a string to the file and keep the linenumber up to date
+
+   procedure Write_Arg_Defines
+     (Name    : in String;
+      Arg_Ctx : in String;
+      Extend  : in Boolean;
+      Arg     : in String;
+      Arg_I   : in String);
 
    --
    --  Each state contains a set of token transaction and a set of
@@ -234,9 +308,9 @@ package body Reports is
       use Ada.Text_IO;
       use Symbols;
       use Rules;
-      use Lime;
       use Configs;
       use Actions;
+      use Delme;
 
       File : File_Type;
 
@@ -545,6 +619,7 @@ package body Reports is
       --  AX := new AX_Set_Record;  --  (struct axset *) calloc(lemp->nxstate*2, sizeof(ax[0]));
       declare
          use Symbols;
+         use Delme;
       begin
          AX := new AX_Set_Array (0 .. Symbol_Index (Lemp.Nx_State) - 1);
 
@@ -1823,6 +1898,321 @@ package body Reports is
             Terminal_Last);
 --      end if;
    end Reprint_Of_Grammar;
+
+
+   procedure Render_Constants
+     (Render : in Render_Record)
+   is
+      procedure Put (Item  : in String;
+                     Value : in Integer);
+
+      procedure Put (Item  : in String;
+                     Value : in Integer)
+      is
+         use Text_Out;
+      begin
+         Put (Item);
+         Put_Int (Value);
+         New_Line;
+      end Put;
+
+      I : Integer;
+   begin
+      Put ("#define YYNSTATE             ", Render.Nx_State);
+      Put ("#define YYNRULE              ", Render.N_Rule);
+      Put ("#define YYNTOKEN             ", Render.N_Terminal);
+      Put ("#define YY_MAX_SHIFT         ", Render.Nx_State - 1);
+      I := Render.Min_Shift_Reduce;
+      Put ("#define YY_MIN_SHIFTREDUCE   ", I);
+      I := I + Render.N_Rule;
+      Put ("#define YY_MAX_SHIFTREDUCE   ", I - 1);
+      Put ("#define YY_ERROR_ACTION      ", Render.Err_Action);
+      Put ("#define YY_ACCEPT_ACTION     ", Render.Acc_Action);
+      Put ("#define YY_NO_ACTION         ", Render.No_Action);
+      Put ("#define YY_MIN_REDUCE        ", Render.Min_Reduce);
+      I := Render.Min_Reduce + Render.N_Rule;
+      Put ("#define YY_MAX_REDUCE        ", I - 1);
+   end Render_Constants;
+
+
+   --  lemon.c:4377
+   procedure Output_Action_Table
+     (Action_Table : in Actions.A_Action_Table;
+      N            : in Integer;
+      No_Action    : in Integer)
+   is
+      use Text_Out;
+      use DK8543.Auxiliary;
+      J : Integer;
+      Action : Integer;
+   begin
+      Put_Line ("#define YY_ACTTAB_COUNT (" & Image (N) & ")");
+      Put_Line ("static const YYACTIONTYPE yy_action[] = {");
+      J := 0;
+      for I in 0 .. N - 1 loop
+         --  #define acttab_yyaction(X,N)  ((X)->aAction[N].action)
+         --  return acttab_yyaction (lime_pActtab, i);
+         --  struct acttab *lime_pActtab;
+         --  Action := Get_Acttab_YY_Action (I);
+         Action := Action_Table.Action (I).Action;
+         if Action < 0 then
+            Action := No_Action;
+         end if;
+         if J = 0 then
+            Put (" /* " & Image (I) & " */ ");
+         end if;
+         Put (" " & Image (Action) & ",");
+         if J = 9 or I = N - 1 then
+            Put_Line ("");
+            J := 0;
+         else
+            J := J + 1;
+         end if;
+      end loop;
+      Put_Line ("};");
+
+   end Output_Action_Table;
+
+
+   procedure Output_YY_Lookahead
+     (Action_Table : in Actions.A_Action_Table;
+      N            : in Integer;
+      Nsymbol      : in Integer)
+   is
+      use Text_Out;
+      use DK8543.Auxiliary;
+      LA : Integer;
+      J  : Integer := 0;
+   begin
+      Put_Line ("static const YYCODETYPE yy_lookahead[] = {");
+      for I in 0 .. N - 1 loop
+         --  LA := Get_Acttab_YY_Lookahead (I);
+         LA := Action_Table.Lookahead (I).Action;
+         if LA < 0 then
+            LA := Nsymbol;
+         end if;
+         if J = 0 then
+            Put (" /* " & Image (I) & " */ ");
+         end if;
+         Put (" " & Image (LA) & ",");
+         if J = 9 or I = N - 1 then
+            Put_Line ("");
+            J := 0;
+         else
+            J := J + 1;
+         end if;
+      end loop;
+      Put_Line ("};");
+   end Output_YY_Lookahead;
+
+
+   --  lemon.c:4414
+   procedure Output_YY_Shift_Offsets
+     (Lemp          : in Lime.Lemon_Record;
+      N             : in Integer;
+      MnTknOfst     : in Integer;
+      MxTknOfst     : in Integer;
+      Min_Size_Type : in String;
+      Nactiontab    : in Integer;
+      NO_OFFSET     : in Integer)
+   is
+      use Text_Out;
+      use DK8543.Auxiliary;
+      Ofst : Integer;
+      J    : Integer := 0;
+   begin
+      Put_Line ("#define YY_SHIFT_COUNT    (" & Image (N - 1) & ")");
+      Put_Line ("#define YY_SHIFT_MIN      (" & Image (MnTknOfst) & ")");
+      Put_Line ("#define YY_SHIFT_MAX      (" & Image (MxTknOfst) & ")");
+      Put ("static const ");
+      Put (Min_Size_Type);
+      Put (" yy_shift_ofst[] = {");
+      New_Line;
+--  lemp->tablesize += n*sz;
+      for I in 0 .. N - 1 loop
+         declare
+            use Symbols;
+            use Delme;
+
+            STP : access States.State_Record;  --  States.State_Access;
+         begin
+            --  stp := lemp->sorted[i];
+            STP := Sorted_At (Lemp.Extra,
+                              Symbol_Index (I));
+            --  ofst := stp->iTknOfst;
+            --  Ofst := Get_Token_Offset (I);
+            Ofst := STP.Token_Offset;
+         end;
+         if Ofst = NO_OFFSET then
+            Ofst := Nactiontab;
+         end if;
+         if J = 0 then
+            Put (" /* " & Image (I) & " */ ");
+         end if;
+         Put (" " & Image (Ofst) & ",");
+         if J = 9 or I = N - 1 then
+            Put_Line ("");
+            J := 0;
+         else
+            J := J + 1;
+         end if;
+      end loop;
+      Put_Line ("};");
+   end Output_YY_Shift_Offsets;
+
+
+   --  lemon.c:4440
+   procedure Output_YY_Reduce_Offsets
+     (Lemp          : in Lime.Lemon_Record;
+      N             : in Integer;
+      MnNtOfst      : in Integer;
+      MxNtOfst      : in Integer;
+      Min_Size_Type : in String;
+      NO_OFFSET     : in Integer)
+   is
+      use Text_Out;
+      use DK8543.Auxiliary;
+      J : Integer := 0;
+      Ofst : Integer;
+   begin
+      Put_Line ("#define YY_REDUCE_COUNT (" & Image (N - 1) & ")");
+      Put_Line ("#define YY_REDUCE_MIN   (" & Image (MnNtOfst) & ")");
+      Put_Line ("#define YY_REDUCE_MAX   (" & Image (MxNtOfst) & ")");
+      Put_Line ("static const " & Min_Size_Type & " yy_reduce_ofst[] = {");
+
+--  lemp->tablesize += n*sz;
+      for I in 0 .. N - 1 loop
+         declare
+            use Symbols;
+            use Delme;
+
+            STP : access States.State_Record;
+         begin
+            STP := Sorted_At (Lemp.Extra, Symbol_Index (I));
+            Ofst := STP.iNtOfst;
+         end;
+         if Ofst = NO_OFFSET then
+            Ofst := MnNtOfst - 1;
+         end if;
+         if J = 0 then
+            Put (" /* " & Image (I) & " */ ");
+         end if;
+         Put (" " & Image (Ofst) & ",");
+         if J = 9 or I = N - 1 then
+            Put_Line ("");
+            J := 0;
+         else
+            J := J + 1;
+         end if;
+      end loop;
+         Put_Line ("};");
+   end Output_YY_Reduce_Offsets;
+
+
+   --  lemon.c:4465
+   procedure Output_Default_Action_Table
+     (Lemp         : in Lime.Lemon_Record;
+      N            : in Integer;
+      Error_Action : in Integer;
+      Min_Reduce   : in Integer)
+   is
+      use Text_Out;
+      use DK8543.Auxiliary;
+      J : Integer := 0;
+--      IDfltReduce : Integer;
+   begin
+      Put_Line ("static const YYACTIONTYPE yy_default[] = {");
+      for I in 0 .. N - 1 loop
+         declare
+            use Symbols;
+            use Delme;
+
+            STP : constant access States.State_Record := Sorted_At (Lemp.Extra, Symbol_Index (I));
+         begin
+--         IDfltReduce := Get_Default_Reduce (I);
+--         stp := lemp->sorted[i];
+            if J = 0 then
+               Put (" /* " & Image (I) & " */ ");
+            end if;
+            if STP.iDfltReduce then
+               Put (" " & Image (Error_Action) & ",");
+            else
+               Put (" " & Image (Boolean'Pos (STP.iDfltReduce) + Min_Reduce) & ",");
+            end if;
+         end;
+         if J = 9 or I = N - 1 then
+            Put_Line ("");
+            J := 0;
+         else
+            J := J + 1;
+         end if;
+      end loop;
+      Put_Line ("};");
+   end Output_Default_Action_Table;
+
+
+--     procedure Template_Print_2
+--       (Line        : in String;
+--        No_Line_Nos : in Integer;
+--  --      Line_Number : in Line_Number_Index;
+--        Out_Name    : in String)
+--     is
+--  --      pragma Unreferenced (Out_Name);
+--     begin
+--        if Line = "" then
+--           Ada.Text_IO.Put_Line ("RETURN");
+--           return;
+--        end if;
+--        Text_Out.Put_Line (Line);
+
+--        --  XXX mystisk kode
+--  --      if( str[-1]!='\n' ){
+--  --        putc('\n',out);
+--  --        (*lineno)++;
+--  --        }
+--        Ada.Text_IO.Put ("WLD - ");
+--        if No_Line_Nos /= 1 then
+--           Ada.Text_IO.Put_Line ("2");
+--           --  (*lineno)++; tplt_linedir(out,*lineno,lemp->outname);
+--           --  Write_Line_Directive (Line_Number, Out_Name);
+--           --  Write_Line_Directive (0, Out_Name);
+--           Text_Out.Put_Line_Directive (Out_Name);
+--        end if;
+
+--     end Template_Print_2;
+
+
+   procedure Write_Arg_Defines
+     (Name    : in String;
+      Arg_Ctx : in String;
+      Extend  : in Boolean;
+      Arg     : in String;
+      Arg_I   : in String)
+   is
+
+      procedure Write (Decl : in String);
+
+      procedure Write (Decl : in String) is
+         use Text_Out;
+      begin
+         Put_Line ("#define " & Name & Arg_Ctx & Decl & Arg & ";");
+      end Write;
+
+      use Text_Out;
+   begin
+      Write ("_SDECL ");
+      Write ("_PDECL ,");
+      Write ("_PARAM ,");
+      if Extend = False then
+         Put_Line ("#define " & Name & "_FETCH " &
+                     Arg   & "=yypParser->" & Arg_I & ";");
+         Put_Line ("#define " & Name & "_STORE " &
+                     Arg_I & "=yypParser->" & Arg_I & ";");
+      else
+         Write ("_FETCH ");
+         Write ("_STORE ");
+      end if;
+   end Write_Arg_Defines;
 
 
 end Reports;

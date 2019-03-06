@@ -48,7 +48,6 @@ package Reports is
       Token_Prefix  : in     String;
       Terminal_Last : in     Natural);
 
-
 private
 
    pragma Export (C, Reprint_C,         "lemon_reprint");

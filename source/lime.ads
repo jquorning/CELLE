@@ -21,8 +21,6 @@ with Interfaces.C.Strings;
 with Rules;
 with Symbols;
 with Parsers;
-with Actions;
-with States;
 
 package Lime is
 
@@ -69,10 +67,6 @@ package Lime is
    use Interfaces.C;
    use Rules;
    use Symbols;
-
-   function Sorted_At (Extra : in Symbols.Extra_Access;
-                       Index : in Symbol_Index)
-                      return States.State_Access;
 
    --  The state vector for the entire parser generator is recorded as
    --  follows.  (LEMON uses no global variables and makes little use of
@@ -237,80 +231,6 @@ package Lime is
       Has_Fallback : in Integer);
    --
    --
-   type Render_Record is
-      record
-         Nx_State         : Integer;
-         N_Rule           : Integer;
-         N_Terminal       : Integer;
-         Min_Shift_Reduce : Integer;
-         Err_Action       : Integer;
-         Acc_Action       : Integer;
-         No_Action        : Integer;
-         Min_Reduce       : Integer;
-      end record;
-
-   type Render_Access is access all Render_Record;
-   pragma Convention (C, Render_Access);
-
-   procedure Render_Constants
-     (Render : in Render_Record);
-   --
-   --
-
-   procedure Output_Action_Table
-     (Action_Table : in Actions.A_Action_Table;
-      N            : in Integer;
-      No_Action    : in Integer);
-   --
-   --
-
-   procedure Output_YY_Lookahead
-     (Action_Table : in Actions.A_Action_Table;
-      N            : in Integer;
-      Nsymbol      : in Integer);
-   --
-   --
-
-   procedure Output_YY_Shift_Offsets
-     (Lemp          : in Lime.Lemon_Record;
-      N             : in Integer;
-      MnTknOfst     : in Integer;
-      MxTknOfst     : in Integer;
-      Min_Size_Type : in String;
-      Nactiontab    : in Integer;
-      NO_OFFSET     : in Integer);
-
-   --
-   --
-   --
-
-   procedure Output_YY_Reduce_Offsets
-     (Lemp          : in Lime.Lemon_Record;
-      N             : in Integer;
-      MnNtOfst      : in Integer;
-      MxNtOfst      : in Integer;
-      Min_Size_Type : in String;
-      NO_OFFSET     : in Integer);
-
-
-   procedure Output_Default_Action_Table
-     (Lemp         : in Lime.Lemon_Record;
-      N            : in Integer;
-      Error_Action : in Integer;
-      Min_Reduce   : in Integer);
-
-   procedure Template_Print_2
-     (Line        : in String;
-      No_Line_Nos : in Integer;
-      Out_Name    : in String);
-   --  Print a string to the file and keep the linenumber up to date
-
-   procedure Write_Arg_Defines
-     (Name    : in String;
-      Arg_Ctx : in String;
-      Extend  : in Boolean;
-      Arg     : in String;
-      Arg_I   : in String);
 
    procedure Close_Out;
    --  Close out file
