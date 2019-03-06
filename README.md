@@ -1,8 +1,8 @@
-# Rewrite of the Lemon parser in Ada
+# ley/yacc parser generator
 
-The Lemon combined flex/yacc parser from the SQLite3 project is rewritten in Ada 2005.
+Rewrite of the *Lemon* parser from theh *SQLite* project in Ada
 
-Cherry itself is written in C and Ada. C will be more and more replaced by Ada 2005.
+The Lemon combined flex/yacc parser generator is rewritten in Ada 2005.
 
 ## Status
 1. Partly rewritten from lemon.c
@@ -11,6 +11,8 @@ Cherry itself is written in C and Ada. C will be more and more replaced by Ada 2
 
 ## Roadmap
 1. Generate C parser code from parse.y
+1. Replace lemon.c with Ada program
+1. Generate C89 parser code with better structure (include yy.h)
 1. Generate Ada parser code from parse.y
 1. Split into library and application
 
