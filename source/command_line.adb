@@ -10,25 +10,16 @@
 with Ada.Text_IO;
 with Ada.Command_Line;
 
-with Interfaces.C.Strings;
-
 with GNAT.Command_Line;
 
 with Options;
+with Macros;
 
 package body Command_Line is
-
-   use Interfaces.C.Strings;
 
    procedure Getopt_Callback
      (Switch  : String;  Param : String;  Section : String);
    --  To be installed and called by Getopt on command line switch encounter.
-
-   procedure Define_Macro (Z : in chars_ptr);
-   pragma Import (C, Define_Macro,   "handle_D_option");
-   --  Handlers to call on switch encounter
-   --  Handlers are locates in lemon.c
-
 
    Long_Switch_Output_Dir    : constant String := "--output-dir";
    Long_Switch_Show_Help     : constant String := "--help";
@@ -51,7 +42,7 @@ package body Command_Line is
         Switch = Switch_Define_Macro_Short or
         Switch = Switch_Define_Macro_Long
       then
-         Define_Macro (New_String (Param));
+         Macros.Append (Param);
       else
          --  Then it must be the file to process (.y).
          --  Found switch not accounted for. Assume input file name.

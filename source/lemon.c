@@ -1037,32 +1037,6 @@ void memory_error(void){
   exit(1);
 }
 
-static int nDefine = 0;      /* Number of -D options on the command line */
-static char **azDefine = 0;  /* Name of the -D macros */
-
-/* This routine is called with the argument to each -D command-line option.
-** Add the macro defined to the azDefine array.
-**
-** Will be called from lime.adb
-*/
-void handle_D_option(char *z){
-  char **paz;
-  nDefine++;
-  azDefine = (char **) realloc(azDefine, sizeof(azDefine[0])*nDefine);
-  if( azDefine==0 ){
-    fprintf(stderr,"out of memory\n");
-    exit(1);
-  }
-  paz = &azDefine[nDefine-1];
-  *paz = (char *) malloc( lemonStrlen(z)+1 );
-  if( *paz==0 ){
-    fprintf(stderr,"out of memory\n");
-    exit(1);
-  }
-  lemon_strcpy(*paz, z);
-  for(z=*paz; *z && *z!='='; z++){}
-  *z = 0;
-}
 
 /* Rember the name of the output directory 
 */

@@ -139,8 +139,6 @@ package Lime is
    No_Offset : aliased constant Integer := Integer'First;
 
 
-
-
    --
    --  Other way round specs
    --
