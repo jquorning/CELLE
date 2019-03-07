@@ -13,7 +13,6 @@
 --  Ada Lemon binding
 --
 
-with Ada.Text_IO;
 with Ada.Strings.Unbounded;
 
 with Rules;
@@ -140,70 +139,6 @@ package Lime is
    No_Offset : aliased constant Integer := Integer'First;
 
 
-   procedure Implementation_Open (File_Name : in String);
-   --  Open a file for writing then implementaion (parse.adb/parse.c).
-   --  File handler is located in the context structure.
-
-   --  function Get_Token (Index : in Integer) return String;
-   --  Get token for token symbol creation.
-
-   procedure Open_If_Possible
-     (File      : in out Ada.Text_IO.File_Type;
-      File_Name : in     String;
-      Success   :    out Boolean);
-   --  Open File_Name to File. Success is True when success.
-
-   procedure Template_Open
-     (User_Template : in     String;
-      Error_Count   : in out Integer;
-      Success       :    out Integer);
-   --  Thisk function finds the template file and opens it. File handle
-   --  is located in the context structure.
-
-   procedure Template_Transfer (Name : in String);
-   --
-
-
-   procedure Template_Print
-     (Out_Name    : in String;
-      No_Line_Nos : in Integer;
-      Include     : in String);
-
-   procedure Write_Include
-     (Include_Name : in String);
-
-   procedure Generate_The_Defines_1
-     (YY_Code_Type   : in String;
-      Symbol_Count   : in Integer;
-      YY_Action_Type : in String;
-      Is_Wildcard    : in Boolean;
-      Wildcard_Index : in Symbol_Index);
-
-   procedure Generate_The_Defines_2
-     (Stack_Size : in String);
-
-   type Mystruct_Record is record
-      Use_Count : Integer;
-      Index     : Integer;
-      DT_Num    : Integer;
-   end record;
-   pragma Convention (C, Mystruct_Record);
-
-   type Struct_Access is access all Mystruct_Record;
-   pragma Convention (C, Struct_Access);
-
-   procedure Error_Fallback
-     (Error_Sym    : in String;
-      Struct       : in Struct_Access;
-      Has_Fallback : in Integer);
-   --
-   --
-
-   procedure Close_Out;
-   --  Close out file
-
-   procedure Close_In;
-   --  Close in file
 
 
    --
