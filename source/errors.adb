@@ -102,10 +102,12 @@ package body Errors is
       Arguments   : in Argument_List := Null_Argument_List)
    is
       pragma Unreferenced (Arguments);
+      File_Name : constant String := To_String (Default_File_Name);
+      Message   : constant String := Kind'Image & " " & Table (Kind).all;
    begin
-      DK8543.Errors.Error (File_Name   => To_String (Default_File_Name),
+      DK8543.Errors.Error (File_Name   => File_Name,
                            Line_Number => Line_Number,
-                           Message     => Kind'Image & Table (Kind).all);
+                           Message     => Message);
    end Error;
 
 
