@@ -7,6 +7,7 @@
 --    May you share freely, not taking more than you give.
 --
 -----------------------------------------------------------------------------
+--  Principal data structures for the LEMON parser generator.
 --  Cherrylime
 --  Lime body
 --  Ada Lemon binding
@@ -20,16 +21,6 @@ with Symbols;
 with Parsers;
 
 package Lime is
-
---   use Interfaces.C.Strings;
---   Lemon_Program_Name  : aliased chars_ptr := New_String ("");
---   Lemon_Input_File    : aliased chars_ptr := New_String ("");
---   Lemon_User_Template : aliased chars_ptr := New_String ("");
---   Lemon_Output_Dir    : aliased chars_ptr := New_String ("");
-
-   --********* From the file "struct.h" ************************************
-   --** Principal data structures for the LEMON parser generator.
-   --
 
    --  Symbols (terminals and nonterminals) of the grammar are stored
    --  in the following:
@@ -137,26 +128,16 @@ package Lime is
       Min_Reduce   => 0,          Max_Action   => 0,         Symbols2         => 999,
       Error_Cnt    => 0,          Err_Sym2     => 999,
       Wildcard2    => 999,
---        Name         => Null_Ptr, ARG2         => Null_Ptr,  CTX2             => Null_Ptr,
---        Token_Type   => Null_Ptr, Var_Type     => Null_Ptr,  Start            => Null_Ptr,
---        Stack_Size   => Null_Ptr, Include      => Null_Ptr,  Error            => Null_Ptr,
---        Overflow     => Null_Ptr, Failure      => Null_Ptr,  C_Accept         => Null_Ptr,
---        Extra_Code   => Null_Ptr, Token_Dest   => Null_Ptr,  Var_Dest         => Null_Ptr,
       Names        => Parser_Names'Access,
       File_Name    => Null_Unbounded_String,
       Out_Name     => Null_Unbounded_String,
---      Token_Prefix => Null_Ptr,
       N_Conflict   => 0,        N_Action_Tab => 0,         N_Lookahead_Tab  => 0,
       Table_Size   => 0,        Basis_Flag   => False,     Has_Fallback     => False,
       No_Linenos_Flag => False, Argv0        => Null_Unbounded_String,
       Extra           => Symbols.Get_Extra,
       Parser          => Parsers.Get_Context);
 
-   ----------------------------------------------------------------------------
-   --  #define NO_OFFSET (-2147483647)
-   --  NO_OFFSET : aliased long;  -- lemon.h:247
-   --  pragma Import (C, NO_OFFSET, "NO_OFFSET");
-   No_Offset : aliased Integer := Integer'First;
+   No_Offset : aliased constant Integer := Integer'First;
 
 
    procedure Implementation_Open (File_Name : in String);
@@ -182,16 +163,6 @@ package Lime is
    procedure Template_Transfer (Name : in String);
    --
 
-   procedure Generate_Spec
-     (Lemp      : in Lime.Lemon_Record;
-      Base_Name : in String;
-      Prefix    : in String;    --  Prefix of symbols in spec
-      Module    : in String;    --  Prefix of symbols in spec
-      First     : in Integer;   --  Index of first symbol
-      Last      : in Integer);  --  Index of last symbol
-   --  Create spec file with name File_Name including symols found by
-   --  iterating from First to Last calling callback prepended with
-   --  Suffix.
 
    procedure Template_Print
      (Out_Name    : in String;
@@ -234,21 +205,6 @@ package Lime is
    procedure Close_In;
    --  Close in file
 
-   procedure Write_Interface
-     (Name      : in String;
-      Tokentype : in String);
-   --
-
-   procedure Write_Interface_Begin;
-   procedure Write_Interface_End;
-
-   procedure Report_Header
-     (Lemp          : in Lime.Lemon_Record;
-      Token_Prefix  : in String;
-      Base_Name     : in String;
-      Module_Name   : in String;
-      Terminal_Last : in Natural);
-   --  Generate a header file for the Parser.
 
    --
    --  Other way round specs

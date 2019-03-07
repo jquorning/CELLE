@@ -22,6 +22,9 @@ with Configs;
 with States;
 with Options;
 with Delme;
+with Generate_Ada;
+with Generate_C;
+with Backend;
 
 package body Reports is
 
@@ -193,6 +196,14 @@ package body Reports is
       Arg     : in String;
       Arg_I   : in String);
 
+   procedure Write_Interface
+     (Name      : in String;
+      Tokentype : in String);
+   --
+
+   procedure Write_Interface_Begin;
+   procedure Write_Interface_End;
+
    --
    --  Each state contains a set of token transaction and a set of
    --  nonterminal transactions.  Each of these sets makes an instance
@@ -208,6 +219,27 @@ package body Reports is
         N_Action : Integer;                    --  Number of actions
         Order    : Integer;                    --  Original order of action sets
      end record;
+
+   procedure Report_Header
+     (Lemp          : in Lime.Lemon_Record;
+      Token_Prefix  : in String;
+      Base_Name     : in String;
+      Module_Name   : in String;
+      Terminal_Last : in Natural);
+   --  Generate a header file for the Parser.
+
+
+   procedure Generate_Spec
+     (Lemp      : in Lime.Lemon_Record;
+      Base_Name : in String;
+      Prefix    : in String;    --  Prefix of symbols in spec
+      Module    : in String;    --  Prefix of symbols in spec
+      First     : in Integer;   --  Index of first symbol
+      Last      : in Integer);  --  Index of last symbol
+   --  Create spec file with name File_Name including symols found by
+   --  iterating from First to Last calling callback prepended with
+   --  Suffix.
+
 
    type AX_Set_Record is
       record
@@ -2216,6 +2248,110 @@ package body Reports is
          Write ("_STORE ");
       end if;
    end Write_Arg_Defines;
+
+
+   procedure Write_Interface
+     (Name      : in String;
+      Tokentype : in String)
+   is
+      use Text_Out;
+   begin
+      if Options.MH_Flag then
+         Put_Line ("#if INTERFACE");
+      end if;
+
+      Put ("#define ");
+      Put (Name);
+      Put ("TOKENTYPE ");
+      Put (Tokentype);
+      New_Line;
+
+      if Options.MH_Flag then
+         Put_Line ("#endif");
+      end if;
+   end Write_Interface;
+
+
+   procedure Write_Interface_Begin
+   is
+      use Text_Out;
+   begin
+      if Options.MH_Flag then
+         Put_Line ("#if INTERFACE");
+      end if;
+   end Write_Interface_Begin;
+
+
+   procedure Write_Interface_End
+   is
+      use Text_Out;
+   begin
+      if Options.MH_Flag then
+         Put_Line ("#endif");
+      end if;
+   end Write_Interface_End;
+
+
+   procedure Report_Header
+     (Lemp          : in Lime.Lemon_Record;
+      Token_Prefix  : in String;
+      Base_Name     : in String;
+      Module_Name   : in String;
+      Terminal_Last : in Natural)
+   is
+      Prefix : constant String := Token_Prefix;
+   begin
+
+      if not Options.MH_Flag then
+         return;
+      end if;
+
+--      if Token_Prefix = Null_Ptr then
+--         Prefix := New_String ("");
+--      end if;
+
+      --  Generate parse.h.ads
+      Generate_Spec (Lemp,
+                     Base_Name, Prefix, Module_Name,
+                     First => 1,
+                     Last  => Terminal_Last);
+   end Report_Header;
+
+
+   procedure Generate_Spec
+     (Lemp      : in Lime.Lemon_Record;
+      Base_Name : in String;
+      Prefix    : in String;
+      Module    : in String;
+      First     : in Integer;
+      Last      : in Integer)
+   is
+      use Backend;
+   begin
+
+      case Options.Language is
+
+         when Options.Language_Ada =>
+            Generate_Ada.Generate_Spec
+              (Context   => Context,
+               Base_Name => Base_Name,
+               Module    => Module,
+               Prefix    => Prefix,
+               First     => First,
+               Last      => Last);
+
+         when Options.Language_C =>
+            Generate_C.Generate_Spec
+              (Lemp      => Lemp,
+               Context   => Context,
+               File_Name => Base_Name,
+               Module    => Module,
+               Prefix    => Prefix,
+               First     => First,
+               Last      => Last);
+
+      end case;
+   end Generate_Spec;
 
 
 end Reports;
