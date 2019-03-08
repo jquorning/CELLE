@@ -46,15 +46,22 @@ package body Scanner_Parsers is
                                                 Scanner : in out Scanner_Record);
    procedure Do_State_Precedence_Mark_1        (Scanner : in out Scanner_Record);
    procedure Do_State_Precedence_Mark_2        (Scanner : in out Scanner_Record);
+   procedure Do_State_Waiting_For_Decl_Keyword (Lemon   : in out Lemon_Record;
+                                                Scanner : in out Scanner_Record);
+   procedure Do_State_Waiting_For_Decl_Arg (Lemon   : in     Lemon_Record;
+                                            Scanner : in out Scanner_Record);
+
 
    procedure Do_State_In_RHS (Lemon   : in out Lemon_Record;
                               Scanner : in out Scanner_Record);
 
 
    procedure Advance (Scanner : in out Scanner_Record;
-                      By      : in     Natural) is
+                      By      : in     Natural)
+   is
+      use Ada.Text_IO;
    begin
-      Scanner.First := Scanner.First + By;
+      Scanner.Token := Scanner.Token + By;
    end Advance;
 
 
@@ -62,246 +69,13 @@ package body Scanner_Parsers is
                             Item : in String) return Boolean
    is
       Length : constant Natural := Natural'Min (X'Length, Item'Length);
-      Left   : String renames X    (X'First    .. X'First    + Length);
-      Right  : String renames Item (Item'First .. Item'First + Length);
+      Left   : String renames X    (X'First    .. X'First    + Length - 1);
+      Right  : String renames Item (Item'First .. Item'First + Length - 1);
    begin
       return Left = Right;
    end Declaration_Is;
 
 
-   procedure Do_State_Initialize (Lemon   : in out Lemon_Record;
-                                  Scanner : in out Scanner_Record)
-   is
-   begin
-      Scanner.Prev_Rule    := null;
-      Scanner.Prec_Counter := 0;
-      Scanner.First_Rule   := null;
-      Scanner.Last_Rule    := null;
-
-      Lemon.N_Rule  := 0;
-      Scanner.State := WAITING_FOR_DECL_KEYWORD;
-   end Do_State_Initialize;
-
-
-   procedure Do_State_Waiting_For_Decl_Or_Rule (Lemon   : in out Lemon_Record;
-                                                Scanner : in out Scanner_Record)
-   is
-      Cur : constant Character := Current_Char (Scanner);
-      X   : constant String    := Current_Line (Scanner);
-   begin
-      Do_State_Initialize (Lemon, Scanner);
-
-      if Cur = '%' then
-         Advance (Scanner, By => 1);
-         Scanner.State := WAITING_FOR_DECL_KEYWORD;
-
-      elsif Cur in 'a' .. 'z' then
-         Scanner.LHS.Append (Symbols.Symbol_New (X));
-         --            PSP.N_RHS      := 0;
-
-         Scanner.RHS        := Symbols.Symbol_Vectors.Empty_Vector;
-         --            PSP.LHS_Alias  := Interfaces.C.Strings.Null_Ptr;
-         Scanner.LHS_Alias  := Scanner_Data.Alias_Vectors.Empty_Vector;
-         Scanner.State := WAITING_FOR_ARROW;
-
-      elsif Cur = '{' then
-
-         if Scanner.Prev_Rule = null then
-            Error (E001);
-            --                  Error ("There is no prior rule upon which to attach the code " &
-            --                           "fragment which begins on this line.");
-
-         elsif Rules."/=" (Scanner.Prev_Rule.Code, Null_Code) then
-            Error (E002);
-            --                  Error ("Code fragment beginning on this line is not the first " &
-            --                           "to follow the previous rule.");
-
-         else
-            Scanner.Prev_Rule.Line := Scanner.Token_Lineno;
-            Scanner.Prev_Rule.Code :=
-              Unbounded_String'(To_Unbounded_String (X (X'First + 1 .. X'Last)));
-            --  new Unbounded_String'(To_Unbounded_String (X (X'First + 1 .. X'Last)));
-            Scanner.Prev_Rule.No_Code := False;
-         end if;
-
-      elsif Cur = '[' then
-         Scanner.State := PRECEDENCE_MARK_1;
-
-      else
-         Error (E003);
-         --               Error ("Token '" & X & "' should be either '%%' or a nonterminal name.");
-      end if;
-   end Do_State_Waiting_For_Decl_Or_Rule;
-
-
-   procedure Do_State_Precedence_Mark_1 (Scanner : in out Scanner_Record)
-   is
-      Cur : constant Character := Current_Char (Scanner);
-      X   : constant String    := Current_Line (Scanner);
-   begin
-      if Cur not in 'A' .. 'Z' then
-         Error (E004);
-         --  Error ("The precedence symbol must be a terminal.");
-
-      elsif Scanner.Prev_Rule = null then
-         Error (E005);
-         --  Error ("There is no prior rule to assign precedence '[" & X & "]'.");
-
-      elsif Scanner.Prev_Rule.Prec_Sym /= null then
-         Error (E006);
-         --  Error ("Precedence mark on this line is not the first " &
-         --         "to follow the previous rule.");
-
-      else
-         Scanner.Prev_Rule.Prec_Sym :=
-           Symbols.Symbol_New (X);
-      end if;
-
-      Scanner.State := PRECEDENCE_MARK_2;
-
-   end Do_State_Precedence_Mark_1;
-
-
-   procedure Do_State_Precedence_Mark_2 (Scanner : in out Scanner_Record)
-   is
-      Cur : constant Character := Current_Char (Scanner);
-   begin
-      if Cur /= ']' then
-         --  Error ("Missing ']' on precedence mark.");
-         Error (E007);
-      end if;
-
-      Scanner.State := WAITING_FOR_DECL_OR_RULE;
-
-   end Do_State_Precedence_Mark_2;
-
-
-   procedure Do_State_In_RHS (Lemon  : in out Lemon_Record;
-                              Scanner : in out Scanner_Record)
-   is
-      Cur : constant Character := Current_Char (Scanner);
-      X   : constant String    := Current_Line (Scanner);
-   begin
-      if Cur = '.' then
-         declare
-            use Symbols;
-            Rule : constant access Rules.Rule_Record := new Rules.Rule_Record;
-         begin
-            --  Rp := (struct rule *)calloc( sizeof(struct rule) +
-            --                               sizeof(struct symbol*)*psp->nrhs +
-            --                               sizeof(char*)*psp->nrhs, 1);
-            --               RP := new Rules.Rule_Record;
-            --  if Rp = 0 then
-            --   ErrorMsg(psp->filename,psp->tokenlineno,
-            --            "Can't allocate enough memory for this rule.");
-            --   psp->errorcnt++;
-            --   Psp.Prev_Rule := 0;
-            --  else
-            Rule.Rule_Line := Scanner.Token_Lineno;
-            --  Rp.rhs      := (struct symbol**)&rp[1];
-            --  Rp.rhsalias := (const char**)&(rp->rhs[psp->nrhs]);
-
-            --                    for I in 0 .. PSP.N_RHS - 1 loop
-            --                       RP.RHS       (I) := PSP.RHS   (I);
-            --                       RP.RHS_Alias (I) := PSP.Alias (I);
-            --                       if RP.RHS_Alias (I) /= null then
-            --                          RP.RHS (I).Content := True;
-            --                       end if;
-            --                    end loop;
-
-            declare
-               subtype Index_Range is Positive range
-                 Scanner.RHS.First_Index .. Scanner.RHS.Last_Index;
-            begin
-               for I in Index_Range loop
-                  Rule.RHS       (I) := Scanner.RHS   (I);
-                  --  XXX                       RP.RHS_Alias (I) := PSP.Alias.Element (I);
-                  --  if Symbols."/=" (RP.RHS_Alias (I), Null_Unbounded_String) then
-                  --                        declare
-                  --                           use
-                  --                        begin
-                  --  if RP.RHS_Alias (I) /= Null_Unbounded_String then
-                  if Length (Rule.RHS_Alias (I)) /= 0 then
-                     Rule.RHS (I).Content := True;
-                  end if;
-                  --                        end;
-               end loop;
-            end;
-
-            Rule.LHS        := Scanner.LHS.First_Element;
-            Rule.LHS_Alias  := Scanner.LHS_Alias.First_Element;
-            Rule.Code       := Null_Code; --  New Unbounded_String'(Null_Unbounded_String);
-            Rule.No_Code    := True;
-            Rule.Prec_Sym   := null;
-
-            Lemon.N_Rule  := Lemon.N_Rule + 1;
-
-            Rule.Index      := Lemon.N_Rule;
---            Rule.Next_LHS   := Rule.LHS.Rule;
---            Rule.LHS.Rule   := Rule;
-            Rule.Next       := null;
-            if Scanner.First_Rule = null then
-               Scanner.First_Rule := Rule;
-               Scanner.Last_Rule  := Rule;
-            else
-               Scanner.Last_Rule.Next := Rule;
-               Scanner.Last_Rule      := Rule;
-            end if;
-            Scanner.Prev_Rule := Rule;
-            --  end if;
-         end;
-         Scanner.State := WAITING_FOR_DECL_OR_RULE;
-
-      elsif
-        Cur in 'a' .. 'z' or
-        Cur in 'A' .. 'Z'
-      then
-         Scanner.RHS  .Append (Symbols.Symbol_New (X));
-         Scanner.Alias.Append (Null_Unbounded_String);
-         --            end if;
-
-      elsif
-        (Cur = '|' or Cur = '/') and not
-        Scanner.RHS.Is_Empty
-      then
-         declare
-            use Symbols;
-            Symbol : Symbols.Symbol_Access := Scanner.RHS.Last_Element;
-         begin
-            if Symbol.Kind /= Symbols.Multi_Terminal then
-               declare
-                  Orig_Symbol : constant Symbol_Access := Symbol;
-               begin
-                  Symbol := new Symbol_Record;
-                  Symbol.Kind    := Symbols.Multi_Terminal;
-                  Symbol.Sub_Sym := Symbol_Vectors.Empty_Vector;
-                  Symbol.Sub_Sym.Append (Orig_Symbol);
-
-                  Symbol.Name := Orig_Symbol.Name;
-
-                  Scanner.RHS.Append (Symbol);
-               end;
-            end if;
-
-            Symbol.Sub_Sym.Append
-              (Symbols.Symbol_New (X (X'First + 1 .. X'Last)));
-
-            if
-              X (X'First + 1) in 'a' .. 'z' or
-              To_String (Symbol.Sub_Sym.First_Element.Name) (1) in 'a' .. 'z'
-            then
-               Errors.Error (E201, Line_Number => Scanner.Token_Lineno);
-            end if;
-         end;
-
-      elsif Cur = '(' and not Scanner.RHS.Is_Empty then
-         Scanner.State := RHS_ALIAS_1;
-
-      else
-         Error (E202, (1 => To_Unbounded_String (X)));
-         Scanner.State := RESYNC_AFTER_RULE_ERROR;
-      end if;
-   end Do_State_In_RHS;
 
 
    procedure Do_State (Lemon   : in out Lemon_Record;
@@ -311,7 +85,6 @@ package body Scanner_Parsers is
       X : constant String    := Scanner.Item (Scanner.First .. Scanner.Last);
       C : constant Character := Scanner.Item (Scanner.First);
    begin
-      Ada.Text_IO.Put_Line ("STATE: " & Scanner.State'Img);
 
       case Scanner.State is
 
@@ -414,119 +187,7 @@ package body Scanner_Parsers is
          end if;
 
 
-      when WAITING_FOR_DECL_KEYWORD =>
-         Ada.Text_IO.Put_Line ("when WAITING_FOR_DECL_KEYWORD");
-         if
-           C in 'a' .. 'z' or
-           C in 'A' .. 'Z'
-         then
-            Scanner.Decl_Keyword      := To_Unbounded_String (X);
-            Scanner.Decl_Arg_Slot     := null;
-            Scanner.Decl_Lineno_Slot  := null;
-            Scanner.Insert_Line_Macro := True;
-
-            Scanner.State := WAITING_FOR_DECL_ARG;
-
-            if X = "name" then
-               Scanner.Decl_Arg_Slot := Lemon.Names.Name'Access;
-               Scanner.Insert_Line_Macro := False;
-
-            elsif X = "include" then
-               Scanner.Decl_Arg_Slot := Lemon.Names.Include'Access;
-
-            elsif X = "code" then
-               Scanner.Decl_Arg_Slot := Lemon.Names.Extra_Code'Access;
-
-            elsif X = "token_destructor" then
-               Scanner.Decl_Arg_Slot := Lemon.Names.Token_Dest'Access;
-
-            elsif X = "default_destructor" then
-               Scanner.Decl_Arg_Slot := Lemon.Names.Var_Dest'Access;
-
-            elsif Declaration_Is (X, "token_prefix") then
-               Ada.Text_IO.Put_Line ("X = 'token_prefix'");
-               Scanner.Decl_Arg_Slot := Lemon.Names.Token_Prefix'Access;
-               Scanner.Insert_Line_Macro := False;
-
-            elsif X = "syntax_error" then
-               Scanner.Decl_Arg_Slot := Lemon.Names.Error'Access;
-
-            elsif X = "parse_accept" then
-               Scanner.Decl_Arg_Slot := Lemon.Names.C_Accept'Access;
-
-            elsif X = "parse_failure" then
-               Scanner.Decl_Arg_Slot := Lemon.Names.Failure'Access;
-
-            elsif X = "stack_overflow" then
-               Scanner.Decl_Arg_Slot := Lemon.Names.Overflow'Access;
-
-            elsif X = "extra_argument" then
-               Scanner.Decl_Arg_Slot     := Lemon.Names.ARG2'Access;
-               Scanner.Insert_Line_Macro := False;
-
-            elsif X = "extra_context" then
-               Scanner.Decl_Arg_Slot     := Lemon.Names.CTX2'Access;
-               Scanner.Insert_Line_Macro := False;
-
-            elsif X = "token_type" then
-               Scanner.Decl_Arg_Slot     := Lemon.Names.Token_Type'Access;
-               Scanner.Insert_Line_Macro := False;
-
-            elsif X = "default_type" then
-               Scanner.Decl_Arg_Slot     := Lemon.Names.Var_Type'Access;
-               Scanner.Insert_Line_Macro := False;
-
-            elsif X = "stack_size" then
-               Scanner.Decl_Arg_Slot     := Lemon.Names.Stack_Size'Access;
-               Scanner.Insert_Line_Macro := False;
-
-            elsif X = "start_symbol" then
-               Scanner.Decl_Arg_Slot     := Lemon.Names.Start'Access;
-               Scanner.Insert_Line_Macro := False;
-
-            elsif X = "left" then
-               Scanner.Prec_Counter := Scanner.Prec_Counter + 1;
-               Scanner.Decl_Assoc   := Symbols.Left;
-               Scanner.State   := WAITING_FOR_PRECEDENCE_SYMBOL;
-
-            elsif X = "right" then
-               Scanner.Prec_Counter := Scanner.Prec_Counter + 1;
-               Scanner.Decl_Assoc   := Symbols.Right;
-               Scanner.State   := WAITING_FOR_PRECEDENCE_SYMBOL;
-
-            elsif X = "nonassoc" then
-               Scanner.Prec_Counter := Scanner.Prec_Counter + 1;
-               Scanner.Decl_Assoc   := Symbols.None;
-               Scanner.State   := WAITING_FOR_PRECEDENCE_SYMBOL;
-
-            elsif X = "destructor" then
-               Scanner.State := WAITING_FOR_DESTRUCTOR_SYMBOL;
-
-            elsif X = "type" then
-               Scanner.State := WAITING_FOR_DATATYPE_SYMBOL;
-
-            elsif X = "fallback" then
-               Scanner.Fallback := null;
-               Scanner.State := WAITING_FOR_FALLBACK_ID;
-
-            elsif X = "token" then
-               Scanner.State := WAITING_FOR_TOKEN_NAME;
-
-            elsif X = "wildcard" then
-               Scanner.State := WAITING_FOR_WILDCARD_ID;
-
-            elsif X = "token_class" then
-               Scanner.State := WAITING_FOR_CLASS_ID;
-
-            else
-               Error (E203, (1 => To_Unbounded_String (X)),
-                      Line_Number => Scanner.Token_Lineno);
-               Scanner.State := RESYNC_AFTER_DECL_ERROR;
-            end if;
-         else
-            Error (E204, (1 => To_Unbounded_String (X)), Line_Number => Scanner.Token_Lineno);
-            Scanner.State := RESYNC_AFTER_DECL_ERROR;
-         end if;
+      when WAITING_FOR_DECL_KEYWORD => Do_State_Waiting_For_Decl_Keyword (Lemon, Scanner);
 
 
       when WAITING_FOR_DESTRUCTOR_SYMBOL =>
@@ -603,65 +264,7 @@ package body Scanner_Parsers is
 --        }
          null;
 
-      when WAITING_FOR_DECL_ARG =>
---        if( x[0]=='{' || x[0]=='\"' || ISALNUM(x[0]) ){
---          const char *zOld, *zNew;
---          char *zBuf, *z;
---          int nOld, n, nLine = 0, nNew, nBack;
---          int addLineMacro;
---          char zLine[50];
---          zNew = x;
---          if( zNew[0]=='"' || zNew[0]=='{' ) zNew++;
---          nNew = lemonStrlen(zNew);
---          if( *psp->declargslot ){
---            zOld = *psp->declargslot;
---          }else{
---            zOld = "";
---          }
---          nOld = lemonStrlen(zOld);
---          n = nOld + nNew + 20;
---          addLineMacro = !psp->gp->nolinenosflag && psp->insertLineMacro &&
---                          (psp->decllinenoslot==0 || psp->decllinenoslot[0]!=0);
---          if( addLineMacro ){
---            for(z=psp->filename, nBack=0; *z; z++){
---              if( *z=='\\' ) nBack++;
---            }
---            lemon_sprintf(zLine, "#line %d ", psp->tokenlineno);
---            nLine = lemonStrlen(zLine);
---            n += nLine + lemonStrlen(psp->filename) + nBack;
---          }
---          *psp->declargslot = (char *) realloc(*psp->declargslot, n);
---          zBuf = *psp->declargslot + nOld;
---          if( addLineMacro ){
---            if( nOld && zBuf[-1]!='\n' ){
---              *(zBuf++) = '\n';
---            }
---            memcpy(zBuf, zLine, nLine);
---            zBuf += nLine;
---            *(zBuf++) = '"';
---            for(z=psp->filename; *z; z++){
---              if( *z=='\\' ){
---                *(zBuf++) = '\\';
---              }
---              *(zBuf++) = *z;
---            }
---            *(zBuf++) = '"';
---            *(zBuf++) = '\n';
---          }
---          if( psp->decllinenoslot && psp->decllinenoslot[0]==0 ){
---            psp->decllinenoslot[0] = psp->tokenlineno;
---          }
---          memcpy(zBuf, zNew, nNew);
---          zBuf += nNew;
---          *zBuf = 0;
---          psp->state = WAITING_FOR_DECL_OR_RULE;
---        }else{
---          ErrorMsg(psp->filename,psp->tokenlineno,
---            "Illegal argument to %%%s: %s",psp->declkeyword,x);
---          psp->errorcnt++;
---          psp->state = RESYNC_AFTER_DECL_ERROR;
---        }
-         null;
+      when WAITING_FOR_DECL_ARG => Do_State_Waiting_For_Decl_Arg (Lemon, Scanner);
 
       when WAITING_FOR_FALLBACK_ID =>
 --        if( x[0]=='.' ){
@@ -828,6 +431,485 @@ package body Scanner_Parsers is
       end loop;
 
    end Parse_One_Token;
+
+
+   procedure Do_State_Initialize (Lemon   : in out Lemon_Record;
+                                  Scanner : in out Scanner_Record)
+   is
+   begin
+      Scanner.Prev_Rule    := null;
+      Scanner.Prec_Counter := 0;
+      Scanner.First_Rule   := null;
+      Scanner.Last_Rule    := null;
+
+      Lemon.N_Rule  := 0;
+      Scanner.State := WAITING_FOR_DECL_OR_RULE;
+   end Do_State_Initialize;
+
+
+   procedure Do_State_Waiting_For_Decl_Or_Rule (Lemon   : in out Lemon_Record;
+                                                Scanner : in out Scanner_Record)
+   is
+      Cur : constant Character := Current_Char (Scanner);
+      X   : constant String    := Current_Line (Scanner);
+   begin
+      Do_State_Initialize (Lemon, Scanner);
+
+      if Cur = '%' then
+         Advance (Scanner, By => 1);
+         Scanner.State := WAITING_FOR_DECL_KEYWORD;
+
+      elsif Cur in 'a' .. 'z' then
+         Scanner.LHS.Append (Symbols.Symbol_New (X));
+         --            PSP.N_RHS      := 0;
+
+         Scanner.RHS        := Symbols.Symbol_Vectors.Empty_Vector;
+         --            PSP.LHS_Alias  := Interfaces.C.Strings.Null_Ptr;
+         Scanner.LHS_Alias  := Scanner_Data.Alias_Vectors.Empty_Vector;
+         Scanner.State := WAITING_FOR_ARROW;
+
+      elsif Cur = '{' then
+
+         if Scanner.Prev_Rule = null then
+            Error (E001);
+            --                  Error ("There is no prior rule upon which to attach the code " &
+            --                           "fragment which begins on this line.");
+
+         elsif Rules."/=" (Scanner.Prev_Rule.Code, Null_Code) then
+            Error (E002);
+            --                  Error ("Code fragment beginning on this line is not the first " &
+            --                           "to follow the previous rule.");
+
+         else
+            Scanner.Prev_Rule.Line := Scanner.Token_Lineno;
+            Scanner.Prev_Rule.Code :=
+              Unbounded_String'(To_Unbounded_String (X (X'First + 1 .. X'Last)));
+            --  new Unbounded_String'(To_Unbounded_String (X (X'First + 1 .. X'Last)));
+            Scanner.Prev_Rule.No_Code := False;
+         end if;
+
+      elsif Cur = '[' then
+         Scanner.State := PRECEDENCE_MARK_1;
+
+      else
+         Error (E003);
+         --               Error ("Token '" & X & "' should be either '%%' or a nonterminal name.");
+      end if;
+   end Do_State_Waiting_For_Decl_Or_Rule;
+
+
+   procedure Do_State_Precedence_Mark_1 (Scanner : in out Scanner_Record)
+   is
+      Cur : constant Character := Current_Char (Scanner);
+      X   : constant String    := Current_Line (Scanner);
+   begin
+      if Cur not in 'A' .. 'Z' then
+         Error (E004);
+         --  Error ("The precedence symbol must be a terminal.");
+
+      elsif Scanner.Prev_Rule = null then
+         Error (E005);
+         --  Error ("There is no prior rule to assign precedence '[" & X & "]'.");
+
+      elsif Scanner.Prev_Rule.Prec_Sym /= null then
+         Error (E006);
+         --  Error ("Precedence mark on this line is not the first " &
+         --         "to follow the previous rule.");
+
+      else
+         Scanner.Prev_Rule.Prec_Sym :=
+           Symbols.Symbol_New (X);
+      end if;
+
+      Scanner.State := PRECEDENCE_MARK_2;
+
+   end Do_State_Precedence_Mark_1;
+
+
+   procedure Do_State_Precedence_Mark_2 (Scanner : in out Scanner_Record)
+   is
+      Cur : constant Character := Current_Char (Scanner);
+   begin
+      if Cur /= ']' then
+         --  Error ("Missing ']' on precedence mark.");
+         Error (E007);
+      end if;
+
+      Scanner.State := WAITING_FOR_DECL_OR_RULE;
+
+   end Do_State_Precedence_Mark_2;
+
+
+   procedure Do_State_Waiting_For_Decl_Keyword (Lemon   : in out Lemon_Record;
+                                                Scanner : in out Scanner_Record)
+   is
+      Cur : constant Character := Current_Token_Char (Scanner);
+      X   : constant String    := Current_Token_Line (Scanner);
+   begin
+      if
+        Cur in 'a' .. 'z' or
+        Cur in 'A' .. 'Z'
+      then
+         Scanner.Decl_Keyword      := To_Unbounded_String (X);
+         Scanner.Decl_Arg_Slot     := null;
+--         Scanner.Decl_Lineno_Slot  := null;
+         Scanner.Insert_Line_Macro := True;
+
+         Scanner.State := WAITING_FOR_DECL_ARG;
+
+         if X = "name" then
+            Scanner.Decl_Arg_Slot := Lemon.Names.Name'Access;
+            Scanner.Insert_Line_Macro := False;
+
+         elsif X = "include" then
+            Scanner.Decl_Arg_Slot := Lemon.Names.Include'Access;
+
+         elsif X = "code" then
+            Scanner.Decl_Arg_Slot := Lemon.Names.Extra_Code'Access;
+
+         elsif X = "token_destructor" then
+            Scanner.Decl_Arg_Slot := Lemon.Names.Token_Dest'Access;
+
+         elsif X = "default_destructor" then
+            Scanner.Decl_Arg_Slot := Lemon.Names.Var_Dest'Access;
+
+         elsif Declaration_Is (X, "token_prefix") then
+            Ada.Text_IO.Put_Line ("X = 'token_prefix'");
+            Scanner.Decl_Arg_Slot := Lemon.Names.Token_Prefix'Access;
+            Scanner.Insert_Line_Macro := False;
+
+         elsif X = "syntax_error" then
+            Scanner.Decl_Arg_Slot := Lemon.Names.Error'Access;
+
+         elsif X = "parse_accept" then
+            Scanner.Decl_Arg_Slot := Lemon.Names.C_Accept'Access;
+
+         elsif X = "parse_failure" then
+            Scanner.Decl_Arg_Slot := Lemon.Names.Failure'Access;
+
+         elsif X = "stack_overflow" then
+            Scanner.Decl_Arg_Slot := Lemon.Names.Overflow'Access;
+
+         elsif X = "extra_argument" then
+            Scanner.Decl_Arg_Slot     := Lemon.Names.ARG2'Access;
+            Scanner.Insert_Line_Macro := False;
+
+         elsif X = "extra_context" then
+            Scanner.Decl_Arg_Slot     := Lemon.Names.CTX2'Access;
+            Scanner.Insert_Line_Macro := False;
+
+         elsif X = "token_type" then
+            Scanner.Decl_Arg_Slot     := Lemon.Names.Token_Type'Access;
+            Scanner.Insert_Line_Macro := False;
+
+         elsif X = "default_type" then
+            Scanner.Decl_Arg_Slot     := Lemon.Names.Var_Type'Access;
+            Scanner.Insert_Line_Macro := False;
+
+         elsif X = "stack_size" then
+            Scanner.Decl_Arg_Slot     := Lemon.Names.Stack_Size'Access;
+            Scanner.Insert_Line_Macro := False;
+
+         elsif X = "start_symbol" then
+            Scanner.Decl_Arg_Slot     := Lemon.Names.Start'Access;
+            Scanner.Insert_Line_Macro := False;
+
+         elsif X = "left" then
+            Scanner.Prec_Counter := Scanner.Prec_Counter + 1;
+            Scanner.Decl_Assoc   := Symbols.Left;
+            Scanner.State   := WAITING_FOR_PRECEDENCE_SYMBOL;
+
+         elsif X = "right" then
+            Scanner.Prec_Counter := Scanner.Prec_Counter + 1;
+            Scanner.Decl_Assoc   := Symbols.Right;
+            Scanner.State   := WAITING_FOR_PRECEDENCE_SYMBOL;
+
+         elsif X = "nonassoc" then
+            Scanner.Prec_Counter := Scanner.Prec_Counter + 1;
+            Scanner.Decl_Assoc   := Symbols.None;
+            Scanner.State   := WAITING_FOR_PRECEDENCE_SYMBOL;
+
+         elsif X = "destructor" then
+            Scanner.State := WAITING_FOR_DESTRUCTOR_SYMBOL;
+
+         elsif X = "type" then
+            Scanner.State := WAITING_FOR_DATATYPE_SYMBOL;
+
+         elsif X = "fallback" then
+            Scanner.Fallback := null;
+            Scanner.State := WAITING_FOR_FALLBACK_ID;
+
+         elsif X = "token" then
+            Scanner.State := WAITING_FOR_TOKEN_NAME;
+
+         elsif X = "wildcard" then
+            Scanner.State := WAITING_FOR_WILDCARD_ID;
+
+         elsif X = "token_class" then
+            Scanner.State := WAITING_FOR_CLASS_ID;
+
+         else
+            Error (E203, (1 => To_Unbounded_String (X)),
+                   Line_Number => Scanner.Token_Lineno);
+            Scanner.State := RESYNC_AFTER_DECL_ERROR;
+         end if;
+      else
+         Error (E204, (1 => To_Unbounded_String (X)), Line_Number => Scanner.Token_Lineno);
+         Scanner.State := RESYNC_AFTER_DECL_ERROR;
+      end if;
+
+   end Do_State_Waiting_For_Decl_Keyword;
+
+
+   procedure Do_State_In_RHS (Lemon  : in out Lemon_Record;
+                              Scanner : in out Scanner_Record)
+   is
+      Cur : constant Character := Current_Char (Scanner);
+      X   : constant String    := Current_Line (Scanner);
+   begin
+      if Cur = '.' then
+         declare
+            use Symbols;
+            Rule : constant access Rules.Rule_Record := new Rules.Rule_Record;
+         begin
+            --  Rp := (struct rule *)calloc( sizeof(struct rule) +
+            --                               sizeof(struct symbol*)*psp->nrhs +
+            --                               sizeof(char*)*psp->nrhs, 1);
+            --               RP := new Rules.Rule_Record;
+            --  if Rp = 0 then
+            --   ErrorMsg(psp->filename,psp->tokenlineno,
+            --            "Can't allocate enough memory for this rule.");
+            --   psp->errorcnt++;
+            --   Psp.Prev_Rule := 0;
+            --  else
+            Rule.Rule_Line := Scanner.Token_Lineno;
+            --  Rp.rhs      := (struct symbol**)&rp[1];
+            --  Rp.rhsalias := (const char**)&(rp->rhs[psp->nrhs]);
+
+            --                    for I in 0 .. PSP.N_RHS - 1 loop
+            --                       RP.RHS       (I) := PSP.RHS   (I);
+            --                       RP.RHS_Alias (I) := PSP.Alias (I);
+            --                       if RP.RHS_Alias (I) /= null then
+            --                          RP.RHS (I).Content := True;
+            --                       end if;
+            --                    end loop;
+
+            declare
+               subtype Index_Range is Positive range
+                 Scanner.RHS.First_Index .. Scanner.RHS.Last_Index;
+            begin
+               for I in Index_Range loop
+                  Rule.RHS       (I) := Scanner.RHS   (I);
+                  --  XXX                       RP.RHS_Alias (I) := PSP.Alias.Element (I);
+                  --  if Symbols."/=" (RP.RHS_Alias (I), Null_Unbounded_String) then
+                  --                        declare
+                  --                           use
+                  --                        begin
+                  --  if RP.RHS_Alias (I) /= Null_Unbounded_String then
+                  if Length (Rule.RHS_Alias (I)) /= 0 then
+                     Rule.RHS (I).Content := True;
+                  end if;
+                  --                        end;
+               end loop;
+            end;
+
+            Rule.LHS        := Scanner.LHS.First_Element;
+            Rule.LHS_Alias  := Scanner.LHS_Alias.First_Element;
+            Rule.Code       := Null_Code; --  New Unbounded_String'(Null_Unbounded_String);
+            Rule.No_Code    := True;
+            Rule.Prec_Sym   := null;
+
+            Lemon.N_Rule  := Lemon.N_Rule + 1;
+
+            Rule.Index      := Lemon.N_Rule;
+--            Rule.Next_LHS   := Rule.LHS.Rule;
+--            Rule.LHS.Rule   := Rule;
+            Rule.Next       := null;
+            if Scanner.First_Rule = null then
+               Scanner.First_Rule := Rule;
+               Scanner.Last_Rule  := Rule;
+            else
+               Scanner.Last_Rule.Next := Rule;
+               Scanner.Last_Rule      := Rule;
+            end if;
+            Scanner.Prev_Rule := Rule;
+            --  end if;
+         end;
+         Scanner.State := WAITING_FOR_DECL_OR_RULE;
+
+      elsif
+        Cur in 'a' .. 'z' or
+        Cur in 'A' .. 'Z'
+      then
+         Scanner.RHS  .Append (Symbols.Symbol_New (X));
+         Scanner.Alias.Append (Null_Unbounded_String);
+         --            end if;
+
+      elsif
+        (Cur = '|' or Cur = '/') and not
+        Scanner.RHS.Is_Empty
+      then
+         declare
+            use Symbols;
+            Symbol : Symbols.Symbol_Access := Scanner.RHS.Last_Element;
+         begin
+            if Symbol.Kind /= Symbols.Multi_Terminal then
+               declare
+                  Orig_Symbol : constant Symbol_Access := Symbol;
+               begin
+                  Symbol := new Symbol_Record;
+                  Symbol.Kind    := Symbols.Multi_Terminal;
+                  Symbol.Sub_Sym := Symbol_Vectors.Empty_Vector;
+                  Symbol.Sub_Sym.Append (Orig_Symbol);
+
+                  Symbol.Name := Orig_Symbol.Name;
+
+                  Scanner.RHS.Append (Symbol);
+               end;
+            end if;
+
+            Symbol.Sub_Sym.Append
+              (Symbols.Symbol_New (X (X'First + 1 .. X'Last)));
+
+            if
+              X (X'First + 1) in 'a' .. 'z' or
+              To_String (Symbol.Sub_Sym.First_Element.Name) (1) in 'a' .. 'z'
+            then
+               Errors.Error (E201, Line_Number => Scanner.Token_Lineno);
+            end if;
+         end;
+
+      elsif Cur = '(' and not Scanner.RHS.Is_Empty then
+         Scanner.State := RHS_ALIAS_1;
+
+      else
+         Error (E202, (1 => To_Unbounded_String (X)));
+         Scanner.State := RESYNC_AFTER_RULE_ERROR;
+      end if;
+   end Do_State_In_RHS;
+
+
+   procedure Do_State_Waiting_For_Decl_Arg (Lemon   : in     Lemon_Record;
+                                            Scanner : in out Scanner_Record)
+   is
+      Cur : constant Character := Current_Token_Char (Scanner);
+      X   : constant String    := Current_Token_Line (Scanner);
+   begin
+      if
+        Cur = '{' or
+        Cur = '"' or
+        Cur in 'a' .. 'z' or
+        Cur in 'A' .. 'Z' or
+        Cur in '0' .. '9'
+      then
+         declare
+--          const char *zOld, *zNew;
+--          char *zBuf, *z;
+--          int nOld, n, nLine = 0, nNew, nBack;
+            N    : Integer;
+            Back : Integer;
+            New_String     : constant String := X;
+            Old_String     : Unbounded_String;
+            Buf_String     : Unbounded_String;
+            Z              : Unbounded_String;
+            New_First      : Positive := New_String'First;
+            Old_Length     : Natural;
+            Buf_Length     : Natural;
+            Z_Pos          : Natural;
+            Add_Line_Macro : Boolean;
+            Line           : Unbounded_String;
+         begin
+            if
+              New_String (New_First) = '"' or
+              New_String (New_First) = '{'
+            then
+               New_First := New_First + 1;
+            end if;
+            --  nNew := LemonStrlen (zNew);
+
+            if Scanner.Decl_Arg_Slot /= null then  --  A_Declaration (Null_Unbounded_String) then
+               Old_String := Scanner.Decl_Arg_Slot.all;
+            else
+               Old_String := To_Unbounded_String ("");
+            end if;
+            --  nOld = lemonStrlen(zOld);
+            N := Old_Length + New_First + 20;
+
+            Add_Line_Macro :=
+              --  not Scanner.Gp.No_Linenos_Flag and
+              not Lemon.No_Linenos_Flag and
+              Scanner.Insert_Line_Macro and
+              (Scanner.Decl_Lineno_Slot = null or
+                 Scanner.Decl_Lineno_Slot.all /= 0);
+
+            --
+            --  Add line macro
+            --
+            if Add_Line_Macro then
+               Z := Scanner.File_Name;
+               Z_Pos := 1;
+               Back  := 0;
+               while Z_Pos <= Length (Z) loop
+                  if Element (Z, Z_Pos) = '\' then
+                     Back := Back + 1;
+                  end if;
+                  Z_Pos := Z_Pos + 1;
+               end loop;
+               Line := To_Unbounded_String ("#line ");
+               Append (Line, Positive'Image (Scanner.Token_Lineno));
+               Append (Line, " ");
+               N := N + Length (Line) + Length (Scanner.File_Name) + Back;
+            end if;
+
+            --  Scanner.Decl_Arg_Slot = (char *) realloc(Scanner.Decl_Arg_Slot, n);
+            Buf_String := Scanner.Decl_Arg_Slot.all; --   + nOld;
+            if Add_Line_Macro then
+               if
+                 Old_Length /= 0 and
+                 Element (Buf_String, -1) /= ASCII.LF
+               then
+                  --  *(zBuf++) := ASCII.NL;
+                  Append (Buf_String, ASCII.LF);
+               end if;
+               Buf_String := Line;
+               Buf_String := Buf_String; -- + nLine;
+               --  *(zBuf++) = '"';
+               Append (Buf_String, """");
+               Append (Z, Scanner.File_Name);
+               while Z_Pos <= Length (Z) loop
+                  if Element (Z, Z_Pos) = '\' then
+                     Append (Buf_String, '\');
+                  end if;
+                  --  *(zBuf++) = *z;
+                  Append (Buf_String, Element (Z, Z_Pos));
+                  Z_Pos := Z_Pos + 1;
+               end loop;
+               --  *(zBuf++) := '"';
+               --  *(zBuf++) := ASCII.NL;
+               Append (Buf_String, '"');
+               Append (Buf_String, ASCII.LF);
+            end if;
+            if
+              Scanner.Decl_Lineno_Slot /= null and
+              Scanner.Decl_Lineno_Slot.all = 0
+            then
+               Scanner.Decl_Lineno_Slot.all := Scanner.Token_Lineno;
+            end if;
+            Buf_String := To_Unbounded_String (New_String);
+            Buf_String := Buf_String; --   + nNew;
+            --  *zBuf := 0;
+            Scanner.State := WAITING_FOR_DECL_OR_RULE;
+         end;
+      else
+         Errors.Error
+           (E213, Line_Number => Scanner.Token_Lineno,
+            Arguments => (1 => Scanner.Decl_Keyword,
+                          2 => To_Unbounded_String (X)));
+
+         Scanner.State := RESYNC_AFTER_DECL_ERROR;
+      end if;
+
+   end  Do_State_Waiting_For_Decl_Arg;
 
 
 end Scanner_Parsers;

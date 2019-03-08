@@ -26,4 +26,19 @@ package body Scanner_Data is
    end Current_Line;
 
 
+   function Current_Token_Char (Scanner : in Scanner_Record)
+                               return Character
+   is
+   begin
+      return Scanner.Item (Scanner.Token);
+   end Current_Token_Char;
+
+
+   function Current_Token_Line (Scanner : in Scanner_Record)
+                               return String
+   is
+   begin
+      return Scanner.Item (Scanner.Token .. Scanner.Last);
+   end Current_Token_Line;
+
 end Scanner_Data;

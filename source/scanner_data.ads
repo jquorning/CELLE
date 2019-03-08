@@ -129,7 +129,10 @@ package Scanner_Data is
          --  Decl_Arg_Slot : access Interfaces.C.Strings.chars_ptr;
          --    char **declargslot;                --  Where the declaration argument should be put
          Insert_Line_Macro : Boolean;             --  Add #line before declaration insert
-         Decl_Lineno_Slot : access Integer;       --  Where to write declaration line number
+
+         Decl_Lineno_Slot  : not null access Integer := new Integer'(0);
+         --  Where to write declaration line number
+
          Decl_Assoc   : E_Assoc;                  --  Assign this association to decl arguments
          Prec_Counter : Integer;                  --  Assign this precedence to decl arguments
          First_Rule   : access Rules.Rule_Record; --  Pointer to first rule in the grammar
@@ -139,6 +142,7 @@ package Scanner_Data is
          --  From Line_Record
          Current : Positive;                      --  Position in Item of examined character
          First   : Positive := Positive'First;    --  First position in Item
+         Token   : Positive := Positive'First;
          Last    : Natural  := Natural'First;     --  Last position in Item
          Item    : String (1 .. Max_Line_Length); --  Full line read from input
          Mode    : Mode_Identifier;               --  Mode
@@ -152,6 +156,14 @@ package Scanner_Data is
 
    function Current_Line (Scanner : in Scanner_Record)
                          return String;
+   --  returns the current line to parse
+
+   function Current_Token_Char (Scanner : in Scanner_Record)
+                               return Character;
+   --  Returns current token character to parse
+
+   function Current_Token_Line (Scanner : in Scanner_Record)
+                               return String;
    --  returns the current line to parse
 
 end Scanner_Data;

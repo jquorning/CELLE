@@ -96,7 +96,9 @@ package body Errors is
       E209 => -"%%token_class must be followed by an identifier: '%1'",
       E210 => -"Symbol '%1' already used",
       E211 => -"%%wildcard argument '%1' should be a token",
-      E212 => -"Extra wildcard to token: '%1'");
+      E212 => -"Extra wildcard to token: '%1'",
+      E213 => -"Illegal argument to %%%1: %2"
+     );
 
 
    procedure Error
