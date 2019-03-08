@@ -38,10 +38,6 @@ package body Scanner_Parsers is
    procedure Advance_Until_After_Space (Scanner : in out Scanner_Record);
    --  Advance Scanner by until after space
 
-   function Declaration_Is (X    : in String;
-                            Item : in String) return Boolean;
-   --  Return True when Item is a Declaration
-
    procedure Do_State_Initialize (Lemon   : in out Lemon_Record;
                                   Scanner : in out Scanner_Record);
    procedure Do_State_Waiting_For_Decl_Or_Rule (Lemon   : in out Lemon_Record;
@@ -77,17 +73,6 @@ package body Scanner_Parsers is
          Advance (Scanner, 1);
       end loop;
    end Advance_Until_After_Space;
-
-
-   function Declaration_Is (X    : in String;
-                            Item : in String) return Boolean
-   is
-      Length : constant Natural := Natural'Min (X'Length, Item'Length);
-      Left   : String renames X    (X'First    .. X'First    + Length - 1);
-      Right  : String renames Item (Item'First .. Item'First + Length - 1);
-   begin
-      return Left = Right;
-   end Declaration_Is;
 
 
    procedure Do_State (Lemon   : in out Lemon_Record;
@@ -434,7 +419,6 @@ package body Scanner_Parsers is
                               Scanner : in out Scanner_Record)
    is
    begin
-
       loop
          Do_State (Lemon   => Lemon,
                    Scanner => Scanner);
@@ -554,8 +538,20 @@ package body Scanner_Parsers is
    procedure Do_State_Waiting_For_Decl_Keyword (Lemon   : in out Lemon_Record;
                                                 Scanner : in out Scanner_Record)
    is
+      function Match (Item : in String) return Boolean;
+
       Cur : constant Character := Current_Token_Char (Scanner);
       X   : constant String    := Current_Token_Line (Scanner);
+
+      function Match (Item : in String) return Boolean
+      is
+         Length : constant Natural := Natural'Min (X'Length, Item'Length);
+         Left   : String renames X    (X'First    .. X'First    + Length - 1);
+         Right  : String renames Item (Item'First .. Item'First + Length - 1);
+      begin
+         return Left = Right;
+      end Match;
+
    begin
       if
         Cur in 'a' .. 'z' or
@@ -568,95 +564,95 @@ package body Scanner_Parsers is
 
          Scanner.State := WAITING_FOR_DECL_ARG;
 
-         if X = "name" then
+         if Match ("name") then
             Scanner.Decl_Arg_Slot := Lemon.Names.Name'Access;
             Scanner.Insert_Line_Macro := False;
 
-         elsif X = "include" then
+         elsif Match ("include") then
             Scanner.Decl_Arg_Slot := Lemon.Names.Include'Access;
 
-         elsif X = "code" then
+         elsif Match ("code") then
             Scanner.Decl_Arg_Slot := Lemon.Names.Extra_Code'Access;
 
-         elsif X = "token_destructor" then
+         elsif Match ("token_destructor") then
             Scanner.Decl_Arg_Slot := Lemon.Names.Token_Dest'Access;
 
-         elsif X = "default_destructor" then
+         elsif Match ("default_destructor") then
             Scanner.Decl_Arg_Slot := Lemon.Names.Var_Dest'Access;
 
-         elsif Declaration_Is (X, "token_prefix") then
+         elsif Match ("token_prefix") then
             Scanner.Decl_Arg_Slot     := Lemon.Names.Token_Prefix'Access;
             Scanner.Insert_Line_Macro := False;
             Advance_Until_After_Space (Scanner);
 
-         elsif X = "syntax_error" then
+         elsif Match ("syntax_error") then
             Scanner.Decl_Arg_Slot := Lemon.Names.Error'Access;
 
-         elsif X = "parse_accept" then
+         elsif Match ("parse_accept") then
             Scanner.Decl_Arg_Slot := Lemon.Names.C_Accept'Access;
 
-         elsif X = "parse_failure" then
+         elsif Match ("parse_failure") then
             Scanner.Decl_Arg_Slot := Lemon.Names.Failure'Access;
 
-         elsif X = "stack_overflow" then
+         elsif Match ("stack_overflow") then
             Scanner.Decl_Arg_Slot := Lemon.Names.Overflow'Access;
 
-         elsif X = "extra_argument" then
+         elsif Match ("extra_argument") then
             Scanner.Decl_Arg_Slot     := Lemon.Names.ARG2'Access;
             Scanner.Insert_Line_Macro := False;
 
-         elsif X = "extra_context" then
+         elsif Match ("extra_context") then
             Scanner.Decl_Arg_Slot     := Lemon.Names.CTX2'Access;
             Scanner.Insert_Line_Macro := False;
 
-         elsif X = "token_type" then
+         elsif Match ("token_type") then
             Scanner.Decl_Arg_Slot     := Lemon.Names.Token_Type'Access;
             Scanner.Insert_Line_Macro := False;
 
-         elsif X = "default_type" then
+         elsif Match ("default_type") then
             Scanner.Decl_Arg_Slot     := Lemon.Names.Var_Type'Access;
             Scanner.Insert_Line_Macro := False;
 
-         elsif X = "stack_size" then
+         elsif Match ("stack_size") then
             Scanner.Decl_Arg_Slot     := Lemon.Names.Stack_Size'Access;
             Scanner.Insert_Line_Macro := False;
 
-         elsif X = "start_symbol" then
+         elsif Match ("start_symbol") then
             Scanner.Decl_Arg_Slot     := Lemon.Names.Start'Access;
             Scanner.Insert_Line_Macro := False;
 
-         elsif X = "left" then
+         elsif Match ("left") then
             Scanner.Prec_Counter := Scanner.Prec_Counter + 1;
             Scanner.Decl_Assoc   := Symbols.Left;
             Scanner.State   := WAITING_FOR_PRECEDENCE_SYMBOL;
 
-         elsif X = "right" then
+         elsif Match ("right") then
             Scanner.Prec_Counter := Scanner.Prec_Counter + 1;
             Scanner.Decl_Assoc   := Symbols.Right;
             Scanner.State   := WAITING_FOR_PRECEDENCE_SYMBOL;
 
-         elsif X = "nonassoc" then
+         elsif Match ("nonassoc") then
             Scanner.Prec_Counter := Scanner.Prec_Counter + 1;
             Scanner.Decl_Assoc   := Symbols.None;
             Scanner.State   := WAITING_FOR_PRECEDENCE_SYMBOL;
 
-         elsif X = "destructor" then
+         elsif Match ("destructor") then
             Scanner.State := WAITING_FOR_DESTRUCTOR_SYMBOL;
 
-         elsif X = "type" then
+         elsif Match ("type") then
             Scanner.State := WAITING_FOR_DATATYPE_SYMBOL;
 
-         elsif X = "fallback" then
+         elsif Match ("fallback") then
             Scanner.Fallback := null;
             Scanner.State := WAITING_FOR_FALLBACK_ID;
 
-         elsif X = "token" then
+         elsif Match ("token") then
             Scanner.State := WAITING_FOR_TOKEN_NAME;
 
-         elsif X = "wildcard" then
+         elsif Match ("wildcard") then
             Scanner.State := WAITING_FOR_WILDCARD_ID;
 
-         elsif X = "token_class" then
+         elsif Match ("token_class") then
             Scanner.State := WAITING_FOR_CLASS_ID;
 
          else

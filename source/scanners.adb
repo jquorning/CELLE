@@ -65,6 +65,7 @@ package body Scanners is
       use DK8543.Strings;
    begin
       Scanner.First := 1;
+      Scanner.Token := Scanner.First;
       Ada.Text_IO.Get_Line (File, Scanner.Item, Last => Scanner.Last);
       Scanner.Token_Lineno := Scanner.Token_Lineno + 1;
       Utility.Strip_End_Of_Line (From  => Scanner.Item,
