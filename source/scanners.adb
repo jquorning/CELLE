@@ -15,7 +15,7 @@ with DK8543.Text_IO;
 with DK8543.Strings.Utility;
 
 with Scanner_Data;
-with Scanner_Errors;
+--  with Scanner_Errors;
 with Scanner_Parsers;
 
 with Errors;
@@ -43,6 +43,11 @@ package body Scanners is
                                       Scanner : in out Scanner_Record);
 
    procedure Parse_Quoted_Identifier (Scanner : in out Scanner_Record);
+
+   procedure Parse_One_Token (Lemon   : in out Lime.Lemon_Record;
+                              Scanner : in out Scanner_Record);
+   --  Parse a single Token.
+
 
    --
    --
@@ -174,7 +179,7 @@ package body Scanners is
       Ada.Text_IO.Put (Scanner.Item (Scanner.First .. Scanner.Last));
       Ada.Text_IO.New_Line;
 
-      Scanner_Parsers.Parse_One_Token (Lemon, Scanner);
+      Parse_One_Token (Lemon, Scanner);
 
    end Parse_Current_Character;
 
@@ -192,7 +197,7 @@ package body Scanners is
 
    exception
 
-      when Constraint_Error =>  Scanner_Errors.Error (E101);
+      when Constraint_Error =>  Errors.Parser_Error (E101);
 
    end Parse_Quoted_Identifier;
 
@@ -242,7 +247,7 @@ package body Scanners is
          case Scanner.Mode is
 
             when Quoted_Identifier =>
-               Scanner_Errors.Error (E102);
+               Errors.Parser_Error (E102);
 
             when others =>
                raise;
@@ -287,7 +292,7 @@ package body Scanners is
       Scanner.State        := INITIALIZE;
 
       --  Begin by opening the input file
-      Scanner_Errors.Set_File_Name (Scanner.File_Name);
+      Errors.Set_File_Name (Scanner.File_Name);
       Open (Input_File, In_File, To_String (Scanner.File_Name));
 
       --  Make an initial pass through the file to handle %ifdef and %ifndef.
@@ -339,10 +344,24 @@ package body Scanners is
          raise;
 
       when others =>
-         Scanner_Errors.Error (E103);
+         Errors.Parser_Error (E103);
          raise;
 
    end Parse;
+
+
+   procedure Parse_One_Token (Lemon   : in out Lime.Lemon_Record;
+                              Scanner : in out Scanner_Record)
+   is
+   begin
+      Scanner.Done := False;
+      loop
+         Scanner_Parsers.Do_State
+           (Lemon   => Lemon,
+            Scanner => Scanner);
+         exit when Scanner.Done;
+      end loop;
+   end Parse_One_Token;
 
 
 end Scanners;

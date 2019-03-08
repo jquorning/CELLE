@@ -28,33 +28,6 @@ package body Errors is
          Line_Number, Text);
    end Error_Plain;
 
---     procedure Error_X1 (File_Name : in String;
---                         Start     : in String;
---                         Name      : in String)
---     is
---        use DK8543.Errors;
---     begin
---        Error
---          (File_Name, 0,
---           "The specified start symbol '" & Start &
---             "' is not in a nonterminal of the grammar.  '" &
---             Name & "' will be used as the start " &
---             "symbol instead.");
---     end Error_X1;
-
-
---     procedure Error_X2 (File_Name   : in String;
---                         Name        : in String)
---     is
---        use DK8543.Errors;
---     begin
---        Error
---          (File_Name, 0,
---           "The start symbol '" & Name & "' occurs on " &
---             "the right-hand side of a rule. This will " &
---             "result in a parser which does not work properly.");
---     end Error_X2;
-
 
    type String_Access is access all String;
 
@@ -101,10 +74,10 @@ package body Errors is
      );
 
 
-   procedure Error
+   procedure Parser_Error
      (Kind        : in K_Error_Parse_One_Token;
-      Line_Number : in Natural;
-      Arguments   : in Argument_List := Null_Argument_List)
+      Arguments   : in Argument_List           := Null_Argument_List;
+      Line_Number : in Natural                 := Start_Line)
    is
       use Ada.Strings;
 
@@ -132,34 +105,34 @@ package body Errors is
                            File_Name   => File_Name,
                            Line_Number => Line_Number,
                            Message     => Kind_Image & To_String (Message));
-   end Error;
+      Error_Count := Error_Count + 1;
+   end Parser_Error;
+
+
+   procedure Set_File_Name
+     (File_Name : in Ada.Strings.Unbounded.Unbounded_String)
+   is
+   begin
+      Errors.Default_File_Name := File_Name;
+   end Set_File_Name;
 
 
 --     procedure Error (Kind        : in K_Error_Parse_One_Token;
---                      Line_Number : in Natural)
+--                      Arguments   : in Argument_List;
+--                      Line_Number : in Natural             := Start_Line)
 --     is
 --     begin
---        Error_2 (Kind, "", "", Line_Number);
+--        Errors.Error (Kind, Line_Number, Arguments);
+--        Error_Count := Error_Count + 1;
 --     end Error;
 
 
---     procedure Error_1 (Kind        : in K_Error_Parse_One_Token;
---                        Argument    : in String;
---                        Line_Number : in Natural)
+--     procedure Error (Kind        : in K_Error_Parse_One_Token;
+--                      Line_Number : in Natural                 := Start_Line)
 --     is
 --     begin
---        Error_2 (Kind, Argument, "", Line_Number);
---     end Error_1;
-
-
---     procedure Error_2 (Kind        : in K_Error_Parse_One_Token;
---                        Argument_1  : in String;
---                        Argument_2  : in String;
---                        Line_Number : in Natural)
---     is
---     begin
---        Error (To_String (Default_File_Name), Kind, Argument_1, Argument_2, Line_Number);
---     end Error_2;
+--        Error (Kind, Null_Argument_List, Line_Number);
+--     end Error;
 
 
 end Errors;

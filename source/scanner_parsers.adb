@@ -11,7 +11,7 @@ with Ada.Text_IO;
 with Ada.Strings.Unbounded;
 
 --  with Scanner_Data;
-with Scanner_Errors;
+--  with Scanner_Errors;
 
 with Symbols;
 with Errors;
@@ -21,15 +21,6 @@ package body Scanner_Parsers is
 
    use Lime;
    use Scanner_Data;
-
-   procedure Do_State (Lemon   : in out Lemon_Record;
-                       Scanner : in out Scanner_Record);
-
-   use Ada.Strings.Unbounded;
-
-   use Errors;
-   use Scanner_Errors;
-   use Rules;
 
    procedure Advance (Scanner : in out Scanner_Record;
                       By      : in     Natural);
@@ -75,6 +66,10 @@ package body Scanner_Parsers is
    end Advance_Until_After_Space;
 
 
+   use Ada.Strings.Unbounded;
+   use Errors;
+
+
    procedure Do_State (Lemon   : in out Lemon_Record;
                        Scanner : in out Scanner_Record)
    is
@@ -103,9 +98,9 @@ package body Scanner_Parsers is
             declare
                use Symbols;
             begin
---               Error (E008, (1 => To_Unbounded_String (From_Key (Scanner.LHS.Name))));
-               Error (E008, (1 => To_Unbounded_String
-                               (From_Key (Scanner.LHS.First_Element.Name))));
+               Parser_Error
+                 (E008, (1 => To_Unbounded_String
+                           (From_Key (Scanner.LHS.First_Element.Name))));
                Scanner.State := RESYNC_AFTER_RULE_ERROR;
             end;
          end if;
@@ -121,10 +116,10 @@ package body Scanner_Parsers is
             Scanner.LHS_Alias.Append (To_Alias (X));
             Scanner.State := LHS_ALIAS_2;
          else
-            Error (E009, (1 => To_Unbounded_String (X),
---                          2 => To_Unbounded_String (Symbols.From_Key (Scanner.LHS.Name))));
-                          2 => To_Unbounded_String
-                            (Symbols.From_Key (Scanner.LHS.First_Element.Name))));
+            Parser_Error
+              (E009, (1 => To_Unbounded_String (X),
+                      2 => To_Unbounded_String
+                        (Symbols.From_Key (Scanner.LHS.First_Element.Name))));
             Scanner.State := RESYNC_AFTER_RULE_ERROR;
          end if;
 
@@ -134,7 +129,7 @@ package body Scanner_Parsers is
          else
 --            Error (E010, (1 => To_Unbounded_String
 --                            (Interfaces.C.Strings.Value (Scanner.LHS_Alias))));
-            Error (E010, (1 => Scanner.LHS_Alias.First_Element));
+            Parser_Error (E010, (1 => Scanner.LHS_Alias.First_Element));
             Scanner.State := RESYNC_AFTER_RULE_ERROR;
          end if;
 
@@ -143,7 +138,7 @@ package body Scanner_Parsers is
          if X (X'First .. X'First + 2) = "::=" then
             Scanner.State := IN_RHS;
          else
-            Error (E011, (1 => To_Unbounded_String
+            Parser_Error (E011, (1 => To_Unbounded_String
 --                            (Symbols.From_Key (Scanner.LHS.Name)),
                             (Symbols.From_Key (Scanner.LHS.First_Element.Name)),
 --                          2 => To_Unbounded_String
@@ -165,9 +160,11 @@ package body Scanner_Parsers is
             Scanner.State   := RHS_ALIAS_2;
 
          else
-            Error (E012, (1 => To_Unbounded_String (X),
-                          2 => To_Unbounded_String
-                            (Symbols.From_Key (Scanner.RHS.Last_Element.Name))));
+            Parser_Error
+              (E012,
+               (1 => To_Unbounded_String (X),
+                2 => To_Unbounded_String
+                  (Symbols.From_Key (Scanner.RHS.Last_Element.Name))));
             Scanner.State := RESYNC_AFTER_RULE_ERROR;
 
          end if;
@@ -179,7 +176,7 @@ package body Scanner_Parsers is
             Scanner.State := IN_RHS;
 
          else
-            Error (E013, (1 => Scanner.LHS_Alias.First_Element));
+            Parser_Error (E013, (1 => Scanner.LHS_Alias.First_Element));
             Scanner.State := RESYNC_AFTER_RULE_ERROR;
 
          end if;
@@ -193,7 +190,7 @@ package body Scanner_Parsers is
            X (X'First) not in 'a' .. 'z' and
            X (X'First) not in 'A' .. 'Z'
          then
-            Errors.Error (E205, Line_Number => Scanner.Token_Lineno);
+            Parser_Error (E205, Line_Number => Scanner.Token_Lineno);
             Scanner.State := RESYNC_AFTER_DECL_ERROR;
          else
             declare
@@ -213,7 +210,7 @@ package body Scanner_Parsers is
            X (X'First) not in 'a' .. 'z' and
            X (X'First) not in 'A' .. 'Z'
          then
-            Errors.Error (E206, Line_Number => Scanner.Token_Lineno);
+            Parser_Error (E206, Line_Number => Scanner.Token_Lineno);
             Scanner.State := RESYNC_AFTER_DECL_ERROR;
          else
             declare
@@ -225,8 +222,9 @@ package body Scanner_Parsers is
                  Symbol /= null and then
                  Symbols."/=" (Symbol.Data_Type, Null_Unbounded_String)
                then
-                  Error (E207, (1 => To_Unbounded_String (X)),
-                         Line_Number => Scanner.Token_Lineno);
+                  Parser_Error (E207,
+                                Arguments   => (1 => To_Unbounded_String (X)),
+                                Line_Number => Scanner.Token_Lineno);
                   Scanner.State := RESYNC_AFTER_DECL_ERROR;
                else
                   if Symbol = null then
@@ -312,7 +310,7 @@ package body Scanner_Parsers is
             Scanner.State := WAITING_FOR_DECL_OR_RULE;
 
          elsif C not in 'A' .. 'Z' then
-            Errors.Error
+            Parser_Error
               (E211,
                Line_Number => Scanner.Token_Lineno,
                Arguments   => (1 => To_Unbounded_String (X)));
@@ -328,7 +326,7 @@ package body Scanner_Parsers is
                if Get_Wildcard (Lemon.Extra) = null then
                   Set_Wildcard (Lemon.Extra, Symbol);
                else
-                  Errors.Error
+                  Parser_Error
                     (E212,
                      Line_Number => Scanner.Token_Lineno,
                      Arguments   => (1 => To_Unbounded_String (X)));
@@ -343,14 +341,14 @@ package body Scanner_Parsers is
             use Symbols;
          begin
             if C not in 'a' .. 'z' then
-               Errors.Error
+               Parser_Error
                  (E209,
                   Line_Number => Scanner.Token_Lineno,
                   Arguments   => (1 => To_Unbounded_String (X)));
                Scanner.State := RESYNC_AFTER_DECL_ERROR;
 
             elsif Symbol_Find (X) /= null then
-               Errors.Error
+               Parser_Error
                  (E210,
                   Line_Number => Scanner.Token_Lineno,
                   Arguments   => (1 => To_Unbounded_String (X)));
@@ -390,7 +388,7 @@ package body Scanner_Parsers is
                Symbol.Sub_Sym.Append (Symbol_New (X (First .. X'Last)));
             end;
          else
-            Errors.Error
+            Parser_Error
               (E208,
                Line_Number => Scanner.Token_Lineno,
                Arguments   => (1 => To_Unbounded_String (X)));
@@ -415,19 +413,6 @@ package body Scanner_Parsers is
    end Do_State;
 
 
-   procedure Parse_One_Token (Lemon   : in out Lime.Lemon_Record;
-                              Scanner : in out Scanner_Record)
-   is
-   begin
-      loop
-         Do_State (Lemon   => Lemon,
-                   Scanner => Scanner);
-         exit when Scanner.Done;
-      end loop;
-      Scanner.Done := False;
-   end Parse_One_Token;
-
-
    procedure Do_State_Initialize (Lemon   : in out Lemon_Record;
                                   Scanner : in out Scanner_Record)
    is
@@ -445,6 +430,8 @@ package body Scanner_Parsers is
    procedure Do_State_Waiting_For_Decl_Or_Rule (Lemon   : in out Lemon_Record;
                                                 Scanner : in out Scanner_Record)
    is
+      use Rules;
+
       Cur : constant Character := Current_Char (Scanner);
       X   : constant String    := Current_Line (Scanner);
    begin
@@ -466,12 +453,12 @@ package body Scanner_Parsers is
       elsif Cur = '{' then
 
          if Scanner.Prev_Rule = null then
-            Error (E001);
+            Parser_Error (E001);
             --                  Error ("There is no prior rule upon which to attach the code " &
             --                           "fragment which begins on this line.");
 
          elsif Rules."/=" (Scanner.Prev_Rule.Code, Null_Code) then
-            Error (E002);
+            Parser_Error (E002);
             --                  Error ("Code fragment beginning on this line is not the first " &
             --                           "to follow the previous rule.");
 
@@ -487,7 +474,7 @@ package body Scanner_Parsers is
          Scanner.State := PRECEDENCE_MARK_1;
 
       else
-         Errors.Error
+         Parser_Error
            (E003,
             Line_Number => Scanner.Token_Lineno,
             Arguments   => (1 => To_Unbounded_String (X)));
@@ -502,15 +489,15 @@ package body Scanner_Parsers is
       X   : constant String    := Current_Line (Scanner);
    begin
       if Cur not in 'A' .. 'Z' then
-         Error (E004);
+         Parser_Error (E004);
          --  Error ("The precedence symbol must be a terminal.");
 
       elsif Scanner.Prev_Rule = null then
-         Error (E005);
+         Parser_Error (E005);
          --  Error ("There is no prior rule to assign precedence '[" & X & "]'.");
 
       elsif Scanner.Prev_Rule.Prec_Sym /= null then
-         Error (E006);
+         Parser_Error (E006);
          --  Error ("Precedence mark on this line is not the first " &
          --         "to follow the previous rule.");
 
@@ -530,7 +517,7 @@ package body Scanner_Parsers is
    begin
       if Cur /= ']' then
          --  Error ("Missing ']' on precedence mark.");
-         Error (E007);
+         Parser_Error (E007);
       end if;
 
       Scanner.State := WAITING_FOR_DECL_OR_RULE;
@@ -659,12 +646,17 @@ package body Scanner_Parsers is
             Scanner.State := WAITING_FOR_CLASS_ID;
 
          else
-            Error (E203, (1 => To_Unbounded_String (X)),
-                   Line_Number => Scanner.Token_Lineno);
+            Parser_Error
+              (E203,
+               Arguments   => (1 => To_Unbounded_String (X)),
+               Line_Number => Scanner.Token_Lineno);
             Scanner.State := RESYNC_AFTER_DECL_ERROR;
          end if;
       else
-         Error (E204, (1 => To_Unbounded_String (X)), Line_Number => Scanner.Token_Lineno);
+         Parser_Error
+           (E204,
+            Arguments   => (1 => To_Unbounded_String (X)),
+            Line_Number => Scanner.Token_Lineno);
          Scanner.State := RESYNC_AFTER_DECL_ERROR;
       end if;
 
@@ -680,7 +672,9 @@ package body Scanner_Parsers is
       if Cur = '.' then
          declare
             use Symbols;
-            Rule : constant access Rules.Rule_Record := new Rules.Rule_Record;
+            use Rules;
+
+            Rule : constant access Rule_Record := new Rule_Record;
          begin
             --  Rp := (struct rule *)calloc( sizeof(struct rule) +
             --                               sizeof(struct symbol*)*psp->nrhs +
@@ -785,7 +779,7 @@ package body Scanner_Parsers is
               X (X'First + 1) in 'a' .. 'z' or
               To_String (Symbol.Sub_Sym.First_Element.Name) (1) in 'a' .. 'z'
             then
-               Errors.Error (E201, Line_Number => Scanner.Token_Lineno);
+               Parser_Error (E201, Line_Number => Scanner.Token_Lineno);
             end if;
          end;
 
@@ -793,7 +787,7 @@ package body Scanner_Parsers is
          Scanner.State := RHS_ALIAS_1;
 
       else
-         Error (E202, (1 => To_Unbounded_String (X)));
+         Parser_Error (E202, (1 => To_Unbounded_String (X)));
          Scanner.State := RESYNC_AFTER_RULE_ERROR;
       end if;
    end Do_State_In_RHS;
@@ -914,10 +908,11 @@ package body Scanner_Parsers is
             Scanner.Done  := True;
          end;
       else
-         Errors.Error
-           (E213, Line_Number => Scanner.Token_Lineno,
-            Arguments => (1 => Scanner.Decl_Keyword,
-                          2 => To_Unbounded_String (X)));
+         Parser_Error
+           (E213,
+            Line_Number => Scanner.Token_Lineno,
+            Arguments   => (1 => Scanner.Decl_Keyword,
+                            2 => To_Unbounded_String (X)));
 
          Scanner.State := RESYNC_AFTER_DECL_ERROR;
       end if;

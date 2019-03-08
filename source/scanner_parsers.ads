@@ -12,9 +12,8 @@ with Scanner_Data;
 
 package Scanner_Parsers is
 
-   procedure Parse_One_Token (Lemon   : in out Lime.Lemon_Record;
-                              Scanner : in out Scanner_Data.Scanner_Record);
-   --  Parse a single Token.
-
+   procedure Do_State (Lemon   : in out Lime.Lemon_Record;
+                       Scanner : in out Scanner_Data.Scanner_Record);
+   --  The parser state machine
 
 end Scanner_Parsers;

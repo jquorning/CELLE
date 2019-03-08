@@ -13,15 +13,8 @@ package Errors is
 
    use Ada.Strings.Unbounded;
    Default_File_Name : Unbounded_String := To_Unbounded_String ("<null>");
-
-
---     procedure Error_X1 (Start     : in String;
---                        Name      : in String;
---                        File_Name : in Unbounded_String := Default_File_Name);
-
-
---     procedure Error_X2 (Name      : in String;
---                         File_Name : in Unbounded_String := Default_File_Name);
+   Start_Line        : Natural          := 0;
+   Error_Count       : Natural          := 0;
 
    type Argument_List is array (Positive range <>) of Unbounded_String;
 
@@ -79,28 +72,22 @@ package Errors is
    type K_Error_Parse_One_Token is new K_Error range E001 .. E213;
 
 
-   procedure Error
+--     procedure Error
+--       (Kind        : in K_Error_Parse_One_Token;
+--        Line_Number : in Natural;
+--        Arguments   : in Argument_List := Null_Argument_List);
+
+   procedure Set_File_Name
+     (File_Name : in Ada.Strings.Unbounded.Unbounded_String);
+
+   procedure Parser_Error
      (Kind        : in K_Error_Parse_One_Token;
-      Line_Number : in Natural;
---      Text        : in String;
-      Arguments   : in Argument_List := Null_Argument_List);
+      Arguments   : in Argument_List           := Null_Argument_List;
+      Line_Number : in Natural                 := Start_Line);
 
+--     procedure Error
+--       (Kind        : in K_Error_Parse_One_Token;
+--        Line_Number : in Natural                 := Start_Line);
 
---     procedure Error (Kind        : in K_Error_Parse_One_Token;
---                      Argument_1  : in String;
---                      Argument_2  : in String;
---                      Line_Number : in Natural);
-
---     procedure Error (Kind        : in K_Error_Parse_One_Token;
---                      Line_Number : in Natural);
-
---     procedure Error_1 (Kind        : in K_Error_Parse_One_Token;
---                        Argument    : in String;
---                        Line_Number : in Natural);
-
---     procedure Error_2 (Kind        : in K_Error_Parse_One_Token;
---                        Argument_1  : in String;
---                        Argument_2  : in String;
---                        Line_Number : in Natural);
 
 end Errors;

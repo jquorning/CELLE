@@ -15,14 +15,7 @@ with Rules;
 
 package Scanner_Data is
 
-   --
-   --  Line_Record
-   --
-
    Max_Line_Length : constant := 1000;   --  Should do for the most
-
---   subtype Extended_Pos is Natural      range 0 .. Max_Line_Length;
---   subtype Line_Pos     is Extended_Pos range 1 .. Extended_Pos'Last;
 
    type Mode_Identifier is
      (Root,             --  On outer level
@@ -32,21 +25,6 @@ package Scanner_Data is
       Identifier,       --  Identifier
       Quoted_Identifier --  Identifier in quortes
      );
-
-   use Ada.Strings.Unbounded;
---     type Line_Record is
---        record
---           Current : Line_Pos;            --  Position in Item of examined character
---           First   : Line_Pos     := Line_Pos'First;      --  First position in Item
---           Last    : Extended_Pos := Extended_Pos'First;  --  Last position in Item
---           Item    : String (Line_Pos);   --  Full line read from input
---           Mode    : Mode_Identifier;     --  Mode
---           Buffer  : Unbounded_String;    --  Holder for identifiers etc.
---        end record;
-
-   --
-   --  Scanner_Record
-   --
 
    type State_Preproc is
      (Root,
