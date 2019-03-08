@@ -487,7 +487,10 @@ package body Scanner_Parsers is
          Scanner.State := PRECEDENCE_MARK_1;
 
       else
-         Error (E003);
+         Errors.Error
+           (E003,
+            Line_Number => Scanner.Token_Lineno,
+            Arguments   => (1 => To_Unbounded_String (X)));
          --               Error ("Token '" & X & "' should be either '%%' or a nonterminal name.");
       end if;
    end Do_State_Waiting_For_Decl_Or_Rule;
@@ -873,13 +876,13 @@ package body Scanner_Parsers is
             --  Scanner.Decl_Arg_Slot = (char *) realloc(Scanner.Decl_Arg_Slot, n);
             Buf_String := Scanner.Decl_Arg_Slot.all; --   + nOld;
             if Add_Line_Macro then
-               if
-                 Old_Length /= 0 and
-                 Element (Buf_String, -1) /= ASCII.LF
-               then
-                  --  *(zBuf++) := ASCII.NL;
-                  Append (Buf_String, ASCII.LF);
-               end if;
+--               if
+--                 Old_Length /= 0 and
+--                 Element (Buf_String, -1) /= ASCII.LF
+--               then
+--                  --  *(zBuf++) := ASCII.NL;
+--                  Append (Buf_String, ASCII.LF);
+--               end if;
                Buf_String := Line;
                Buf_String := Buf_String; -- + nLine;
                --  *(zBuf++) = '"';

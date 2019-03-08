@@ -34,8 +34,7 @@ package body Scanners is
 
 
    procedure Parse_On_Mode (Lemon   : in out Lime.Lemon_Record;
-                            Scanner : in out Scanner_Record;
-                            Break   :    out Boolean);
+                            Scanner : in out Scanner_Record);
 
    procedure Get_Line_Without_EOL_Comment (File    : in     Ada.Text_IO.File_Type;
                                            Scanner : in out Scanner_Record);
@@ -172,6 +171,9 @@ package body Scanners is
          return;
       end if;
 
+      Ada.Text_IO.Put (Scanner.Item (Scanner.First .. Scanner.Last));
+      Ada.Text_IO.New_Line;
+
       Scanner_Parsers.Parse_One_Token (Lemon, Scanner);
 
    end Parse_Current_Character;
@@ -196,8 +198,7 @@ package body Scanners is
 
 
    procedure Parse_On_Mode (Lemon   : in out Lime.Lemon_Record;
-                            Scanner : in out Scanner_Record;
-                            Break   :    out Boolean)
+                            Scanner : in out Scanner_Record)
    is
    begin
       case Scanner.Mode is
@@ -211,7 +212,6 @@ package body Scanners is
                if Position_C_Comment_End /= 0 then
                   Scanner.Mode  := Root;
                   Scanner.First := Position_C_Comment_End + Comment_C_End'Length;
-                  Break         := True;
                else
                   Scanner.Last := Scanner.First - 1;
                   --  No end of comment found so Line is empty
@@ -280,7 +280,6 @@ package body Scanners is
 
       Input_File : File_Type;
       Scanner    : Scanner_Record;
-      Break_Out  : Boolean;
    begin
       Scanner.File_Name    := Lemon.File_Name;
       Scanner.Token_Lineno := 0;
@@ -325,10 +324,7 @@ package body Scanners is
 
          --  Debug
 
-         Parse_On_Mode (Lemon, Scanner, Break_Out);
-
-         Ada.Text_IO.Put (Scanner.Item (Scanner.First .. Scanner.Last));
-         Ada.Text_IO.New_Line;
+         Parse_On_Mode (Lemon, Scanner);
 
       end loop;
 

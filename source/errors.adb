@@ -69,7 +69,7 @@ package body Errors is
                   "begins on this line."),
       E002 => -("Code fragment beginning on this line is not the first to follow the " &
                   "previous rule."),
-      E003 => -"Token 'XXX' should be either '%%' or a nonterminal name.",
+      E003 => -"Token '%1' should be either '%%' or a nonterminal name.",
       E004 => -"The precedence symbol must be a terminal.",
       E005 => -"There is no prior rule to assign precedence '[XXX]'.",
       E006 => -"Precedence mark on this line is not the first to follow the previous rule.",
