@@ -23,8 +23,7 @@ package body Scanner_Parsers is
    use Scanner_Data;
 
    procedure Do_State (Lemon   : in out Lemon_Record;
-                       Scanner : in out Scanner_Record;
-                       Done    :    out Boolean);
+                       Scanner : in out Scanner_Record);
 
    use Ada.Strings.Unbounded;
 
@@ -35,6 +34,9 @@ package body Scanner_Parsers is
    procedure Advance (Scanner : in out Scanner_Record;
                       By      : in     Natural);
    --  Advance Scanner by By amount of characters
+
+   procedure Advance_Until_After_Space (Scanner : in out Scanner_Record);
+   --  Advance Scanner by until after space
 
    function Declaration_Is (X    : in String;
                             Item : in String) return Boolean;
@@ -59,10 +61,22 @@ package body Scanner_Parsers is
    procedure Advance (Scanner : in out Scanner_Record;
                       By      : in     Natural)
    is
-      use Ada.Text_IO;
    begin
       Scanner.Token := Scanner.Token + By;
    end Advance;
+
+
+   procedure Advance_Until_After_Space (Scanner : in out Scanner_Record)
+   is
+   begin
+      while Scanner.Item (Scanner.Token) /= ' ' loop
+         Advance (Scanner, 1);
+      end loop;
+
+      while Scanner.Item (Scanner.Token) = ' ' loop
+         Advance (Scanner, 1);
+      end loop;
+   end Advance_Until_After_Space;
 
 
    function Declaration_Is (X    : in String;
@@ -76,15 +90,14 @@ package body Scanner_Parsers is
    end Declaration_Is;
 
 
-
-
    procedure Do_State (Lemon   : in out Lemon_Record;
-                       Scanner : in out Scanner_Record;
-                       Done    :    out Boolean)
+                       Scanner : in out Scanner_Record)
    is
       X : constant String    := Scanner.Item (Scanner.First .. Scanner.Last);
       C : constant Character := Scanner.Item (Scanner.First);
    begin
+
+      Ada.Text_IO.Put_Line ("Do_Stete: STATE: " & Scanner.State'Img);
 
       case Scanner.State is
 
@@ -420,16 +433,14 @@ package body Scanner_Parsers is
    procedure Parse_One_Token (Lemon   : in out Lime.Lemon_Record;
                               Scanner : in out Scanner_Record)
    is
-      Done : Boolean;
    begin
 
       loop
          Do_State (Lemon   => Lemon,
-                   Scanner => Scanner,
-                   Done    => Done);
-         exit when Done;
+                   Scanner => Scanner);
+         exit when Scanner.Done;
       end loop;
-
+      Scanner.Done := False;
    end Parse_One_Token;
 
 
@@ -574,9 +585,9 @@ package body Scanner_Parsers is
             Scanner.Decl_Arg_Slot := Lemon.Names.Var_Dest'Access;
 
          elsif Declaration_Is (X, "token_prefix") then
-            Ada.Text_IO.Put_Line ("X = 'token_prefix'");
-            Scanner.Decl_Arg_Slot := Lemon.Names.Token_Prefix'Access;
+            Scanner.Decl_Arg_Slot     := Lemon.Names.Token_Prefix'Access;
             Scanner.Insert_Line_Macro := False;
+            Advance_Until_After_Space (Scanner);
 
          elsif X = "syntax_error" then
             Scanner.Decl_Arg_Slot := Lemon.Names.Error'Access;
@@ -792,6 +803,8 @@ package body Scanner_Parsers is
    procedure Do_State_Waiting_For_Decl_Arg (Lemon   : in     Lemon_Record;
                                             Scanner : in out Scanner_Record)
    is
+      use Ada.Text_IO;
+
       Cur : constant Character := Current_Token_Char (Scanner);
       X   : constant String    := Current_Token_Line (Scanner);
    begin
@@ -899,6 +912,7 @@ package body Scanner_Parsers is
             Buf_String := Buf_String; --   + nNew;
             --  *zBuf := 0;
             Scanner.State := WAITING_FOR_DECL_OR_RULE;
+            Scanner.Done  := True;
          end;
       else
          Errors.Error

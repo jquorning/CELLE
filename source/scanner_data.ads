@@ -147,6 +147,7 @@ package Scanner_Data is
          Item    : String (1 .. Max_Line_Length); --  Full line read from input
          Mode    : Mode_Identifier;               --  Mode
          Buffer  : Unbounded_String;              --  Holder for identifiers etc.
+         Done    : Boolean  := False;
       end record;
 
 
