@@ -9,7 +9,7 @@
 
 with Ada.Strings.Unbounded;
 
-package body Parsers is
+package body Report_Parsers is
 
    use Ada.Strings.Unbounded;
    type Context_Record is
@@ -73,4 +73,4 @@ package body Parsers is
    end Is_Alnum;
 
 
-end Parsers;
+end Report_Parsers;

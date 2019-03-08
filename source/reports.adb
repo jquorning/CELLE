@@ -17,7 +17,7 @@ with DK8543.Auxiliary;
 with DK8543.Interfaces.C.Strings;
 with Rules;
 with Symbols;
-with Parsers;
+with Report_Parsers;
 with Text_Out;
 with Actions;
 with Configs;
@@ -675,7 +675,7 @@ package body Reports is
 
          Name : constant String := Get_Name;
 
-         use Parsers;
+         use Report_Parsers;
          ARG   : constant String := Get_ARG (Get_Context);
          CTX   : constant String := Get_CTX (Get_Context);
          ARG_I : Natural;

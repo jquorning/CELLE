@@ -7,9 +7,7 @@
 --    May you share freely, not taking more than you give.
 --
 
---  with Ada.Strings.Unbounded;
-
-package Parsers is
+package Report_Parsers is
 
    type Context_Access is private;
 
@@ -30,4 +28,4 @@ private
    type Context_Record;
    type Context_Access is access all Context_Record;
 
-end Parsers;
+end Report_Parsers;
