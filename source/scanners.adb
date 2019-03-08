@@ -57,9 +57,7 @@ package body Scanners is
    Preproc_Ifndef  : constant String := "%ifndef";
    Preproc_Endif   : constant String := "%endif";
 
-   use Scanner_Errors;
    use Errors;
-   use Ada.Text_IO;
 
    procedure Get_Line_Without_EOL_Comment (File    : in     Ada.Text_IO.File_Type;
                                            Scanner : in out Scanner_Record)
@@ -191,7 +189,7 @@ package body Scanners is
 
    exception
 
-      when Constraint_Error =>  Error (E101);
+      when Constraint_Error =>  Scanner_Errors.Error (E101);
 
    end Parse_Quoted_Identifier;
 
@@ -200,7 +198,6 @@ package body Scanners is
                             Scanner : in out Scanner_Record;
                             Break   :    out Boolean)
    is
---      Current : Character renames Scanner.Item (Scanner.Current);
    begin
       case Scanner.Mode is
 
@@ -244,7 +241,7 @@ package body Scanners is
          case Scanner.Mode is
 
             when Quoted_Identifier =>
-               Error (E102);
+               Scanner_Errors.Error (E102);
 
             when others =>
                raise;
@@ -276,6 +273,7 @@ package body Scanners is
 
    procedure Parse (Lemon : in out Lime.Lemon_Record)
    is
+      use Ada.Text_IO;
       use Ada.Strings.Unbounded;
       use DK8543;
 
@@ -289,6 +287,7 @@ package body Scanners is
       Scanner.State        := INITIALIZE;
 
       --  Begin by opening the input file
+      Scanner_Errors.Set_File_Name (Scanner.File_Name);
       Open (Input_File, In_File, To_String (Scanner.File_Name));
 
       --  Make an initial pass through the file to handle %ifdef and %ifndef.
@@ -343,7 +342,7 @@ package body Scanners is
          raise;
 
       when others =>
-         Error (E103);
+         Scanner_Errors.Error (E103);
          raise;
 
    end Parse;
