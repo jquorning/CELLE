@@ -99,7 +99,7 @@ package Scanner_Data is
    use Symbols;
    type Scanner_Record is
       record
-         Token_Start   : Natural;                      --  Text of current token
+--         Token_Start   : Natural;                      --  Text of current token
          Token_Lineno  : Natural;                      --  Linenumber at which current token starts
          Error_Count   : Natural;                      --  Number of errors so far
          Preproc_State : State_Preproc;
@@ -145,5 +145,13 @@ package Scanner_Data is
          Buffer  : Unbounded_String;              --  Holder for identifiers etc.
       end record;
 
+
+   function Current_Char (Scanner : in Scanner_Record)
+                         return Character;
+   --  Returns current character to parse
+
+   function Current_Line (Scanner : in Scanner_Record)
+                         return String;
+   --  returns the current line to parse
 
 end Scanner_Data;

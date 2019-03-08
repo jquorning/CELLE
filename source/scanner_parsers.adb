@@ -7,48 +7,95 @@
 --    May you share freely, not taking more than you give.
 --
 
-with Symbols;
-with Errors;
+with Ada.Text_IO;
+with Ada.Strings.Unbounded;
+
+--  with Scanner_Data;
 with Scanner_Errors;
 
-separate (Scanners)
-procedure Parse_One_Token (Lemon   : in out Lime.Lemon_Record;
-                           Scanner : in out Scanner_Record)
-is
+with Symbols;
+with Errors;
+with Rules;
+
+package body Scanner_Parsers is
+
+   use Lime;
+   use Scanner_Data;
+
+   procedure Do_State (Lemon   : in out Lemon_Record;
+                       Scanner : in out Scanner_Record;
+                       Done    :    out Boolean);
+
    use Ada.Strings.Unbounded;
 
    use Errors;
    use Scanner_Errors;
    use Rules;
 
-   procedure Do_State_Initialize;
-   procedure Do_State_Waiting_For_Decl_Or_Rule;
-   procedure Do_State_Precedence_Mark_1;
-   procedure Do_State_Precedence_Mark_2;
-   procedure Do_State_In_RHS;
+   procedure Advance (Scanner : in out Scanner_Record;
+                      By      : in     Natural);
+   --  Advance Scanner by By amount of characters
 
-   X : String    renames Scanner.Item (Scanner.Token_Start .. Scanner.Last);
-   C : Character renames X (X'First);
+   function Declaration_Is (X    : in String;
+                            Item : in String) return Boolean;
+   --  Return True when Item is a Declaration
 
-   procedure Do_State_Initialize is
+   procedure Do_State_Initialize (Lemon   : in out Lemon_Record;
+                                  Scanner : in out Scanner_Record);
+   procedure Do_State_Waiting_For_Decl_Or_Rule (Lemon   : in out Lemon_Record;
+                                                Scanner : in out Scanner_Record);
+   procedure Do_State_Precedence_Mark_1        (Scanner : in out Scanner_Record);
+   procedure Do_State_Precedence_Mark_2        (Scanner : in out Scanner_Record);
+
+   procedure Do_State_In_RHS (Lemon   : in out Lemon_Record;
+                              Scanner : in out Scanner_Record);
+
+
+   procedure Advance (Scanner : in out Scanner_Record;
+                      By      : in     Natural) is
+   begin
+      Scanner.First := Scanner.First + By;
+   end Advance;
+
+
+   function Declaration_Is (X    : in String;
+                            Item : in String) return Boolean
+   is
+      Length : constant Natural := Natural'Min (X'Length, Item'Length);
+      Left   : String renames X    (X'First    .. X'First    + Length);
+      Right  : String renames Item (Item'First .. Item'First + Length);
+   begin
+      return Left = Right;
+   end Declaration_Is;
+
+
+   procedure Do_State_Initialize (Lemon   : in out Lemon_Record;
+                                  Scanner : in out Scanner_Record)
+   is
    begin
       Scanner.Prev_Rule    := null;
       Scanner.Prec_Counter := 0;
       Scanner.First_Rule   := null;
       Scanner.Last_Rule    := null;
 
-      Lemon.N_Rule := 0;
+      Lemon.N_Rule  := 0;
+      Scanner.State := WAITING_FOR_DECL_KEYWORD;
    end Do_State_Initialize;
 
 
-   procedure Do_State_Waiting_For_Decl_Or_Rule is
+   procedure Do_State_Waiting_For_Decl_Or_Rule (Lemon   : in out Lemon_Record;
+                                                Scanner : in out Scanner_Record)
+   is
+      Cur : constant Character := Current_Char (Scanner);
+      X   : constant String    := Current_Line (Scanner);
    begin
-      Do_State_Initialize;
+      Do_State_Initialize (Lemon, Scanner);
 
-      if C = '%' then
+      if Cur = '%' then
+         Advance (Scanner, By => 1);
          Scanner.State := WAITING_FOR_DECL_KEYWORD;
 
-      elsif C in 'a' .. 'z' then
+      elsif Cur in 'a' .. 'z' then
          Scanner.LHS.Append (Symbols.Symbol_New (X));
          --            PSP.N_RHS      := 0;
 
@@ -57,7 +104,7 @@ is
          Scanner.LHS_Alias  := Scanner_Data.Alias_Vectors.Empty_Vector;
          Scanner.State := WAITING_FOR_ARROW;
 
-      elsif C = '{' then
+      elsif Cur = '{' then
 
          if Scanner.Prev_Rule = null then
             Error (E001);
@@ -77,7 +124,7 @@ is
             Scanner.Prev_Rule.No_Code := False;
          end if;
 
-      elsif C = '[' then
+      elsif Cur = '[' then
          Scanner.State := PRECEDENCE_MARK_1;
 
       else
@@ -87,9 +134,12 @@ is
    end Do_State_Waiting_For_Decl_Or_Rule;
 
 
-   procedure Do_State_Precedence_Mark_1 is
+   procedure Do_State_Precedence_Mark_1 (Scanner : in out Scanner_Record)
+   is
+      Cur : constant Character := Current_Char (Scanner);
+      X   : constant String    := Current_Line (Scanner);
    begin
-      if C not in 'A' .. 'Z' then
+      if Cur not in 'A' .. 'Z' then
          Error (E004);
          --  Error ("The precedence symbol must be a terminal.");
 
@@ -112,9 +162,11 @@ is
    end Do_State_Precedence_Mark_1;
 
 
-   procedure Do_State_Precedence_Mark_2 is
+   procedure Do_State_Precedence_Mark_2 (Scanner : in out Scanner_Record)
+   is
+      Cur : constant Character := Current_Char (Scanner);
    begin
-      if C /= ']' then
+      if Cur /= ']' then
          --  Error ("Missing ']' on precedence mark.");
          Error (E007);
       end if;
@@ -124,9 +176,13 @@ is
    end Do_State_Precedence_Mark_2;
 
 
-   procedure Do_State_In_RHS is
+   procedure Do_State_In_RHS (Lemon  : in out Lemon_Record;
+                              Scanner : in out Scanner_Record)
+   is
+      Cur : constant Character := Current_Char (Scanner);
+      X   : constant String    := Current_Line (Scanner);
    begin
-      if C = '.' then
+      if Cur = '.' then
          declare
             use Symbols;
             Rule : constant access Rules.Rule_Record := new Rules.Rule_Record;
@@ -197,15 +253,15 @@ is
          Scanner.State := WAITING_FOR_DECL_OR_RULE;
 
       elsif
-        C in 'a' .. 'z' or
-        C in 'A' .. 'Z'
+        Cur in 'a' .. 'z' or
+        Cur in 'A' .. 'Z'
       then
          Scanner.RHS  .Append (Symbols.Symbol_New (X));
          Scanner.Alias.Append (Null_Unbounded_String);
          --            end if;
 
       elsif
-        (C = '|' or C = '/') and not
+        (Cur = '|' or Cur = '/') and not
         Scanner.RHS.Is_Empty
       then
          declare
@@ -238,7 +294,7 @@ is
             end if;
          end;
 
-      elsif C = '(' and not Scanner.RHS.Is_Empty then
+      elsif Cur = '(' and not Scanner.RHS.Is_Empty then
          Scanner.State := RHS_ALIAS_1;
 
       else
@@ -247,14 +303,22 @@ is
       end if;
    end Do_State_In_RHS;
 
-begin
 
-   case Scanner.State is
+   procedure Do_State (Lemon   : in out Lemon_Record;
+                       Scanner : in out Scanner_Record;
+                       Done    :    out Boolean)
+   is
+      X : constant String    := Scanner.Item (Scanner.First .. Scanner.Last);
+      C : constant Character := Scanner.Item (Scanner.First);
+   begin
+      Ada.Text_IO.Put_Line ("STATE: " & Scanner.State'Img);
 
-      when INITIALIZE               =>  Do_State_Initialize;
-      when WAITING_FOR_DECL_OR_RULE =>  Do_State_Waiting_For_Decl_Or_Rule;
-      when PRECEDENCE_MARK_1        =>  Do_State_Precedence_Mark_1;
-      when PRECEDENCE_MARK_2        =>  Do_State_Precedence_Mark_2;
+      case Scanner.State is
+
+      when INITIALIZE               =>  Do_State_Initialize (Lemon, Scanner);
+      when WAITING_FOR_DECL_OR_RULE =>  Do_State_Waiting_For_Decl_Or_Rule (Lemon, Scanner);
+      when PRECEDENCE_MARK_1        =>  Do_State_Precedence_Mark_1 (Scanner);
+      when PRECEDENCE_MARK_2        =>  Do_State_Precedence_Mark_2 (Scanner);
 
       when WAITING_FOR_ARROW =>
 
@@ -318,7 +382,7 @@ begin
          end if;
 
 
-      when IN_RHS =>   Do_State_In_RHS;
+      when IN_RHS =>   Do_State_In_RHS (Lemon, Scanner);
 
       when RHS_ALIAS_1 =>
 
@@ -351,14 +415,16 @@ begin
 
 
       when WAITING_FOR_DECL_KEYWORD =>
+         Ada.Text_IO.Put_Line ("when WAITING_FOR_DECL_KEYWORD");
          if
-           X (X'First) in 'a' .. 'z' or
-           X (X'First) in 'A' .. 'Z'
+           C in 'a' .. 'z' or
+           C in 'A' .. 'Z'
          then
             Scanner.Decl_Keyword      := To_Unbounded_String (X);
             Scanner.Decl_Arg_Slot     := null;
             Scanner.Decl_Lineno_Slot  := null;
             Scanner.Insert_Line_Macro := True;
+
             Scanner.State := WAITING_FOR_DECL_ARG;
 
             if X = "name" then
@@ -377,7 +443,8 @@ begin
             elsif X = "default_destructor" then
                Scanner.Decl_Arg_Slot := Lemon.Names.Var_Dest'Access;
 
-            elsif X = "token_prefix" then
+            elsif Declaration_Is (X, "token_prefix") then
+               Ada.Text_IO.Put_Line ("X = 'token_prefix'");
                Scanner.Decl_Arg_Slot := Lemon.Names.Token_Prefix'Access;
                Scanner.Insert_Line_Macro := False;
 
@@ -452,7 +519,8 @@ begin
                Scanner.State := WAITING_FOR_CLASS_ID;
 
             else
-               Error (E203, (1 => To_Unbounded_String (X)), Line_Number => Scanner.Token_Lineno);
+               Error (E203, (1 => To_Unbounded_String (X)),
+                      Line_Number => Scanner.Token_Lineno);
                Scanner.State := RESYNC_AFTER_DECL_ERROR;
             end if;
          else
@@ -742,6 +810,25 @@ begin
             when others => null;
          end case;
 
-   end case;
+      end case;
+   end Do_State;
 
-end Parse_One_Token;
+
+   procedure Parse_One_Token (Lemon   : in out Lime.Lemon_Record;
+                              Scanner : in out Scanner_Record)
+   is
+      Done : Boolean;
+   begin
+
+      loop
+         Do_State (Lemon   => Lemon,
+                   Scanner => Scanner,
+                   Done    => Done);
+         exit when Done;
+      end loop;
+
+   end Parse_One_Token;
+
+
+end Scanner_Parsers;
+

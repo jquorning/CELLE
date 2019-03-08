@@ -7,7 +7,8 @@
 --    May you share freely, not taking more than you give.
 --
 
---  with Ada.Strings.Unbounded;
+with Ada.Text_IO;
+with Ada.Strings.Fixed;
 
 with DK8543.Errors;
 
@@ -22,7 +23,9 @@ package body Errors is
       pragma Unreferenced (Arguments);
    begin
       DK8543.Errors.Error
-        (Ada.Strings.Unbounded.To_String (File_Name), Line_Number, Text);
+        (Ada.Text_IO.Standard_Output,
+         Ada.Strings.Unbounded.To_String (File_Name),
+         Line_Number, Text);
    end Error_Plain;
 
 --     procedure Error_X1 (File_Name : in String;
@@ -101,13 +104,32 @@ package body Errors is
       Line_Number : in Natural;
       Arguments   : in Argument_List := Null_Argument_List)
    is
-      pragma Unreferenced (Arguments);
-      File_Name : constant String := To_String (Default_File_Name);
-      Message   : constant String := Kind'Image & " " & Table (Kind).all;
+      use Ada.Strings;
+
+      File_Name  : constant String  := To_String (Default_File_Name);
+      Kind_Image : constant String  := Kind'Image & " ";
+      Message    : Unbounded_String := To_Unbounded_String (Table (Kind).all);
+      Position   : Natural          := 1; --  First_Index (Message);
    begin
-      DK8543.Errors.Error (File_Name   => File_Name,
+      --  Fill in placeholders
+      for I in Arguments'Range loop
+         declare
+            Placeholder : constant String := "%" & Fixed.Trim (Positive'Image (I), Left);
+         begin
+            Position := Index (Message, Placeholder, Position);
+            if Position = 0 then
+               raise Program_Error with "No placeholder '" & Placeholder & "'";
+            end if;
+            Replace_Slice (Message, Position,
+                           Position + Placeholder'Length - 1,
+                           To_String (Arguments (I)));
+         end;
+      end loop;
+
+      DK8543.Errors.Error (File        => Ada.Text_IO.Standard_Output,
+                           File_Name   => File_Name,
                            Line_Number => Line_Number,
-                           Message     => Message);
+                           Message     => Kind_Image & To_String (Message));
    end Error;
 
 

@@ -16,6 +16,8 @@ with DK8543.Strings.Utility;
 
 with Scanner_Data;
 with Scanner_Errors;
+with Scanner_Parsers;
+
 with Errors;
 with Rules;
 with Symbols;
@@ -30,9 +32,6 @@ package body Scanners is
    --  and "%ifndef" and "%endif" and comments them out.  Text in
    --  between is also commented out as appropriate.
 
-   procedure Parse_One_Token (Lemon   : in out Lime.Lemon_Record;
-                              Scanner : in out Scanner_Record);
-   --  Parse a single Token.
 
    procedure Parse_On_Mode (Lemon   : in out Lime.Lemon_Record;
                             Scanner : in out Scanner_Record;
@@ -49,11 +48,6 @@ package body Scanners is
    --
    --
    --
-
-   procedure Parse_One_Token (Lemon   : in out Lime.Lemon_Record;
-                              Scanner : in out Scanner_Record)
-   is separate;
-
 
    Comment_CPP     : constant String := "//";
    Comment_C_Begin : constant String := "/*";
@@ -74,6 +68,7 @@ package body Scanners is
    begin
       Scanner.First := 1;
       Ada.Text_IO.Get_Line (File, Scanner.Item, Last => Scanner.Last);
+      Scanner.Token_Lineno := Scanner.Token_Lineno + 1;
       Utility.Strip_End_Of_Line (From  => Scanner.Item,
                                  Strip => Comment_CPP,
                                  Last  => Scanner.Last);
@@ -164,9 +159,22 @@ package body Scanners is
       end case;
 --      c = *cp;
 --      *cp = 0;                        /* Null terminate the token */
-      Parse_One_Token (Lemon, Scanner); --  Parse the token
---    *cp = (char)c;                  /* Restore the buffer */
---    cp = nextcp;
+
+      --  Debug
+      if False then
+         Ada.Text_IO.Put_Line ("Scanner");
+         Ada.Text_IO.Put_Line ("  First      :" & Scanner.First'Img);
+         Ada.Text_IO.Put_Line ("  Last       :" & Scanner.Last'Img);
+         Ada.Text_IO.Put_Line ("  Item       :" & Scanner.Item (Scanner.Item'First .. 100));
+      end if;
+
+      --  Skip empty lines
+      if Scanner.First > Scanner.Last then
+         return;
+      end if;
+
+      Scanner_Parsers.Parse_One_Token (Lemon, Scanner);
+
    end Parse_Current_Character;
 
 
@@ -203,10 +211,12 @@ package body Scanners is
                  Index (Scanner.Item (Scanner.First .. Scanner.Last), Comment_C_End);
             begin
                if Position_C_Comment_End /= 0 then
-                  Scanner.Mode := Root;
-                  Break        := True;
---               else
---                  Line.Last := 0;
+                  Scanner.Mode  := Root;
+                  Scanner.First := Position_C_Comment_End + Comment_C_End'Length;
+                  Break         := True;
+               else
+                  Scanner.Last := Scanner.First - 1;
+                  --  No end of comment found so Line is empty
                end if;
             end;
 
@@ -255,9 +265,10 @@ package body Scanners is
         Index (Scanner.Item (Scanner.First .. Scanner.Last), Comment_C_Begin);
    begin
       if Comment_C_Start /= 0 then
-         Scanner.Token_Start  := Comment_C_Start; --  Mark the beginning of the token
-         Scanner.Token_Lineno := Text_IO.Line_Number;  --  Linenumber on which token begins
-         Scanner.First        := Comment_C_Start;
+--         Scanner.Token_Start  := Comment_C_Start; --  Mark the beginning of the token
+--         Scanner.Token_Lineno := Text_IO.Line_Number;  --  Linenumber on which token begins
+--         Scanner.First        := Comment_C_Start;
+         Scanner.Last         := Comment_C_Start - 1;
          Scanner.Mode         := C_Comment_Block;
       end if;
    end Detect_Start_Of_C_Comment_Block;
@@ -272,9 +283,10 @@ package body Scanners is
       Scanner    : Scanner_Record;
       Break_Out  : Boolean;
    begin
-      Scanner.File_Name   := Lemon.File_Name;
-      Scanner.Error_Count := 0;
-      Scanner.State       := INITIALIZE;
+      Scanner.File_Name    := Lemon.File_Name;
+      Scanner.Token_Lineno := 0;
+      Scanner.Error_Count  := 0;
+      Scanner.State        := INITIALIZE;
 
       --  Begin by opening the input file
       Open (Input_File, In_File, To_String (Scanner.File_Name));
@@ -309,14 +321,14 @@ package body Scanners is
          DK8543.Strings.Trim (Scanner.Item, Scanner.First, Scanner.Last,
                               Side => Ada.Strings.Left);
 
+         --  Scanner.Token_Lineno := Text_IO.Line_Number; --  Linenumber on which token begins
+
          --  Debug
-         Ada.Text_IO.Put (Scanner.Item (Scanner.First .. Scanner.Last));
-         Ada.Text_IO.New_Line;
 
          Parse_On_Mode (Lemon, Scanner, Break_Out);
 
-         Scanner.Token_Start  := Scanner.First;       --  Mark the beginning of the token
-         Scanner.Token_Lineno := Text_IO.Line_Number; --  Linenumber on which token begins
+         Ada.Text_IO.Put (Scanner.Item (Scanner.First .. Scanner.Last));
+         Ada.Text_IO.New_Line;
 
       end loop;
 
@@ -326,6 +338,9 @@ package body Scanners is
          Close (Input_File);
          Lemon.Rule      := Rules.Rule_Access (Scanner.First_Rule);
          Lemon.Error_Cnt := Scanner.Error_Count;
+
+      when Constraint_Error =>
+         raise;
 
       when others =>
          Error (E103);
