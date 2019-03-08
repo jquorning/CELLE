@@ -87,7 +87,7 @@ package body Errors is
 
       E201 => -"Cannot form a compound containing a non-terminal",
       E202 => -"Illegal character on RHS of rule: '%1'.",
-      E203 => -"Unknown declaration keyword: '%%%1'.",
+      E203 => -"Unknown declaration keyword: '%%1'.",
       E204 => -"Illegal declaration keyword: '%1'.",
       E205 => -"Symbol name missing after %%destructor keyword",
       E206 => -"Symbol name missing after %%type keyword",
