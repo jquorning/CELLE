@@ -19,7 +19,7 @@ with Lime;
 with Cherry;
 with Rules;
 with Symbols;
-with Scanners;
+with Parsers;
 with Exceptions;
 with Reports;
 
@@ -109,7 +109,7 @@ begin
       Symbols.Symbol_Append (Key => "$");
 
       --  Parse the input file
-      Scanners.Parse (Lemon);
+      Parsers.Parse (Lemon);
 
       if Lemon.Error_Cnt /= 0 then
          --  Status := Failure;

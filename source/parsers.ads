@@ -12,7 +12,7 @@
 
 with Lime;
 
-package Scanners is
+package Parsers is
 
    procedure Parse (Lemon : in out Lime.Lemon_Record);
    --  In spite of its name, this function is really a scanner.  It
@@ -21,4 +21,4 @@ package Scanners is
    --  builds all the appropriate data structures in the global state
    --  vector "gp".
 
-end Scanners;
+end Parsers;

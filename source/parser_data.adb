@@ -7,7 +7,7 @@
 --    May you share freely, not taking more than you give.
 --
 
-package body Scanner_Data is
+package body Parser_Data is
 
 
    function Current_Char (Scanner : in Scanner_Record)
@@ -41,4 +41,4 @@ package body Scanner_Data is
       return Scanner.Item (Scanner.Token .. Scanner.Last);
    end Current_Token_Line;
 
-end Scanner_Data;
+end Parser_Data;

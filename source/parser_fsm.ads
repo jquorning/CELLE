@@ -8,12 +8,12 @@
 --
 
 with Lime;
-with Scanner_Data;
+with Parser_Data;
 
-package Scanner_Parsers is
+package Parser_FSM is
 
    procedure Do_State (Lemon   : in out Lime.Lemon_Record;
-                       Scanner : in out Scanner_Data.Scanner_Record);
+                       Scanner : in out Parser_Data.Scanner_Record);
    --  The parser state machine
 
-end Scanner_Parsers;
+end Parser_FSM;

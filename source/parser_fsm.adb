@@ -10,17 +10,14 @@
 with Ada.Text_IO;
 with Ada.Strings.Unbounded;
 
---  with Scanner_Data;
---  with Scanner_Errors;
-
 with Symbols;
 with Errors;
 with Rules;
 
-package body Scanner_Parsers is
+package body Parser_FSM is
 
    use Lime;
-   use Scanner_Data;
+   use Parser_Data;
 
    procedure Advance (Scanner : in out Scanner_Record;
                       By      : in     Natural);
@@ -447,7 +444,7 @@ package body Scanner_Parsers is
 
          Scanner.RHS        := Symbols.Symbol_Vectors.Empty_Vector;
          --            PSP.LHS_Alias  := Interfaces.C.Strings.Null_Ptr;
-         Scanner.LHS_Alias  := Scanner_Data.Alias_Vectors.Empty_Vector;
+         Scanner.LHS_Alias  := Parser_Data.Alias_Vectors.Empty_Vector;
          Scanner.State := WAITING_FOR_ARROW;
 
       elsif Cur = '{' then
@@ -920,5 +917,4 @@ package body Scanner_Parsers is
    end  Do_State_Waiting_For_Decl_Arg;
 
 
-end Scanner_Parsers;
-
+end Parser_FSM;

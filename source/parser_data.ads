@@ -13,7 +13,7 @@ with Ada.Containers.Vectors;
 with Symbols;
 with Rules;
 
-package Scanner_Data is
+package Parser_Data is
 
    Max_Line_Length : constant := 1000;   --  Should do for the most
 
@@ -145,4 +145,4 @@ package Scanner_Data is
                                return String;
    --  returns the current line to parse
 
-end Scanner_Data;
+end Parser_Data;

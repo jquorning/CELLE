@@ -14,17 +14,16 @@ with Ada.Strings.Unbounded;
 with DK8543.Text_IO;
 with DK8543.Strings.Utility;
 
-with Scanner_Data;
---  with Scanner_Errors;
-with Scanner_Parsers;
+with Parser_Data;
+with Parser_FSM;
 
 with Errors;
 with Rules;
 with Symbols;
 
-package body Scanners is
+package body Parsers is
 
-   use Scanner_Data;
+   use Parser_Data;
 
    --  Run the preprocessor over the input file text.  The global
    --  variables azDefine[0] through azDefine[nDefine-1] contains the
@@ -353,10 +352,11 @@ package body Scanners is
    procedure Parse_One_Token (Lemon   : in out Lime.Lemon_Record;
                               Scanner : in out Scanner_Record)
    is
+      use Parser_FSM;
    begin
       Scanner.Done := False;
       loop
-         Scanner_Parsers.Do_State
+         Do_State
            (Lemon   => Lemon,
             Scanner => Scanner);
          exit when Scanner.Done;
@@ -364,4 +364,4 @@ package body Scanners is
    end Parse_One_Token;
 
 
-end Scanners;
+end Parsers;
