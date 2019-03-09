@@ -13,7 +13,6 @@ package Errors is
 
    use Ada.Strings.Unbounded;
    Default_File_Name : Unbounded_String := To_Unbounded_String ("<null>");
-   Start_Line        : Natural          := 0;
    Error_Count       : Natural          := 0;
 
    type Argument_List is array (Positive range <>) of Unbounded_String;
@@ -46,7 +45,6 @@ package Errors is
 
       E101,
       E102,
-      E103,
 
       E201,
       E202,
@@ -69,25 +67,16 @@ package Errors is
    subtype K_Error   is K_Message range E001 .. K_Message'Val (K_Message'Pos (F001) - 1);
    subtype K_Fatal   is K_Message range F001 .. K_Message'Last;
 
-   type K_Error_Parse_One_Token is new K_Error range E001 .. E213;
+   type K_Error_Parse is new K_Error range E001 .. E213;
 
-
---     procedure Error
---       (Kind        : in K_Error_Parse_One_Token;
---        Line_Number : in Natural;
---        Arguments   : in Argument_List := Null_Argument_List);
 
    procedure Set_File_Name
      (File_Name : in Ada.Strings.Unbounded.Unbounded_String);
 
    procedure Parser_Error
-     (Kind        : in K_Error_Parse_One_Token;
-      Arguments   : in Argument_List           := Null_Argument_List;
-      Line_Number : in Natural                 := Start_Line);
-
---     procedure Error
---       (Kind        : in K_Error_Parse_One_Token;
---        Line_Number : in Natural                 := Start_Line);
+     (Kind        : in K_Error_Parse;
+      Line_Number : in Natural;
+      Arguments   : in Argument_List := Null_Argument_List);
 
 
 end Errors;

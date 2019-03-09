@@ -47,6 +47,8 @@ package body Parsers is
                               Scanner : in out Scanner_Record);
    --  Parse a single Token.
 
+   procedure Debug (On    : in Boolean;
+                    Image : in String);
 
    --
    --
@@ -80,60 +82,97 @@ package body Parsers is
    procedure Parse_Current_Character (Lemon   : in out Lime.Lemon_Record;
                                       Scanner : in out Scanner_Record)
    is
+      use Ada.Text_IO;
       use Ada.Strings.Unbounded;
-      --  Current : constant Character := Scanner.Item (Scanner.Current);
-      Current : constant Character := Scanner.Item (Scanner.First);
+
+      Current : constant Character := Current_Token_Char (Scanner);
    begin
+      Debug (False, "Parse_Current_Character");
+      Debug (False, "  Current: " & Current);
+
       case Current is
 
          when '"' =>                     --   String literals
             Scanner.Mode   := Quoted_Identifier;
             Scanner.Buffer := Null_Unbounded_String;
 
-         when '{' =>
---      }else if( c=='{' ){               /* A block of C code */
---        int level;
---        cp++;
---        for(level=1; (c= *cp)!=0 && (level>1 || c!='}'); cp++){
---          if( c=='\n' ) lineno++;
---          else if( c=='{' ) level++;
---          else if( c=='}' ) level--;
---          else if( c=='/' && cp[1]=='*' ){  /* Skip comments */
---            int prevc;
---            cp = &cp[2];
---            prevc = 0;
---            while( (c= *cp)!=0 && (c!='/' || prevc!='*') ){
---              if( c=='\n' ) lineno++;
---              prevc = c;
---              cp++;
---            }
---          }else if( c=='/' && cp[1]=='/' ){  /* Skip C++ style comments too */
---            cp = &cp[2];
---            while( (c= *cp)!=0 && c!='\n' ) cp++;
---            if( c ) lineno++;
---          }else if( c=='\'' || c=='\"' ){    /* String a character literals */
---            int startchar, prevc;
---            startchar = c;
---            prevc = 0;
---            for(cp++; (c= *cp)!=0 && (c!=startchar || prevc=='\\'); cp++){
---              if( c=='\n' ) lineno++;
---              if( prevc=='\\' ) prevc = 0;
---              else              prevc = c;
---            }
---          }
---        }
---        if( c==0 ){
---          ErrorMsg(ps.filename,ps.tokenlineno,
---  "C code starting on this line is not terminated before the end of the file.");
---          ps.errorcnt++;
---          nextcp = cp;
---        }else{
---          nextcp = cp+1;
---        }
---      }else if( ISALNUM(c) ){          /* Identifiers */
-            null;
+         when '{' =>              --  A block of C code
+            Debug (True, "  A block of C code");
+--              declare
+--                 Level : Natural := 1;
+--              begin
+--                 Cp := CP + 1;
+--                 C  := CP.all;
+--                 loop
+--                    exit when C = ASCII.NUL;
+--                    exit when Level = 0 and C = '}';
 
-         when 'a' .. 'z' | 'A' .. 'Z' =>
+--                    if C = ASCII.LF then
+--                       Lineno := Lineno + 1;
+--                    elsif C = '{' then
+--                       Level := Level + 1;
+--                    elsif C = '}' then
+--                       Level := Level - 1;
+--                    elsif C = '/' and Cp (1) = '*' then  --  Skip comments
+--                       declare
+--                          Prevc : Integer := 0;
+--                       begin
+--                          cp := Cp + 2;
+--                          C  := CP.all;
+--                          loop
+--                             exit when C = ASCII.NUL;
+--                             exit when C = '/' and Prevc = '*';
+--                             if C = ASCII.LF then
+--                                Lineno := Lineno + 1;
+--                             end if;
+--                             prevc := C;
+--                             Cp    := Cp + 1;
+--                          end loop;
+--                       end;
+--                    elsif C = '/' and Cp (1)  = '/' then  --  Skip C++ style comments too
+--                       cp := CP + 2;
+--                       loop
+--                          C := Cp.all;
+--                          exit when C = ASCII.NUL or C = ASCII.LF;
+--                          Cp := Cp + 1;
+--                       end loop;
+--                       if c  then
+--                          Lineno := Lineno + 1;
+--                       end if;
+--                    elsif C = ''' or C = '"' then    --  String a character literals
+--                       declare
+--                          startchar : Integer := c;
+--                          prevc     : Integer := 0;
+--                       begin
+--                          Cp := Cp + 1;
+--                          loop
+--                             C := Cp.all;
+--                             exit when C = ASCII.NUL;
+--                             exit when (C = startchar and Prevc /= '\');
+--                             if C = ASCII.LF then
+--                                Lineno := Lineno + 1;
+--                             end if;
+--                             if Prevc = '\' then
+--                                prevc := 0;
+--                             else
+--                                prevc := c;
+--                             end if;
+--                             Cp := Cp + 1;
+--                          end loop;
+--                       end;
+--                    end if;
+--                    Cp := Cp + 1;
+--                 end loop;
+--              end;
+--              if C = 0 then
+--                 Parser_Error (E102, Scanner.Token_Lineno);
+--                 nextcp := cp;
+--              else
+--                 nextcp := Cp + 1;
+--              end if;
+
+
+         when 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' =>  --  Identifiers
 --        while( (c= *cp)!=0 && (ISALNUM(c) || c=='_') ) cp++;
 --        nextcp = cp;
 --      }else if( c==':' && cp[1]==':' && cp[2]=='=' ){ /* The operator "::=" */
@@ -163,12 +202,10 @@ package body Parsers is
 --      *cp = 0;                        /* Null terminate the token */
 
       --  Debug
-      if False then
-         Ada.Text_IO.Put_Line ("Scanner");
-         Ada.Text_IO.Put_Line ("  First      :" & Scanner.First'Img);
-         Ada.Text_IO.Put_Line ("  Last       :" & Scanner.Last'Img);
-         Ada.Text_IO.Put_Line ("  Item       :" & Scanner.Item (Scanner.Item'First .. 100));
-      end if;
+      Debug (False, "Scanner");
+      Debug (False, "  First      :" & Scanner.First'Img);
+      Debug (False, "  Last       :" & Scanner.Last'Img);
+      Debug (False, "  Item       :" & Scanner.Item (Scanner.Item'First .. 100));
 
       --  Skip empty lines
       if Scanner.First > Scanner.Last then
@@ -196,7 +233,7 @@ package body Parsers is
 
    exception
 
-      when Constraint_Error =>  Errors.Parser_Error (E101);
+      when Constraint_Error =>  Errors.Parser_Error (E102, Scanner.Token_Lineno);
 
    end Parse_Quoted_Identifier;
 
@@ -204,7 +241,9 @@ package body Parsers is
    procedure Parse_On_Mode (Lemon   : in out Lime.Lemon_Record;
                             Scanner : in out Scanner_Record)
    is
+      use Ada.Text_IO;
    begin
+      Put_Line ("Parse_On_Mode. Mode: " & Scanner.Mode'Img);
       case Scanner.Mode is
 
          when C_Comment_Block =>
@@ -216,6 +255,7 @@ package body Parsers is
                if Position_C_Comment_End /= 0 then
                   Scanner.Mode  := Root;
                   Scanner.First := Position_C_Comment_End + Comment_C_End'Length;
+                  Put_Line ("  End");
                else
                   Scanner.Last := Scanner.First - 1;
                   --  No end of comment found so Line is empty
@@ -246,7 +286,7 @@ package body Parsers is
          case Scanner.Mode is
 
             when Quoted_Identifier =>
-               Errors.Parser_Error (E102);
+               Errors.Parser_Error (E102, Scanner.Token_Lineno);
 
             when others =>
                raise;
@@ -343,7 +383,7 @@ package body Parsers is
          raise;
 
       when others =>
-         Errors.Parser_Error (E103);
+         Errors.Parser_Error (E101, Scanner.Token_Lineno);
          raise;
 
    end Parse;
@@ -356,6 +396,8 @@ package body Parsers is
    begin
       Scanner.Done := False;
       loop
+         Debug (False, "Do_State: STATE: " & Scanner.State'Img);
+
          Do_State
            (Lemon   => Lemon,
             Scanner => Scanner);
@@ -363,5 +405,15 @@ package body Parsers is
       end loop;
    end Parse_One_Token;
 
+
+   procedure Debug (On    : in Boolean;
+                    Image : in String)
+   is
+      use Ada.Text_IO;
+   begin
+      if On then
+         Put_Line (Image);
+      end if;
+   end Debug;
 
 end Parsers;

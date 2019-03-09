@@ -42,6 +42,10 @@ package body Parser_FSM is
                               Scanner : in out Scanner_Record);
 
 
+   --
+   --
+   --
+
    procedure Advance (Scanner : in out Scanner_Record;
                       By      : in     Natural)
    is
@@ -74,8 +78,6 @@ package body Parser_FSM is
       C : constant Character := Scanner.Item (Scanner.First);
    begin
 
-      Ada.Text_IO.Put_Line ("Do_Stete: STATE: " & Scanner.State'Img);
-
       case Scanner.State is
 
       when INITIALIZE               =>  Do_State_Initialize (Lemon, Scanner);
@@ -96,8 +98,9 @@ package body Parser_FSM is
                use Symbols;
             begin
                Parser_Error
-                 (E008, (1 => To_Unbounded_String
-                           (From_Key (Scanner.LHS.First_Element.Name))));
+                 (E008, Scanner.Token_Lineno,
+                  (1 => To_Unbounded_String
+                     (From_Key (Scanner.LHS.First_Element.Name))));
                Scanner.State := RESYNC_AFTER_RULE_ERROR;
             end;
          end if;
@@ -114,9 +117,10 @@ package body Parser_FSM is
             Scanner.State := LHS_ALIAS_2;
          else
             Parser_Error
-              (E009, (1 => To_Unbounded_String (X),
-                      2 => To_Unbounded_String
-                        (Symbols.From_Key (Scanner.LHS.First_Element.Name))));
+              (E009, Scanner.Token_Lineno,
+               (1 => To_Unbounded_String (X),
+                2 => To_Unbounded_String
+                  (Symbols.From_Key (Scanner.LHS.First_Element.Name))));
             Scanner.State := RESYNC_AFTER_RULE_ERROR;
          end if;
 
@@ -124,9 +128,8 @@ package body Parser_FSM is
          if X (X'First)  = ')' then
             Scanner.State := LHS_ALIAS_3;
          else
---            Error (E010, (1 => To_Unbounded_String
---                            (Interfaces.C.Strings.Value (Scanner.LHS_Alias))));
-            Parser_Error (E010, (1 => Scanner.LHS_Alias.First_Element));
+            Parser_Error (E010, Scanner.Token_Lineno,
+                          (1 => Scanner.LHS_Alias.First_Element));
             Scanner.State := RESYNC_AFTER_RULE_ERROR;
          end if;
 
@@ -135,12 +138,10 @@ package body Parser_FSM is
          if X (X'First .. X'First + 2) = "::=" then
             Scanner.State := IN_RHS;
          else
-            Parser_Error (E011, (1 => To_Unbounded_String
---                            (Symbols.From_Key (Scanner.LHS.Name)),
-                            (Symbols.From_Key (Scanner.LHS.First_Element.Name)),
---                          2 => To_Unbounded_String
---                            (Interfaces.C.Strings.Value (Scanner.LHS_Alias))));
-                          2 => Scanner.LHS_Alias.First_Element));
+            Parser_Error (E011, Scanner.Token_Lineno,
+                          (1 => To_Unbounded_String
+                             (Symbols.From_Key (Scanner.LHS.First_Element.Name)),
+                           2 => Scanner.LHS_Alias.First_Element));
             Scanner.State := RESYNC_AFTER_RULE_ERROR;
          end if;
 
@@ -158,7 +159,7 @@ package body Parser_FSM is
 
          else
             Parser_Error
-              (E012,
+              (E012, Scanner.Token_Lineno,
                (1 => To_Unbounded_String (X),
                 2 => To_Unbounded_String
                   (Symbols.From_Key (Scanner.RHS.Last_Element.Name))));
@@ -173,7 +174,8 @@ package body Parser_FSM is
             Scanner.State := IN_RHS;
 
          else
-            Parser_Error (E013, (1 => Scanner.LHS_Alias.First_Element));
+            Parser_Error (E013, Scanner.Token_Lineno,
+                          (1 => Scanner.LHS_Alias.First_Element));
             Scanner.State := RESYNC_AFTER_RULE_ERROR;
 
          end if;
@@ -450,14 +452,10 @@ package body Parser_FSM is
       elsif Cur = '{' then
 
          if Scanner.Prev_Rule = null then
-            Parser_Error (E001);
-            --                  Error ("There is no prior rule upon which to attach the code " &
-            --                           "fragment which begins on this line.");
+            Parser_Error (E001, Scanner.Token_Lineno);
 
          elsif Rules."/=" (Scanner.Prev_Rule.Code, Null_Code) then
-            Parser_Error (E002);
-            --                  Error ("Code fragment beginning on this line is not the first " &
-            --                           "to follow the previous rule.");
+            Parser_Error (E002, Scanner.Token_Lineno);
 
          else
             Scanner.Prev_Rule.Line := Scanner.Token_Lineno;
@@ -472,10 +470,8 @@ package body Parser_FSM is
 
       else
          Parser_Error
-           (E003,
-            Line_Number => Scanner.Token_Lineno,
-            Arguments   => (1 => To_Unbounded_String (X)));
-         --               Error ("Token '" & X & "' should be either '%%' or a nonterminal name.");
+           (E003, Scanner.Token_Lineno,
+            (1 => To_Unbounded_String (X)));
       end if;
    end Do_State_Waiting_For_Decl_Or_Rule;
 
@@ -486,17 +482,14 @@ package body Parser_FSM is
       X   : constant String    := Current_Line (Scanner);
    begin
       if Cur not in 'A' .. 'Z' then
-         Parser_Error (E004);
-         --  Error ("The precedence symbol must be a terminal.");
+         Parser_Error (E004, Scanner.Token_Lineno);
 
       elsif Scanner.Prev_Rule = null then
-         Parser_Error (E005);
-         --  Error ("There is no prior rule to assign precedence '[" & X & "]'.");
+         Parser_Error (E005, Scanner.Token_Lineno,
+                       (1 => To_Unbounded_String (X)));
 
       elsif Scanner.Prev_Rule.Prec_Sym /= null then
-         Parser_Error (E006);
-         --  Error ("Precedence mark on this line is not the first " &
-         --         "to follow the previous rule.");
+         Parser_Error (E006, Scanner.Token_Lineno);
 
       else
          Scanner.Prev_Rule.Prec_Sym :=
@@ -514,7 +507,7 @@ package body Parser_FSM is
    begin
       if Cur /= ']' then
          --  Error ("Missing ']' on precedence mark.");
-         Parser_Error (E007);
+         Parser_Error (E007, Scanner.Token_Lineno);
       end if;
 
       Scanner.State := WAITING_FOR_DECL_OR_RULE;
@@ -784,7 +777,8 @@ package body Parser_FSM is
          Scanner.State := RHS_ALIAS_1;
 
       else
-         Parser_Error (E202, (1 => To_Unbounded_String (X)));
+         Parser_Error (E202, Scanner.Token_Lineno,
+                       (1 => To_Unbounded_String (X)));
          Scanner.State := RESYNC_AFTER_RULE_ERROR;
       end if;
    end Do_State_In_RHS;
@@ -867,17 +861,28 @@ package body Parser_FSM is
             --  Scanner.Decl_Arg_Slot = (char *) realloc(Scanner.Decl_Arg_Slot, n);
             Buf_String := Scanner.Decl_Arg_Slot.all; --   + nOld;
             if Add_Line_Macro then
---               if
+               --               if
 --                 Old_Length /= 0 and
 --                 Element (Buf_String, -1) /= ASCII.LF
 --               then
 --                  --  *(zBuf++) := ASCII.NL;
 --                  Append (Buf_String, ASCII.LF);
 --               end if;
-               Buf_String := Line;
-               Buf_String := Buf_String; -- + nLine;
+
+               --  Append line feed to Buf is missing at end
+               if
+                 (Length (Old_String) /= 0 and Length (Buf_String) /= 0) and then
+                 Element (Buf_String, Length (Buf_String)) /= ASCII.LF
+               then
+                  Append (Buf_String, ASCII.LF);
+               end if;
+
+               Append (Buf_String, Line);
+--               Put_Line ("## XX");
+--               Put_Line (To_String (Buf_String));
+               --  Buf_String := Buf_String; -- + nLine;
                --  *(zBuf++) = '"';
-               Append (Buf_String, """");
+               Append (Buf_String, '"');
                Append (Z, Scanner.File_Name);
                while Z_Pos <= Length (Z) loop
                   if Element (Z, Z_Pos) = '\' then
@@ -892,6 +897,7 @@ package body Parser_FSM is
                Append (Buf_String, '"');
                Append (Buf_String, ASCII.LF);
             end if;
+
             if
               Scanner.Decl_Lineno_Slot /= null and
               Scanner.Decl_Lineno_Slot.all = 0

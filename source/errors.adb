@@ -37,47 +37,46 @@ package body Errors is
       return new String'(Item);
    end "-";
 
-   Table : constant array (K_Error_Parse_One_Token) of String_Access :=
+   Table : constant array (K_Error_Parse) of String_Access :=
      (E001 => -("There is no prior rule upon which to attach the code fragment which " &
                   "begins on this line."),
       E002 => -("Code fragment beginning on this line is not the first to follow the " &
                   "previous rule."),
-      E003 => -"Token '%1' should be either '%%' or a nonterminal name.",
+      E003 => -"Token '$1' should be either '%%' or a nonterminal name.",
       E004 => -"The precedence symbol must be a terminal.",
-      E005 => -"There is no prior rule to assign precedence '[XXX]'.",
+      E005 => -"There is no prior rule to assign precedence '[$1]'.",
       E006 => -"Precedence mark on this line is not the first to follow the previous rule.",
       E007 => -"Missing ']' on precedence mark.",
-      E008 => -"Expected to see a ':' following the LHS symbol '%1'.",
-      E009 => -"'%1' is not a valid alias for the LHS '%2'",
-      E010 => -"Missing ')' following LHS alias name '%1'.",
-      E011 => -"Missing '->' following: '%1(%2)'.",
-      E012 => -"'%1' is not a valid alias for the RHS symbol '%2'",
-      E013 => -"Missing ')' following LHS alias name '%1'.",
+      E008 => -"Expected to see a ':' following the LHS symbol '$1'.",
+      E009 => -"'$1' is not a valid alias for the LHS '$2'",
+      E010 => -"Missing ')' following LHS alias name '$1'.",
+      E011 => -"Missing '->' following: '$1($2)'.",
+      E012 => -"'$1' is not a valid alias for the RHS symbol '$2'",
+      E013 => -"Missing ')' following LHS alias name '$1'.",
 
-      E101 => -"String starting on this line is not terminated before the end of the file.",
-      E102 => -"String starting on this line is not terminated before the end of the file.",
-      E103 => -"Can't open this file for reading.",
+      E101 => -"Can't open this file for reading.",
+      E102 => -"C code starting on this line is not terminated before the end of the file.",
 
       E201 => -"Cannot form a compound containing a non-terminal",
-      E202 => -"Illegal character on RHS of rule: '%1'.",
-      E203 => -"Unknown declaration keyword: '%%1'.",
-      E204 => -"Illegal declaration keyword: '%1'.",
-      E205 => -"Symbol name missing after %%destructor keyword",
-      E206 => -"Symbol name missing after %%type keyword",
-      E207 => -"Symbol %%type '%1' already defined",
-      E208 => -"%%token_class argument '%1' should be a token",
-      E209 => -"%%token_class must be followed by an identifier: '%1'",
-      E210 => -"Symbol '%1' already used",
-      E211 => -"%%wildcard argument '%1' should be a token",
-      E212 => -"Extra wildcard to token: '%1'",
-      E213 => -"Illegal argument to %%%1: %2"
+      E202 => -"Illegal character on RHS of rule: '$1'.",
+      E203 => -"Unknown declaration keyword: '%$1'.",
+      E204 => -"Illegal declaration keyword: '$1'.",
+      E205 => -"Symbol name missing after %destructor keyword",
+      E206 => -"Symbol name missing after %type keyword",
+      E207 => -"Symbol %type '$1' already defined",
+      E208 => -"%token_class argument '%1' should be a token",
+      E209 => -"%token_class must be followed by an identifier: '$1'",
+      E210 => -"Symbol '$1' already used",
+      E211 => -"%wildcard argument '$1' should be a token",
+      E212 => -"Extra wildcard to token: '$1'",
+      E213 => -"Illegal argument to %$1: $2"
      );
 
 
    procedure Parser_Error
-     (Kind        : in K_Error_Parse_One_Token;
-      Arguments   : in Argument_List           := Null_Argument_List;
-      Line_Number : in Natural                 := Start_Line)
+     (Kind        : in K_Error_Parse;
+      Line_Number : in Natural;
+      Arguments   : in Argument_List := Null_Argument_List)
    is
       use Ada.Strings;
 
@@ -89,7 +88,7 @@ package body Errors is
       --  Fill in placeholders
       for I in Arguments'Range loop
          declare
-            Placeholder : constant String := "%" & Fixed.Trim (Positive'Image (I), Left);
+            Placeholder : constant String := "$" & Fixed.Trim (Positive'Image (I), Left);
          begin
             Position := Index (Message, Placeholder, Position);
             if Position = 0 then
