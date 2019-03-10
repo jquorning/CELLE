@@ -19,13 +19,6 @@ package body Parser_FSM is
    use Lime;
    use Parser_Data;
 
-   procedure Advance (Scanner : in out Scanner_Record;
-                      By      : in     Natural);
-   --  Advance Scanner by By amount of characters
-
-   procedure Advance_Until_After_Space (Scanner : in out Scanner_Record);
-   --  Advance Scanner by until after space
-
    procedure Do_State_Initialize (Lemon   : in out Lemon_Record;
                                   Scanner : in out Scanner_Record);
    procedure Do_State_Waiting_For_Decl_Or_Rule (Lemon   : in out Lemon_Record;
@@ -40,6 +33,17 @@ package body Parser_FSM is
 
    procedure Do_State_In_RHS (Lemon   : in out Lemon_Record;
                               Scanner : in out Scanner_Record);
+
+
+   procedure Advance (Scanner : in out Scanner_Record;
+                      By      : in     Natural);
+   --  Advance Scanner by By amount of characters
+
+   procedure Advance_Until_After_Space (Scanner : in out Scanner_Record);
+   --  Advance Scanner by until after space
+
+   procedure Debug (On   : in Boolean;
+                    Text : in String);
 
 
    --
@@ -437,7 +441,7 @@ package body Parser_FSM is
       Do_State_Initialize (Lemon, Scanner);
 
       if Cur = '%' then
-         Advance (Scanner, By => 1);
+--         Advance (Scanner, By => 1);
          Scanner.State := WAITING_FOR_DECL_KEYWORD;
 
       elsif Cur in 'a' .. 'z' then
@@ -533,13 +537,16 @@ package body Parser_FSM is
       end Match;
 
    begin
+      Debug (True, "Do_State_Waiting_For_Decl_Keyword");
+      Debug (True, "  Cur: " & Cur);
+      Debug (True, "  X  : " & X);
+
       if
         Cur in 'a' .. 'z' or
         Cur in 'A' .. 'Z'
       then
          Scanner.Decl_Keyword      := To_Unbounded_String (X);
          Scanner.Decl_Arg_Slot     := null;
---         Scanner.Decl_Lineno_Slot  := null;
          Scanner.Insert_Line_Macro := True;
 
          Scanner.State := WAITING_FOR_DECL_ARG;
@@ -586,6 +593,7 @@ package body Parser_FSM is
             Scanner.Insert_Line_Macro := False;
 
          elsif Match ("token_type") then
+            Debug (True, "  token_type");
             Scanner.Decl_Arg_Slot     := Lemon.Names.Token_Type'Access;
             Scanner.Insert_Line_Macro := False;
 
@@ -644,9 +652,9 @@ package body Parser_FSM is
          end if;
       else
          Parser_Error
-           (E204,
-            Arguments   => (1 => To_Unbounded_String (X)),
-            Line_Number => Scanner.Token_Lineno);
+           (E204, Scanner.Token_Lineno,
+            Arguments => (1 => To_Unbounded_String (X)));
+
          Scanner.State := RESYNC_AFTER_DECL_ERROR;
       end if;
 
@@ -921,6 +929,17 @@ package body Parser_FSM is
       end if;
 
    end  Do_State_Waiting_For_Decl_Arg;
+
+
+   procedure Debug (On   : in Boolean;
+                    Text : in String)
+   is
+      use Ada.Text_IO;
+   begin
+      if On then
+         Put_Line (Text);
+      end if;
+   end Debug;
 
 
 end Parser_FSM;
