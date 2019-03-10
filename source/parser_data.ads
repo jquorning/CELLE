@@ -123,9 +123,9 @@ package Parser_Data is
          Token   : Positive := Positive'First;
          Last    : Natural  := Natural'First;     --  Last position in Item
          Item    : String (1 .. Max_Line_Length); --  Full line read from input
-         Mode    : Mode_Identifier;               --  Mode
+         Mode    : Mode_Identifier := Root;       --  Mode
+         Done    : Boolean         := False;
          Buffer  : Unbounded_String;              --  Holder for identifiers etc.
-         Done    : Boolean  := False;
       end record;
 
 

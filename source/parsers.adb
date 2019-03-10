@@ -47,6 +47,9 @@ package body Parsers is
                               Scanner : in out Scanner_Record);
    --  Parse a single Token.
 
+   procedure Detect_Start_Of_C_Comment_Block (Scanner : in out Scanner_Record);
+
+
    procedure Debug (On    : in Boolean;
                     Image : in String);
 
@@ -276,6 +279,8 @@ package body Parsers is
             Parse_Quoted_Identifier (Scanner);
 
          when Root =>
+            Detect_Start_Of_C_Comment_Block (Scanner);
+
             Parse_Current_Character (Lemon, Scanner);
 
       end case;
@@ -295,8 +300,6 @@ package body Parsers is
 
    end Parse_On_Mode;
 
-
-   procedure Detect_Start_Of_C_Comment_Block (Scanner : in out Scanner_Record);
 
    procedure Detect_Start_Of_C_Comment_Block (Scanner : in out Scanner_Record)
    is
@@ -358,7 +361,7 @@ package body Parsers is
 --         Parse_On_Mode (Lemon, Scanner, Line, Break_Out);
 
          --  Detect start of C comment block
-         Detect_Start_Of_C_Comment_Block (Scanner);
+--         Detect_Start_Of_C_Comment_Block (Scanner);
 
          --  Trim leading spaces
          DK8543.Strings.Trim (Scanner.Item, Scanner.First, Scanner.Last,
