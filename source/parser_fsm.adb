@@ -8,6 +8,7 @@
 --
 
 with Ada.Text_IO;
+with Ada.Strings.Fixed;
 with Ada.Strings.Unbounded;
 
 with Symbols;
@@ -78,12 +79,13 @@ package body Parser_FSM is
    procedure Do_State (Lemon   : in out Lemon_Record;
                        Scanner : in out Scanner_Record)
    is
-      X : constant String    := Scanner.Item (Scanner.First .. Scanner.Last);
-      C : constant Character := Scanner.Item (Scanner.First);
+      Debug_On : constant Boolean := True;
+      X : constant String    := Current_Token_Line (Scanner);
+      C : constant Character := Current_Token_Char (Scanner);
    begin
-      Debug (False, "Do_State: STATE: " & Scanner.State'Img);
-      Debug (False, "  X: " & X);
-      Debug (False, "  C: " & C);
+      Debug (Debug_On, "Do_State: STATE: " & Scanner.State'Img);
+      Debug (Debug_On, "  X: " & X);
+      Debug (Debug_On, "  C: " & C);
 
       case Scanner.State is
 
@@ -532,17 +534,26 @@ package body Parser_FSM is
 
       function Match (Item : in String) return Boolean
       is
-         Length : constant Natural := Natural'Min (X'Length, Item'Length);
-         Left   : String renames X    (X'First    .. X'First    + Length - 1);
-         Right  : String renames Item (Item'First .. Item'First + Length - 1);
+         use Ada.Strings.Fixed;
+
+         Length     : constant Natural := Natural'Min (X'Length, Item'Length);
+         Item_Last  : constant Natural := Item'First + Length - 1;
+         Right_Pos  : constant Natural := Index (Item (Item'First .. Item_Last), " ");
+         Right_Last : constant Natural := Natural'Max (Right_Pos, Item_Last - 1);
+         Length_2   : constant Natural := Natural'Min (X'Length, Item_Last - Item'First + 1);
+         Left       : String renames X    (X'First    .. X'First    + Length_2 - 1);
+         Right      : String renames Item (Item'First .. Item'First + Length_2 - 1);
       begin
+         Debug (False, "    Left : " & Left);
+         Debug (False, "    Right: " & Right);
          return Left = Right;
       end Match;
 
+      Debug_On : constant Boolean := False;
    begin
-      Debug (True, "Do_State_Waiting_For_Decl_Keyword");
-      Debug (True, "  Cur: " & Cur);
-      Debug (True, "  X  : " & X);
+      Debug (Debug_On, "Do_State_Waiting_For_Decl_Keyword");
+      Debug (Debug_On, "  Cur: " & Cur);
+      Debug (Debug_On, "  X  : " & X);
 
       if
         Cur in 'a' .. 'z' or
@@ -571,9 +582,10 @@ package body Parser_FSM is
             Scanner.Decl_Arg_Slot := Lemon.Names.Var_Dest'Access;
 
          elsif Match ("token_prefix") then
+            Debug (True, "  token_prefix");
             Scanner.Decl_Arg_Slot     := Lemon.Names.Token_Prefix'Access;
             Scanner.Insert_Line_Macro := False;
-            Advance_Until_After_Space (Scanner);
+            --  Advance_Until_After_Space (Scanner);
 
          elsif Match ("syntax_error") then
             Scanner.Decl_Arg_Slot := Lemon.Names.Error'Access;
@@ -592,6 +604,7 @@ package body Parser_FSM is
             Scanner.Insert_Line_Macro := False;
 
          elsif Match ("extra_context") then
+            Debug (True, "  extra_context");
             Scanner.Decl_Arg_Slot     := Lemon.Names.CTX2'Access;
             Scanner.Insert_Line_Macro := False;
 
@@ -601,6 +614,7 @@ package body Parser_FSM is
             Scanner.Insert_Line_Macro := False;
 
          elsif Match ("default_type") then
+            Debug (True, "  default_type");
             Scanner.Decl_Arg_Slot     := Lemon.Names.Var_Type'Access;
             Scanner.Insert_Line_Macro := False;
 
@@ -798,8 +812,6 @@ package body Parser_FSM is
    procedure Do_State_Waiting_For_Decl_Arg (Lemon   : in     Lemon_Record;
                                             Scanner : in out Scanner_Record)
    is
-      use Ada.Text_IO;
-
       Cur : constant Character := Current_Token_Char (Scanner);
       X   : constant String    := Current_Token_Line (Scanner);
    begin

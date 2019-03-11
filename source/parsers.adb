@@ -86,6 +86,7 @@ package body Parsers is
       use Ada.Strings.Unbounded;
 
       Current : constant Character := Current_Token_Char (Scanner);
+      Line    : constant String    := Current_Token_Line (Scanner);
    begin
       Debug (False, "Parse_Current_Character");
       Debug (False, "  Current: " & Current);
@@ -172,22 +173,15 @@ package body Parsers is
 --              end if;
 
 
-         when
+         when  --  Identifiers
            'a' .. 'z' |
            'A' .. 'Z' |
-           '0' .. '9' =>  --  Identifiers
---        while( (c= *cp)!=0 && (ISALNUM(c) || c=='_') ) cp++;
---        nextcp = cp;
---      }else if( c==':' && cp[1]==':' && cp[2]=='=' ){ /* The operator "::=" */
-            null;
+           '0' .. '9' | '_' =>
+            Scanner.Token := Scanner.Token + 1;
 
-         when ':' =>
---        cp += 3;
---        nextcp = cp;
 --      }else if( (c=='/' || c=='|') && ISALPHA(cp[1]) ){
-            null;
+         when '/' | '|' =>
 
-         when '/' =>
       --        cp += 2;
 --        while( (c = *cp)!=0 && (ISALNUM(c) || c=='_') ) cp++;
 --        nextcp = cp;
@@ -195,10 +189,14 @@ package body Parsers is
             null;
 
          when others =>
-               --        cp++;
---        nextcp = cp;
---      }
-            null;
+            if
+              Line'Length >= 3 and then
+              Line (Line'First .. Line'First + 3 - 1) = "::="
+            then
+               Scanner.Token := Scanner.Token + 3;
+            else
+               Scanner.Token := Scanner.Token + 1;
+            end if;
 
       end case;
 --      c = *cp;
