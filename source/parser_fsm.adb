@@ -81,6 +81,9 @@ package body Parser_FSM is
       X : constant String    := Scanner.Item (Scanner.First .. Scanner.Last);
       C : constant Character := Scanner.Item (Scanner.First);
    begin
+      Debug (False, "Do_State: STATE: " & Scanner.State'Img);
+      Debug (False, "  X: " & X);
+      Debug (False, "  C: " & C);
 
       case Scanner.State is
 

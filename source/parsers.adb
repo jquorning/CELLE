@@ -11,7 +11,6 @@ with Ada.Text_IO;
 with Ada.Strings.Fixed;
 with Ada.Strings.Unbounded;
 
-with DK8543.Text_IO;
 with DK8543.Strings.Utility;
 
 with Parser_Data;
@@ -19,7 +18,6 @@ with Parser_FSM;
 
 with Errors;
 with Rules;
-with Symbols;
 
 package body Parsers is
 
@@ -85,13 +83,12 @@ package body Parsers is
    procedure Parse_Current_Character (Lemon   : in out Lime.Lemon_Record;
                                       Scanner : in out Scanner_Record)
    is
-      use Ada.Text_IO;
       use Ada.Strings.Unbounded;
 
       Current : constant Character := Current_Token_Char (Scanner);
    begin
-      Debug (True, "Parse_Current_Character");
-      Debug (True, "  Current: " & Current);
+      Debug (False, "Parse_Current_Character");
+      Debug (False, "  Current: " & Current);
 
       case Current is
 
@@ -223,23 +220,15 @@ package body Parsers is
 
       Parse_One_Token (Lemon, Scanner);
 
-      --  Parse_Onde_Token
-      declare
-         use Parser_FSM;
-      begin
-         Scanner.Done := False;
-         Do_State (Lemon, Scanner);
-      end;
-
    end Parse_Current_Character;
 
 
    procedure Parse_Current_Line (Lemon   : in out Lime.Lemon_Record;
                                  Scanner : in out Scanner_Record)
    is
-      use Ada.Text_IO;
    begin
-      Put_Line ("Parse_On_Mode. Mode: " & Scanner.Mode'Img);
+      Debug (False, "Parse_On_Mode. Mode: " & Scanner.Mode'Img);
+
       case Scanner.Mode is
 
          when C_Comment_Block =>
@@ -275,7 +264,9 @@ package body Parsers is
 
             --  Scanner.Done := False;
             --  loop
+            if Scanner.Mode = Root then
                Parse_Current_Character (Lemon, Scanner);
+            end if;
             --     exit when Scanner.Done;
             --  end loop;
 
@@ -319,7 +310,6 @@ package body Parsers is
    procedure Detect_Start_Of_C_Comment_Block (Scanner : in out Scanner_Record)
    is
       use Ada.Strings.Fixed;
-      use DK8543;
 
       Comment_C_Start : constant Natural :=
         Index (Scanner.Item (Scanner.First .. Scanner.Last), Comment_C_Begin);
@@ -338,7 +328,6 @@ package body Parsers is
    is
       use Ada.Text_IO;
       use Ada.Strings.Unbounded;
-      use DK8543;
 
       Input_File : File_Type;
       Scanner    : Scanner_Record;
@@ -410,14 +399,11 @@ package body Parsers is
       use Parser_FSM;
    begin
       Scanner.Done := False;
-      loop
-         Debug (False, "Do_State: STATE: " & Scanner.State'Img);
+--      loop
+      Do_State (Lemon, Scanner);
+--         exit when Scanner.Done;
 
-         Do_State
-           (Lemon   => Lemon,
-            Scanner => Scanner);
-         exit when Scanner.Done;
-      end loop;
+--      end loop;
    end Parse_One_Token;
 
 
