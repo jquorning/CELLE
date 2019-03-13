@@ -355,7 +355,7 @@ package body Reports is
       Max_Len := 10;
 
       --  Determine Max_Len
-      for I in 0 .. Lemp.N_Symbol loop
+      for I in 0 .. Extras.Symbol_Count loop
          SP  := Element_At (Lemp.Extra, Index => I);
          Len := Length (SP.Name);
          if Len > Max_Len then
@@ -369,12 +369,12 @@ package body Reports is
          N_Columns := 1;
       end if;
 
-      Skip := (Integer (Lemp.N_Symbol) + N_Columns - 1) / N_Columns;
+      Skip := (Integer (Extras.Symbol_Count) + N_Columns - 1) / N_Columns;
       for I in 0 .. Skip - 1 loop
          Put ("//");
          J := Symbols.Symbol_Index (I);
          loop
-            exit when J >= Lemp.N_Symbol;
+            exit when J >= Extras.Symbol_Count;
             SP := Element_At (Lemp.Extra, Index => J);
             pragma Assert (SP.Index = J);
             --  printf(" %3d %-*.*s",j,maxlen,maxlen,sp->name);
@@ -479,7 +479,7 @@ package body Reports is
       Put_Line (File, "The first-set of non-terminals is shown after the name.");
       New_Line (File);
 
-      for I in 0 .. Lemp.N_Symbol - 1 loop
+      for I in 0 .. Extras.Symbol_Count - 1 loop
          declare
             SP : Symbol_Access;
          begin
@@ -513,7 +513,7 @@ package body Reports is
       New_Line (File);
 
       N := 0;
-      for I in 0 .. Lemp.N_Symbol loop
+      for I in 0 .. Extras.Symbol_Count loop
          declare
             W      : Integer;
             Symbol : constant Symbol_Access := Element_At (Lemp.Extra, Index => I);
@@ -628,7 +628,8 @@ package body Reports is
          use Symbols;
          use Extras;
 
-         Code     : constant String := Minimum_Size_Type (0, Integer (Lemp.N_Symbol),
+         Code     : constant String := Minimum_Size_Type (0,
+                                                          Integer (Extras.Symbol_Count),
                                                           Size_Of_Code_Type);
          Action   : constant String := Minimum_Size_Type (0, Lemp.Max_Action,
                                                           Size_Of_Action_Type);
@@ -638,14 +639,14 @@ package body Reports is
          if Is_Wildcard then
             Generate_The_Defines_1
               (Code,
-               Integer (Lemp.N_Symbol),
+               Integer (Extras.Symbol_Count),
                Action,
                Is_Wildcard    => True,
                Wildcard_Index => Wildcard.Index);
          else
             Generate_The_Defines_1
             (Code,
-             Integer (Lemp.N_Symbol),
+             Integer (Extras.Symbol_Count),
              Action,
              Is_Wildcard    => False,
              Wildcard_Index => 0);
@@ -755,7 +756,7 @@ package body Reports is
       --  of placing the largest action sets first
 --    for(i=0; i<lemp->nxstate*2; i++) ax[i].iOrder = i;
 --    qsort(ax, lemp->nxstate*2, sizeof(ax[0]), axset_compare);
-      Act_Tab := Acttab.Alloc (Integer (Lemp.N_Symbol), Integer (Lemp.N_Terminal));
+      Act_Tab := Acttab.Alloc (Integer (Extras.Symbol_Count), Integer (Lemp.N_Terminal));
 --    for(i=0; i<lemp->nxstate*2 && ax[i].nAction>0; i++){
 --      stp = ax[i].stp;
 --      if( ax[i].isTkn ){
@@ -856,7 +857,7 @@ package body Reports is
          Lemp.Table_Size := Lemp.Table_Size + N * Size_Of_Code_Type;
       end;
 
-      Output_YY_Lookahead (Act_Tab, N, Integer (Lemp.N_Symbol));
+      Output_YY_Lookahead (Act_Tab, N, Integer (Extras.Symbol_Count));
 
       --
       --  Output the yy_shift_ofst[] table
@@ -959,7 +960,7 @@ package body Reports is
          J : Integer;
          RP : Rules.Rule_Access;
       begin
-         for I in Symbol_Index range 0 .. Symbol_Index (Lemp.N_Symbol - 1) loop
+         for I in Symbol_Index range 0 .. Extras.Symbol_Count - 1 loop
             declare
                Name : constant String := From_Key (Element_At (Lemp.Extra, I).Name);
             begin
@@ -1024,7 +1025,7 @@ package body Reports is
       begin
          I := 0;
          loop
-            exit when I >= Integer (Lemp.N_Symbol);
+            exit when I >= Integer (Extras.Symbol_Count);
             exit when Element_At (Lemp.Extra, Symbol_Index (I)).Kind = Terminal;
             I := I + 1;
          end loop;

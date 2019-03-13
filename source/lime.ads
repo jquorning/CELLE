@@ -91,7 +91,7 @@ package Lime is
          N_State          : Integer;            --  Number of states
          Nx_State         : Integer;            --  nstate with tail degenerate states removed
          N_Rule           : Integer;            --  Number of rules
-         N_Symbol         : Symbol_Index;       --  Number of terminal and nonterminal symbols
+--         N_Symbol         : Symbol_Index;       --  Number of terminal and nonterminal symbols
          N_Terminal       : Symbol_Index;       --  Number of terminal symbols
          Min_Shift_Reduce : Integer;            --  Minimum shift-reduce action value
          Err_Action       : Integer;            --  Error action value
@@ -124,7 +124,7 @@ package Lime is
    Clean_Lemon : constant Lemon_Record :=
      (Sorted       => null,       Rule         => null,      Start_Rule       => null,
       N_State      => 0,          Nx_State     => 0,         N_Rule           => 0,
-      N_Symbol     => 0,          N_Terminal   => 0,         Min_Shift_Reduce => 0,
+      N_Terminal   => 0,          Min_Shift_Reduce => 0,
       Err_Action   => 0,          Acc_Action   => 0,         No_Action        => 0,
       Min_Reduce   => 0,          Max_Action   => 0,         Symbols2         => 999,
       Error_Cnt    => 0,          Err_Sym2     => 999,

@@ -110,7 +110,8 @@ package Symbols is
    function From_Key (Key : in Key_Type) return String;
 
 --   procedure Do_Sort (Container : in out Symbol_Access_Array);
-   procedure Do_Some_Things (Lemon_N_Symbol : in out Symbol_Index);
+   procedure Do_Some_Things (Count_In  : in     Symbol_Index;
+                             Count_Out :    out Symbol_Index);
 
 
    procedure Symbol_Init;

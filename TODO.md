@@ -1,5 +1,6 @@
 1. Remove warnings
 1. Rewrite reports 
+1. Rewrite reports loops over symbols to loop over container
 1. Remove aliased of most record components
 1. Cleanup symbol sorting
 1. Complete scanner package

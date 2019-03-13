@@ -26,14 +26,31 @@ with Extras;
 
 procedure Cherry_Program is
 
+   procedure Put_Blessing;
    procedure Put_Help;
    procedure Put_Version;
+   procedure Put_Statistics (Lemon : in Lime.Lemon_Record);
+
+
+   procedure Put_Blessing is
+      use Ada.Text_IO;
+   begin
+      Put_Line ("The author disclaims copyright to this source code.  In place of");
+      Put_Line ("a legal notice, here is a blessing:");
+      New_Line;
+      Put_Line ("   May you do good and not evil.");
+      Put_Line ("   May you find forgiveness for yourself and forgive others.");
+      Put_Line ("   May you share freely, not taking more than you give.");
+      New_Line;
+   end Put_Blessing;
+
 
    procedure Put_Help is
    begin
       Cherry.Dummy;  -- XXX
       Reports.Dummy;
    end Put_Help;
+
 
    procedure Put_Version
    is
@@ -44,14 +61,42 @@ procedure Cherry_Program is
       Put_Line (Version);
       Put_Line (Build);
       New_Line;
-      Put_Line ("The author disclaims copyright to this source code.  In place of");
-      Put_Line ("a legal notice, here is a blessing:");
-      New_Line;
-      Put_Line ("   May you do good and not evil.");
-      Put_Line ("   May you find forgiveness for yourself and forgive others.");
-      Put_Line ("   May you share freely, not taking more than you give.");
-      New_Line;
    end Put_Version;
+
+
+   procedure Put_Statistics (Lemon : in Lime.Lemon_Record)
+   is
+      procedure Stats_Line (Text  : in String;
+                            Value : in Integer);
+
+      procedure Stats_Line (Text  : in String;
+                            Value : in Integer)
+      is
+         use Ada.Text_IO;
+
+         Line : String (1 .. 35) := (others => '.');
+      begin
+         Line (Line'First .. Text'Last) := Text;
+         Line (Text'Last + 1) := ' ';
+         Put (Line);
+         Put (Integer'Image (Value));
+         New_Line;
+      end Stats_Line;
+
+      use type Symbols.Symbol_Index;
+   begin
+      Ada.Text_IO.Put_Line ("Parser statistics:");
+      Stats_Line ("terminal symbols", Integer (Lemon.N_Terminal));
+      Stats_Line ("non-terminal symbols", Integer (Extras.Symbol_Count - Lemon.N_Terminal));
+      Stats_Line ("total symbols", Integer (Extras.Symbol_Count));
+      Stats_Line ("rules", Lemon.N_Rule);
+      Stats_Line ("states", Lemon.Nx_State);
+      Stats_Line ("conflicts", Lemon.N_Conflict);
+      Stats_Line ("action table entries", Lemon.N_Action_Tab);
+      Stats_Line ("lookahead table entries", Lemon.N_Lookahead_Tab);
+      Stats_Line ("total table size (bytes)", Lemon.Table_Size);
+   end Put_Statistics;
+
 
    use Ada.Command_Line;
 
@@ -66,6 +111,7 @@ begin
 
    if Options.Show_Version then
       Put_Version;
+      Put_Blessing;
       return;
    end if;
 
@@ -83,15 +129,11 @@ begin
       use Symbols;
       use Rules;
 
-      --  Lemon : Lime.Lemon_Record renames Database.Lemon;
       Lemon : aliased Lime.Lemon_Record;
-      --  Status : Ada.Command_Line.Exit_Status;
 
-      --  Success : Ada.Command_Line.Exit_Status renames Ada.Command_Line.Success;
       Failure : Ada.Command_Line.Exit_Status renames Ada.Command_Line.Failure;
 
---      I  : Symbol_Index;
---      RP : Rules.Rule_Access;
+      Dummy_Symbol_Count : Symbol_Index;
    begin
       Lemon := Lime.Clean_Lemon;
       Lemon.Error_Cnt := 0;
@@ -106,70 +148,33 @@ begin
       Lemon.Basis_Flag      := Options.Basis_Flag;
       Lemon.No_Linenos_Flag := Options.No_Line_Nos;
 
-      --  Extras.Symbol_New_Proc (Extras.To_Name ("$"));
       Extras.Symbol_Append (Key => "$");
 
       --  Parse the input file
       Parsers.Parse (Lemon);
 
       if Lemon.Error_Cnt /= 0 then
-         --  Status := Failure;
          Ada.Command_Line.Set_Exit_Status (Failure);
          return;
       end if;
 
       if Lemon.N_Rule = 0 then
          Put_Line (Standard_Error, "Empty grammar.");
-         --  Status := Failure;
          Ada.Command_Line.Set_Exit_Status (Failure);
          return;
       end if;
 
-      --  Lemon.Err_Sym := Extras.Symbol_Find (Extras.To_Name ("error"));
-      --  Extra.Error := Extras.Symbol_Find ("error");
       Extras.Set_Error;
 
       --  Count and index the symbols of the grammar
-      --  Extras.Symbol_New_Proc (Extras.To_Name ("{default}"));
       Extras.Symbol_Append (Key => "{default}");
-      Lemon.N_Symbol := Extras.Symbol_Count;
 
-      --  Lemon.Symbols := new Symbol_Access_Array (0 .. Lemon.N_Symbol - 1);
-      Symbols.Symbol_Allocate (Ada.Containers.Count_Type (Lemon.N_Symbol));
+      Symbols.Symbol_Allocate (Ada.Containers.Count_Type (Extras.Symbol_Count));
 
       Extras.Fill_And_Sort;
 
-      Symbols.Do_Some_Things (Lemon.N_Symbol);  --  The following
-
-      --  XXX Section XXX
-
---        for Idx in 0 .. Lemon.N_Symbol - 1 loop
---           Lemon.Symbols.all (Idx).all.Index := Idx;
---           I := Idx;  --  C for loop hack dehacked
---        end loop;
---        I := I + 1;   --  C for loop hack dehacked
-
---        while Lemon.Symbols.all (I - 1).all.Kind = Symbols.Multi_Terminal loop
---           I := I - 1;
---        end loop;
-
-      --  XXX Section End XXX
-
---        pragma Assert (Lemon.Symbols.all (I - 1).Name = New_String ("{default}"));
---        Lemon.N_Symbol := I - 1;
-
---        I := 1;
---        loop
---           declare
---              Text  : constant String    := Value (Lemon.Symbols.all (I).Name);
---              First : constant Character := Text (Text'First);
---           begin
---              exit when Auxiliary.Is_Upper (First);
---              I := I + 1;
---           end;
---        end loop;
-
---        Lemon.N_Terminal := I;
+      Symbols.Do_Some_Things (Count_In  => Extras.Symbol_Count,
+                              Count_Out => Dummy_Symbol_Count);
 
       --  Assign sequential rule numbers.  Start with 0.  Put rules that have no
       --  reduce action C-code associated with them last, so that the switch()
@@ -224,31 +229,7 @@ begin
       end if;
 
       if Options.Statistics then
-         declare
-
-            procedure Stats_Line (Text : in String; Value : in Integer);
-            procedure Stats_Line (Text : in String; Value : in Integer) is
-               Line : String (1 .. 35) := (others => '.');
-            begin
-               Line (Line'First .. Text'Last) := Text;
-               Line (Text'Last + 1) := ' ';
-               Put (Line);
-               Put (Integer'Image (Value));
-               New_Line;
-            end Stats_Line;
-
-         begin
-            Put_Line ("Parser statistics:");
-            Stats_Line ("terminal symbols", Integer (Lemon.N_Terminal));
-            Stats_Line ("non-terminal symbols", Integer (Lemon.N_Symbol - Lemon.N_Terminal));
-            Stats_Line ("total symbols", Integer (Lemon.N_Symbol));
-            Stats_Line ("rules", Lemon.N_Rule);
-            Stats_Line ("states", Lemon.Nx_State);
-            Stats_Line ("conflicts", Lemon.N_Conflict);
-            Stats_Line ("action table entries", Lemon.N_Action_Tab);
-            Stats_Line ("lookahead table entries", Lemon.N_Lookahead_Tab);
-            Stats_Line ("total table size (bytes)", Lemon.Table_Size);
-         end;
+         Put_Statistics (Lemon);
       end if;
 
       if Lemon.N_Conflict > 0 then

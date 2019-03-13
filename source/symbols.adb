@@ -76,10 +76,43 @@ package body Symbols is
 --   end Do_Sort;
 
 
-   procedure Do_Some_Things (Lemon_N_Symbol : in out Symbol_Index)
+   procedure Do_Some_Things (Count_In  : in     Symbol_Index;
+                             Count_Out :    out Symbol_Index)
    is
    begin
       null;
+            --  The following
+
+      --  XXX Section XXX
+
+--        for Idx in 0 .. Lemon.N_Symbol - 1 loop
+--           Lemon.Symbols.all (Idx).all.Index := Idx;
+--           I := Idx;  --  C for loop hack dehacked
+--        end loop;
+--        I := I + 1;   --  C for loop hack dehacked
+
+--        while Lemon.Symbols.all (I - 1).all.Kind = Symbols.Multi_Terminal loop
+--           I := I - 1;
+--        end loop;
+
+      --  XXX Section End XXX
+
+--        pragma Assert (Lemon.Symbols.all (I - 1).Name = New_String ("{default}"));
+--        Lemon.N_Symbol := I - 1;
+
+--        I := 1;
+--        loop
+--           declare
+--              Text  : constant String    := Value (Lemon.Symbols.all (I).Name);
+--              First : constant Character := Text (Text'First);
+--           begin
+--              exit when Auxiliary.Is_Upper (First);
+--              I := I + 1;
+--           end;
+--        end loop;
+
+--        Lemon.N_Terminal := I;
+
    end Do_Some_Things;
 
 
