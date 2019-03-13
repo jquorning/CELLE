@@ -12,6 +12,10 @@ with Parser_Data;
 
 package Parser_FSM is
 
+   procedure Initialize_FSM (Lemon   : in out Lime.Lemon_Record;
+                             Scanner : in out Parser_Data.Scanner_Record);
+   --  Initialize the parser finite state machine
+
    procedure Do_State (Lemon   : in out Lime.Lemon_Record;
                        Scanner : in out Parser_Data.Scanner_Record);
    --  The parser state machine

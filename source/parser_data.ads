@@ -36,8 +36,7 @@ package Parser_Data is
    --
 
    type State_Scanner is
-     (INITIALIZE,
-      WAITING_FOR_DECL_OR_RULE,
+     (WAITING_FOR_DECL_OR_RULE,
       WAITING_FOR_DECL_KEYWORD,
       WAITING_FOR_DECL_ARG,
       WAITING_FOR_PRECEDENCE_SYMBOL,
@@ -123,9 +122,9 @@ package Parser_Data is
          Token   : Positive := Positive'First;
          Last    : Natural  := Natural'First;     --  Last position in Item
          Item    : String (1 .. Max_Line_Length); --  Full line read from input
-         Mode    : Mode_Identifier;               --  Mode
+         Mode    : Mode_Identifier := Root;       --  Mode
+         Done    : Boolean         := False;
          Buffer  : Unbounded_String;              --  Holder for identifiers etc.
-         Done    : Boolean  := False;
       end record;
 
 
@@ -144,5 +143,9 @@ package Parser_Data is
    function Current_Token_Line (Scanner : in Scanner_Record)
                                return String;
    --  returns the current line to parse
+
+   procedure Advance (Scanner : in out Scanner_Record;
+                      By : in Positive);
+   --  Advance token index by By characters
 
 end Parser_Data;

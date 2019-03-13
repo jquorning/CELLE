@@ -41,4 +41,13 @@ package body Parser_Data is
       return Scanner.Item (Scanner.Token .. Scanner.Last);
    end Current_Token_Line;
 
+
+   procedure Advance (Scanner : in out Scanner_Record;
+                      By      : in     Positive)
+   is
+   begin
+      Scanner.Token := Scanner.Token + By;
+   end Advance;
+
+
 end Parser_Data;

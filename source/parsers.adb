@@ -11,7 +11,6 @@ with Ada.Text_IO;
 with Ada.Strings.Fixed;
 with Ada.Strings.Unbounded;
 
-with DK8543.Text_IO;
 with DK8543.Strings.Utility;
 
 with Parser_Data;
@@ -19,7 +18,6 @@ with Parser_FSM;
 
 with Errors;
 with Rules;
-with Symbols;
 
 package body Parsers is
 
@@ -32,20 +30,23 @@ package body Parsers is
    --  between is also commented out as appropriate.
 
 
-   procedure Parse_On_Mode (Lemon   : in out Lime.Lemon_Record;
-                            Scanner : in out Scanner_Record);
-
    procedure Get_Line_Without_EOL_Comment (File    : in     Ada.Text_IO.File_Type;
                                            Scanner : in out Scanner_Record);
 
    procedure Parse_Current_Character (Lemon   : in out Lime.Lemon_Record;
                                       Scanner : in out Scanner_Record);
 
+   procedure Parse_Current_Line (Lemon   : in out Lime.Lemon_Record;
+                                 Scanner : in out Scanner_Record);
+
    procedure Parse_Quoted_Identifier (Scanner : in out Scanner_Record);
 
    procedure Parse_One_Token (Lemon   : in out Lime.Lemon_Record;
                               Scanner : in out Scanner_Record);
    --  Parse a single Token.
+
+   procedure Detect_Start_Of_C_Comment_Block (Scanner : in out Scanner_Record);
+
 
    procedure Debug (On    : in Boolean;
                     Image : in String);
@@ -82,13 +83,18 @@ package body Parsers is
    procedure Parse_Current_Character (Lemon   : in out Lime.Lemon_Record;
                                       Scanner : in out Scanner_Record)
    is
-      use Ada.Text_IO;
       use Ada.Strings.Unbounded;
 
       Current : constant Character := Current_Token_Char (Scanner);
+      Line    : constant String    := Current_Token_Line (Scanner);
+
+      Head_On    : constant Boolean := True;
+      Advance_On : constant Boolean := True;
    begin
-      Debug (False, "Parse_Current_Character");
-      Debug (False, "  Current: " & Current);
+      Debug (Head_On, "Parse_Current_Character");
+      Debug (Head_On, "  Current: " & Current);
+      Debug (Head_On, "  Line (Line'First): " & Line (Line'First));
+--      Debug (Head_On, "  Line (Line'First): " & Line (Line'First));
 
       case Current is
 
@@ -172,34 +178,64 @@ package body Parsers is
 --              end if;
 
 
-         when 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' =>  --  Identifiers
---        while( (c= *cp)!=0 && (ISALNUM(c) || c=='_') ) cp++;
---        nextcp = cp;
---      }else if( c==':' && cp[1]==':' && cp[2]=='=' ){ /* The operator "::=" */
-            null;
+         when 'a' .. 'z' |          --  Identifiers
+           'A' .. 'Z' |
+           '0' .. '9' | '_' =>
 
-         when ':' =>
---        cp += 3;
---        nextcp = cp;
---      }else if( (c=='/' || c=='|') && ISALPHA(cp[1]) ){
-            null;
+            Debug (Advance_On, "Advance Identifier");
+            declare
+               Cur : Character;
+            begin
+               loop
+                  Cur := Current_Token_Char (Scanner);
+                  exit when not
+                    (Cur in 'a' .. 'z' or
+                       Cur in 'A' .. 'Z' or
+                       Cur in '0' .. '9' or
+                       Cur = '_');
+                  Advance (Scanner, By => 1);
+               end loop;
+            end;
 
-         when '/' =>
-      --        cp += 2;
---        while( (c = *cp)!=0 && (ISALNUM(c) || c=='_') ) cp++;
---        nextcp = cp;
---      }else{                          /* All other (one character) operators */
-            null;
 
-         when others =>
-               --        cp++;
---        nextcp = cp;
---      }
-            null;
+         when others =>       --  All other (one character) operators
+            if
+              Line'Length >= 3 and then
+              Line (Line'First .. Line'First + 3 - 1) = "::="
+            then
+               Debug (Advance_On, "Advance 3");
+               Advance (Scanner, By => 3);
+            elsif
+              Line'Length >= 2 and then
+              ((Line (Line'First) = '/' or Line (Line'First) = '|') and
+                 (Line (Line'First + 1) in 'a' .. 'z' or Line (Line'First + 1) in 'A' .. 'Z'))
+            then
+               Debug (Advance_On, "Advance 2");
+               Advance (Scanner, By => 2);
+               declare
+                  Cur : Character;
+               begin
+                  loop
+                     Cur := Current_Token_Char (Scanner);
+                     if
+                       Cur in 'a' .. 'z' or
+                       Cur in 'A' .. 'Z' or
+                       Cur in '1' .. '9' or
+                       Cur = '_'
+                     then
+                        Debug (Advance_On, "Advance Label");
+                        Advance (Scanner, By => 1);
+                     else
+                        exit;
+                     end if;
+                  end loop;
+               end;
+            else
+               Debug (Advance_On, "Advance Characer:" & Current_Token_Char (Scanner));
+               Advance (Scanner, By => 1);
+            end if;
 
       end case;
---      c = *cp;
---      *cp = 0;                        /* Null terminate the token */
 
       --  Debug
       Debug (False, "Scanner");
@@ -220,30 +256,12 @@ package body Parsers is
    end Parse_Current_Character;
 
 
-   procedure Parse_Quoted_Identifier (Scanner : in out Scanner_Record)
+   procedure Parse_Current_Line (Lemon   : in out Lime.Lemon_Record;
+                                 Scanner : in out Scanner_Record)
    is
-      use Ada.Strings.Unbounded;
-      Current : Character renames Scanner.Item (Scanner.Current);
    begin
-      if Current = '"' then
-         Scanner.Mode := Root;
-      else
-         Scanner.Buffer := Scanner.Buffer & Current;
-      end if;
+      Debug (True, "Parse_On_Mode. Mode: " & Scanner.Mode'Img);
 
-   exception
-
-      when Constraint_Error =>  Errors.Parser_Error (E102, Scanner.Token_Lineno);
-
-   end Parse_Quoted_Identifier;
-
-
-   procedure Parse_On_Mode (Lemon   : in out Lime.Lemon_Record;
-                            Scanner : in out Scanner_Record)
-   is
-      use Ada.Text_IO;
-   begin
-      Put_Line ("Parse_On_Mode. Mode: " & Scanner.Mode'Img);
       case Scanner.Mode is
 
          when C_Comment_Block =>
@@ -255,7 +273,6 @@ package body Parsers is
                if Position_C_Comment_End /= 0 then
                   Scanner.Mode  := Root;
                   Scanner.First := Position_C_Comment_End + Comment_C_End'Length;
-                  Put_Line ("  End");
                else
                   Scanner.Last := Scanner.First - 1;
                   --  No end of comment found so Line is empty
@@ -276,7 +293,19 @@ package body Parsers is
             Parse_Quoted_Identifier (Scanner);
 
          when Root =>
-            Parse_Current_Character (Lemon, Scanner);
+            Detect_Start_Of_C_Comment_Block (Scanner);
+
+            --  Scanner.Done := False;
+            --  loop
+            if Scanner.Mode = Root then
+               while Scanner.Token < Scanner.Last loop
+                  Debug (True, "Call Parse_Current_Character with : "
+                           & Current_Token_Char (Scanner));
+                  Parse_Current_Character (Lemon, Scanner);
+               end loop;
+            end if;
+            --   exit when Scanner.Done;
+            --  end loop;
 
       end case;
 
@@ -293,15 +322,31 @@ package body Parsers is
 
          end case;
 
-   end Parse_On_Mode;
+   end Parse_Current_Line;
 
 
-   procedure Detect_Start_Of_C_Comment_Block (Scanner : in out Scanner_Record);
+   procedure Parse_Quoted_Identifier (Scanner : in out Scanner_Record)
+   is
+      use Ada.Strings.Unbounded;
+      Current : Character renames Scanner.Item (Scanner.Current);
+   begin
+      if Current = '"' then
+         Scanner.Mode := Root;
+      else
+         Scanner.Buffer := Scanner.Buffer & Current;
+      end if;
+
+   exception
+
+      when Constraint_Error =>
+         Errors.Parser_Error (E102, Scanner.Token_Lineno);
+
+   end Parse_Quoted_Identifier;
+
 
    procedure Detect_Start_Of_C_Comment_Block (Scanner : in out Scanner_Record)
    is
       use Ada.Strings.Fixed;
-      use DK8543;
 
       Comment_C_Start : constant Natural :=
         Index (Scanner.Item (Scanner.First .. Scanner.Last), Comment_C_Begin);
@@ -320,7 +365,6 @@ package body Parsers is
    is
       use Ada.Text_IO;
       use Ada.Strings.Unbounded;
-      use DK8543;
 
       Input_File : File_Type;
       Scanner    : Scanner_Record;
@@ -328,9 +372,9 @@ package body Parsers is
       Scanner.File_Name    := Lemon.File_Name;
       Scanner.Token_Lineno := 0;
       Scanner.Error_Count  := 0;
-      Scanner.State        := INITIALIZE;
 
       --  Begin by opening the input file
+      Parser_FSM.Initialize_FSM (Lemon, Scanner);
       Errors.Set_File_Name (Scanner.File_Name);
       Open (Input_File, In_File, To_String (Scanner.File_Name));
 
@@ -358,17 +402,14 @@ package body Parsers is
 --         Parse_On_Mode (Lemon, Scanner, Line, Break_Out);
 
          --  Detect start of C comment block
-         Detect_Start_Of_C_Comment_Block (Scanner);
+--         Detect_Start_Of_C_Comment_Block (Scanner);
 
          --  Trim leading spaces
          DK8543.Strings.Trim (Scanner.Item, Scanner.First, Scanner.Last,
                               Side => Ada.Strings.Left);
 
-         --  Scanner.Token_Lineno := Text_IO.Line_Number; --  Linenumber on which token begins
-
-         --  Debug
-
-         Parse_On_Mode (Lemon, Scanner);
+         Parse_Current_Line (Lemon, Scanner);
+         --  Parse_On_Mode (Lemon, Scanner);
 
       end loop;
 
@@ -394,15 +435,11 @@ package body Parsers is
    is
       use Parser_FSM;
    begin
-      Scanner.Done := False;
-      loop
-         Debug (False, "Do_State: STATE: " & Scanner.State'Img);
-
-         Do_State
-           (Lemon   => Lemon,
-            Scanner => Scanner);
-         exit when Scanner.Done;
-      end loop;
+--      Scanner.Done := False;
+--      loop
+      Do_State (Lemon, Scanner);
+--         exit when Scanner.Done;
+--      end loop;
    end Parse_One_Token;
 
 
