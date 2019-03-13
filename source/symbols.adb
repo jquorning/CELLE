@@ -208,12 +208,12 @@ package body Symbols is
    end Symbol_Allocate;
 
 
-   function Symbol_New (Name : in String)
-                       return Symbol_Access
+   function Create (Name : in String)
+                   return Symbol_Access
    is
    begin
       return null;
-   end Symbol_New;
+   end Create;
 
 --     is--     function Lime_Symbol_New
 --       (Name : in Interfaces.C.Strings.chars_ptr)
@@ -228,12 +228,12 @@ package body Symbols is
 --     end Lime_Symbol_New;
 
 
-   function Symbol_Find (Key : in String)
-                        return Symbol_Access
+   function Find (Key : in String)
+                 return Symbol_Access
    is
    begin
       return null;
-   end Symbol_Find;
+   end Find;
 
 --     function Lime_Symbol_Find
 --       (Name : in Interfaces.C.Strings.chars_ptr)

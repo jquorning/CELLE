@@ -15,7 +15,6 @@ package body Extras is
 
    use type Symbols.Symbol_Record;
    use type Symbols.Symbol_Name;
---   use type Symbols.Symbol_Cursor;
 
    package Symbol_Lists is
       new Ada.Containers.Doubly_Linked_Lists
@@ -29,7 +28,8 @@ package body Extras is
    function To_Cursor (Position : in Symbol_Cursor) return Symbol_Lists.Cursor;
    function From_Cursor (Cursor : in Symbol_Cursor) return Symbol_Lists.Cursor;
    function "=" (Left, Right : in Symbol_Cursor) return Boolean;
-
+   function Find (Name : in Symbols.Key_Type)
+                 return Symbol_Cursor;
 
    --
    --  Routines for handling symbols of the grammar
@@ -92,8 +92,8 @@ package body Extras is
    end Set_Wildcard;
 
 
-   function Symbol_New (Name : in String)
-                       return Symbol_Cursor
+   function Create (Name : in String)
+                   return Symbol_Cursor
    is
       use Symbols;
 
@@ -101,29 +101,26 @@ package body Extras is
    begin
       Symbol_Append (Name);
       return null;
-   end Symbol_New;
+   end Create;
 
-   function Symbol_Find (Key : in Symbols.Key_Type)
-                        return Symbol_Cursor;
 
-   function Symbol_Find (Key : in Symbols.Key_Type)
-                        return Symbol_Cursor
+   function Find (Name : in Symbols.Key_Type)
+                 return Symbol_Cursor
    is
       Position : Symbol_Maps.Cursor;
    begin
       Position :=
-        Symbol_Maps.Find (Extra.Symbol_Map,
-                          Key => Key);
+        Symbol_Maps.Find (Extra.Symbol_Map, Name);
       --      Key => Symbols.From_Key (Key));
       return null;  --  XXX
-   end Symbol_Find;
+   end Find;
 
 
-   function Symbol_Find (Key : in String) return Symbol_Cursor  is
+   function Find (Name : in String) return Symbol_Cursor  is
       use Symbols;
    begin
-      return Symbol_Find (To_Key (Key));
-   end Symbol_Find;
+      return Find (To_Key (Name));
+   end Find;
 
 
    function To_Cursor (Position : in Symbol_Cursor) return Symbol_Lists.Cursor
@@ -156,7 +153,7 @@ package body Extras is
 
    procedure Set_Error is
    begin
-      Extra.Error := Symbol_Find ("error");
+      Extra.Error := Find ("error");
    end Set_Error;
 
 

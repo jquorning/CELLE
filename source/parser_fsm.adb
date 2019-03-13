@@ -172,7 +172,9 @@ package body Parser_FSM is
             Scanner.State := RESYNC_AFTER_DECL_ERROR;
          else
             declare
-               Symbol : Symbols.Symbol_Access := Symbols.Symbol_New (X);
+               use Symbols;
+
+               Symbol : Symbol_Access := Create (X);
             begin
                Scanner.Decl_Arg_Slot     := new Unbounded_String'(Symbol.Destructor);
 --                 new chars_ptr'(New_String (To_String (Symbol.Destructor))); -- XXX
@@ -194,7 +196,7 @@ package body Parser_FSM is
             declare
                use Symbols;
 
-               Symbol : Symbol_Access := Symbol_Find (X);
+               Symbol : Symbol_Access := Find (X);
             begin
                if
                  Symbol /= null and then
@@ -206,7 +208,7 @@ package body Parser_FSM is
                   Scanner.State := RESYNC_AFTER_DECL_ERROR;
                else
                   if Symbol = null then
-                     Symbol := Symbol_New (X);
+                     Symbol := Create (X);
                   end if;
                   Scanner.Decl_Arg_Slot := new Unbounded_String'(Symbol.Data_Type);
                   --  new chars_ptr'(New_String (To_String (Symbol.Data_Type)));
@@ -297,7 +299,7 @@ package body Parser_FSM is
 --               use Interfaces.C.Strings;
                use Symbols, Extras;
 
-               Symbol : constant Symbol_Access := Symbol_New (X);
+               Symbol : constant Symbol_Access := Create (X);
             begin
 --               if Scanner.Gp.Wildcard = 0 then
 --                  Scanner.Gp.wildcard := Symbol;
@@ -325,7 +327,7 @@ package body Parser_FSM is
                   Arguments   => (1 => To_Unbounded_String (X)));
                Scanner.State := RESYNC_AFTER_DECL_ERROR;
 
-            elsif Symbol_Find (X) /= null then
+            elsif Find (X) /= null then
                Parser_Error
                  (E210,
                   Line_Number => Scanner.Token_Lineno,
@@ -333,7 +335,7 @@ package body Parser_FSM is
                Scanner.State := RESYNC_AFTER_DECL_ERROR;
 
             else
-               Scanner.Token_Class      := Symbol_New (X);
+               Scanner.Token_Class      := Create (X);
                Scanner.Token_Class.Kind := Multi_Terminal;
                Scanner.State       := WAITING_FOR_CLASS_TOKEN;
 
@@ -363,7 +365,7 @@ package body Parser_FSM is
                   First := X'First + 1;
                end if;
                --  Symbol.Sub_Sym (symbol.N_Sub_Sym - 1) := Lime_Symbol_New (X (First .. X'Last));
-               Symbol.Sub_Sym.Append (Symbol_New (X (First .. X'Last)));
+               Symbol.Sub_Sym.Append (Create (X (First .. X'Last)));
             end;
          else
             Parser_Error
@@ -422,7 +424,7 @@ package body Parser_FSM is
          Scanner.State := WAITING_FOR_DECL_KEYWORD;
 
       elsif Cur in 'a' .. 'z' then
-         Scanner.LHS.Append (Symbols.Symbol_New (X));
+         Scanner.LHS.Append (Symbols.Create (X));
          --            PSP.N_RHS      := 0;
 
          Scanner.RHS        := Symbols.Symbol_Vectors.Empty_Vector;
@@ -474,7 +476,7 @@ package body Parser_FSM is
 
       else
          Scanner.Prev_Rule.Prec_Sym :=
-           Symbols.Symbol_New (X);
+           Symbols.Create (X);
       end if;
 
       Scanner.State := PRECEDENCE_MARK_2;
@@ -732,7 +734,7 @@ package body Parser_FSM is
         Cur in 'a' .. 'z' or
         Cur in 'A' .. 'Z'
       then
-         Scanner.RHS  .Append (Symbols.Symbol_New (X));
+         Scanner.RHS  .Append (Symbols.Create (X));
          Scanner.Alias.Append (Null_Unbounded_String);
          --            end if;
 
@@ -760,7 +762,7 @@ package body Parser_FSM is
             end if;
 
             Symbol.Sub_Sym.Append
-              (Symbols.Symbol_New (X (X'First + 1 .. X'Last)));
+              (Symbols.Create (X (X'First + 1 .. X'Last)));
 
             if
               X (X'First + 1) in 'a' .. 'z' or

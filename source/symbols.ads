@@ -116,12 +116,13 @@ package Symbols is
    procedure Symbol_Init;
    --  Allocate a new associative array.
 
-   function Symbol_New (Name : in String) return Symbol_Access;
+   function Create (Name : in String) return Symbol_Access;
    --  Return a pointer to the (terminal or nonterminal) symbol "x".
    --  Create a new symbol if this is the first time "x" has been seen.
 
    --  function Symbol_Find (Key : in Key_Type) return Symbol_Access;
-   function Symbol_Find (Key : in String)   return Symbol_Access;
+
+   function Find (Key : in String) return Symbol_Access;
    --  Return a pointer to data assigned to the given key.  Return NULL
    --  if no such key.
 
