@@ -36,8 +36,7 @@ package Parser_Data is
    --
 
    type State_Scanner is
-     (INITIALIZE,
-      WAITING_FOR_DECL_OR_RULE,
+     (WAITING_FOR_DECL_OR_RULE,
       WAITING_FOR_DECL_KEYWORD,
       WAITING_FOR_DECL_ARG,
       WAITING_FOR_PRECEDENCE_SYMBOL,
@@ -144,5 +143,9 @@ package Parser_Data is
    function Current_Token_Line (Scanner : in Scanner_Record)
                                return String;
    --  returns the current line to parse
+
+   procedure Advance (Scanner : in out Scanner_Record;
+                      By : in Positive);
+   --  Advance token index by By characters
 
 end Parser_Data;

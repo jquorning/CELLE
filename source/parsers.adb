@@ -87,9 +87,14 @@ package body Parsers is
 
       Current : constant Character := Current_Token_Char (Scanner);
       Line    : constant String    := Current_Token_Line (Scanner);
+
+      Head_On    : constant Boolean := True;
+      Advance_On : constant Boolean := True;
    begin
-      Debug (False, "Parse_Current_Character");
-      Debug (False, "  Current: " & Current);
+      Debug (Head_On, "Parse_Current_Character");
+      Debug (Head_On, "  Current: " & Current);
+      Debug (Head_On, "  Line (Line'First): " & Line (Line'First));
+--      Debug (Head_On, "  Line (Line'First): " & Line (Line'First));
 
       case Current is
 
@@ -173,34 +178,64 @@ package body Parsers is
 --              end if;
 
 
-         when  --  Identifiers
-           'a' .. 'z' |
+         when 'a' .. 'z' |          --  Identifiers
            'A' .. 'Z' |
            '0' .. '9' | '_' =>
-            Scanner.Token := Scanner.Token + 1;
 
---      }else if( (c=='/' || c=='|') && ISALPHA(cp[1]) ){
-         when '/' | '|' =>
+            Debug (Advance_On, "Advance Identifier");
+            declare
+               Cur : Character;
+            begin
+               loop
+                  Cur := Current_Token_Char (Scanner);
+                  exit when not
+                    (Cur in 'a' .. 'z' or
+                       Cur in 'A' .. 'Z' or
+                       Cur in '0' .. '9' or
+                       Cur = '_');
+                  Advance (Scanner, By => 1);
+               end loop;
+            end;
 
-      --        cp += 2;
---        while( (c = *cp)!=0 && (ISALNUM(c) || c=='_') ) cp++;
---        nextcp = cp;
---      }else{                          /* All other (one character) operators */
-            null;
 
-         when others =>
+         when others =>       --  All other (one character) operators
             if
               Line'Length >= 3 and then
               Line (Line'First .. Line'First + 3 - 1) = "::="
             then
-               Scanner.Token := Scanner.Token + 3;
+               Debug (Advance_On, "Advance 3");
+               Advance (Scanner, By => 3);
+            elsif
+              Line'Length >= 2 and then
+              ((Line (Line'First) = '/' or Line (Line'First) = '|') and
+                 (Line (Line'First + 1) in 'a' .. 'z' or Line (Line'First + 1) in 'A' .. 'Z'))
+            then
+               Debug (Advance_On, "Advance 2");
+               Advance (Scanner, By => 2);
+               declare
+                  Cur : Character;
+               begin
+                  loop
+                     Cur := Current_Token_Char (Scanner);
+                     if
+                       Cur in 'a' .. 'z' or
+                       Cur in 'A' .. 'Z' or
+                       Cur in '1' .. '9' or
+                       Cur = '_'
+                     then
+                        Debug (Advance_On, "Advance Label");
+                        Advance (Scanner, By => 1);
+                     else
+                        exit;
+                     end if;
+                  end loop;
+               end;
             else
-               Scanner.Token := Scanner.Token + 1;
+               Debug (Advance_On, "Advance Characer:" & Current_Token_Char (Scanner));
+               Advance (Scanner, By => 1);
             end if;
 
       end case;
---      c = *cp;
---      *cp = 0;                        /* Null terminate the token */
 
       --  Debug
       Debug (False, "Scanner");
@@ -225,7 +260,7 @@ package body Parsers is
                                  Scanner : in out Scanner_Record)
    is
    begin
-      Debug (False, "Parse_On_Mode. Mode: " & Scanner.Mode'Img);
+      Debug (True, "Parse_On_Mode. Mode: " & Scanner.Mode'Img);
 
       case Scanner.Mode is
 
@@ -263,9 +298,13 @@ package body Parsers is
             --  Scanner.Done := False;
             --  loop
             if Scanner.Mode = Root then
-               Parse_Current_Character (Lemon, Scanner);
+               while Scanner.Token < Scanner.Last loop
+                  Debug (True, "Call Parse_Current_Character with : "
+                           & Current_Token_Char (Scanner));
+                  Parse_Current_Character (Lemon, Scanner);
+               end loop;
             end if;
-            --     exit when Scanner.Done;
+            --   exit when Scanner.Done;
             --  end loop;
 
       end case;
@@ -333,9 +372,9 @@ package body Parsers is
       Scanner.File_Name    := Lemon.File_Name;
       Scanner.Token_Lineno := 0;
       Scanner.Error_Count  := 0;
-      Scanner.State        := INITIALIZE;
 
       --  Begin by opening the input file
+      Parser_FSM.Initialize_FSM (Lemon, Scanner);
       Errors.Set_File_Name (Scanner.File_Name);
       Open (Input_File, In_File, To_String (Scanner.File_Name));
 
@@ -396,11 +435,10 @@ package body Parsers is
    is
       use Parser_FSM;
    begin
-      Scanner.Done := False;
+--      Scanner.Done := False;
 --      loop
       Do_State (Lemon, Scanner);
 --         exit when Scanner.Done;
-
 --      end loop;
    end Parse_One_Token;
 

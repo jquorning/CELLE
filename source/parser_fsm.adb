@@ -20,8 +20,6 @@ package body Parser_FSM is
    use Lime;
    use Parser_Data;
 
-   procedure Do_State_Initialize (Lemon   : in out Lemon_Record;
-                                  Scanner : in out Scanner_Record);
    procedure Do_State_Waiting_For_Decl_Or_Rule (Lemon   : in out Lemon_Record;
                                                 Scanner : in out Scanner_Record);
    procedure Do_State_Precedence_Mark_1        (Scanner : in out Scanner_Record);
@@ -36,13 +34,6 @@ package body Parser_FSM is
                               Scanner : in out Scanner_Record);
 
 
-   procedure Advance (Scanner : in out Scanner_Record;
-                      By      : in     Natural);
-   --  Advance Scanner by By amount of characters
-
-   procedure Advance_Until_After_Space (Scanner : in out Scanner_Record);
-   --  Advance Scanner by until after space
-
    procedure Debug (On   : in Boolean;
                     Text : in String);
 
@@ -51,29 +42,8 @@ package body Parser_FSM is
    --
    --
 
-   procedure Advance (Scanner : in out Scanner_Record;
-                      By      : in     Natural)
-   is
-   begin
-      Scanner.Token := Scanner.Token + By;
-   end Advance;
-
-
-   procedure Advance_Until_After_Space (Scanner : in out Scanner_Record)
-   is
-   begin
-      while Scanner.Item (Scanner.Token) /= ' ' loop
-         Advance (Scanner, 1);
-      end loop;
-
-      while Scanner.Item (Scanner.Token) = ' ' loop
-         Advance (Scanner, 1);
-      end loop;
-   end Advance_Until_After_Space;
-
-
-   use Ada.Strings.Unbounded;
    use Errors;
+   use Ada.Strings.Unbounded;
 
 
    procedure Do_State (Lemon   : in out Lemon_Record;
@@ -84,12 +54,11 @@ package body Parser_FSM is
       C : constant Character := Current_Token_Char (Scanner);
    begin
       Debug (Debug_On, "Do_State: STATE: " & Scanner.State'Img);
-      Debug (Debug_On, "  X: " & X);
-      Debug (Debug_On, "  C: " & C);
+      --  Debug (Debug_On, "  X: " & X);
+      --  Debug (Debug_On, "  C: " & C);
 
       case Scanner.State is
 
-      when INITIALIZE               =>  Do_State_Initialize (Lemon, Scanner);
       when WAITING_FOR_DECL_OR_RULE =>  Do_State_Waiting_For_Decl_Or_Rule (Lemon, Scanner);
       when PRECEDENCE_MARK_1        =>  Do_State_Precedence_Mark_1 (Scanner);
       when PRECEDENCE_MARK_2        =>  Do_State_Precedence_Mark_2 (Scanner);
@@ -421,8 +390,8 @@ package body Parser_FSM is
    end Do_State;
 
 
-   procedure Do_State_Initialize (Lemon   : in out Lemon_Record;
-                                  Scanner : in out Scanner_Record)
+   procedure Initialize_FSM (Lemon   : in out Lemon_Record;
+                             Scanner : in out Scanner_Record)
    is
    begin
       Scanner.Prev_Rule    := null;
@@ -432,7 +401,7 @@ package body Parser_FSM is
 
       Lemon.N_Rule  := 0;
       Scanner.State := WAITING_FOR_DECL_OR_RULE;
-   end Do_State_Initialize;
+   end Initialize_FSM;
 
 
    procedure Do_State_Waiting_For_Decl_Or_Rule (Lemon   : in out Lemon_Record;
@@ -443,7 +412,9 @@ package body Parser_FSM is
       Cur : constant Character := Current_Char (Scanner);
       X   : constant String    := Current_Line (Scanner);
    begin
-      Do_State_Initialize (Lemon, Scanner);
+      Debug (True, "Do_State_Waiting_For_Decl_Or_Rule");
+      Debug (True, "  Cur: " & Cur);
+      Debug (True, "  X  : " & X);
 
       if Cur = '%' then
 --         Advance (Scanner, By => 1);
@@ -549,7 +520,7 @@ package body Parser_FSM is
          return Left = Right;
       end Match;
 
-      Debug_On : constant Boolean := False;
+      Debug_On : constant Boolean := True;
    begin
       Debug (Debug_On, "Do_State_Waiting_For_Decl_Keyword");
       Debug (Debug_On, "  Cur: " & Cur);
@@ -662,9 +633,9 @@ package body Parser_FSM is
 
          else
             Parser_Error
-              (E203,
-               Arguments   => (1 => To_Unbounded_String (X)),
-               Line_Number => Scanner.Token_Lineno);
+              (E203, Scanner.Token_Lineno,
+               Arguments => (1 => To_Unbounded_String (X)));
+
             Scanner.State := RESYNC_AFTER_DECL_ERROR;
          end if;
       else
@@ -814,7 +785,11 @@ package body Parser_FSM is
    is
       Cur : constant Character := Current_Token_Char (Scanner);
       X   : constant String    := Current_Token_Line (Scanner);
+
+      Debug_On : constant Boolean := True;
    begin
+      Debug (Debug_On, "##Cur: " & Cur);
+      Debug (Debug_On, "##X  : " & X);
       if
         Cur = '{' or
         Cur = '"' or
@@ -928,8 +903,9 @@ package body Parser_FSM is
                Scanner.Decl_Lineno_Slot.all := Scanner.Token_Lineno;
             end if;
             Buf_String := To_Unbounded_String (New_String);
-            Buf_String := Buf_String; --   + nNew;
+            --  Buf_String := Buf_String; --   + nNew;
             --  *zBuf := 0;
+            Debug (True, "QQQ" & To_String (Buf_String));
             Scanner.State := WAITING_FOR_DECL_OR_RULE;
             Scanner.Done  := True;
          end;
