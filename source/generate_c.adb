@@ -15,7 +15,7 @@ with Ada.Directories;
 with Setup;
 with Auxiliary;
 with Symbols;
---  with Database;
+with Extras;
 
 package body Generate_C is
 
@@ -122,7 +122,7 @@ package body Generate_C is
          new Ada.Text_IO.Integer_IO (Integer);
 
       use Ada.Text_IO, Auxiliary;
-      use Symbols;
+      use Symbols, Extras;
       File : File_Type;
    begin
 

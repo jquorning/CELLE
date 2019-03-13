@@ -22,6 +22,7 @@ with Symbols;
 with Parsers;
 with Exceptions;
 with Reports;
+with Extras;
 
 procedure Cherry_Program is
 
@@ -106,7 +107,7 @@ begin
       Lemon.No_Linenos_Flag := Options.No_Line_Nos;
 
       --  Extras.Symbol_New_Proc (Extras.To_Name ("$"));
-      Symbols.Symbol_Append (Key => "$");
+      Extras.Symbol_Append (Key => "$");
 
       --  Parse the input file
       Parsers.Parse (Lemon);
@@ -126,17 +127,17 @@ begin
 
       --  Lemon.Err_Sym := Extras.Symbol_Find (Extras.To_Name ("error"));
       --  Extra.Error := Extras.Symbol_Find ("error");
-      Symbols.Set_Error;
+      Extras.Set_Error;
 
       --  Count and index the symbols of the grammar
       --  Extras.Symbol_New_Proc (Extras.To_Name ("{default}"));
-      Symbols.Symbol_Append (Key => "{default}");
-      Lemon.N_Symbol := Symbols.Symbol_Count;
+      Extras.Symbol_Append (Key => "{default}");
+      Lemon.N_Symbol := Extras.Symbol_Count;
 
       --  Lemon.Symbols := new Symbol_Access_Array (0 .. Lemon.N_Symbol - 1);
       Symbols.Symbol_Allocate (Ada.Containers.Count_Type (Lemon.N_Symbol));
 
-      Symbols.Fill_And_Sort;
+      Extras.Fill_And_Sort;
 
       Symbols.Do_Some_Things (Lemon.N_Symbol);  --  The following
 

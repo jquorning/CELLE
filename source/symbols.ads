@@ -51,9 +51,9 @@ package Symbols is
                 return Boolean
      renames Ada.Strings.Unbounded."=";
 
-   type Key_Type is new Unbounded_String;
-
    type Symbol_Index is new Natural;
+
+   subtype Key_Type is Unbounded_String;
 
    type Symbol_Record is
       record
@@ -97,21 +97,6 @@ package Symbols is
    type Symbol_Access_Array is
      array (Natural range <>) of Symbols.Symbol_Access;
 
-   type Symbol_Cursor is private;
-   type Extra_Access  is private;
-
-   function Get_Extra return Extra_Access;
-
-   function Element_At (Extra : in Extra_Access;
-                        Index : in Symbol_Index)
-                       return Symbol_Access;
-   --  Get access to the symbol in Extra at position Index.
-
-   function Get_Wildcard (Extra : in Extra_Access)
-                         return Symbol_Access;
-
-   procedure Set_Wildcard (Extra    : in Extra_Access;
-                           Wildcard : in Symbol_Access);
 
    subtype Symbol_Name is Ada.Strings.Unbounded.Unbounded_String;
 
@@ -124,8 +109,6 @@ package Symbols is
 
    function From_Key (Key : in Key_Type) return String;
 
-   procedure Set_Error;
-   procedure Fill_And_Sort;
 --   procedure Do_Sort (Container : in out Symbol_Access_Array);
    procedure Do_Some_Things (Lemon_N_Symbol : in out Symbol_Index);
 
@@ -133,13 +116,10 @@ package Symbols is
    procedure Symbol_Init;
    --  Allocate a new associative array.
 
-   function Symbol_New (Name : in String) return Symbol_Cursor;
    function Symbol_New (Name : in String) return Symbol_Access;
    --  Return a pointer to the (terminal or nonterminal) symbol "x".
    --  Create a new symbol if this is the first time "x" has been seen.
 
-   function Symbol_Find (Key : in Key_Type) return Symbol_Cursor; -- Symbol_Access;
-   function Symbol_Find (Key : in String)   return Symbol_Cursor;
    --  function Symbol_Find (Key : in Key_Type) return Symbol_Access;
    function Symbol_Find (Key : in String)   return Symbol_Access;
    --  Return a pointer to data assigned to the given key.  Return NULL
@@ -149,10 +129,6 @@ package Symbols is
 --                       return Symbol_Cursor; -- Symbol_Access;
    --  Return the n-th data.  Return NULL if n is out of range.
 
-   function Symbol_Count return Symbol_Index;
-   --  Return the size of the array.
-
-   procedure Symbol_Append (Key      : in String);
 
    procedure Symbol_Allocate (Count : in Ada.Containers.Count_Type);
    --  Return an array of pointers to all data in the table.
@@ -183,13 +159,6 @@ package Symbols is
 --     (Name : in Interfaces.C.Strings.chars_ptr)
 --     return Symbol_Access;
 
-private
-
-   type Extra_Record;
-   type Extra_Access is access all Extra_Record;
-
-   type Cursor_Type;
-   type Symbol_Cursor is access Cursor_Type;
 
 end Symbols;
 

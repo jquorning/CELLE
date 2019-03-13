@@ -341,6 +341,7 @@ package body Reports is
       use Ada.Strings.Unbounded;
       use Symbols;
       use Rules;
+      use Extras;
 
       RP   : Rules.Rule_Access;
       SP   : Symbol_Access;
@@ -355,8 +356,8 @@ package body Reports is
 
       --  Determine Max_Len
       for I in 0 .. Lemp.N_Symbol loop
-         SP  := Symbols.Element_At (Lemp.Extra, Index => I);
-         Len := Symbols.Length (SP.Name);
+         SP  := Element_At (Lemp.Extra, Index => I);
+         Len := Length (SP.Name);
          if Len > Max_Len then
             Max_Len := Len;
          end if;
@@ -514,11 +515,11 @@ package body Reports is
       N := 0;
       for I in 0 .. Lemp.N_Symbol loop
          declare
-            W  : Integer;
-            SP : constant Symbol_Access := Element_At (Lemp.Extra, Index => I);
+            W      : Integer;
+            Symbol : constant Symbol_Access := Element_At (Lemp.Extra, Index => I);
          begin
-            if not SP.Content then
-               W := Length (SP.Name);
+            if not Symbol.Content then
+               W := Ada.Strings.Unbounded.Length (Symbol.Name);
                if N > 0 and N + W > 75 then
                   New_Line (File);
                   N := 0;
@@ -527,7 +528,7 @@ package body Reports is
                   Put (File, " ");
                   N := N + 1;
                end if;
-               Put (File, From_Key (SP.Name));
+               Put (File, From_Key (Symbol.Name));
                N := N + W;
             end if;
          end;
@@ -625,6 +626,7 @@ package body Reports is
       --  Generate the defines
       declare
          use Symbols;
+         use Extras;
 
          Code     : constant String := Minimum_Size_Type (0, Integer (Lemp.N_Symbol),
                                                           Size_Of_Code_Type);
@@ -908,6 +910,8 @@ package body Reports is
          declare
 --            use Ada.Strings.Unbounded;
             use Symbols;
+            use Extras;
+
             MX : Symbol_Index := Lemp.N_Terminal - 1;
          begin
             --  while MX > 0 and Lemp.Symbols (MX).Fallback = 0 loop
@@ -950,6 +954,8 @@ package body Reports is
       declare
          use Text_Out;
          use Symbols;
+         use Extras;
+
          J : Integer;
          RP : Rules.Rule_Access;
       begin
@@ -1014,7 +1020,7 @@ package body Reports is
 --      }
 --      for(i=0; i<lemp->nsymbol && lemp->symbols[i]->type!=TERMINAL; i++);
       declare
-         use Symbols;
+         use Symbols, Extras;
       begin
          I := 0;
          loop
@@ -1025,7 +1031,7 @@ package body Reports is
 
          --  I : Symbols.Symbol_Index;
          --      if( i<lemp->nsymbol ){
-         Emit_Destructor_Code (Symbols.Element_At (Lemp.Extra, Symbol_Index (I)), Lemp);
+         Emit_Destructor_Code (Element_At (Lemp.Extra, Symbol_Index (I)), Lemp);
          --        lime_put_line ("      break;");
          --      }
       end;
@@ -1897,7 +1903,8 @@ package body Reports is
       end Get_Prefix;
 
       use Text_Out;
-      use Symbols;
+      use Symbols, Extras;
+
       Prefix : constant String := Get_Prefix;
    begin
       if Options.MH_Flag then
@@ -1917,9 +1924,8 @@ package body Reports is
             --  Put_CP (Get_Token_Callback (I));
             --  return lime_lemp_copy->symbols[index]->name;
             Put (From_Key
-                   (Element_At
-                      (Lemon.Extra,
-                       Symbol_Index (I)).Name));
+                   (Element_At (Lemon.Extra,
+                                Symbol_Index (I)).Name));
             Put (" ");
             Put_Int (I);
             New_Line;

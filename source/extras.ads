@@ -13,9 +13,44 @@ with States;
 package Extras is
 
 
-   function Sorted_At (Extra : in Symbols.Extra_Access;
+   type Extra_Access  is private;
+   type Symbol_Cursor is private;
+
+
+   function Get_Extra return Extra_Access;
+
+   function Element_At (Extra : in Extra_Access;
+                        Index : in Symbols.Symbol_Index)
+                       return Symbols.Symbol_Access;
+   --  Get access to the symbol in Extra at position Index.
+
+   function Get_Wildcard (Extra : in Extra_Access)
+                         return Symbols.Symbol_Access;
+
+   procedure Set_Wildcard (Extra    : in Extra_Access;
+                           Wildcard : in Symbols.Symbol_Access);
+
+   function Sorted_At (Extra : in Extra_Access;
                        Index : in Symbols.Symbol_Index)
                       return States.State_Access;
 
+   function Symbol_New (Name : in String)   return Symbol_Cursor;
+--   function Symbol_Find (Key : in Key_Type) return Symbol_Cursor;
+   function Symbol_Find (Key : in String)   return Symbol_Cursor;
+   procedure Symbol_Append (Key : in String);
+
+   function Symbol_Count return Symbols.Symbol_Index;
+   --  Return the size of the array.
+
+   procedure Set_Error;
+   procedure Fill_And_Sort;
+
+private
+
+   type Extra_Record;
+   type Extra_Access is access all Extra_Record;
+
+   type Cursor_Type;
+   type Symbol_Cursor is access Cursor_Type;
 
 end Extras;

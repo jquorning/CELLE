@@ -13,6 +13,7 @@ with Ada.Strings.Unbounded;
 with Symbols;
 with Errors;
 with Rules;
+with Extras;
 
 package body Parser_FSM is
 
@@ -316,7 +317,7 @@ package body Parser_FSM is
          else
             declare
 --               use Interfaces.C.Strings;
-               use Symbols;
+               use Symbols, Extras;
 
                Symbol : constant Symbol_Access := Symbol_New (X);
             begin

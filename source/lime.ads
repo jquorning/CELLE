@@ -18,6 +18,7 @@ with Ada.Strings.Unbounded;
 with Rules;
 with Symbols;
 with Report_Parsers;
+with Extras;
 
 package Lime is
 
@@ -115,7 +116,8 @@ package Lime is
          No_Linenos_Flag  : Boolean;            --  True if #line statements should not be printed
          Argv0            : Unbounded_String;   --  Name of the program
 
-         Extra            : Symbols.Extra_Access;
+         --  Extra            : Symbols.Extra_Access;
+         Extra            : Extras.Extra_Access;
          Parser           : Report_Parsers.Context_Access;
       end record;
 
@@ -133,7 +135,8 @@ package Lime is
       N_Conflict   => 0,        N_Action_Tab => 0,         N_Lookahead_Tab  => 0,
       Table_Size   => 0,        Basis_Flag   => False,     Has_Fallback     => False,
       No_Linenos_Flag => False, Argv0        => Null_Unbounded_String,
-      Extra           => Symbols.Get_Extra,
+--      Extra           => Symbols.Get_Extra,
+      Extra           => Extras.Get_Extra,
       Parser          => Report_Parsers.Get_Context);
 
    No_Offset : aliased constant Integer := Integer'First;
