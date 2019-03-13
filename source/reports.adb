@@ -23,7 +23,7 @@ with Actions;
 with Configs;
 with States;
 with Options;
-with Delme;
+with Extras;
 with Generate_Ada;
 with Generate_C;
 with Backend;
@@ -411,7 +411,7 @@ package body Reports is
       use Rules;
       use Configs;
       use Actions;
-      use Delme;
+      use Extras;
 
       File : File_Type;
 
@@ -721,7 +721,7 @@ package body Reports is
       --  AX := new AX_Set_Record;  --  (struct axset *) calloc(lemp->nxstate*2, sizeof(ax[0]));
       declare
          use Symbols;
-         use Delme;
+         use Extras;
       begin
          AX := new AX_Set_Array (0 .. Symbol_Index (Lemp.Nx_State) - 1);
 
@@ -2136,7 +2136,7 @@ package body Reports is
       for I in 0 .. N - 1 loop
          declare
             use Symbols;
-            use Delme;
+            use Extras;
 
             STP : access States.State_Record;  --  States.State_Access;
          begin
@@ -2188,7 +2188,7 @@ package body Reports is
       for I in 0 .. N - 1 loop
          declare
             use Symbols;
-            use Delme;
+            use Extras;
 
             STP : access States.State_Record;
          begin
@@ -2229,7 +2229,7 @@ package body Reports is
       for I in 0 .. N - 1 loop
          declare
             use Symbols;
-            use Delme;
+            use Extras;
 
             STP : constant access States.State_Record := Sorted_At (Lemp.Extra, Symbol_Index (I));
          begin

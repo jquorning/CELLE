@@ -145,15 +145,13 @@ package Symbols is
    --  Return a pointer to data assigned to the given key.  Return NULL
    --  if no such key.
 
-   function Symbol_Nth (Index : in Symbol_Index)
-                       return Symbol_Cursor; -- Symbol_Access;
+--   function Symbol_Nth (Index : in Symbol_Index)
+--                       return Symbol_Cursor; -- Symbol_Access;
    --  Return the n-th data.  Return NULL if n is out of range.
 
    function Symbol_Count return Symbol_Index;
    --  Return the size of the array.
 
-   procedure Symbol_Append (Key      : in Key_Type;
-                            New_Item : in Symbol_Record);
    procedure Symbol_Append (Key      : in String);
 
    procedure Symbol_Allocate (Count : in Ada.Containers.Count_Type);

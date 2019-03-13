@@ -12,8 +12,8 @@ with Ada.Containers.Ordered_Maps;
 
 package body Symbols is
 
-   package Symbol_Lists
-   is new Ada.Containers.Doubly_Linked_Lists
+   package Symbol_Lists is
+      new Ada.Containers.Doubly_Linked_Lists
      (Element_Type => Symbol_Record);
 
    subtype Cursor is Symbol_Lists.Cursor;
@@ -23,12 +23,23 @@ package body Symbols is
          C : Cursor;
       end record;
 
-   function "<" (Left, Right : in Symbol_Name) return Boolean;
+   package Symbol_Maps is
+      new Ada.Containers.Ordered_Maps
+     (Key_Type     => Symbol_Name,
+      Element_Type => Symbol_Cursor);
 
-   function "<" (Left, Right : in Symbol_Name) return Boolean is
---      use Ada.Strings.Unbounded;
-      Length_Min : constant Natural := Natural'Min (Length (Left),
-                                                    Length (Right));
+
+   function "<" (Left, Right : in Symbol_Name)   return Boolean;
+   function "=" (Left, Right : in Symbol_Cursor) return Boolean;
+   function To_Cursor (Position : in Symbol_Cursor) return Symbol_Lists.Cursor;
+   function From_Cursor (Cursor : in Symbol_Cursor) return Symbol_Lists.Cursor;
+   function From_Key (Key : Key_Type) return Unbounded_String;
+
+
+   function "<" (Left, Right : in Symbol_Name) return Boolean
+   is
+      Length_Min   : constant Natural := Natural'Min (Length (Left),
+                                                      Length (Right));
 
       String_Left  : constant String := To_String (Left);
       String_Right : constant String := To_String (Right);
@@ -40,39 +51,24 @@ package body Symbols is
       return (S_Left < S_Right);
    end "<";
 
-   function "=" (Left, Right : in Symbol_Cursor) return Boolean;
-
-   package Symbol_Maps
-   is new Ada.Containers.Ordered_Maps
-     (Key_Type     => Symbol_Name,
-      Element_Type => Symbol_Cursor);
 
 
-   --  function To_Cursor (Position : in Symbol_Maps.Cursor) return Symbol_Cursor;
-   --  function To_Cursor (Position : in Symbol_Cursor) return Symbol_Maps.Cursor;
-   function To_Cursor (Position : in Symbol_Cursor) return Symbol_Lists.Cursor;
-   function From_Cursor (Cursor : in Symbol_Cursor) return Symbol_Lists.Cursor;
-   function From_Key (Key : Key_Type) return Unbounded_String;
-
-   --  function To_Cursor (Position : in Symbol_Maps.Cursor) return Symbol_Cursor;
-   --  function To_Cursor (Position : in Symbol_Cursor) return Symbol_Maps.Cursor;
    function To_Cursor (Position : in Symbol_Cursor) return Symbol_Lists.Cursor
    is
---      use Symbol_Lists;
    begin
       return Symbol_Lists.No_Element;
    end To_Cursor;
 
+
    function From_Cursor (Cursor : in Symbol_Cursor) return Symbol_Lists.Cursor
    is
---      use Symbol_Lists;
    begin
       return Symbol_Lists.No_Element;
    end From_Cursor;
 
+
    function From_Key (Key : Key_Type) return Unbounded_String
    is
---      use Ada.Strings.Unbounded;
    begin
       return Null_Unbounded_String;
    end From_Key;
@@ -80,7 +76,6 @@ package body Symbols is
 
    function "=" (Left, Right : in Symbol_Cursor) return Boolean
    is
---      use Interfaces.C.Strings;
       Element_Left  : constant Symbol_Record := Symbol_Lists.Element (From_Cursor (Left));
       Element_Right : constant Symbol_Record := Symbol_Lists.Element (From_Cursor (Right));
       Name_Left     : constant String := To_String (Element_Left.Name);
@@ -215,6 +210,9 @@ package body Symbols is
 
 
    procedure Symbol_Append (Key      : in Key_Type;
+                            New_Item : in Symbol_Record);
+
+   procedure Symbol_Append (Key      : in Key_Type;
                             New_Item : in Symbol_Record)
    is
       First    : constant Symbol_Lists.Cursor := Symbol_Lists.First (Extra.Symbol_List);
@@ -287,8 +285,8 @@ package body Symbols is
    is
       function Value_Of (Item : in Symbol_Record) return Integer;
 
-      function Value_Of (Item : in Symbol_Record) return Integer is
---         use Interfaces.C.Strings;
+      function Value_Of (Item : in Symbol_Record) return Integer
+      is
          Kind : constant Symbol_Kind := Item.Kind;
          Name : constant String      := To_String (Item.Name);
          Char : constant Character   := Name (Name'First);
@@ -350,21 +348,21 @@ package body Symbols is
    end Symbol_Find;
 
 
-   function Symbol_Nth (Index : in Symbol_Index)
-                       return Symbol_Cursor
-   is
-      use Symbol_Maps;
-      Element : Symbol_Name;
-      Position : Symbol_Maps.Cursor := First (Extra.Symbol_Map);
-      Count    : Symbol_Index := 0;
-   begin
-      for Count in 0 .. Index loop
-         Position := Next (Position);
-      end loop;
-      return null;  --   To_Cursor (Position);
---      Element := Symbol_Maps.Element (Index); --  Extra.Symbol_Map);
---      return Element;
-   end Symbol_Nth;
+--     function Symbol_Nth (Index : in Symbol_Index)
+--                         return Symbol_Cursor
+--     is
+--        use Symbol_Maps;
+--        Element : Symbol_Name;
+--        Position : Symbol_Maps.Cursor := First (Extra.Symbol_Map);
+--        Count    : Symbol_Index := 0;
+--     begin
+--        for Count in 0 .. Index loop
+--           Position := Next (Position);
+--        end loop;
+--        return null;  --   To_Cursor (Position);
+--  --      Element := Symbol_Maps.Element (Index); --  Extra.Symbol_Map);
+--  --      return Element;
+--     end Symbol_Nth;
 
 
    function Symbol_Count return Symbol_Index
