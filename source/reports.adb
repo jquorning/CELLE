@@ -278,7 +278,7 @@ package body Reports is
 
    procedure Generate_The_Defines_1
      (YY_Code_Type   : in String;
-      Symbol_Count   : in Integer;
+      Symbol_Count   : in Symbols.Symbol_Index;
       YY_Action_Type : in String;
       Is_Wildcard    : in Boolean;
       Wildcard_Index : in Symbols.Symbol_Index);
@@ -639,14 +639,14 @@ package body Reports is
          if Is_Wildcard then
             Generate_The_Defines_1
               (Code,
-               Integer (Extras.Symbol_Count),
+               Extras.Symbol_Count,
                Action,
                Is_Wildcard    => True,
                Wildcard_Index => Wildcard.Index);
          else
             Generate_The_Defines_1
             (Code,
-             Integer (Extras.Symbol_Count),
+             Extras.Symbol_Count,
              Action,
              Is_Wildcard    => False,
              Wildcard_Index => 0);
@@ -2611,7 +2611,7 @@ package body Reports is
 
    procedure Generate_The_Defines_1
      (YY_Code_Type   : in String;
-      Symbol_Count   : in Integer;
+      Symbol_Count   : in Symbols.Symbol_Index;
       YY_Action_Type : in String;
       Is_Wildcard    : in Boolean;
       Wildcard_Index : in Symbols.Symbol_Index)
@@ -2623,7 +2623,7 @@ package body Reports is
       New_Line;
 
       Put ("#define YYNOCODE ");
-      Put_Int (Symbol_Count);
+      Put_Int (Integer (Symbol_Count));
       New_Line;
 
       Put ("#define YYACTIONTYPE ");
