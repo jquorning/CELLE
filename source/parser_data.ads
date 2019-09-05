@@ -129,12 +129,12 @@ package Parser_Data is
       end record;
 
 
-   function Current_Char (Scanner : in Scanner_Record)
-                         return Character;
+--   function Current_Char (Scanner : in Scanner_Record)
+--                        return Character;
    --  Returns current character to parse
 
-   function Current_Line (Scanner : in Scanner_Record)
-                         return String;
+--   function Current_Line (Scanner : in Scanner_Record)
+--                         return String;
    --  returns the current line to parse
 
    function Current_Token_Char (Scanner : in Scanner_Record)

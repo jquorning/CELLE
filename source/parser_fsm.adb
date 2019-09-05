@@ -22,17 +22,26 @@ package body Parser_FSM is
    use Parser_Data;
 
    procedure Do_State_Waiting_For_Decl_Or_Rule (Lemon   : in out Lemon_Record;
-                                                Scanner : in out Scanner_Record);
-   procedure Do_State_Precedence_Mark_1        (Scanner : in out Scanner_Record);
-   procedure Do_State_Precedence_Mark_2        (Scanner : in out Scanner_Record);
-   procedure Do_State_Waiting_For_Decl_Keyword (Lemon   : in out Lemon_Record;
-                                                Scanner : in out Scanner_Record);
-   procedure Do_State_Waiting_For_Decl_Arg (Lemon   : in     Lemon_Record;
-                                            Scanner : in out Scanner_Record);
+                                                Scanner : in out Scanner_Record;
+                                                Token   : in     String);
 
+   procedure Do_State_Precedence_Mark_1 (Scanner : in out Scanner_Record;
+                                         Token   : in     String);
+
+   procedure Do_State_Precedence_Mark_2 (Scanner : in out Scanner_Record;
+                                         Token   : in     String);
+
+   procedure Do_State_Waiting_For_Decl_Keyword (Lemon   : in out Lemon_Record;
+                                                Scanner : in out Scanner_Record;
+                                                Token   : in     String);
+
+   procedure Do_State_Waiting_For_Decl_Arg (Lemon   : in     Lemon_Record;
+                                            Scanner : in out Scanner_Record;
+                                            Token   : in     String);
 
    procedure Do_State_In_RHS (Lemon   : in out Lemon_Record;
-                              Scanner : in out Scanner_Record);
+                              Scanner : in out Scanner_Record;
+                              Token   : in     String);
 
 
    procedure Debug (On   : in Boolean;
@@ -48,11 +57,14 @@ package body Parser_FSM is
 
 
    procedure Do_State (Lemon   : in out Lemon_Record;
-                       Scanner : in out Scanner_Record)
+                       Scanner : in out Scanner_Record;
+                       Token   : in     String)
    is
       Debug_On : constant Boolean := True;
-      X : constant String    := Current_Token_Line (Scanner);
-      C : constant Character := Current_Token_Char (Scanner);
+      X : String    renames Token;
+      C : Character renames Token (Token'First);
+      --      X : constant String    := Current_Token_Line (Scanner);
+--      C : constant Character := Current_Token_Char (Scanner);
    begin
       Debug (Debug_On, "Do_State: STATE: " & Scanner.State'Img);
       --  Debug (Debug_On, "  X: " & X);
@@ -61,9 +73,9 @@ package body Parser_FSM is
       case Scanner.State is
 
       when DUMMY                    =>  raise Program_Error;
-      when WAITING_FOR_DECL_OR_RULE =>  Do_State_Waiting_For_Decl_Or_Rule (Lemon, Scanner);
-      when PRECEDENCE_MARK_1        =>  Do_State_Precedence_Mark_1 (Scanner);
-      when PRECEDENCE_MARK_2        =>  Do_State_Precedence_Mark_2 (Scanner);
+      when WAITING_FOR_DECL_OR_RULE =>  Do_State_Waiting_For_Decl_Or_Rule (Lemon, Scanner, Token);
+      when PRECEDENCE_MARK_1        =>  Do_State_Precedence_Mark_1 (Scanner, Token);
+      when PRECEDENCE_MARK_2        =>  Do_State_Precedence_Mark_2 (Scanner, Token);
 
       when WAITING_FOR_ARROW =>
 
@@ -126,7 +138,7 @@ package body Parser_FSM is
          end if;
 
 
-      when IN_RHS =>   Do_State_In_RHS (Lemon, Scanner);
+      when IN_RHS =>   Do_State_In_RHS (Lemon, Scanner, Token);
 
       when RHS_ALIAS_1 =>
 
@@ -161,7 +173,7 @@ package body Parser_FSM is
          end if;
 
 
-      when WAITING_FOR_DECL_KEYWORD => Do_State_Waiting_For_Decl_Keyword (Lemon, Scanner);
+      when WAITING_FOR_DECL_KEYWORD => Do_State_Waiting_For_Decl_Keyword (Lemon, Scanner, Token);
 
 
       when WAITING_FOR_DESTRUCTOR_SYMBOL =>
@@ -241,7 +253,7 @@ package body Parser_FSM is
 --        }
          null;
 
-      when WAITING_FOR_DECL_ARG => Do_State_Waiting_For_Decl_Arg (Lemon, Scanner);
+      when WAITING_FOR_DECL_ARG => Do_State_Waiting_For_Decl_Arg (Lemon, Scanner, Token);
 
       when WAITING_FOR_FALLBACK_ID =>
 --        if( x[0]=='.' ){
@@ -409,12 +421,15 @@ package body Parser_FSM is
 
 
    procedure Do_State_Waiting_For_Decl_Or_Rule (Lemon   : in out Lemon_Record;
-                                                Scanner : in out Scanner_Record)
+                                                Scanner : in out Scanner_Record;
+                                                Token   : in     String)
    is
       use Rules;
 
-      Cur : constant Character := Current_Char (Scanner);
-      X   : constant String    := Current_Line (Scanner);
+--      Cur : constant Character := Current_Char (Scanner);
+--      X   : constant String    := Current_Line (Scanner);
+      X   : String    renames Token;
+      Cur : Character renames X (X'First);
    begin
       Debug (True, "Do_State_Waiting_For_Decl_Or_Rule");
       Debug (True, "  Cur: " & Cur);
@@ -459,10 +474,13 @@ package body Parser_FSM is
    end Do_State_Waiting_For_Decl_Or_Rule;
 
 
-   procedure Do_State_Precedence_Mark_1 (Scanner : in out Scanner_Record)
+   procedure Do_State_Precedence_Mark_1 (Scanner : in out Scanner_Record;
+                                         Token   : in     String)
    is
-      Cur : constant Character := Current_Char (Scanner);
-      X   : constant String    := Current_Line (Scanner);
+--      Cur : constant Character := Current_Char (Scanner);
+--      X   : constant String    := Current_Line (Scanner);
+      X   : String    renames Token;
+      Cur : Character renames X (X'First);
    begin
       if Cur not in 'A' .. 'Z' then
          Parser_Error (E004, Scanner.Token_Lineno);
@@ -484,9 +502,11 @@ package body Parser_FSM is
    end Do_State_Precedence_Mark_1;
 
 
-   procedure Do_State_Precedence_Mark_2 (Scanner : in out Scanner_Record)
+   procedure Do_State_Precedence_Mark_2 (Scanner : in out Scanner_Record;
+                                         Token   : in     String)
    is
-      Cur : constant Character := Current_Char (Scanner);
+--      Cur : constant Character := Current_Char (Scanner);
+      Cur : Character renames Token (Token'First);
    begin
       if Cur /= ']' then
          --  Error ("Missing ']' on precedence mark.");
@@ -499,12 +519,15 @@ package body Parser_FSM is
 
 
    procedure Do_State_Waiting_For_Decl_Keyword (Lemon   : in out Lemon_Record;
-                                                Scanner : in out Scanner_Record)
+                                                Scanner : in out Scanner_Record;
+                                                Token   : in     String)
    is
       function Match (Item : in String) return Boolean;
 
-      Cur : constant Character := Current_Token_Char (Scanner);
-      X   : constant String    := Current_Token_Line (Scanner);
+--      Cur : constant Character := Current_Token_Char (Scanner);
+--      X   : constant String    := Current_Token_Line (Scanner);
+      Cur : Character renames Token (Token'First);
+      X   : String    renames Token;
 
       function Match (Item : in String) return Boolean
       is
@@ -652,11 +675,14 @@ package body Parser_FSM is
    end Do_State_Waiting_For_Decl_Keyword;
 
 
-   procedure Do_State_In_RHS (Lemon  : in out Lemon_Record;
-                              Scanner : in out Scanner_Record)
+   procedure Do_State_In_RHS (Lemon   : in out Lemon_Record;
+                              Scanner : in out Scanner_Record;
+                              Token   : in     String)
    is
-      Cur : constant Character := Current_Char (Scanner);
-      X   : constant String    := Current_Line (Scanner);
+      Cur : Character renames Token (Token'First);
+      X   : String    renames Token;
+--      Cur : constant Character := Current_Char (Scanner);
+--      X   : constant String    := Current_Line (Scanner);
    begin
       if Cur = '.' then
          declare
@@ -784,10 +810,13 @@ package body Parser_FSM is
 
 
    procedure Do_State_Waiting_For_Decl_Arg (Lemon   : in     Lemon_Record;
-                                            Scanner : in out Scanner_Record)
+                                            Scanner : in out Scanner_Record;
+                                            Token   : in     String)
    is
-      Cur : constant Character := Current_Token_Char (Scanner);
-      X   : constant String    := Current_Token_Line (Scanner);
+--      Cur : constant Character := Current_Token_Char (Scanner);
+--      X   : constant String    := Current_Token_Line (Scanner);
+      Cur : Character renames Token (Token'First);
+      X   : String    renames Token;
 
       Debug_On : constant Boolean := True;
    begin

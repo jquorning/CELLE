@@ -17,7 +17,8 @@ package Parser_FSM is
    --  Initialize the parser finite state machine
 
    procedure Do_State (Lemon   : in out Lime.Lemon_Record;
-                       Scanner : in out Parser_Data.Scanner_Record);
+                       Scanner : in out Parser_Data.Scanner_Record;
+                       Token   : in     String);
    --  The parser state machine
 
 end Parser_FSM;

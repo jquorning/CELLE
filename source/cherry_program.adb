@@ -11,6 +11,7 @@ with Ada.Text_IO;
 with Ada.Strings.Unbounded;
 with Ada.Command_Line;
 with Ada.Containers;
+with Ada.Exceptions;
 
 with Setup;
 with Options;
@@ -253,5 +254,11 @@ exception
    when OCC : Command_Line.Parameter_Error =>
       Exceptions.Put_Message (OCC);
 
+
+   when Occ : others =>
+      Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Name (Occ));
+      Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Message (Occ));
+      Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (Occ));
+      Exceptions.Put_Message (Occ);
 
 end Cherry_Program;

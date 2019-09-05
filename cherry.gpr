@@ -40,4 +40,8 @@ project Cherry is
 
   end Builder;
 
+  package Binder is
+      for Default_Switches ("Ada") use ("-Es", "-g");
+  end Binder;
+
 end Cherry;

@@ -43,7 +43,8 @@ package body Parsers is
    procedure Parse_Quoted_Identifier (Scanner : in out Scanner_Record);
 
    procedure Parse_One_Token (Lemon   : in out Lime.Lemon_Record;
-                              Scanner : in out Scanner_Record);
+                              Scanner : in out Scanner_Record;
+                              Token   : in     String);
    --  Parse a single Token.
    --  The token must be enclosed by Scanner.First and Scanner.Token
 
@@ -73,7 +74,7 @@ package body Parsers is
       use DK8543.Strings;
    begin
       Scanner.Token_First := 1;
-      Scanner.Token_Last := Scanner.Token_First - 1;
+      Scanner.Token_Last := Scanner.Token_First;
       Ada.Text_IO.Get_Line (File, Scanner.Item, Last => Scanner.Last);
       Scanner.Token_Lineno := Scanner.Token_Lineno + 1;
       Utility.Strip_End_Of_Line (From  => Scanner.Item,
@@ -260,7 +261,8 @@ package body Parsers is
       --  Scanner.Item (Scanner.Token_First .. Scanner.Token_Last)
       --  Should enclose token
       --
-      Parse_One_Token (Lemon, Scanner);
+      Parse_One_Token (Lemon, Scanner,
+                       Token => Scanner.Item (Scanner.Token_First .. Scanner.Token_Last));
 
    end Parse_Current_Character;
 
@@ -308,8 +310,8 @@ package body Parsers is
             --  loop
             if Scanner.Mode = Root then
                while Scanner.Token_Last < Scanner.Last loop
-                  Debug (True, "Call Parse_Current_Character with : "
-                           & Current_Token_Char (Scanner));
+--                  Debug (True, "Call Parse_Current_Character with : "
+--                           & Current_Token_Char (Scanner));
                   Parse_Current_Character (Lemon, Scanner);
                end loop;
             end if;
@@ -440,7 +442,8 @@ package body Parsers is
 
 
    procedure Parse_One_Token (Lemon   : in out Lime.Lemon_Record;
-                              Scanner : in out Scanner_Record)
+                              Scanner : in out Scanner_Record;
+                              Token   : in     String)
    is
       use Parser_FSM;
    begin
@@ -456,21 +459,22 @@ package body Parsers is
             use Ada.Text_IO;
             use DK8543.Errors;
             use Ada.Strings.Unbounded;
-            Token_Img : constant String :=
-              Scanner.Item (Scanner.Token_First .. Scanner.Token_Last);
+--            Token_Img : constant String :=
+--              Scanner.Item (Scanner.Token_First .. Scanner.Token_Last);
             State_Num : constant String := State_Scanner'Pos (Scanner.State)'Img;
          begin
             Error (Standard_Output,
                    To_String (Lemon.File_Name),
                    Scanner.Token_Lineno,
-                   "Token=[" & Token_Img & "] "
+                   "Token=[" & Token & --  Token_Img &
+                     "] "
                      & "state=" & State_Num); --- Scanner.State'Img);
          end;
       end if;
 
 --      Scanner.Done := False;
 --      loop
-      Do_State (Lemon, Scanner);
+      Do_State (Lemon, Scanner, Token);
 --         exit when Scanner.Done;
 --      end loop;
    end Parse_One_Token;
