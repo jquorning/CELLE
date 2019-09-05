@@ -14,7 +14,7 @@ package body Parser_Data is
                          return Character
    is
    begin
-      return Scanner.Item (Scanner.First);
+      return Scanner.Item (Scanner.Token_First);
    end Current_Char;
 
 
@@ -22,7 +22,7 @@ package body Parser_Data is
                          return String
    is
    begin
-      return Scanner.Item (Scanner.First .. Scanner.Last);
+      return Scanner.Item (Scanner.Token_First .. Scanner.Last);
    end Current_Line;
 
 
@@ -30,7 +30,7 @@ package body Parser_Data is
                                return Character
    is
    begin
-      return Scanner.Item (Scanner.Token);
+      return Scanner.Item (Scanner.Token_Last);
    end Current_Token_Char;
 
 
@@ -38,7 +38,7 @@ package body Parser_Data is
                                return String
    is
    begin
-      return Scanner.Item (Scanner.Token .. Scanner.Last);
+      return Scanner.Item (Scanner.Token_Last .. Scanner.Last);
    end Current_Token_Line;
 
 
@@ -46,7 +46,7 @@ package body Parser_Data is
                       By      : in     Positive)
    is
    begin
-      Scanner.Token := Scanner.Token + By;
+      Scanner.Token_Last := Scanner.Token_Last + By;
    end Advance;
 
 

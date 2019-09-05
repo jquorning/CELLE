@@ -60,6 +60,7 @@ package body Parser_FSM is
 
       case Scanner.State is
 
+      when DUMMY                    =>  raise Program_Error;
       when WAITING_FOR_DECL_OR_RULE =>  Do_State_Waiting_For_Decl_Or_Rule (Lemon, Scanner);
       when PRECEDENCE_MARK_1        =>  Do_State_Precedence_Mark_1 (Scanner);
       when PRECEDENCE_MARK_2        =>  Do_State_Precedence_Mark_2 (Scanner);
@@ -420,7 +421,6 @@ package body Parser_FSM is
       Debug (True, "  X  : " & X);
 
       if Cur = '%' then
---         Advance (Scanner, By => 1);
          Scanner.State := WAITING_FOR_DECL_KEYWORD;
 
       elsif Cur in 'a' .. 'z' then

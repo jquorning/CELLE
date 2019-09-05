@@ -36,7 +36,8 @@ package Parser_Data is
    --
 
    type State_Scanner is
-     (WAITING_FOR_DECL_OR_RULE,
+     (DUMMY,
+      WAITING_FOR_DECL_OR_RULE,
       WAITING_FOR_DECL_KEYWORD,
       WAITING_FOR_DECL_ARG,
       WAITING_FOR_PRECEDENCE_SYMBOL,
@@ -118,8 +119,8 @@ package Parser_Data is
 
          --  From Line_Record
          Current : Positive;                      --  Position in Item of examined character
-         First   : Positive := Positive'First;    --  First position in Item
-         Token   : Positive := Positive'First;
+         Token_First : Positive := Positive'First;    --  First position in Item
+         Token_Last  : Natural  := Natural'First;
          Last    : Natural  := Natural'First;     --  Last position in Item
          Item    : String (1 .. Max_Line_Length); --  Full line read from input
          Mode    : Mode_Identifier := Root;       --  Mode
