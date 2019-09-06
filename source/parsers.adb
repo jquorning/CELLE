@@ -115,16 +115,42 @@ package body Parsers is
       --
       --  Scan until end of token
       --
-      case Scanner.Item (Scanner.Token_Last + 1) is
+         case Scanner.Item (Scanner.Token_Last + 1) is
 --      case Current is
 
-         when '"' =>                     --   String literals
-            Scanner.Mode   := Quoted_Identifier;
-            Scanner.Buffer := Null_Unbounded_String;
+            when '"' =>                     --   String literals
+               Scanner.Mode   := Quoted_Identifier;
+               Scanner.Buffer := Null_Unbounded_String;
 
-         when '{' =>              --  A block of C code
-            Debug (True, "  A block of C code");
---              declare
+            when '{' =>              --  A block of C code
+               Debug (True, "  A block of C code");
+
+               --  Build up the token in Scanner.Buffer. Use ASCII.LF as line separator.
+               --  Passe it all to Parse_One_Token
+--            Block_Of_C_Code := True;  --  Signal to Parse_One_Token
+               Scanner.Mode    := C_Code_Block;
+               Scanner.Buffer  := Null_Unbounded_String;
+               Append (Scanner.Buffer, '{');
+               --              declare
+--                 Level : Natural := 1;
+--                 Cur   : Character;
+--              begin
+--                 Scanner.Token_Last := Scanner.Token_Last + 1;
+--                 Append (Scanner.Buffer, '{');
+--                 loop
+--                    if Scanner.Token_Last > Scanner.Last then
+--                       null;  --  Read new line
+--                    end if;
+--                    Cur := Scanner.Item (Scanner.Token_Last + 1);
+--                    exit when Level = 0 and Cur := '}';
+--                    if Cur = '{' then
+--                       Level := Level + 1;
+--                    elsif Cur = '}' then
+--                       Level := Level - 1;
+--                    elsif Cur = '/' and Scanner.Item (Scanner.Token_Last + 2) = '*' then
+--                       --  Skip comments
+--                 end loop;
+            --              declare
 --                 Level : Natural := 1;
 --              begin
 --                 Cp := CP + 1;
@@ -198,70 +224,75 @@ package body Parsers is
 --              end if;
 
 
-         when 'a' .. 'z' |          --  Identifiers
-           'A' .. 'Z' |
-           '0' .. '9' | '_' =>
+            when 'a' .. 'z' |          --  Identifiers
+              'A' .. 'Z' |
+              '0' .. '9' | '_' =>
 
-            Debug (Advance_On,
-                   "Advance Identifier beginning with:"
-                     & Scanner.Item (Scanner.Token_Last + 1));
-            declare
-               Cur : Character;
-            begin
-               loop
-                  exit when Scanner.Token_Last + 1 > Scanner.Last;
-                  Cur := Scanner.Item (Scanner.Token_Last + 1);
-                  -- Cur := Current_Token_Char (Scanner);
-                  exit when not
-                    (Cur in 'a' .. 'z' or
-                       Cur in 'A' .. 'Z' or
-                       Cur in '0' .. '9' or
-                       Cur = '_');
-                  Advance (Scanner, By => 1);
-               end loop;
-            end;
-
-
-         when others =>       --  All other (one character) operators
-            if
-              Line'Length >= 3 and then
-              Line (Line'First .. Line'First + 3 - 1) = "::="
-            then
-               Debug (Advance_On, "Advance 3");
-               Advance (Scanner, By => 3);
-            elsif
-              Line'Length >= 2 and then
-              ((Line (Line'First) = '/' or Line (Line'First) = '|') and
-                 (Line (Line'First + 1) in 'a' .. 'z' or Line (Line'First + 1) in 'A' .. 'Z'))
-            then
-               Debug (Advance_On, "Advance 2");
-               Advance (Scanner, By => 2);
+               Debug (Advance_On,
+                      "Advance Identifier beginning with:"
+                        & Scanner.Item (Scanner.Token_Last + 1));
                declare
                   Cur : Character;
                begin
                   loop
-                     Cur := Current_Token_Char (Scanner);
-                     if
-                       Cur in 'a' .. 'z' or
-                       Cur in 'A' .. 'Z' or
-                       Cur in '1' .. '9' or
-                       Cur = '_'
-                     then
-                        Debug (Advance_On, "Advance Label");
-                        Advance (Scanner, By => 1);
-                     else
-                        exit;
-                     end if;
+                     exit when Scanner.Token_Last + 1 > Scanner.Last;
+                     Cur := Scanner.Item (Scanner.Token_Last + 1);
+                     --  Cur := Current_Token_Char (Scanner);
+                     exit when not
+                       (Cur in 'a' .. 'z' or
+                          Cur in 'A' .. 'Z' or
+                          Cur in '0' .. '9' or
+                          Cur = '_');
+                     Advance (Scanner, By => 1);
                   end loop;
                end;
-            else
---               Debug (Advance_On, "Advance Character:" & Current_Token_Char (Scanner));
-               Debug (Advance_On, "Advance Character:" & Scanner.Item (Scanner.Token_Last + 1));
-               Advance (Scanner, By => 1);
-            end if;
 
-      end case;
+
+            when others =>       --  All other (one character) operators
+               if
+                 Line'Length >= 3 and then
+                 Line (Line'First .. Line'First + 3 - 1) = "::="
+               then
+                  Debug (Advance_On, "Advance 3");
+                  Advance (Scanner, By => 3);
+               elsif
+                 Line'Length >= 2 and then
+                 ((Line (Line'First) = '/' or Line (Line'First) = '|') and
+                    (Line (Line'First + 1) in 'a' .. 'z' or Line (Line'First + 1) in 'A' .. 'Z'))
+               then
+                  Debug (Advance_On, "Advance 2");
+                  Advance (Scanner, By => 2);
+                  declare
+                     Cur : Character;
+                  begin
+                     loop
+                        Cur := Current_Token_Char (Scanner);
+                        if
+                          Cur in 'a' .. 'z' or
+                          Cur in 'A' .. 'Z' or
+                          Cur in '1' .. '9' or
+                          Cur = '_'
+                        then
+                           Debug (Advance_On, "Advance Label");
+                           Advance (Scanner, By => 1);
+                        else
+                           exit;
+                        end if;
+                     end loop;
+                  end;
+               else
+--               Debug (Advance_On, "Advance Character:" & Current_Token_Char (Scanner));
+                  Debug (Advance_On, "Advance Character:" & Scanner.Item (Scanner.Token_Last + 1));
+                  Advance (Scanner, By => 1);
+               end if;
+
+         end case;
       end;
+
+      if Scanner.Mode = C_Code_Block then
+         return;
+      end if;
+
       --  Debug
       Debug (False, "Scanner");
       Debug (False, "  First      :" & Scanner.Token_First'Img);
@@ -337,6 +368,9 @@ package body Parsers is
                      Scanner.Token_Last  := Scanner.Token_Last  + 1;
                   else
                      Parse_Current_Character (Lemon, Scanner);
+                     if Scanner.Mode = C_Code_Block then
+                        exit;
+                     end if;
                   end if;
 --                  Debug (True, "Call Parse_Current_Character with : "
 --                           & Current_Token_Char (Scanner));
