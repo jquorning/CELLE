@@ -680,28 +680,41 @@ package body Parser_FSM is
                               Scanner : in out Scanner_Record;
                               Token   : in     String)
    is
+      Debug_On : constant Boolean := False;
+
       Cur : Character renames Token (Token'First);
       X   : String    renames Token;
---      Cur : constant Character := Current_Char (Scanner);
---      X   : constant String    := Current_Line (Scanner);
    begin
       if Cur = '.' then
          declare
             use Symbols;
             use Rules;
+            use Rules.Alias_Vectors;
+--            use type Ada.Containers.Count_Type;
 
-            Rule : constant access Rule_Record := new Rule_Record;
+            Rule : access Rule_Record;
          begin
+            begin
+               Debug (Debug_On, "Scanner.RHS: " & Scanner.RHS.Length'Img);
+               Debug (Debug_On, "Scanner.Alias: " & Scanner.Alias.Length'Img);
+               Rule := new Rule_Record;
+               Rule.RHS :=
+                 new Symbol_Access_Array'
+                 (Natural (1) .. Natural (Scanner.RHS.Length)
+                    => new Symbol_Record);
+--               Rule.RHS_Alias.Count (Scanner.RHS.Length);
             --  Rp := (struct rule *)calloc( sizeof(struct rule) +
             --                               sizeof(struct symbol*)*psp->nrhs +
             --                               sizeof(char*)*psp->nrhs, 1);
-            --               RP := new Rules.Rule_Record;
-            --  if Rp = 0 then
-            --   ErrorMsg(psp->filename,psp->tokenlineno,
-            --            "Can't allocate enough memory for this rule.");
-            --   psp->errorcnt++;
-            --   Psp.Prev_Rule := 0;
-            --  else
+            exception
+               when Storage_Error =>
+                  raise;
+--                  ErrorMsg(psp->filename,psp->tokenlineno,
+--                           "Can't allocate enough memory for this rule.");
+--                  psp->errorcnt++;
+--                  Psp.Prev_Rule := 0;
+            end;
+
             Rule.Rule_Line := Scanner.Token_Lineno;
             --  Rp.rhs      := (struct symbol**)&rp[1];
             --  Rp.rhsalias := (const char**)&(rp->rhs[psp->nrhs]);
@@ -719,8 +732,9 @@ package body Parser_FSM is
                  Scanner.RHS.First_Index .. Scanner.RHS.Last_Index;
             begin
                for I in Index_Range loop
-                  Rule.RHS       (I) := Scanner.RHS   (I);
-                  --  XXX                       RP.RHS_Alias (I) := PSP.Alias.Element (I);
+                  Debug (Debug_On, "I:" & I'Img);
+                  Rule.RHS (I) := Scanner.RHS   (I);
+                  Append (Rule.RHS_Alias, Scanner.Alias.Element (I));
                   --  if Symbols."/=" (RP.RHS_Alias (I), Null_Unbounded_String) then
                   --                        declare
                   --                           use
@@ -733,8 +747,14 @@ package body Parser_FSM is
                end loop;
             end;
 
+            Debug (Debug_On, "Scanner.LHS: " & Scanner.LHS.Length'Img);
+            Debug (Debug_On, "Scanner.LHS_Alias: " & Scanner.LHS_Alias.Length'Img);
             Rule.LHS        := Scanner.LHS.First_Element;
-            Rule.LHS_Alias  := Scanner.LHS_Alias.First_Element;
+            if Scanner.LHS_Alias.Is_Empty then
+               Rule.LHS_Alias := Null_Unbounded_String;
+            else
+               Rule.LHS_Alias := Scanner.LHS_Alias.First_Element;
+            end if;
             Rule.Code       := Null_Code; --  New Unbounded_String'(Null_Unbounded_String);
             Rule.No_Code    := True;
             Rule.Prec_Sym   := null;
