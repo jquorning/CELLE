@@ -8,11 +8,9 @@
 --
 
 with Ada.Text_IO;
-with Ada.Strings.Fixed;
 with Ada.Strings.Unbounded;
 with Ada.Characters.Latin_1;
 
---  with DK8543.Strings.Utility;
 with DK8543.Errors;
 
 with Parser_Data;
@@ -43,7 +41,7 @@ package body Parsers is
 --   procedure Parse_Current_Line (Lemon   : in out Lime.Lemon_Record;
 --                                 Scanner : in out Scanner_Record);
 
-   procedure Parse_Quoted_Identifier (Scanner : in out Scanner_Record);
+--   procedure Parse_Quoted_Identifier (Scanner : in out Scanner_Record);
 
    procedure Parse_One_Token (Lemon   : in out Lime.Lemon_Record;
                               Scanner : in out Scanner_Record;
@@ -51,7 +49,7 @@ package body Parsers is
    --  Parse a single Token.
    --  The token must be enclosed by Scanner.First and Scanner.Token
 
-   procedure Detect_Start_Of_C_Comment_Block (Scanner : in out Scanner_Record);
+--   procedure Detect_Start_Of_C_Comment_Block (Scanner : in out Scanner_Record);
 
 
    procedure Debug (On    : in Boolean;
@@ -90,9 +88,9 @@ package body Parsers is
    --
    --
 
-   Comment_CPP     : constant String := "//";
-   Comment_C_Begin : constant String := "/*";
-   Comment_C_End   : constant String := "*/";
+--   Comment_CPP     : constant String := "//";
+--   Comment_C_Begin : constant String := "/*";
+--   Comment_C_End   : constant String := "*/";
 
    Preproc_Ifdef   : constant String := "%ifdef";
    Preproc_Ifndef  : constant String := "%ifndef";
@@ -437,40 +435,40 @@ package body Parsers is
 --     end Parse_Current_Line;
 
 
-   procedure Parse_Quoted_Identifier (Scanner : in out Scanner_Record)
-   is
-      use Ada.Strings.Unbounded;
-      Current : Character renames Scanner.Item (Scanner.Current);
-   begin
-      if Current = '"' then
-         Scanner.Mode := Root;
-      else
-         Scanner.Buffer := Scanner.Buffer & Current;
-      end if;
+--     procedure Parse_Quoted_Identifier (Scanner : in out Scanner_Record)
+--     is
+--        use Ada.Strings.Unbounded;
+--        Current : Character renames Scanner.Item (Scanner.Current);
+--     begin
+--        if Current = '"' then
+--           Scanner.Mode := Root;
+--        else
+--           Scanner.Buffer := Scanner.Buffer & Current;
+--        end if;
 
-   exception
+--     exception
 
-      when Constraint_Error =>
-         Errors.Parser_Error (E102, Scanner.Token_Lineno);
+--        when Constraint_Error =>
+--           Errors.Parser_Error (E102, Scanner.Token_Lineno);
 
-   end Parse_Quoted_Identifier;
+--     end Parse_Quoted_Identifier;
 
 
-   procedure Detect_Start_Of_C_Comment_Block (Scanner : in out Scanner_Record)
-   is
-      use Ada.Strings.Fixed;
+--     procedure Detect_Start_Of_C_Comment_Block (Scanner : in out Scanner_Record)
+--     is
+--        use Ada.Strings.Fixed;
 
-      Comment_C_Start : constant Natural :=
-        Index (Scanner.Item (Scanner.Token_First .. Scanner.Last), Comment_C_Begin);
-   begin
-      if Comment_C_Start /= 0 then
---         Scanner.Token_Start  := Comment_C_Start; --  Mark the beginning of the token
---         Scanner.Token_Lineno := Text_IO.Line_Number;  --  Linenumber on which token begins
---         Scanner.First        := Comment_C_Start;
-         Scanner.Last         := Comment_C_Start - 1;
-         Scanner.Mode         := C_Comment_Block;
-      end if;
-   end Detect_Start_Of_C_Comment_Block;
+--        Comment_C_Start : constant Natural :=
+--          Index (Scanner.Item (Scanner.Token_First .. Scanner.Last), Comment_C_Begin);
+--     begin
+--        if Comment_C_Start /= 0 then
+--  --         Scanner.Token_Start  := Comment_C_Start; --  Mark the beginning of the token
+--  --         Scanner.Token_Lineno := Text_IO.Line_Number;  --  Linenumber on which token begins
+--  --         Scanner.First        := Comment_C_Start;
+--           Scanner.Last         := Comment_C_Start - 1;
+--           Scanner.Mode         := C_Comment_Block;
+--        end if;
+--     end Detect_Start_Of_C_Comment_Block;
 
 
    procedure Parse (Lemon : in out Lime.Lemon_Record)
@@ -511,6 +509,7 @@ package body Parsers is
 
             --  Skip all white space
             if C = ' ' or C = Latin_1.HT or C = Latin_1.LF then
+               Index := Index + 1;
                goto Continue;
             end if;
 
@@ -529,7 +528,6 @@ package body Parsers is
 
             --  Skip C style comment
             if C = '/' and Filebuf (Index + 1) = '*' then
-               Debug (On_True, "Skip C style commet");
                Index := Index + 2;
                loop
                   C := Filebuf (Index);
@@ -722,11 +720,10 @@ package body Parsers is
             Parse_One_Token (Lemon, Scanner,
                              Token => Filebuf (Scanner.Token_First .. Index - 1));
 
-            Index := Next_Index - 1;
+            Index := Next_Index;
 
             <<Continue>>
             null;
-            Index := Index + 1;
          end loop;
       end;
 
