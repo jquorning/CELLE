@@ -56,6 +56,7 @@ package body Errors is
 
       E101 => -"Can't open this file for reading.",
       E102 => -"C code starting on this line is not terminated before the end of the file.",
+      E103 => -"String starting on this line is not terminated before the end of the file.",
 
       E201 => -"Cannot form a compound containing a non-terminal",
       E202 => -"Illegal character on RHS of rule: '$1'.",

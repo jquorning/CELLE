@@ -60,7 +60,7 @@ package body Parser_FSM is
                        Scanner : in out Scanner_Record;
                        Token   : in     String)
    is
-      Debug_On : constant Boolean := True;
+      Debug_On : constant Boolean := False;
       X : String    renames Token;
       C : Character renames Token (Token'First);
       --      X : constant String    := Current_Token_Line (Scanner);
@@ -426,14 +426,15 @@ package body Parser_FSM is
    is
       use Rules;
 
+      On_True : constant Boolean := False;
 --      Cur : constant Character := Current_Char (Scanner);
 --      X   : constant String    := Current_Line (Scanner);
       X   : String    renames Token;
       Cur : Character renames X (X'First);
    begin
-      Debug (True, "Do_State_Waiting_For_Decl_Or_Rule");
-      Debug (True, "  Cur: " & Cur);
-      Debug (True, "  X  : " & X);
+      Debug (On_True, "Do_State_Waiting_For_Decl_Or_Rule");
+      Debug (On_True, "  Cur: " & Cur);
+      Debug (On_True, "  X  : " & X);
 
       if Cur = '%' then
          Scanner.State := WAITING_FOR_DECL_KEYWORD;
@@ -546,7 +547,7 @@ package body Parser_FSM is
          return Left = Right;
       end Match;
 
-      Debug_On : constant Boolean := True;
+      Debug_On : constant Boolean := False;
    begin
       Debug (Debug_On, "Do_State_Waiting_For_Decl_Keyword");
       Debug (Debug_On, "  Cur: " & Cur);
@@ -579,7 +580,7 @@ package body Parser_FSM is
             Scanner.Decl_Arg_Slot := Lemon.Names.Var_Dest'Access;
 
          elsif Match ("token_prefix") then
-            Debug (True, "  token_prefix");
+            Debug (False, "  token_prefix");
             Scanner.Decl_Arg_Slot     := Lemon.Names.Token_Prefix'Access;
             Scanner.Insert_Line_Macro := False;
             --  Advance_Until_After_Space (Scanner);
@@ -601,17 +602,17 @@ package body Parser_FSM is
             Scanner.Insert_Line_Macro := False;
 
          elsif Match ("extra_context") then
-            Debug (True, "  extra_context");
+            Debug (False, "  extra_context");
             Scanner.Decl_Arg_Slot     := Lemon.Names.CTX2'Access;
             Scanner.Insert_Line_Macro := False;
 
          elsif Match ("token_type") then
-            Debug (True, "  token_type");
+            Debug (False, "  token_type");
             Scanner.Decl_Arg_Slot     := Lemon.Names.Token_Type'Access;
             Scanner.Insert_Line_Macro := False;
 
          elsif Match ("default_type") then
-            Debug (True, "  default_type");
+            Debug (False, "  default_type");
             Scanner.Decl_Arg_Slot     := Lemon.Names.Var_Type'Access;
             Scanner.Insert_Line_Macro := False;
 
@@ -818,7 +819,7 @@ package body Parser_FSM is
       Cur : Character renames Token (Token'First);
       X   : String    renames Token;
 
-      Debug_On : constant Boolean := True;
+      Debug_On : constant Boolean := False;
    begin
       Debug (Debug_On, "##Cur: " & Cur);
       Debug (Debug_On, "##X  : " & X);
@@ -937,7 +938,7 @@ package body Parser_FSM is
             Buf_String := To_Unbounded_String (New_String);
             --  Buf_String := Buf_String; --   + nNew;
             --  *zBuf := 0;
-            Debug (True, "QQQ" & To_String (Buf_String));
+            Debug (False, "QQQ" & To_String (Buf_String));
             Scanner.State := WAITING_FOR_DECL_OR_RULE;
             Scanner.Done  := True;
          end;

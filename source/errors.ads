@@ -45,6 +45,7 @@ package Errors is
 
       E101,
       E102,
+      E103,
 
       E201,
       E202,

@@ -78,6 +78,7 @@ package Parser_Data is
    type Scanner_Record is
       record
 --         Token_Start   : Natural;                      --  Text of current token
+         Line_Number   : Natural;                      --  Upcounting line number
          Token_Lineno  : Natural;                      --  Linenumber at which current token starts
          Error_Count   : Natural;                      --  Number of errors so far
          Preproc_State : State_Preproc;
