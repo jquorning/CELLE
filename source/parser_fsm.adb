@@ -39,6 +39,9 @@ package body Parser_FSM is
                                             Scanner : in out Scanner_Record;
                                             Token   : in     String);
 
+   procedure Do_State_Waiting_For_Arrow (Scanner : in out Scanner_Record;
+                                         Token   : in     String);
+
    procedure Do_State_In_RHS (Lemon   : in out Lemon_Record;
                               Scanner : in out Scanner_Record;
                               Token   : in     String);
@@ -80,26 +83,7 @@ package body Parser_FSM is
       when PRECEDENCE_MARK_1        =>  Do_State_Precedence_Mark_1 (Scanner, Token);
       when PRECEDENCE_MARK_2        =>  Do_State_Precedence_Mark_2 (Scanner, Token);
 
-      when WAITING_FOR_ARROW =>
-
-         if X (X'First .. X'First + 2) = "::=" then
-            Scanner.State := IN_RHS;
-
-         elsif X (X'First) = '(' then
-            Scanner.State := LHS_ALIAS_1;
-
-         else
-            declare
-               use Symbols;
-            begin
-               Parser_Error
-                 (E008, Scanner.Token_Lineno,
-                  (1 => To_Unbounded_String
-                     (From_Key (Scanner.LHS.First_Element.Name))));
-               Scanner.State := RESYNC_AFTER_RULE_ERROR;
-            end;
-         end if;
-
+      when WAITING_FOR_ARROW        =>  Do_State_Waiting_For_Arrow (Scanner, Token);
 
       when LHS_ALIAS_1 =>
          if
@@ -647,6 +631,34 @@ package body Parser_FSM is
       end if;
 
    end Do_State_Waiting_For_Decl_Keyword;
+
+
+   procedure Do_State_Waiting_For_Arrow (Scanner : in out Scanner_Record;
+                                         Token   : in     String)
+   is
+   begin
+
+      if
+        Token'Length >= 3 and then
+        Token (Token'First .. Token'First + 2) = "::="
+      then
+         Scanner.State := IN_RHS;
+
+      elsif Token (Token'First) = '(' then
+         Scanner.State := LHS_ALIAS_1;
+
+      else
+         declare
+            use Symbols;
+         begin
+            Parser_Error
+              (E008, Scanner.Token_Lineno,
+               (1 => To_Unbounded_String
+                  (From_Key (Scanner.LHS.First_Element.Name))));
+            Scanner.State := RESYNC_AFTER_RULE_ERROR;
+         end;
+      end if;
+   end Do_State_Waiting_For_Arrow;
 
 
    procedure Do_State_In_RHS (Lemon   : in out Lemon_Record;
