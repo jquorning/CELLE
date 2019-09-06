@@ -7,6 +7,8 @@
 --    May you share freely, not taking more than you give.
 --
 
+with Ada.Text_IO;
+
 package body Symbols is
 
 
@@ -241,11 +243,22 @@ package body Symbols is
    end Symbol_Allocate;
 
 
+   --  2019-09-06 JQ
+   --  Simply try to make a vector for symbols
+   package Symbol_Bases is
+      new Ada.Containers.Vectors (Positive, Symbol_Access);
+   Base : Symbol_Bases.Vector;
+
+
    function Create (Name : in String)
                    return Symbol_Access
    is
+      Ptr : constant Symbol_Access := new Symbol_Record;
    begin
-      return null;
+--      Ada.Text_IO.Put_Line ("Create symbol stub");
+      Ptr.Name := To_Unbounded_String (Name);
+      Symbol_Bases.Append (Base, Ptr);
+      return Ptr;
    end Create;
 
 --     is--     function Lime_Symbol_New
@@ -265,6 +278,13 @@ package body Symbols is
                  return Symbol_Access
    is
    begin
+--      Ada.Text_IO.Put_Line ("Find symbol stub");
+      for Ptr of Base loop
+         if Ptr.all.Name = Key then
+--            Ada.Text_IO.Put_Line ("Found Symbol Name: " & Key);
+            return Ptr;
+         end if;
+      end loop;
       return null;
    end Find;
 

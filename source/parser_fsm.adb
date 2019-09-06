@@ -43,6 +43,9 @@ package body Parser_FSM is
                               Scanner : in out Scanner_Record;
                               Token   : in     String);
 
+   procedure Do_State_Waiting_For_Datatype_Symbol (Lemon   : in out Lemon_Record;
+                                                   Scanner : in out Scanner_Record;
+                                                   Token   : in     String);
 
    procedure Debug (On   : in Boolean;
                     Text : in String);
@@ -198,38 +201,8 @@ package body Parser_FSM is
          end if;
 
 
-      when WAITING_FOR_DATATYPE_SYMBOL =>
-         if
-           X (X'First) not in 'a' .. 'z' and
-           X (X'First) not in 'A' .. 'Z'
-         then
-            Parser_Error (E206, Line_Number => Scanner.Token_Lineno);
-            Scanner.State := RESYNC_AFTER_DECL_ERROR;
-         else
-            declare
-               use Symbols;
-
-               Symbol : Symbol_Access := Find (X);
-            begin
-               if
-                 Symbol /= null and then
-                 Symbols."/=" (Symbol.Data_Type, Null_Unbounded_String)
-               then
-                  Parser_Error (E207,
-                                Arguments   => (1 => To_Unbounded_String (X)),
-                                Line_Number => Scanner.Token_Lineno);
-                  Scanner.State := RESYNC_AFTER_DECL_ERROR;
-               else
-                  if Symbol = null then
-                     Symbol := Create (X);
-                  end if;
-                  Scanner.Decl_Arg_Slot := new Unbounded_String'(Symbol.Data_Type);
-                  --  new chars_ptr'(New_String (To_String (Symbol.Data_Type)));
-                  Scanner.Insert_Line_Macro := False;
-                  Scanner.State        := WAITING_FOR_DECL_ARG;
-               end if;
-            end;
-         end if;
+         when WAITING_FOR_DATATYPE_SYMBOL =>
+            Do_State_Waiting_For_Datatype_Symbol (Lemon, Scanner, Token);
 
 
       when WAITING_FOR_PRECEDENCE_SYMBOL =>
@@ -972,7 +945,48 @@ package body Parser_FSM is
          Scanner.State := RESYNC_AFTER_DECL_ERROR;
       end if;
 
-   end  Do_State_Waiting_For_Decl_Arg;
+   end Do_State_Waiting_For_Decl_Arg;
+
+
+   procedure Do_State_Waiting_For_Datatype_Symbol (Lemon   : in out Lemon_Record;
+                                                   Scanner : in out Scanner_Record;
+                                                   Token   : in     String)
+   is
+   begin
+      if
+        Token (Token'First) not in 'a' .. 'z' and
+        Token (Token'First) not in 'A' .. 'Z'
+      then
+         Parser_Error (E206, Line_Number => Scanner.Token_Lineno);
+         Scanner.State := RESYNC_AFTER_DECL_ERROR;
+      else
+         declare
+            use Symbols;
+
+            Symbol : Symbol_Access := Find (Token);
+         begin
+            if
+              Symbol /= null and then
+              Symbols."/=" (Symbol.Data_Type, Null_Unbounded_String)
+            then
+               Parser_Error (E207,
+                             Arguments   => (1 => To_Unbounded_String (Token)),
+                             Line_Number => Scanner.Token_Lineno);
+               Scanner.State := RESYNC_AFTER_DECL_ERROR;
+            else
+               if Symbol = null then
+                  Symbol := Create (Token);
+               end if;
+               Scanner.Decl_Arg_Slot
+                 := Symbol.Data_Type'Access;
+               --  Scanner.Decl_Arg_Slot := new Unbounded_String'(Symbol.Data_Type);
+               --  new chars_ptr'(New_String (To_String (Symbol.Data_Type)));
+               Scanner.Insert_Line_Macro := False;
+               Scanner.State        := WAITING_FOR_DECL_ARG;
+            end if;
+         end;
+      end if;
+   end Do_State_Waiting_For_Datatype_Symbol;
 
 
    procedure Debug (On   : in Boolean;
