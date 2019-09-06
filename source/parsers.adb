@@ -10,6 +10,7 @@
 with Ada.Text_IO;
 with Ada.Strings.Unbounded;
 with Ada.Characters.Latin_1;
+with Ada.Strings.Fixed;
 
 with DK8543.Errors;
 
@@ -748,16 +749,17 @@ package body Parsers is
             use Ada.Text_IO;
             use DK8543.Errors;
             use Ada.Strings.Unbounded;
---            Token_Img : constant String :=
---              Scanner.Item (Scanner.Token_First .. Scanner.Token_Last);
-            State_Num : constant String := State_Scanner'Pos (Scanner.State)'Img;
+            use Ada.Strings;
+
+            State_Num : constant String
+              := Fixed.Trim (State_Scanner'Pos (Scanner.State)'Img, Left);
          begin
             Error (Standard_Output,
                    To_String (Lemon.File_Name),
                    Scanner.Token_Lineno,
-                   "Token=[" & Token & --  Token_Img &
+                   "Token=[" & Token &
                      "] "
-                     & "state=" & State_Num); --- Scanner.State'Img);
+                     & "state=" & State_Num);
          end;
       end if;
 
