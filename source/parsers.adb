@@ -16,6 +16,7 @@ with DK8543.Errors;
 with Parser_Data;
 with Parser_FSM;
 
+with Macros;
 with Errors;
 with Rules;
 
@@ -91,10 +92,6 @@ package body Parsers is
 --   Comment_CPP     : constant String := "//";
 --   Comment_C_Begin : constant String := "/*";
 --   Comment_C_End   : constant String := "*/";
-
-   Preproc_Ifdef   : constant String := "%ifdef";
-   Preproc_Ifndef  : constant String := "%ifndef";
-   Preproc_Endif   : constant String := "%endif";
 
    use Errors;
 
@@ -477,6 +474,7 @@ package body Parsers is
       use Ada.Strings.Unbounded;
       use Ada.Characters;
 
+      Success : Boolean;
       Scanner : Scanner_Record;
    begin
       Scanner.File_Name    := Lemon.File_Name;
@@ -488,14 +486,14 @@ package body Parsers is
       Errors.Set_File_Name (Scanner.File_Name);
 
       declare
-         Filebuf : constant String := Read_File (To_String (Scanner.File_Name));
+         Filebuf    : String := Read_File (To_String (Scanner.File_Name));
          Index      : Natural := Filebuf'First;
          Next_Index : Natural;
          C          : Character;
       begin
 
          --  Make an initial pass through the file to handle %ifdef and %ifndef.
-         --  Preprocess_Input (filebuf);
+         Macros.Preprocess (Filebuf, Success);
 
          Scanner.Line_Number := 1;
          loop

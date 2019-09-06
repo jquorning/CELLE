@@ -13,4 +13,11 @@ package Macros is
    --  This routine is called with the argument to each -D command-line option.
    --  Add the macro defined to the azDefine array.
 
+   procedure Preprocess (Buffer  : in out String;
+                         Success :    out Boolean);
+   --  Run the preprocessor over the input file text.  The macro names are defined
+   --  to list by Append procedure above
+   --  This routine looks for "%ifdef" and "%ifndef" and "%endif" and
+   --  comments them out.  Text in between is also commented out as appropriate.
+
 end Macros;
