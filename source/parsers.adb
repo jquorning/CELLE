@@ -74,7 +74,7 @@ package body Parsers is
       use DK8543.Strings;
    begin
       Scanner.Token_First := 1;
-      Scanner.Token_Last := Scanner.Token_First;
+      Scanner.Token_Last := Scanner.Token_First - 1;
       Ada.Text_IO.Get_Line (File, Scanner.Item, Last => Scanner.Last);
       Scanner.Token_Lineno := Scanner.Token_Lineno + 1;
       Utility.Strip_End_Of_Line (From  => Scanner.Item,
@@ -88,21 +88,35 @@ package body Parsers is
    is
       use Ada.Strings.Unbounded;
 
-      Current : constant Character := Current_Token_Char (Scanner);
-      Line    : constant String    := Current_Token_Line (Scanner);
+--      Current : constant Character := Current_Token_Char (Scanner);
+--      Line    : constant String    := Current_Token_Line (Scanner);
 
       Head_On    : constant Boolean := True;
       Advance_On : constant Boolean := True;
    begin
       Debug (Head_On, "Parse_Current_Character");
-      Debug (Head_On, "  Current: " & Current);
-      Debug (Head_On, "  Line (Line'First): " & Line (Line'First));
+--      Debug (Head_On, "  Current: " & Current);
 --      Debug (Head_On, "  Line (Line'First): " & Line (Line'First));
 
+      if Scanner.Token_Last > Scanner.Last then
+         Ada.Text_IO.Put_Line ("returning due to end of line");
+         return;
+      end if;
+
+--      if Scanner.Token_Last < 1 then
+--         Ada.Text_IO.Put_Line ("returning due to empty line");
+--         return;
+--      end if;
+
+      declare
+         Current : constant Character := Scanner.Item (Scanner.Token_Last + 1);
+         Line    : constant String    := Scanner.Item (Scanner.Token_Last + 1 .. Scanner.Last);
+      begin
       --
       --  Scan until end of token
       --
-      case Current is
+      case Scanner.Item (Scanner.Token_Last + 1) is
+--      case Current is
 
          when '"' =>                     --   String literals
             Scanner.Mode   := Quoted_Identifier;
@@ -188,12 +202,16 @@ package body Parsers is
            'A' .. 'Z' |
            '0' .. '9' | '_' =>
 
-            Debug (Advance_On, "Advance Identifier");
+            Debug (Advance_On,
+                   "Advance Identifier beginning with:"
+                     & Scanner.Item (Scanner.Token_Last + 1));
             declare
                Cur : Character;
             begin
                loop
-                  Cur := Current_Token_Char (Scanner);
+                  exit when Scanner.Token_Last + 1 > Scanner.Last;
+                  Cur := Scanner.Item (Scanner.Token_Last + 1);
+                  -- Cur := Current_Token_Char (Scanner);
                   exit when not
                     (Cur in 'a' .. 'z' or
                        Cur in 'A' .. 'Z' or
@@ -237,12 +255,13 @@ package body Parsers is
                   end loop;
                end;
             else
-               Debug (Advance_On, "Advance Characer:" & Current_Token_Char (Scanner));
+--               Debug (Advance_On, "Advance Character:" & Current_Token_Char (Scanner));
+               Debug (Advance_On, "Advance Character:" & Scanner.Item (Scanner.Token_Last + 1));
                Advance (Scanner, By => 1);
             end if;
 
       end case;
-
+      end;
       --  Debug
       Debug (False, "Scanner");
       Debug (False, "  First      :" & Scanner.Token_First'Img);
@@ -263,6 +282,9 @@ package body Parsers is
       --
       Parse_One_Token (Lemon, Scanner,
                        Token => Scanner.Item (Scanner.Token_First .. Scanner.Token_Last));
+
+      Scanner.Token_First := Scanner.Token_Last + 1;
+--      Scanner.Token_Last  := Scanner.Token_First - 1;
 
    end Parse_Current_Character;
 
@@ -310,9 +332,15 @@ package body Parsers is
             --  loop
             if Scanner.Mode = Root then
                while Scanner.Token_Last < Scanner.Last loop
+                  if Scanner.Item (Scanner.Token_First) = ' ' then
+                     Scanner.Token_First := Scanner.Token_First + 1;
+                     Scanner.Token_Last  := Scanner.Token_Last  + 1;
+                  else
+                     Parse_Current_Character (Lemon, Scanner);
+                  end if;
 --                  Debug (True, "Call Parse_Current_Character with : "
 --                           & Current_Token_Char (Scanner));
-                  Parse_Current_Character (Lemon, Scanner);
+                  exit when Scanner.Token_Last < 1;  --  Empty line detected
                end loop;
             end if;
             --   exit when Scanner.Done;
