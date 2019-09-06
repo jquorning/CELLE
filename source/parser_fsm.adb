@@ -79,10 +79,10 @@ package body Parser_FSM is
 
       when WAITING_FOR_ARROW =>
 
-         if X (1 .. 3) = "::=" then
+         if X (X'First .. X'First + 2) = "::=" then
             Scanner.State := IN_RHS;
 
-         elsif X (1) = '(' then
+         elsif X (X'First) = '(' then
             Scanner.State := LHS_ALIAS_1;
 
          else

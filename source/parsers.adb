@@ -628,14 +628,15 @@ package body Parsers is
                            --  String is a character literals
                         elsif C = ''' or C = '"' then
                            declare
-                              Start_Char : Character := C;
+                              Start_Char : constant Character := C;
                               Prev_C     : Character := Latin_1.NUL;
                            begin
                               Index := Index + 1;
                               loop
                                  C := Filebuf (Index);
+                                 Debug (On_True, "C code literal:" & C);
                                  exit when C = Latin_1.NUL;
-                                 exit when (C = Start_Char and Prev_C = '\');
+                                 exit when (C = Start_Char and Prev_C /= '\');
                                  if C = Latin_1.LF then
                                     Scanner.Line_Number := Scanner.Line_Number + 1;
                                  end if;
