@@ -50,6 +50,10 @@ package body Parser_FSM is
                                                    Scanner : in out Scanner_Record;
                                                    Token   : in     String);
 
+   procedure Do_State_Waiting_For_Precedence_Symbol (Lemon   : in out Lemon_Record;
+                                                     Scanner : in out Scanner_Record;
+                                                     Token   : in     String);
+
    procedure Do_State_Waiting_For_Fallback_Id (Lemon   : in out Lemon_Record;
                                                Scanner : in out Scanner_Record;
                                                Token   : in     String);
@@ -191,31 +195,11 @@ package body Parser_FSM is
             Scanner.State := WAITING_FOR_DECL_ARG;
          end if;
 
-
          when WAITING_FOR_DATATYPE_SYMBOL =>
             Do_State_Waiting_For_Datatype_Symbol (Lemon, Scanner, Token);
 
-
-      when WAITING_FOR_PRECEDENCE_SYMBOL =>
---        if( x[0]=='.' ){
---          psp->state = WAITING_FOR_DECL_OR_RULE;
---        }else if( ISUPPER(x[0]) ){
---          struct symbol *sp;
---          sp = lime_symbol_new(x);
---          if( sp->prec>=0 ){
---            ErrorMsg(psp->filename,psp->tokenlineno,
---              "Symbol \"%s\" has already be given a precedence.",x);
---            psp->errorcnt++;
---          }else{
---            sp->prec = psp->preccounter;
---            sp->assoc = psp->declassoc;
---          }
---        }else{
---          ErrorMsg(psp->filename,psp->tokenlineno,
---            "Can't assign a precedence to \"%s\".",x);
---          psp->errorcnt++;
---        }
-         null;
+         when WAITING_FOR_PRECEDENCE_SYMBOL =>
+            Do_State_Waiting_For_Precedence_Symbol (Lemon, Scanner, Token);
 
          when WAITING_FOR_DECL_ARG =>
             Do_State_Waiting_For_Decl_Arg (Lemon, Scanner, Token);
@@ -976,6 +960,37 @@ package body Parser_FSM is
    end Do_State_Waiting_For_Datatype_Symbol;
 
 
+   procedure Do_State_Waiting_For_Precedence_Symbol (Lemon   : in out Lemon_Record;
+                                                     Scanner : in out Scanner_Record;
+                                                     Token   : in     String)
+   is
+      pragma Unreferenced (Lemon);
+   begin
+      if Token (Token'First) = '.' then
+         Scanner.State := WAITING_FOR_DECL_OR_RULE;
+
+      elsif Token (Token'First) in 'A' .. 'Z' then
+         declare
+            use Symbols;
+            Symbol : constant Symbol_Access := Create_New (Token);
+            --  sp = lime_symbol_new(x);
+         begin
+            if Symbol.Prec >= 0 then
+               Parser_Error (E217, Scanner.Token_Lineno,
+                             (1 => (To_Unbounded_String (Token))));
+            else
+               Symbol.Prec  := Scanner.Prec_Counter;
+               Symbol.Assoc := Scanner.Decl_Assoc;
+            end if;
+         end;
+      else
+         Parser_Error (E218, Scanner.Token_Lineno,
+                       (1 => (To_Unbounded_String (Token))));
+      end if;
+
+   end Do_State_Waiting_For_Precedence_Symbol;
+
+
    procedure Do_State_Waiting_For_Fallback_Id (Lemon   : in out Lemon_Record;
                                                Scanner : in out Scanner_Record;
                                                Token   : in     String)
@@ -1035,7 +1050,7 @@ package body Parser_FSM is
             use Symbols;
             Dummy_Symbol : Symbol_Access;
          begin
-            Dummy_Symbol := Create (Token);
+            Dummy_Symbol := Create_New (Token);
          end;
 --        (void)lime_symbol_new(x);
       end if;

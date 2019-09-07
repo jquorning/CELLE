@@ -255,11 +255,33 @@ package body Symbols is
    is
       Ptr : constant Symbol_Access := new Symbol_Record;
    begin
---      Ada.Text_IO.Put_Line ("Create symbol stub");
       Ptr.Name := To_Unbounded_String (Name);
       Symbol_Bases.Append (Base, Ptr);
       return Ptr;
    end Create;
+
+   function Create_New (Name : in String)
+                       return Symbol_Access
+   is
+      Symbol : Symbol_Access := Find (Name);
+   begin
+      if Symbol = null then
+         Symbol := new Symbol_Record;
+         Symbol.Name        := To_Unbounded_String (Name);
+         Symbol.Kind        := Non_Terminal;
+         Symbol.Rule        := null;
+         Symbol.Fallback    := null;
+         Symbol.Prec        := -1;
+         Symbol.Assoc       := Unk;
+         Symbol.First_Set   := Null_Unbounded_String;
+         Symbol.Lambda      := False;
+         Symbol.Destructor  := Null_Unbounded_String;
+         Symbol.Dest_Lineno := 0;
+         Symbol.Data_Type   := Null_Unbounded_String;
+         Symbol.Use_Cnt    := 0;
+      end if;
+      return Symbol;
+   end Create_New;
 
 --     is--     function Lime_Symbol_New
 --       (Name : in Interfaces.C.Strings.chars_ptr)
@@ -274,14 +296,14 @@ package body Symbols is
 --     end Lime_Symbol_New;
 
 
-   function Find (Key : in String)
+   function Find (Name : in String)
                  return Symbol_Access
    is
    begin
 --      Ada.Text_IO.Put_Line ("Find symbol stub");
       for Ptr of Base loop
-         if Ptr.all.Name = Key then
---            Ada.Text_IO.Put_Line ("Found Symbol Name: " & Key);
+         if Ptr.all.Name = Name then
+--            Ada.Text_IO.Put_Line ("Found Symbol Name: " & Name);
             return Ptr;
          end if;
       end loop;

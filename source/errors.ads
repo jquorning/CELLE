@@ -63,6 +63,8 @@ package Errors is
       E214,
       E215,
       E216,
+      E217,
+      E218,
 
       F001,
       F002
@@ -71,7 +73,7 @@ package Errors is
    subtype K_Error   is K_Message range E001 .. K_Message'Val (K_Message'Pos (F001) - 1);
    subtype K_Fatal   is K_Message range F001 .. K_Message'Last;
 
-   type K_Error_Parse is new K_Error range E001 .. E216;
+   type K_Error_Parse is new K_Error range E001 .. E218;
 
 
    procedure Set_File_Name

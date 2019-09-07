@@ -123,7 +123,7 @@ package Symbols is
 
    --  function Symbol_Find (Key : in Key_Type) return Symbol_Access;
 
-   function Find (Key : in String) return Symbol_Access;
+   function Find (Name : in String) return Symbol_Access;
    --  Return a pointer to data assigned to the given key.  Return NULL
    --  if no such key.
 
@@ -153,6 +153,8 @@ package Symbols is
    --  order (the order they appeared in the grammar file) gives the
    --  smallest parser tables in SQLite.
 
+   function Create_New (Name : in String)
+                       return Symbol_Access;
 --   function Lime_Symbol_New
 --     (Name : in Interfaces.C.Strings.chars_ptr)
 --     return Symbol_Access;

@@ -73,7 +73,9 @@ package body Errors is
       E213 => -"Illegal argument to %$1: $2",
       E214 => -"%token argument $1 should be a token",
       E215 => -"%fallback argument $1 should be a token",
-      E216 => -"More than one fallback assigned to token $1"
+      E216 => -"More than one fallback assigned to token $1",
+      E217 => -"Symbol $1 has already be given a precedence.",
+      E218 => -"Can't assign a precedence to $1."
      );
 
 
