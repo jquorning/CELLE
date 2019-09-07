@@ -25,6 +25,9 @@ with Exceptions;
 with Reports;
 with Extras;
 
+with Debugs;
+
+
 procedure Cherry_Program is
 
    procedure Put_Blessing;
@@ -208,6 +211,9 @@ begin
       --  Assign sequential rule numbers.  Start with 0.  Put rules that have no
       --  reduce action C-code associated with them last, so that the switch()
       --  statement that selects reduction actions will have a smaller jump table.
+
+      Ada.Text_IO.Put_Line ("jq_dump_rules first");
+      Debugs.JQ_Dump_Rules (Lemon);
 
       Rules.Assing_Sequential_Rule_Numbers
         (Lemon.Rule,

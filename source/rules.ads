@@ -51,25 +51,47 @@ package Rules is
    --  structure.
    type Rule_Record is
       record
-         LHS          : access Symbols.Symbol_Record;
-         LHS_Alias    : Unbounded_String;     -- Alias for the LHS (NULL if none)
-         LHS_Start    : Boolean;              -- True if left-hand side is the start symbol
-         Rule_Line    : Integer;              -- Line number for the rule
-         RHS          : RHS_Array_Access;     -- The RHS symbols
-         RHS_Alias    : Alias_Vectors.Vector; -- An alias for each RHS symbol (NULL if none)
-         Line         : Integer;              -- Line number at which code begins
-         Code         : T_Code;               -- The code executed when this rule is reduced
-         Code_Prefix  : T_Code;               -- Setup code before code[] above
-         Code_Suffix  : T_Code;               -- Breakdown code after code[] above
-         No_Code      : Boolean;              -- True if this rule has no associated C code
-         Code_Emitted : Boolean;              -- True if the code has been emitted already
-         Prec_Sym     : access Symbols.Symbol_Record;  -- Precedence symbol for this rule
-         Index        : Integer;              -- An index number for this rule
-         Rule         : Integer;              -- Rule number as used in the generated tables
-         Can_Reduce   : Boolean;              -- True if this rule is ever reduced
-         Does_Reduce  : Boolean;              -- Reduce actions occur after optimization
-         Next_LHS     : access Rule_Record;   -- Next rule with the same LHS
-         Next         : access Rule_Record;   -- Next rule in the global list
+         LHS          : access Symbols.Symbol_Record := null;
+         LHS_Alias    : Unbounded_String := Null_Unbounded_String;
+         --  Alias for the LHS (NULL if none)
+
+         LHS_Start    : Boolean          := False; -- True if left-hand side is the start symbol
+         Rule_Line    : Integer          := 0;     -- Line number for the rule
+         RHS          : RHS_Array_Access := null;  -- The RHS symbols
+
+         RHS_Alias    : Alias_Vectors.Vector := Alias_Vectors.Empty_Vector;
+         --  An alias for each RHS symbol (NULL if none)
+
+         Line         : Integer := 0;                      -- Line number at which code begins
+
+         Code         : T_Code  := Null_Unbounded_String;
+         --  The code executed when this rule is reduced
+
+         Code_Prefix  : T_Code  := Null_Unbounded_String;
+         --  Setup code before code[] above
+
+         Code_Suffix  : T_Code  := Null_Unbounded_String;
+         --  Breakdown code after code[] above
+
+         No_Code      : Boolean := False;
+         --  True if this rule has no associated C code
+
+         Code_Emitted : Boolean := False;
+         --  True if the code has been emitted already
+
+         Prec_Sym     : access Symbols.Symbol_Record := null;
+         --  Precedence symbol for this rule
+
+         Index        : Integer := 0;
+         --  An index number for this rule
+
+         Rule         : Integer := 0;
+         --  Rule number as used in the generated tables
+
+         Can_Reduce   : Boolean := False;             -- True if this rule is ever reduced
+         Does_Reduce  : Boolean := False;             -- Reduce actions occur after optimization
+         Next_LHS     : access Rule_Record := null;   -- Next rule with the same LHS
+         Next         : access Rule_Record := null;   -- Next rule in the global list
       end record;
 
    type Rule_Access is access all Rule_Record;

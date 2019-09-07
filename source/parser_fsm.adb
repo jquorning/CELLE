@@ -683,9 +683,9 @@ package body Parser_FSM is
             Rule.No_Code    := True;
             Rule.Prec_Sym   := null;
 
-            Lemon.N_Rule  := Lemon.N_Rule + 1;
+            Rule.Index   := Lemon.N_Rule;
+            Lemon.N_Rule := Lemon.N_Rule + 1;
 
-            Rule.Index      := Lemon.N_Rule;
 --            Rule.Next_LHS   := Rule.LHS.Rule;
 --            Rule.LHS.Rule   := Rule;
             Rule.Next       := null;
