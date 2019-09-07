@@ -219,6 +219,9 @@ begin
         (Lemon.Rule,
          Lemon.Start_Rule);
 
+      Ada.Text_IO.Put_Line ("jq_dump_rules second");
+      Debugs.JQ_Dump_Rules (Lemon);
+
 --        I := 0;
 --        RP := Lemon.Rule;
 --        loop

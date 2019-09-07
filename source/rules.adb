@@ -11,37 +11,28 @@ with Symbols;
 
 package body Rules is
 
---   type Symbol_Proxy_Type is
---      record
---         Symbol : sySymbol_Access;
---      end record;
 
    procedure Assing_Sequential_Rule_Numbers
      (Lemon_Rule : in     Rule_Access;
       Start_Rule :    out Rule_Access)
    is
       use Symbols;
+
       I  : Symbols.Symbol_Index;
       RP : Rules.Rule_Access;
    begin
+
+      --  Assing .Rule
       I := 0;
       RP := Lemon_Rule;
       loop
-         exit when RP /= null;
+         exit when RP = null;
          if RP.Code /= Null_Code then
             RP.Rule := Integer (I);
             I := I + 1;
          else
             RP.Rule := -1;
          end if;
-         RP := RP.Next;
-      end loop;
-
-      --  Does this section do anything at all ..?
-      I := 0;
-      RP := Lemon_Rule;
-      loop
-         exit when RP = null;
          RP := RP.Next;
       end loop;
 
@@ -57,7 +48,6 @@ package body Rules is
       end loop;
 
       Start_Rule := Lemon_Rule;
---      Lemon.Rule       := Rule_Sort (Lemon.Rule);
    end Assing_Sequential_Rule_Numbers;
 
 
