@@ -50,6 +50,9 @@ package body Parser_FSM is
                                                    Scanner : in out Scanner_Record;
                                                    Token   : in     String);
 
+   procedure Do_State_Waiting_For_Token_Name (Scanner : in out Scanner_Record;
+                                              Token   : in     String);
+
    procedure Debug (On   : in Boolean;
                     Text : in String);
 
@@ -234,26 +237,8 @@ package body Parser_FSM is
 --        }
          null;
 
-      when WAITING_FOR_TOKEN_NAME =>
---        /* Tokens do not have to be declared before use.  But they can be
---        ** in order to control their assigned integer number.  The number for
---        ** each token is assigned when it is first seen.  So by including
---        **
---        **     %token ONE TWO THREE
---        **
---        ** early in the grammar file, that assigns small consecutive values
---        ** to each of the tokens ONE TWO and THREE.
---        */
---        if( x[0]=='.' ){
---          psp->state = WAITING_FOR_DECL_OR_RULE;
---        }else if( !ISUPPER(x[0]) ){
---          ErrorMsg(psp->filename, psp->tokenlineno,
---            "%%token argument \"%s\" should be a token", x);
---          psp->errorcnt++;
---        }else{
---          (void)lime_symbol_new(x);
---        }
-         null;
+         when WAITING_FOR_TOKEN_NAME =>
+            Do_State_Waiting_For_Token_Name (Scanner, Token);
 
       when WAITING_FOR_WILDCARD_ID =>
          if C = '.' then
@@ -482,8 +467,6 @@ package body Parser_FSM is
    is
       function Match (Item : in String) return Boolean;
 
---      Cur : constant Character := Current_Token_Char (Scanner);
---      X   : constant String    := Current_Token_Line (Scanner);
       Cur : Character renames Token (Token'First);
       X   : String    renames Token;
 
@@ -501,7 +484,8 @@ package body Parser_FSM is
       begin
          Debug (False, "    Left : " & Left);
          Debug (False, "    Right: " & Right);
-         return Left = Right;
+--         return Left = Right;
+         return Token = Item;
       end Match;
 
       Debug_On : constant Boolean := False;
@@ -531,13 +515,14 @@ package body Parser_FSM is
             Scanner.Decl_Arg_Slot := Lemon.Names.Extra_Code'Access;
 
          elsif Match ("token_destructor") then
+            Debug (Debug_On, "  token_destructor");
             Scanner.Decl_Arg_Slot := Lemon.Names.Token_Dest'Access;
 
          elsif Match ("default_destructor") then
             Scanner.Decl_Arg_Slot := Lemon.Names.Var_Dest'Access;
 
          elsif Match ("token_prefix") then
-            Debug (False, "  token_prefix");
+            Debug (Debug_On, "  token_prefix");
             Scanner.Decl_Arg_Slot     := Lemon.Names.Token_Prefix'Access;
             Scanner.Insert_Line_Macro := False;
             --  Advance_Until_After_Space (Scanner);
@@ -564,7 +549,7 @@ package body Parser_FSM is
             Scanner.Insert_Line_Macro := False;
 
          elsif Match ("token_type") then
-            Debug (False, "  token_type");
+            Debug (Debug_On, "  token_type");
             Scanner.Decl_Arg_Slot     := Lemon.Names.Token_Type'Access;
             Scanner.Insert_Line_Macro := False;
 
@@ -607,12 +592,14 @@ package body Parser_FSM is
             Scanner.State := WAITING_FOR_FALLBACK_ID;
 
          elsif Match ("token") then
+            Debug (Debug_On, "Match on token");
             Scanner.State := WAITING_FOR_TOKEN_NAME;
 
          elsif Match ("wildcard") then
             Scanner.State := WAITING_FOR_WILDCARD_ID;
 
          elsif Match ("token_class") then
+            Debug (Debug_On, "Match on token_class");
             Scanner.State := WAITING_FOR_CLASS_ID;
 
          else
@@ -999,6 +986,40 @@ package body Parser_FSM is
          end;
       end if;
    end Do_State_Waiting_For_Datatype_Symbol;
+
+
+   procedure Do_State_Waiting_For_Token_Name (Scanner : in out Scanner_Record;
+                                              Token   : in     String)
+   is
+   begin
+      --  Tokens do not have to be declared before use.  But they can be
+      --  in order to control their assigned integer number.  The number for
+      --  each token is assigned when it is first seen.  So by including
+      --
+      --     %token ONE TWO THREE
+      --
+      --  early in the grammar file, that assigns small consecutive values
+      --  to each of the tokens ONE TWO and THREE.
+
+      if Token (Token'First) = '.' then
+         Scanner.State := WAITING_FOR_DECL_OR_RULE;
+
+      elsif Token (Token'First) not in 'A' .. 'Z' then
+--         ErrorMsg(psp->filename, psp->tokenlineno,
+--                  "%%token argument \"%s\" should be a token", x);
+--         psp->errorcnt++;
+         Parser_Error (E214, Scanner.Token_Lineno,
+                      (1 => To_Unbounded_String (Token)));
+      else
+         declare
+            use Symbols;
+            Dummy_Symbol : Symbol_Access;
+         begin
+            Dummy_Symbol := Create (Token);
+         end;
+--        (void)lime_symbol_new(x);
+      end if;
+   end Do_State_Waiting_For_Token_Name;
 
 
    procedure Debug (On   : in Boolean;
