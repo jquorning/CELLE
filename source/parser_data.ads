@@ -17,26 +17,26 @@ package Parser_Data is
 
    Max_Line_Length : constant := 1000;   --  Should do for the most
 
-   type Mode_Identifier is
-     (Root,             --  On outer level
-      C_Comment_Block,
-      String_Literal,
-      C_Code_Block,
-      Identifier,       --  Identifier
-      Quoted_Identifier --  Identifier in quortes
-     );
+--     type Mode_Identifier is
+--       (Root,             --  On outer level
+--        C_Comment_Block,
+--        String_Literal,
+--        C_Code_Block,
+--        Identifier,       --  Identifier
+--        Quoted_Identifier --  Identifier in quortes
+--       );
 
-   type State_Preproc is
-     (Root,
-      Ifdef,
-      Ifndef);
+--     type State_Preproc is
+--       (Root,
+--        Ifdef,
+--        Ifndef);
 
    --
    --  The state of the parser
    --
 
    type State_Scanner is
-     (DUMMY,
+     (DUMMY,                     --  Make state numbers match lemon
       WAITING_FOR_DECL_OR_RULE,
       WAITING_FOR_DECL_KEYWORD,
       WAITING_FOR_DECL_ARG,
@@ -81,7 +81,7 @@ package Parser_Data is
          Line_Number   : Natural;                      --  Upcounting line number
          Token_Lineno  : Natural;                      --  Linenumber at which current token starts
          Error_Count   : Natural;                      --  Number of errors so far
-         Preproc_State : State_Preproc;
+--         Preproc_State : State_Preproc;
          State         : State_Scanner;                --  The state of the parser
          Fallback      : access Symbols.Symbol_Record; --  The fallback token
          Token_Class   : access Symbols.Symbol_Record; --  Token class symbol
@@ -119,35 +119,15 @@ package Parser_Data is
          File_Name    : Unbounded_String;         --  Name of the input file
 
          --  From Line_Record
-         Current : Positive;                      --  Position in Item of examined character
-         Token_First : Positive := Positive'First;    --  First position in Item
-         Token_Last  : Natural  := Natural'First;
-         Last    : Natural  := Natural'First;     --  Last position in Item
-         Item    : String (1 .. Max_Line_Length); --  Full line read from input
-         Mode    : Mode_Identifier := Root;       --  Mode
-         Done    : Boolean         := False;
+--         Current : Positive;                      --  Position in Item of examined character
+         Token_First : Positive := Positive'First;    --  First position in filebuf
+--         Token_Last  : Natural  := Natural'First;
+--         Last    : Natural  := Natural'First;     --  Last position in Item
+--         Item    : String (1 .. Max_Line_Length); --  Full line read from input
+--         Mode    : Mode_Identifier := Root;       --  Mode
+--         Done    : Boolean         := False;
          Buffer  : Unbounded_String;              --  Holder for identifiers etc.
       end record;
 
-
---   function Current_Char (Scanner : in Scanner_Record)
---                        return Character;
-   --  Returns current character to parse
-
---   function Current_Line (Scanner : in Scanner_Record)
---                         return String;
-   --  returns the current line to parse
-
-   function Current_Token_Char (Scanner : in Scanner_Record)
-                               return Character;
-   --  Returns current token character to parse
-
-   function Current_Token_Line (Scanner : in Scanner_Record)
-                               return String;
-   --  returns the current line to parse
-
-   procedure Advance (Scanner : in out Scanner_Record;
-                      By : in Positive);
-   --  Advance token index by By characters
 
 end Parser_Data;

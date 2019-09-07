@@ -8,7 +8,7 @@
 --
 
 with Ada.Text_IO;
-with Ada.Strings.Fixed;
+--  with Ada.Strings.Fixed;
 with Ada.Strings.Unbounded;
 
 with Symbols;
@@ -92,20 +92,13 @@ package body Parser_FSM is
                        Scanner : in out Scanner_Record;
                        Token   : in     String)
    is
-      Debug_On : constant Boolean := False;
-      X : String    renames Token;
       C : Character renames Token (Token'First);
-      --      X : constant String    := Current_Token_Line (Scanner);
---      C : constant Character := Current_Token_Char (Scanner);
    begin
-      Debug (Debug_On, "Do_State: STATE: " & Scanner.State'Img);
-      --  Debug (Debug_On, "  X: " & X);
-      --  Debug (Debug_On, "  C: " & C);
 
       case Scanner.State is
 
-         when DUMMY                    =>
-            raise Program_Error;
+         when DUMMY =>
+            null;
 
          when WAITING_FOR_DECL_OR_RULE =>
             Do_State_Waiting_For_Decl_Or_Rule (Lemon, Scanner, Token);
@@ -121,24 +114,24 @@ package body Parser_FSM is
 
       when LHS_ALIAS_1 =>
          if
-           X (X'First) in 'a' .. 'z' or
-           X (X'First) in 'A' .. 'Z'
+           Token (Token'First) in 'a' .. 'z' or
+           Token (Token'First) in 'A' .. 'Z'
          then
 --            Scanner.LHS_Alias  := Interfaces.C.Strings.New_String (X);
 --            Scanner.LHS_Alias.Append (Interfaces.C.Strings.New_String (X));
-            Scanner.LHS_Alias.Append (To_Alias (X));
+            Scanner.LHS_Alias.Append (To_Alias (Token));
             Scanner.State := LHS_ALIAS_2;
          else
             Parser_Error
               (E009, Scanner.Token_Lineno,
-               (1 => To_Unbounded_String (X),
+               (1 => To_Unbounded_String (Token),
                 2 => To_Unbounded_String
                   (Symbols.From_Key (Scanner.LHS.First_Element.Name))));
             Scanner.State := RESYNC_AFTER_RULE_ERROR;
          end if;
 
       when LHS_ALIAS_2 =>
-         if X (X'First)  = ')' then
+         if Token (Token'First)  = ')' then
             Scanner.State := LHS_ALIAS_3;
          else
             Parser_Error (E010, Scanner.Token_Lineno,
@@ -148,7 +141,7 @@ package body Parser_FSM is
 
 
       when LHS_ALIAS_3 =>
-         if X (X'First .. X'First + 2) = "::=" then
+         if Token (Token'First .. Token'First + 2) = "::=" then
             Scanner.State := IN_RHS;
          else
             Parser_Error (E011, Scanner.Token_Lineno,
@@ -164,16 +157,16 @@ package body Parser_FSM is
       when RHS_ALIAS_1 =>
 
          if
-           X (X'First) in 'a' .. 'z' or
-           X (X'First) in 'A' .. 'Z'
+           Token (Token'First) in 'a' .. 'z' or
+           Token (Token'First) in 'A' .. 'Z'
          then
-            Scanner.Alias.Append (To_Alias (X));
+            Scanner.Alias.Append (To_Alias (Token));
             Scanner.State   := RHS_ALIAS_2;
 
          else
             Parser_Error
               (E012, Scanner.Token_Lineno,
-               (1 => To_Unbounded_String (X),
+               (1 => To_Unbounded_String (Token),
                 2 => To_Unbounded_String
                   (Symbols.From_Key (Scanner.RHS.Last_Element.Name))));
             Scanner.State := RESYNC_AFTER_RULE_ERROR;
@@ -183,7 +176,7 @@ package body Parser_FSM is
 
       when RHS_ALIAS_2 =>
 
-         if X (X'First) = ')' then
+         if Token (Token'First) = ')' then
             Scanner.State := IN_RHS;
 
          else
@@ -356,12 +349,12 @@ package body Parser_FSM is
 
       function Match (Item : in String) return Boolean
       is
-         use Ada.Strings.Fixed;
+--         use Ada.Strings.Fixed;
 
          Length     : constant Natural := Natural'Min (X'Length, Item'Length);
          Item_Last  : constant Natural := Item'First + Length - 1;
-         Right_Pos  : constant Natural := Index (Item (Item'First .. Item_Last), " ");
-         Right_Last : constant Natural := Natural'Max (Right_Pos, Item_Last - 1);
+--         Right_Pos  : constant Natural := Index (Item (Item'First .. Item_Last), " ");
+--       Right_Last : constant Natural := Natural'Max (Right_Pos, Item_Last - 1);
          Length_2   : constant Natural := Natural'Min (X'Length, Item_Last - Item'First + 1);
          Left       : String renames X    (X'First    .. X'First    + Length_2 - 1);
          Right      : String renames Item (Item'First .. Item'First + Length_2 - 1);
@@ -508,6 +501,7 @@ package body Parser_FSM is
                                                      Scanner : in out Scanner_Record;
                                                      Token   : in     String)
    is
+      pragma Unreferenced (Lemon);
    begin
       if
         Token (Token'First) not in 'a' .. 'z' and
@@ -587,9 +581,9 @@ package body Parser_FSM is
             --  Rp := (struct rule *)calloc( sizeof(struct rule) +
             --                               sizeof(struct symbol*)*psp->nrhs +
             --                               sizeof(char*)*psp->nrhs, 1);
-            exception
-               when Storage_Error =>
-                  raise;
+--            exception
+--               when Storage_Error =>
+--                  raise;
 --                  ErrorMsg(psp->filename,psp->tokenlineno,
 --                           "Can't allocate enough memory for this rule.");
 --                  psp->errorcnt++;
@@ -713,15 +707,11 @@ package body Parser_FSM is
                                             Scanner : in out Scanner_Record;
                                             Token   : in     String)
    is
---      Cur : constant Character := Current_Token_Char (Scanner);
---      X   : constant String    := Current_Token_Line (Scanner);
       Cur : Character renames Token (Token'First);
-      X   : String    renames Token;
-
       Debug_On : constant Boolean := False;
    begin
       Debug (Debug_On, "##Cur: " & Cur);
-      Debug (Debug_On, "##X  : " & X);
+      Debug (Debug_On, "##X  : " & Token);
       if
         Cur = '{' or
         Cur = '"' or
@@ -735,7 +725,7 @@ package body Parser_FSM is
 --          int nOld, n, nLine = 0, nNew, nBack;
             N    : Integer;
             Back : Integer;
-            New_String     : constant String := X;
+            New_String     : constant String := Token;
             Old_String     : Unbounded_String;
             Buf_String     : Unbounded_String;
             Z              : Unbounded_String;
@@ -839,14 +829,12 @@ package body Parser_FSM is
             --  *zBuf := 0;
             Debug (False, "QQQ" & To_String (Buf_String));
             Scanner.State := WAITING_FOR_DECL_OR_RULE;
-            Scanner.Done  := True;
+--            Scanner.Done  := True;
          end;
       else
-         Parser_Error
-           (E213,
-            Line_Number => Scanner.Token_Lineno,
-            Arguments   => (1 => Scanner.Decl_Keyword,
-                            2 => To_Unbounded_String (X)));
+         Parser_Error (E213, Scanner.Token_Lineno,
+                       (1 => Scanner.Decl_Keyword,
+                        2 => To_Unbounded_String (Token)));
 
          Scanner.State := RESYNC_AFTER_DECL_ERROR;
       end if;
