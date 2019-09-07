@@ -713,14 +713,14 @@ package body Parser_FSM is
       then
          declare
             use Symbols;
-            Symbol : Symbols.Symbol_Access := Scanner.RHS.Last_Element;
+            Symbol : Symbol_Access := Scanner.RHS.Last_Element;
          begin
-            if Symbol.Kind /= Symbols.Multi_Terminal then
+            if Symbol.Kind /= Multi_Terminal then
                declare
                   Orig_Symbol : constant Symbol_Access := Symbol;
                begin
                   Symbol := new Symbol_Record;
-                  Symbol.Kind    := Symbols.Multi_Terminal;
+                  Symbol.Kind    := Multi_Terminal;
                   Symbol.Sub_Sym := Symbol_Vectors.Empty_Vector;
                   Symbol.Sub_Sym.Append (Orig_Symbol);
 
@@ -731,7 +731,7 @@ package body Parser_FSM is
             end if;
 
             Symbol.Sub_Sym.Append
-              (Symbols.Create (Token (Token'First + 1 .. Token'Last)));
+              (Symbols.Create_New (Token (Token'First + 1 .. Token'Last)));
 
             if
               Token (Token'First + 1) in 'a' .. 'z' or
