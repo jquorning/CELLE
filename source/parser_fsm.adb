@@ -46,6 +46,22 @@ package body Parser_FSM is
    procedure Do_State_Waiting_For_Arrow (Scanner : in out Scanner_Record;
                                          Token   : in     String);
 
+   procedure Do_State_LHS_Alias_1 (Scanner : in out Scanner_Record;
+                                   Token   : in     String);
+
+   procedure Do_State_LHS_Alias_2 (Scanner : in out Scanner_Record;
+                                   Token   : in     String);
+
+   procedure Do_State_LHS_Alias_3 (Scanner : in out Scanner_Record;
+                                   Token   : in     String);
+
+   procedure Do_State_RHS_Alias_1 (Scanner : in out Scanner_Record;
+                                   Token   : in     String);
+
+   procedure Do_State_RHS_Alias_2 (Scanner : in out Scanner_Record;
+                                   Token   : in     String);
+
+
    procedure Do_State_In_RHS (Lemon   : in out Lemon_Record;
                               Scanner : in out Scanner_Record;
                               Token   : in     String);
@@ -112,80 +128,23 @@ package body Parser_FSM is
          when WAITING_FOR_ARROW =>
             Do_State_Waiting_For_Arrow (Scanner, Token);
 
-      when LHS_ALIAS_1 =>
-         if
-           Token (Token'First) in 'a' .. 'z' or
-           Token (Token'First) in 'A' .. 'Z'
-         then
---            Scanner.LHS_Alias  := Interfaces.C.Strings.New_String (X);
---            Scanner.LHS_Alias.Append (Interfaces.C.Strings.New_String (X));
-            Scanner.LHS_Alias.Append (To_Alias (Token));
-            Scanner.State := LHS_ALIAS_2;
-         else
-            Parser_Error
-              (E009, Scanner.Token_Lineno,
-               (1 => To_Unbounded_String (Token),
-                2 => To_Unbounded_String
-                  (Symbols.From_Key (Scanner.LHS.First_Element.Name))));
-            Scanner.State := RESYNC_AFTER_RULE_ERROR;
-         end if;
+         when LHS_ALIAS_1 =>
+            Do_State_LHS_Alias_1 (Scanner, Token);
 
-      when LHS_ALIAS_2 =>
-         if Token (Token'First)  = ')' then
-            Scanner.State := LHS_ALIAS_3;
-         else
-            Parser_Error (E010, Scanner.Token_Lineno,
-                          (1 => Scanner.LHS_Alias.First_Element));
-            Scanner.State := RESYNC_AFTER_RULE_ERROR;
-         end if;
+         when LHS_ALIAS_2 =>
+            Do_State_LHS_Alias_2 (Scanner, Token);
 
+         when LHS_ALIAS_3 =>
+            Do_State_LHS_Alias_3 (Scanner, Token);
 
-      when LHS_ALIAS_3 =>
-         if Token (Token'First .. Token'First + 2) = "::=" then
-            Scanner.State := IN_RHS;
-         else
-            Parser_Error (E011, Scanner.Token_Lineno,
-                          (1 => To_Unbounded_String
-                             (Symbols.From_Key (Scanner.LHS.First_Element.Name)),
-                           2 => Scanner.LHS_Alias.First_Element));
-            Scanner.State := RESYNC_AFTER_RULE_ERROR;
-         end if;
+         when IN_RHS =>
+            Do_State_In_RHS (Lemon, Scanner, Token);
 
+         when RHS_ALIAS_1 =>
+            Do_State_RHS_Alias_1 (Scanner, Token);
 
-      when IN_RHS =>   Do_State_In_RHS (Lemon, Scanner, Token);
-
-      when RHS_ALIAS_1 =>
-
-         if
-           Token (Token'First) in 'a' .. 'z' or
-           Token (Token'First) in 'A' .. 'Z'
-         then
-            Scanner.Alias.Append (To_Alias (Token));
-            Scanner.State   := RHS_ALIAS_2;
-
-         else
-            Parser_Error
-              (E012, Scanner.Token_Lineno,
-               (1 => To_Unbounded_String (Token),
-                2 => To_Unbounded_String
-                  (Symbols.From_Key (Scanner.RHS.Last_Element.Name))));
-            Scanner.State := RESYNC_AFTER_RULE_ERROR;
-
-         end if;
-
-
-      when RHS_ALIAS_2 =>
-
-         if Token (Token'First) = ')' then
-            Scanner.State := IN_RHS;
-
-         else
-            Parser_Error (E013, Scanner.Token_Lineno,
-                          (1 => Scanner.LHS_Alias.First_Element));
-            Scanner.State := RESYNC_AFTER_RULE_ERROR;
-
-         end if;
-
+         when RHS_ALIAS_2 =>
+            Do_State_RHS_Alias_2 (Scanner, Token);
 
          when WAITING_FOR_DECL_KEYWORD =>
             Do_State_Waiting_For_Decl_Keyword (Lemon, Scanner, Token);
@@ -551,6 +510,96 @@ package body Parser_FSM is
          end;
       end if;
    end Do_State_Waiting_For_Arrow;
+
+
+   procedure Do_State_LHS_Alias_1 (Scanner : in out Scanner_Record;
+                                   Token   : in     String)
+   is
+   begin
+      if
+        Token (Token'First) in 'a' .. 'z' or
+        Token (Token'First) in 'A' .. 'Z'
+      then
+--            Scanner.LHS_Alias  := Interfaces.C.Strings.New_String (X);
+--            Scanner.LHS_Alias.Append (Interfaces.C.Strings.New_String (X));
+         Scanner.LHS_Alias.Append (To_Alias (Token));
+         Scanner.State := LHS_ALIAS_2;
+      else
+         Parser_Error (E009, Scanner.Token_Lineno,
+                       (1 => To_Unbounded_String (Token),
+                        2 => To_Unbounded_String
+                          (Symbols.From_Key (Scanner.LHS.First_Element.Name))));
+         Scanner.State := RESYNC_AFTER_RULE_ERROR;
+      end if;
+   end Do_State_LHS_Alias_1;
+
+
+   procedure Do_State_LHS_Alias_2 (Scanner : in out Scanner_Record;
+                                   Token   : in     String)
+   is
+   begin
+      if Token (Token'First)  = ')' then
+         Scanner.State := LHS_ALIAS_3;
+      else
+         Parser_Error (E010, Scanner.Token_Lineno,
+                       (1 => Scanner.LHS_Alias.First_Element));
+         Scanner.State := RESYNC_AFTER_RULE_ERROR;
+      end if;
+   end Do_State_LHS_Alias_2;
+
+
+   procedure Do_State_LHS_Alias_3 (Scanner : in out Scanner_Record;
+                                   Token   : in     String)
+   is
+   begin
+      if Token (Token'First .. Token'First + 2) = "::=" then
+         Scanner.State := IN_RHS;
+      else
+         Parser_Error (E011, Scanner.Token_Lineno,
+                       (1 => To_Unbounded_String
+                          (Symbols.From_Key (Scanner.LHS.First_Element.Name)),
+                        2 => Scanner.LHS_Alias.First_Element));
+         Scanner.State := RESYNC_AFTER_RULE_ERROR;
+      end if;
+   end Do_State_LHS_Alias_3;
+
+
+   procedure Do_State_RHS_Alias_1 (Scanner : in out Scanner_Record;
+                                   Token   : in     String)
+   is
+   begin
+      if
+        Token (Token'First) in 'a' .. 'z' or
+        Token (Token'First) in 'A' .. 'Z'
+      then
+         Scanner.Alias.Append (To_Alias (Token));
+         Scanner.State   := RHS_ALIAS_2;
+
+      else
+         Parser_Error
+           (E012, Scanner.Token_Lineno,
+            (1 => To_Unbounded_String (Token),
+             2 => To_Unbounded_String
+               (Symbols.From_Key (Scanner.RHS.Last_Element.Name))));
+         Scanner.State := RESYNC_AFTER_RULE_ERROR;
+
+      end if;
+   end Do_State_RHS_Alias_1;
+
+
+   procedure Do_State_RHS_Alias_2 (Scanner : in out Scanner_Record;
+                                   Token   : in     String)
+   is
+   begin
+      if Token (Token'First) = ')' then
+         Scanner.State := IN_RHS;
+
+      else
+         Parser_Error (E013, Scanner.Token_Lineno,
+                       (1 => Scanner.LHS_Alias.First_Element));
+         Scanner.State := RESYNC_AFTER_RULE_ERROR;
+      end if;
+   end Do_State_RHS_Alias_2;
 
 
    procedure Do_State_In_RHS (Lemon   : in out Lemon_Record;

@@ -17,20 +17,6 @@ package Parser_Data is
 
    Max_Line_Length : constant := 1000;   --  Should do for the most
 
---     type Mode_Identifier is
---       (Root,             --  On outer level
---        C_Comment_Block,
---        String_Literal,
---        C_Code_Block,
---        Identifier,       --  Identifier
---        Quoted_Identifier --  Identifier in quortes
---       );
-
---     type State_Preproc is
---       (Root,
---        Ifdef,
---        Ifndef);
-
    --
    --  The state of the parser
    --
@@ -118,15 +104,8 @@ package Parser_Data is
          Last_Rule    : access Rules.Rule_Record; --  Pointer to the most recently parsed rule
          File_Name    : Unbounded_String;         --  Name of the input file
 
-         --  From Line_Record
---         Current : Positive;                      --  Position in Item of examined character
-         Token_First : Positive := Positive'First;    --  First position in filebuf
---         Token_Last  : Natural  := Natural'First;
---         Last    : Natural  := Natural'First;     --  Last position in Item
---         Item    : String (1 .. Max_Line_Length); --  Full line read from input
---         Mode    : Mode_Identifier := Root;       --  Mode
---         Done    : Boolean         := False;
-         Buffer  : Unbounded_String;              --  Holder for identifiers etc.
+         Token_First : Positive := Positive'First;  --  First position in filebuf
+         Buffer      : Unbounded_String;            --  Holder for identifiers etc.
       end record;
 
 
