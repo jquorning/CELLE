@@ -1044,55 +1044,55 @@ static char *outputDir = NULL;
 
 
 /* Merge together to lists of rules ordered by rule.iRule */
-static struct rule *Rule_merge(struct rule *pA, struct rule *pB){
-  struct rule *pFirst = 0;
-  struct rule **ppPrev = &pFirst;
-  while( pA && pB ){
-    if( pA->iRule<pB->iRule ){
-      *ppPrev = pA;
-      ppPrev = &pA->next;
-      pA = pA->next;
-    }else{
-      *ppPrev = pB;
-      ppPrev = &pB->next;
-      pB = pB->next;
-    }
-  }
-  if( pA ){
-    *ppPrev = pA;
-  }else{
-    *ppPrev = pB;
-  }
-  return pFirst;
-}
+/* static struct rule *Rule_merge(struct rule *pA, struct rule *pB){ */
+/*   struct rule *pFirst = 0; */
+/*   struct rule **ppPrev = &pFirst; */
+/*   while( pA && pB ){ */
+/*     if( pA->iRule<pB->iRule ){ */
+/*       *ppPrev = pA; */
+/*       ppPrev = &pA->next; */
+/*       pA = pA->next; */
+/*     }else{ */
+/*       *ppPrev = pB; */
+/*       ppPrev = &pB->next; */
+/*       pB = pB->next; */
+/*     } */
+/*   } */
+/*   if( pA ){ */
+/*     *ppPrev = pA; */
+/*   }else{ */
+/*     *ppPrev = pB; */
+/*   } */
+/*   return pFirst; */
+/* } */
 
 /*
 ** Sort a list of rules in order of increasing iRule value
 */
 //static struct rule *Rule_sort(struct rule *rp){
 //static struct rule *lime_rule_sort (struct rule *rp)
-struct rule *lime_rule_sort (struct rule *rp)
-{
-  int i;
-  struct rule *pNext;
-  struct rule *x[32];
-  memset(x, 0, sizeof(x));
-  while( rp ){
-    pNext = rp->next;
-    rp->next = 0;
-    for(i=0; i<sizeof(x)/sizeof(x[0]) && x[i]; i++){
-      rp = Rule_merge(x[i], rp);
-      x[i] = 0;
-    }
-    x[i] = rp;
-    rp = pNext;
-  }
-  rp = 0;
-  for(i=0; i<sizeof(x)/sizeof(x[0]); i++){
-    rp = Rule_merge(x[i], rp);
-  }
-  return rp;
-}
+/* struct rule *lime_rule_sort (struct rule *rp) */
+/* { */
+/*   int i; */
+/*   struct rule *pNext; */
+/*   struct rule *x[32]; */
+/*   memset(x, 0, sizeof(x)); */
+/*   while( rp ){ */
+/*     pNext = rp->next; */
+/*     rp->next = 0; */
+/*     for(i=0; i<sizeof(x)/sizeof(x[0]) && x[i]; i++){ */
+/*       rp = Rule_merge(x[i], rp); */
+/*       x[i] = 0; */
+/*     } */
+/*     x[i] = rp; */
+/*     rp = pNext; */
+/*   } */
+/*   rp = 0; */
+/*   for(i=0; i<sizeof(x)/sizeof(x[0]); i++){ */
+/*     rp = Rule_merge(x[i], rp); */
+/*   } */
+/*   return rp; */
+/* } */
 
 #if 0
 /* forward reference */

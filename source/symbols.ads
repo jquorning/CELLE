@@ -66,7 +66,7 @@ package Symbols is
          Assoc     : E_Assoc;           --  Associativity if precedence is defined
          First_Set : Unbounded_String;  --  First-set for all rules of this symbol
          Lambda    : Boolean;           --  True if NT and can generate an empty string
-         Use_Cnt   : Integer;           --  Number of times used
+         Use_Count : Natural;           --  Number of times used
 
          Destructor  : aliased Unbounded_String;
          --  Code which executes whenever this symbol is
@@ -163,6 +163,9 @@ package Symbols is
 --     (Name : in Interfaces.C.Strings.chars_ptr)
 --     return Symbol_Access;
 
+
+   --  Debug
+   procedure JQ_Dump_Symbols;
 
 end Symbols;
 

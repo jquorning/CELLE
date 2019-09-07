@@ -157,8 +157,8 @@ package Lime is
    procedure Strsafe_Init;
    procedure State_Init;
 
-   function Rule_Sort (Rule : in Rules.Rule_Access)
-                      return Rules.Rule_Access;
+--   function Rule_Sort (Rule : in Rules.Rule_Access)
+--                      return Rules.Rule_Access;
 
 private
 
@@ -173,6 +173,6 @@ private
    pragma Import (C, Strsafe_Init, "Strsafe_init");
    pragma Import (C, State_Init,   "State_init");
 
-   pragma Import (C, Rule_Sort, "lime_rule_sort");
+--   pragma Import (C, Rule_Sort, "lime_rule_sort");
 
 end Lime;

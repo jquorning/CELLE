@@ -343,7 +343,7 @@ package body Parsers is
       --  Token=[token_prefix] state=2
       --  Token=[TK_] state=3
 
-      if True then
+      if False then
          declare
             use Ada.Text_IO;
             use DK8543.Errors;

@@ -9,6 +9,7 @@
 
 with Ada.Strings.Unbounded;
 with Ada.Containers.Vectors;
+with Ada.Containers.Doubly_Linked_Lists;
 
 limited with Symbols;
 
@@ -73,8 +74,18 @@ package Rules is
 
    type Rule_Access is access all Rule_Record;
 
-   --  function Rule_Sort (Rule : in Rule_Access) return Rule_Access;
-   --  pragma Import (C, Rule_Sort, "lime_rule_sort");
+   package Rule_Lists is
+      new Ada.Containers.Doubly_Linked_Lists (Rule_Access);
+
+   procedure Merge (Left   : in out Rule_Lists.List;
+                    Right  : in out Rule_Lists.List;
+                    Result :    out Rule_Lists.List);
+   --  Merge together to lists of rules ordered by rule.iRule
+
+
+   function Rule_Sort (Rule : in Rule_Access) return Rule_Access;
+   --  Sort a list of rules in order of increasing iRule Value
+
 
    procedure Assing_Sequential_Rule_Numbers
      (Lemon_Rule : in     Rule_Access;

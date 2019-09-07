@@ -10,6 +10,7 @@
 with Ada.Strings.Unbounded;
 with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Containers.Ordered_Maps;
+with Ada.Text_IO;
 
 package body Extras is
 
@@ -244,6 +245,20 @@ package body Extras is
       Count := Symbol_Maps.Length (Extra.Symbol_Map);
       return Symbols.Symbol_Index (Count);
    end Symbol_Count;
+
+
+   procedure JQ_Dump_Symbols is
+      use Ada.Text_IO;
+      use Ada.Strings.Unbounded;
+   begin
+      for Symbol of Get_Extra.Symbol_List loop
+         Put ("SYM ");
+         Put (To_String (Symbol.Name));
+         Put (ASCII.HT & "INDEX");
+         Put (Symbol.Index'Img);
+         New_Line;
+      end loop;
+   end JQ_Dump_Symbols;
 
 
 end Extras;

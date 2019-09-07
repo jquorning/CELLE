@@ -49,6 +49,9 @@ package Extras is
    procedure Set_Error;
    procedure Fill_And_Sort;
 
+   --  Debug
+   procedure JQ_Dump_Symbols;
+
 private
 
    type Extra_Record;

@@ -149,7 +149,7 @@ begin
       Lemon.Basis_Flag      := Options.Basis_Flag;
       Lemon.No_Linenos_Flag := Options.No_Line_Nos;
 
-      --  Extras.Symbol_Append (Key => "$");
+      Extras.Symbol_Append (Key => "$");
       declare
          Dummy : constant Symbol_Access := Create_New ("$");
       begin
@@ -173,7 +173,7 @@ begin
       Extras.Set_Error;
 
       --  Count and index the symbols of the grammar
-      --  Extras.Symbol_Append (Key => "{default}");
+      Extras.Symbol_Append (Key => "{default}");
       declare
          Dummy : constant Symbol_Access := Create_New ("{default}");
       begin
@@ -181,6 +181,10 @@ begin
       end;
 
       Symbols.Symbol_Allocate (Ada.Containers.Count_Type (Extras.Symbol_Count));
+
+      Ada.Text_IO.Put_Line ("jq_dump_symbols before sort");
+      Extras.JQ_Dump_Symbols;
+      Symbols.JQ_Dump_Symbols;
 
       Extras.Fill_And_Sort;
 
@@ -226,7 +230,9 @@ begin
 --        end loop;
 
       Lemon.Start_Rule := Lemon.Rule;
+      Ada.Text_IO.Put_Line ("Rule_Sort");
       Lemon.Rule       := Rule_Sort (Lemon.Rule);
+      Ada.Text_IO.Put_Line ("Rule_Sort done");
 
       --  Generate a reprint of the grammar, if requested on the command line
       if Options.RP_Flag then

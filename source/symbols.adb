@@ -260,6 +260,7 @@ package body Symbols is
       return Ptr;
    end Create;
 
+
    function Create_New (Name : in String)
                        return Symbol_Access
    is
@@ -268,7 +269,13 @@ package body Symbols is
       if Symbol = null then
          Symbol := new Symbol_Record;
          Symbol.Name        := To_Unbounded_String (Name);
-         Symbol.Kind        := Non_Terminal;
+
+         if Name (Name'First) in 'A' .. 'Z' then
+            Symbol.Kind        := Terminal;
+         else
+            Symbol.Kind        := Non_Terminal;
+         end if;
+
          Symbol.Rule        := null;
          Symbol.Fallback    := null;
          Symbol.Prec        := -1;
@@ -278,8 +285,10 @@ package body Symbols is
          Symbol.Destructor  := Null_Unbounded_String;
          Symbol.Dest_Lineno := 0;
          Symbol.Data_Type   := Null_Unbounded_String;
-         Symbol.Use_Cnt    := 0;
+         Symbol.Use_Count   := 0;
+         Symbol_Bases.Append (Base, Symbol);
       end if;
+      Symbol.Use_Count := Symbol.Use_Count + 1;
       return Symbol;
    end Create_New;
 
@@ -300,11 +309,10 @@ package body Symbols is
                  return Symbol_Access
    is
    begin
---      Ada.Text_IO.Put_Line ("Find symbol stub");
-      for Ptr of Base loop
-         if Ptr.all.Name = Name then
+      for Symbol of Base loop
+         if Symbol.all.Name = Name then
 --            Ada.Text_IO.Put_Line ("Found Symbol Name: " & Name);
-            return Ptr;
+            return Symbol;
          end if;
       end loop;
       return null;
@@ -323,6 +331,18 @@ package body Symbols is
 --     end Lime_Symbol_Find;
 
 
+   --  Debug
+   procedure JQ_Dump_Symbols is
+      use Ada.Text_IO;
+   begin
+      for Symbol of Base loop
+         Put ("SYM ");
+         Put (To_String (Symbol.Name));
+--         Put (ASCII.HT & "INDEX");
+--         Put (Symbol.Index'Img);
+         New_Line;
+      end loop;
+   end JQ_Dump_Symbols;
 
 end Symbols;
 
