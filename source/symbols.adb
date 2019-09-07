@@ -15,32 +15,32 @@ package body Symbols is
 --   subtype Cursor is Symbol_Lists.Cursor;
 
 
-   function "<" (Left, Right : in Symbol_Name) return Boolean;
+--     function "<" (Left, Right : in Symbol_Name) return Boolean;
 
-   function From_Key (Key : Key_Type) return Unbounded_String;
-
-
-   function "<" (Left, Right : in Symbol_Name) return Boolean
-   is
-      Length_Min   : constant Natural := Natural'Min (Length (Left),
-                                                      Length (Right));
-
-      String_Left  : constant String := To_String (Left);
-      String_Right : constant String := To_String (Right);
-      S_Left       : constant String :=
-        String_Left  (String_Left'First  .. String_Left'First  + Length_Min);
-      S_Right      : constant String :=
-        String_Right (String_Right'First .. String_Right'First + Length_Min);
-   begin
-      return (S_Left < S_Right);
-   end "<";
+--     function From_Key (Key : Key_Type) return Unbounded_String;
 
 
-   function From_Key (Key : Key_Type) return Unbounded_String
-   is
-   begin
-      return Null_Unbounded_String;
-   end From_Key;
+--     function "<" (Left, Right : in Symbol_Name) return Boolean
+--     is
+--        Length_Min   : constant Natural := Natural'Min (Length (Left),
+--                                                        Length (Right));
+
+--        String_Left  : constant String := To_String (Left);
+--        String_Right : constant String := To_String (Right);
+--        S_Left       : constant String :=
+--          String_Left  (String_Left'First  .. String_Left'First  + Length_Min);
+--        S_Right      : constant String :=
+--          String_Right (String_Right'First .. String_Right'First + Length_Min);
+--     begin
+--        return (S_Left < S_Right);
+--     end "<";
+
+
+--     function From_Key (Key : Key_Type) return Unbounded_String
+--     is
+--     begin
+--        return Null_Unbounded_String;
+--     end From_Key;
 
 
 
@@ -76,49 +76,6 @@ package body Symbols is
 --   begin
 --      null;  --  Sort (Container);
 --   end Do_Sort;
-
-
-   procedure Do_Some_Things (Count_In  : in     Symbol_Index;
-                             Count_Out :    out Symbol_Index)
-   is
-   begin
-      null;
-            --  The following
-
-      --  XXX Section XXX
-
---        for Idx in 0 .. Lemon.N_Symbol - 1 loop
---           Lemon.Symbols.all (Idx).all.Index := Idx;
---           I := Idx;  --  C for loop hack dehacked
---        end loop;
---        I := I + 1;   --  C for loop hack dehacked
-
---        while Lemon.Symbols.all (I - 1).all.Kind = Symbols.Multi_Terminal loop
---           I := I - 1;
---        end loop;
-
-      --  XXX Section End XXX
-
---        pragma Assert (Lemon.Symbols.all (I - 1).Name = New_String ("{default}"));
---        Lemon.N_Symbol := I - 1;
-
---        I := 1;
---        loop
---           declare
---              Text  : constant String    := Value (Lemon.Symbols.all (I).Name);
---              First : constant Character := Text (Text'First);
---           begin
---              exit when Auxiliary.Is_Upper (First);
---              I := I + 1;
---           end;
---        end loop;
-
---        Lemon.N_Terminal := I;
-
-   end Do_Some_Things;
-
-
-
 
 
 --     function "<" (Left, Right : in Symbol_Access)
@@ -246,8 +203,37 @@ package body Symbols is
    --  2019-09-06 JQ
    --  Simply try to make a vector for symbols
    package Symbol_Bases is
-      new Ada.Containers.Vectors (Positive, Symbol_Access);
+      new Ada.Containers.Vectors (Natural, Symbol_Access);
    Base : Symbol_Bases.Vector;
+
+
+   procedure Count_Symbols_And_Terminals (Symbol_Count   : out Natural;
+                                          Terminal_Count : out Natural)
+   is
+      Index : Natural;
+   begin
+
+      --  Sequential index of symbols
+      Index := 0;
+      for Symbol of Base loop
+         Symbol.all.Index := Symbol_Index (Index);
+         Index := Index + 1;
+      end loop;
+
+      while Base (Index - 1).all.Kind = Multi_Terminal loop
+         Index := Index - 1;
+      end loop;
+
+      pragma Assert (To_String (Base (Index - 1).Name) = "{default}");
+
+      Symbol_Count := Index - 1;
+      Index := 1;
+      loop
+         exit when To_String (Base (Index).all.Name) (1) not in 'A' .. 'Z';
+         Index := Index + 1;
+      end loop;
+      Terminal_Count := Index;
+   end Count_Symbols_And_Terminals;
 
 
    function Create (Name : in String)
@@ -374,6 +360,7 @@ package body Symbols is
       Symbol_Sorting.Sort (Base);
    end Sort;
 
+
    --  Debug
    procedure JQ_Dump_Symbols is
       use Ada.Text_IO;
@@ -385,9 +372,12 @@ package body Symbols is
          Put (Symbol.Index'Img);
          Put (" NSUB");
          Put (Symbol.Sub_Sym.Length'Img);
+         Put (" KIND");
+         Put (Symbol_Kind'Pos (Symbol.Kind)'Img);
          New_Line;
       end loop;
    end JQ_Dump_Symbols;
+
 
 end Symbols;
 

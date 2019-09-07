@@ -193,8 +193,17 @@ begin
 --      Extras.JQ_Dump_Symbols;
       Symbols.JQ_Dump_Symbols;
 
-      Symbols.Do_Some_Things (Count_In  => Extras.Symbol_Count,
-                              Count_Out => Dummy_Symbol_Count);
+      declare
+         Symbol_Count   : Natural;
+         Terminal_Count : Natural;
+      begin
+         Symbols.Count_Symbols_And_Terminals (Symbol_Count   => Symbol_Count,
+                                              Terminal_Count => Terminal_Count);
+
+         Ada.Text_IO.Put ("nsymbol:" & Symbol_Count'Img);
+         Ada.Text_IO.Put ("  nterminal:" & Terminal_Count'Img);
+         Ada.Text_IO.Put_Line (" ");
+      end;
 
       --  Assign sequential rule numbers.  Start with 0.  Put rules that have no
       --  reduce action C-code associated with them last, so that the switch()
