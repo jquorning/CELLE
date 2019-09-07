@@ -35,6 +35,10 @@ package body Parser_FSM is
                                                 Scanner : in out Scanner_Record;
                                                 Token   : in     String);
 
+   procedure Do_State_Waiting_For_Destructor_Symbol (Lemon   : in out Lemon_Record;
+                                                     Scanner : in out Scanner_Record;
+                                                     Token   : in     String);
+
    procedure Do_State_Waiting_For_Decl_Arg (Lemon   : in     Lemon_Record;
                                             Scanner : in out Scanner_Record;
                                             Token   : in     String);
@@ -60,6 +64,17 @@ package body Parser_FSM is
 
    procedure Do_State_Waiting_For_Token_Name (Scanner : in out Scanner_Record;
                                               Token   : in     String);
+
+   procedure Do_State_Waiting_For_Wildcard_Id (Lemon   : in out Lemon_Record;
+                                               Scanner : in out Scanner_Record;
+                                               Token   : in     String);
+
+   procedure Do_State_Waiting_For_Class_Id (Scanner : in out Scanner_Record;
+                                            Token   : in     String);
+
+   procedure Do_State_Waiting_For_Class_Token (Scanner : in out Scanner_Record;
+                                               Token   : in     String);
+
 
    procedure Debug (On   : in Boolean;
                     Text : in String);
@@ -89,12 +104,20 @@ package body Parser_FSM is
 
       case Scanner.State is
 
-      when DUMMY                    =>  raise Program_Error;
-      when WAITING_FOR_DECL_OR_RULE =>  Do_State_Waiting_For_Decl_Or_Rule (Lemon, Scanner, Token);
-      when PRECEDENCE_MARK_1        =>  Do_State_Precedence_Mark_1 (Scanner, Token);
-      when PRECEDENCE_MARK_2        =>  Do_State_Precedence_Mark_2 (Scanner, Token);
+         when DUMMY                    =>
+            raise Program_Error;
 
-      when WAITING_FOR_ARROW        =>  Do_State_Waiting_For_Arrow (Scanner, Token);
+         when WAITING_FOR_DECL_OR_RULE =>
+            Do_State_Waiting_For_Decl_Or_Rule (Lemon, Scanner, Token);
+
+         when PRECEDENCE_MARK_1 =>
+            Do_State_Precedence_Mark_1 (Scanner, Token);
+
+         when PRECEDENCE_MARK_2 =>
+            Do_State_Precedence_Mark_2 (Scanner, Token);
+
+         when WAITING_FOR_ARROW =>
+            Do_State_Waiting_For_Arrow (Scanner, Token);
 
       when LHS_ALIAS_1 =>
          if
@@ -171,29 +194,11 @@ package body Parser_FSM is
          end if;
 
 
-      when WAITING_FOR_DECL_KEYWORD => Do_State_Waiting_For_Decl_Keyword (Lemon, Scanner, Token);
+         when WAITING_FOR_DECL_KEYWORD =>
+            Do_State_Waiting_For_Decl_Keyword (Lemon, Scanner, Token);
 
-
-      when WAITING_FOR_DESTRUCTOR_SYMBOL =>
-         if
-           X (X'First) not in 'a' .. 'z' and
-           X (X'First) not in 'A' .. 'Z'
-         then
-            Parser_Error (E205, Line_Number => Scanner.Token_Lineno);
-            Scanner.State := RESYNC_AFTER_DECL_ERROR;
-         else
-            declare
-               use Symbols;
-
-               Symbol : Symbol_Access := Create (X);
-            begin
-               Scanner.Decl_Arg_Slot     := new Unbounded_String'(Symbol.Destructor);
---                 new chars_ptr'(New_String (To_String (Symbol.Destructor))); -- XXX
-               Scanner.Decl_Lineno_Slot  := Symbol.Dest_Lineno'Access;
-               Scanner.Insert_Line_Macro := True;
-            end;
-            Scanner.State := WAITING_FOR_DECL_ARG;
-         end if;
+         when WAITING_FOR_DESTRUCTOR_SYMBOL =>
+            Do_State_Waiting_For_Destructor_Symbol (Lemon, Scanner, Token);
 
          when WAITING_FOR_DATATYPE_SYMBOL =>
             Do_State_Waiting_For_Datatype_Symbol (Lemon, Scanner, Token);
@@ -210,97 +215,14 @@ package body Parser_FSM is
          when WAITING_FOR_TOKEN_NAME =>
             Do_State_Waiting_For_Token_Name (Scanner, Token);
 
-      when WAITING_FOR_WILDCARD_ID =>
-         if C = '.' then
-            Scanner.State := WAITING_FOR_DECL_OR_RULE;
+         when WAITING_FOR_WILDCARD_ID =>
+            Do_State_Waiting_For_Wildcard_Id (Lemon, Scanner, Token);
 
-         elsif C not in 'A' .. 'Z' then
-            Parser_Error
-              (E211,
-               Line_Number => Scanner.Token_Lineno,
-               Arguments   => (1 => To_Unbounded_String (X)));
-         else
-            declare
---               use Interfaces.C.Strings;
-               use Symbols, Extras;
+         when WAITING_FOR_CLASS_ID =>
+            Do_State_Waiting_For_Class_Id (Scanner, Token);
 
-               Symbol : constant Symbol_Access := Create (X);
-            begin
---               if Scanner.Gp.Wildcard = 0 then
---                  Scanner.Gp.wildcard := Symbol;
-               if Get_Wildcard (Lemon.Extra) = null then
-                  Set_Wildcard (Lemon.Extra, Symbol);
-               else
-                  Parser_Error
-                    (E212,
-                     Line_Number => Scanner.Token_Lineno,
-                     Arguments   => (1 => To_Unbounded_String (X)));
-               end if;
-            end;
-         end if;
-
-
-      when WAITING_FOR_CLASS_ID =>
-         declare
---            use Interfaces.C.Strings;
-            use Symbols;
-         begin
-            if C not in 'a' .. 'z' then
-               Parser_Error
-                 (E209,
-                  Line_Number => Scanner.Token_Lineno,
-                  Arguments   => (1 => To_Unbounded_String (X)));
-               Scanner.State := RESYNC_AFTER_DECL_ERROR;
-
-            elsif Find (X) /= null then
-               Parser_Error
-                 (E210,
-                  Line_Number => Scanner.Token_Lineno,
-                  Arguments   => (1 => To_Unbounded_String (X)));
-               Scanner.State := RESYNC_AFTER_DECL_ERROR;
-
-            else
-               Scanner.Token_Class      := Create (X);
-               Scanner.Token_Class.Kind := Multi_Terminal;
-               Scanner.State       := WAITING_FOR_CLASS_TOKEN;
-
-            end if;
-         end;
-
-      when WAITING_FOR_CLASS_TOKEN =>
-
-         if C = '.' then
-            Scanner.State := WAITING_FOR_DECL_OR_RULE;
-
-         elsif
-           (C in 'A' .. 'Z') or
-           ((C = '|' or C = '/') and
-              X (X'First + 1) in 'A' .. 'Z')
-         then
-            declare
-               use Symbols;
-
-               Symbol : constant Symbol_Access := Scanner.Token_Class; -- ???
-               First  : Natural := X'First;
-            begin
-               --  Symbol.N_Sub_Sym := Symbol.N_Sub_Sym + 1;
-               --  Symbol.Sub_Sym := (struct symbol **) realloc(msp->subsym,
-               --                    sizeof(struct symbol*)*msp->nsubsym);
-               if C not in 'A' .. 'Z' then
-                  First := X'First + 1;
-               end if;
-               --  Symbol.Sub_Sym (symbol.N_Sub_Sym - 1) := Lime_Symbol_New (X (First .. X'Last));
-               Symbol.Sub_Sym.Append (Create (X (First .. X'Last)));
-            end;
-         else
-            Parser_Error
-              (E208,
-               Line_Number => Scanner.Token_Lineno,
-               Arguments   => (1 => To_Unbounded_String (X)));
-
-            Scanner.State := RESYNC_AFTER_DECL_ERROR;
-
-         end if;
+         when WAITING_FOR_CLASS_TOKEN =>
+            Do_State_Waiting_For_Class_Token (Scanner, Token);
 
       when RESYNC_AFTER_RULE_ERROR =>
          --  // if( x[0]=='.' ) psp->state = WAITING_FOR_DECL_OR_RULE;
@@ -340,26 +262,21 @@ package body Parser_FSM is
       use Rules;
 
       On_True : constant Boolean := False;
---      Cur : constant Character := Current_Char (Scanner);
---      X   : constant String    := Current_Line (Scanner);
-      X   : String    renames Token;
-      Cur : Character renames X (X'First);
+
+      Cur : Character renames Token (Token'First);
    begin
       Debug (On_True, "Do_State_Waiting_For_Decl_Or_Rule");
-      Debug (On_True, "  Cur: " & Cur);
-      Debug (On_True, "  X  : " & X);
+      Debug (On_True, "  Cur  : " & Cur);
+      Debug (On_True, "  Token: " & Token);
 
       if Cur = '%' then
          Scanner.State := WAITING_FOR_DECL_KEYWORD;
 
       elsif Cur in 'a' .. 'z' then
-         Scanner.LHS.Append (Symbols.Create (X));
-         --            PSP.N_RHS      := 0;
-
-         Scanner.RHS        := Symbols.Symbol_Vectors.Empty_Vector;
-         --            PSP.LHS_Alias  := Interfaces.C.Strings.Null_Ptr;
-         Scanner.LHS_Alias  := Parser_Data.Alias_Vectors.Empty_Vector;
-         Scanner.State := WAITING_FOR_ARROW;
+         Scanner.LHS.Append (Symbols.Create_New (Token));
+         Scanner.RHS       := Symbols.Symbol_Vectors.Empty_Vector;
+         Scanner.LHS_Alias := Parser_Data.Alias_Vectors.Empty_Vector;
+         Scanner.State     := WAITING_FOR_ARROW;
 
       elsif Cur = '{' then
 
@@ -372,8 +289,7 @@ package body Parser_FSM is
          else
             Scanner.Prev_Rule.Line := Scanner.Token_Lineno;
             Scanner.Prev_Rule.Code :=
-              Unbounded_String'(To_Unbounded_String (X (X'First + 1 .. X'Last)));
-            --  new Unbounded_String'(To_Unbounded_String (X (X'First + 1 .. X'Last)));
+              Unbounded_String'(To_Unbounded_String (Token (Token'First + 1 .. Token'Last)));
             Scanner.Prev_Rule.No_Code := False;
          end if;
 
@@ -383,7 +299,7 @@ package body Parser_FSM is
       else
          Parser_Error
            (E003, Scanner.Token_Lineno,
-            (1 => To_Unbounded_String (X)));
+            (1 => To_Unbounded_String (Token)));
       end if;
    end Do_State_Waiting_For_Decl_Or_Rule;
 
@@ -391,24 +307,21 @@ package body Parser_FSM is
    procedure Do_State_Precedence_Mark_1 (Scanner : in out Scanner_Record;
                                          Token   : in     String)
    is
---      Cur : constant Character := Current_Char (Scanner);
---      X   : constant String    := Current_Line (Scanner);
-      X   : String    renames Token;
-      Cur : Character renames X (X'First);
+      Cur : Character renames Token (Token'First);
    begin
       if Cur not in 'A' .. 'Z' then
          Parser_Error (E004, Scanner.Token_Lineno);
 
       elsif Scanner.Prev_Rule = null then
          Parser_Error (E005, Scanner.Token_Lineno,
-                       (1 => To_Unbounded_String (X)));
+                       (1 => To_Unbounded_String (Token)));
 
       elsif Scanner.Prev_Rule.Prec_Sym /= null then
          Parser_Error (E006, Scanner.Token_Lineno);
 
       else
          Scanner.Prev_Rule.Prec_Sym :=
-           Symbols.Create (X);
+           Symbols.Create_New (Token);
       end if;
 
       Scanner.State := PRECEDENCE_MARK_2;
@@ -591,6 +504,33 @@ package body Parser_FSM is
    end Do_State_Waiting_For_Decl_Keyword;
 
 
+   procedure Do_State_Waiting_For_Destructor_Symbol (Lemon   : in out Lemon_Record;
+                                                     Scanner : in out Scanner_Record;
+                                                     Token   : in     String)
+   is
+   begin
+      if
+        Token (Token'First) not in 'a' .. 'z' and
+        Token (Token'First) not in 'A' .. 'Z'
+      then
+         Parser_Error (E205, Line_Number => Scanner.Token_Lineno);
+         Scanner.State := RESYNC_AFTER_DECL_ERROR;
+      else
+         declare
+            use Symbols;
+
+            Symbol : Symbol_Access := Create_New (Token);
+         begin
+            Scanner.Decl_Arg_Slot     := new Unbounded_String'(Symbol.Destructor);
+            Scanner.Decl_Lineno_Slot  := Symbol.Dest_Lineno'Access;
+            Scanner.Insert_Line_Macro := True;
+         end;
+         Scanner.State := WAITING_FOR_DECL_ARG;
+      end if;
+
+   end Do_State_Waiting_For_Destructor_Symbol;
+
+
    procedure Do_State_Waiting_For_Arrow (Scanner : in out Scanner_Record;
                                          Token   : in     String)
    is
@@ -626,14 +566,12 @@ package body Parser_FSM is
       Debug_On : constant Boolean := False;
 
       Cur : Character renames Token (Token'First);
-      X   : String    renames Token;
    begin
       if Cur = '.' then
          declare
             use Symbols;
             use Rules;
             use Rules.Alias_Vectors;
---            use type Ada.Containers.Count_Type;
 
             Rule : access Rule_Record;
          begin
@@ -724,10 +662,8 @@ package body Parser_FSM is
         Cur in 'a' .. 'z' or
         Cur in 'A' .. 'Z'
       then
-         Scanner.RHS  .Append (Symbols.Create (X));
+         Scanner.RHS  .Append (Symbols.Create_New (Token));
          Scanner.Alias.Append (Null_Unbounded_String);
-         --            end if;
-
       elsif
         (Cur = '|' or Cur = '/') and not
         Scanner.RHS.Is_Empty
@@ -752,10 +688,10 @@ package body Parser_FSM is
             end if;
 
             Symbol.Sub_Sym.Append
-              (Symbols.Create (X (X'First + 1 .. X'Last)));
+              (Symbols.Create (Token (Token'First + 1 .. Token'Last)));
 
             if
-              X (X'First + 1) in 'a' .. 'z' or
+              Token (Token'First + 1) in 'a' .. 'z' or
               To_String (Symbol.Sub_Sym.First_Element.Name) (1) in 'a' .. 'z'
             then
                Parser_Error (E201, Line_Number => Scanner.Token_Lineno);
@@ -767,7 +703,7 @@ package body Parser_FSM is
 
       else
          Parser_Error (E202, Scanner.Token_Lineno,
-                       (1 => To_Unbounded_String (X)));
+                       (1 => To_Unbounded_String (Token)));
          Scanner.State := RESYNC_AFTER_RULE_ERROR;
       end if;
    end Do_State_In_RHS;
@@ -946,7 +882,7 @@ package body Parser_FSM is
                Scanner.State := RESYNC_AFTER_DECL_ERROR;
             else
                if Symbol = null then
-                  Symbol := Create (Token);
+                  Symbol := Create_New (Token);
                end if;
                Scanner.Decl_Arg_Slot
                  := Symbol.Data_Type'Access;
@@ -972,8 +908,8 @@ package body Parser_FSM is
       elsif Token (Token'First) in 'A' .. 'Z' then
          declare
             use Symbols;
+
             Symbol : constant Symbol_Access := Create_New (Token);
-            --  sp = lime_symbol_new(x);
          begin
             if Symbol.Prec >= 0 then
                Parser_Error (E217, Scanner.Token_Lineno,
@@ -1005,7 +941,7 @@ package body Parser_FSM is
       else
          declare
             use Symbols;
-            Symbol : constant Symbol_Access := Create (Token);
+            Symbol : constant Symbol_Access := Create_New (Token);
          begin
 
             if Scanner.Fallback = null then
@@ -1040,9 +976,6 @@ package body Parser_FSM is
          Scanner.State := WAITING_FOR_DECL_OR_RULE;
 
       elsif Token (Token'First) not in 'A' .. 'Z' then
---         ErrorMsg(psp->filename, psp->tokenlineno,
---                  "%%token argument \"%s\" should be a token", x);
---         psp->errorcnt++;
          Parser_Error (E214, Scanner.Token_Lineno,
                       (1 => To_Unbounded_String (Token)));
       else
@@ -1052,9 +985,100 @@ package body Parser_FSM is
          begin
             Dummy_Symbol := Create_New (Token);
          end;
---        (void)lime_symbol_new(x);
       end if;
    end Do_State_Waiting_For_Token_Name;
+
+
+   procedure Do_State_Waiting_For_Wildcard_Id (Lemon   : in out Lemon_Record;
+                                               Scanner : in out Scanner_Record;
+                                               Token   : in     String)
+   is
+      C : Character renames Token (Token'First);
+   begin
+
+      if C = '.' then
+         Scanner.State := WAITING_FOR_DECL_OR_RULE;
+
+      elsif C not in 'A' .. 'Z' then
+         Parser_Error
+           (E211,
+            Line_Number => Scanner.Token_Lineno,
+            Arguments   => (1 => To_Unbounded_String (Token)));
+      else
+         declare
+            use Symbols, Extras;
+
+            Symbol : constant Symbol_Access := Create (Token);
+         begin
+            if Get_Wildcard (Lemon.Extra) = null then
+               Set_Wildcard (Lemon.Extra, Symbol);
+            else
+               Parser_Error (E212, Scanner.Token_Lineno,
+                             (1 => To_Unbounded_String (Token)));
+            end if;
+         end;
+      end if;
+
+   end Do_State_Waiting_For_Wildcard_Id;
+
+
+   procedure Do_State_Waiting_For_Class_Id (Scanner : in out Scanner_Record;
+                                            Token   : in     String)
+   is
+      use Symbols;
+
+      C : Character renames Token (Token'First);
+   begin
+      if C not in 'a' .. 'z' then
+         Parser_Error (E209, Scanner.Token_Lineno,
+                       (1 => To_Unbounded_String (Token)));
+         Scanner.State := RESYNC_AFTER_DECL_ERROR;
+
+      elsif Find (Token) /= null then
+         Parser_Error (E210, Scanner.Token_Lineno,
+                       (1 => To_Unbounded_String (Token)));
+         Scanner.State := RESYNC_AFTER_DECL_ERROR;
+
+      else
+         Scanner.Token_Class      := Create_New (Token);
+         Scanner.Token_Class.Kind := Multi_Terminal;
+         Scanner.State       := WAITING_FOR_CLASS_TOKEN;
+
+      end if;
+   end Do_State_Waiting_For_Class_Id;
+
+
+   procedure Do_State_Waiting_For_Class_Token (Scanner : in out Scanner_Record;
+                                               Token   : in     String)
+   is
+      C : Character renames Token (Token'First);
+   begin
+
+      if C = '.' then
+         Scanner.State := WAITING_FOR_DECL_OR_RULE;
+
+      elsif
+        (C in 'A' .. 'Z') or
+        ((C = '|' or C = '/') and
+           Token (Token'First + 1) in 'A' .. 'Z')
+      then
+         declare
+            use Symbols;
+
+            Symbol : constant Symbol_Access := Scanner.Token_Class;
+            First  : Natural := Token'First;
+         begin
+            if C not in 'A' .. 'Z' then
+               First := Token'First + 1;
+            end if;
+            Symbol.Sub_Sym.Append (Create_New (Token (First .. Token'Last)));
+         end;
+      else
+         Parser_Error (E208, Scanner.Token_Lineno,
+                       (1 => To_Unbounded_String (Token)));
+         Scanner.State := RESYNC_AFTER_DECL_ERROR;
+      end if;
+   end Do_State_Waiting_For_Class_Token;
 
 
    procedure Debug (On   : in Boolean;

@@ -149,7 +149,12 @@ begin
       Lemon.Basis_Flag      := Options.Basis_Flag;
       Lemon.No_Linenos_Flag := Options.No_Line_Nos;
 
-      Extras.Symbol_Append (Key => "$");
+      --  Extras.Symbol_Append (Key => "$");
+      declare
+         Dummy : constant Symbol_Access := Create_New ("$");
+      begin
+         null;
+      end;
 
       --  Parse the input file
       Parsers.Parse (Lemon);
@@ -168,7 +173,12 @@ begin
       Extras.Set_Error;
 
       --  Count and index the symbols of the grammar
-      Extras.Symbol_Append (Key => "{default}");
+      --  Extras.Symbol_Append (Key => "{default}");
+      declare
+         Dummy : constant Symbol_Access := Create_New ("{default}");
+      begin
+         null;
+      end;
 
       Symbols.Symbol_Allocate (Ada.Containers.Count_Type (Extras.Symbol_Count));
 
