@@ -50,6 +50,10 @@ package body Parser_FSM is
                                                    Scanner : in out Scanner_Record;
                                                    Token   : in     String);
 
+   procedure Do_State_Waiting_For_Fallback_Id (Lemon   : in out Lemon_Record;
+                                               Scanner : in out Scanner_Record;
+                                               Token   : in     String);
+
    procedure Do_State_Waiting_For_Token_Name (Scanner : in out Scanner_Record;
                                               Token   : in     String);
 
@@ -213,29 +217,11 @@ package body Parser_FSM is
 --        }
          null;
 
-      when WAITING_FOR_DECL_ARG => Do_State_Waiting_For_Decl_Arg (Lemon, Scanner, Token);
+         when WAITING_FOR_DECL_ARG =>
+            Do_State_Waiting_For_Decl_Arg (Lemon, Scanner, Token);
 
-      when WAITING_FOR_FALLBACK_ID =>
---        if( x[0]=='.' ){
---          psp->state = WAITING_FOR_DECL_OR_RULE;
---        }else if( !ISUPPER(x[0]) ){
---          ErrorMsg(psp->filename, psp->tokenlineno,
---            "%%fallback argument \"%s\" should be a token", x);
---          psp->errorcnt++;
---        }else{
---          struct symbol *sp = lime_symbol_new(x);
---          if( psp->fallback==0 ){
---            psp->fallback = sp;
---          }else if( sp->fallback ){
---            ErrorMsg(psp->filename, psp->tokenlineno,
---              "More than one fallback assigned to token %s", x);
---            psp->errorcnt++;
---          }else{
---            sp->fallback = psp->fallback;
---            psp->gp->has_fallback = 1;
---          }
---        }
-         null;
+         when WAITING_FOR_FALLBACK_ID =>
+            Do_State_Waiting_For_Fallback_Id (Lemon, Scanner, Token);
 
          when WAITING_FOR_TOKEN_NAME =>
             Do_State_Waiting_For_Token_Name (Scanner, Token);
@@ -366,6 +352,7 @@ package body Parser_FSM is
                                                 Scanner : in out Scanner_Record;
                                                 Token   : in     String)
    is
+      pragma Unreferenced (Lemon);
       use Rules;
 
       On_True : constant Boolean := False;
@@ -951,6 +938,7 @@ package body Parser_FSM is
                                                    Scanner : in out Scanner_Record;
                                                    Token   : in     String)
    is
+      pragma Unreferenced (Lemon);
    begin
       if
         Token (Token'First) not in 'a' .. 'z' and
@@ -986,6 +974,38 @@ package body Parser_FSM is
          end;
       end if;
    end Do_State_Waiting_For_Datatype_Symbol;
+
+
+   procedure Do_State_Waiting_For_Fallback_Id (Lemon   : in out Lemon_Record;
+                                               Scanner : in out Scanner_Record;
+                                               Token   : in     String)
+   is
+   begin
+      if Token (Token'First) = '.' then
+         Scanner.State := WAITING_FOR_DECL_OR_RULE;
+
+      elsif Token (Token'First) not in 'A' .. 'Z' then
+         Parser_Error (E215, Scanner.Token_Lineno,
+                       (1 => (To_Unbounded_String (Token))));
+      else
+         declare
+            use Symbols;
+            Symbol : constant Symbol_Access := Create (Token);
+         begin
+
+            if Scanner.Fallback = null then
+               Scanner.Fallback := Symbol;
+            elsif Symbol.Fallback /= null then
+               Parser_Error (E216, Scanner.Token_Lineno,
+                             (1 => (To_Unbounded_String (Token))));
+            else
+               Symbol.Fallback := Scanner.Fallback;
+               Lemon.Has_Fallback := True;
+               --  Scanner.Gp.Has_Fallback := True;
+            end if;
+         end;
+      end if;
+   end Do_State_Waiting_For_Fallback_Id;
 
 
    procedure Do_State_Waiting_For_Token_Name (Scanner : in out Scanner_Record;
