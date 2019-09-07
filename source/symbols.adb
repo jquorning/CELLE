@@ -330,6 +330,49 @@ package body Symbols is
 --        return Symbol;
 --     end Lime_Symbol_Find;
 
+   function Symbol_Compare (Left  : in Symbol_Access;
+                            Right : in Symbol_Access)
+                           return Boolean;
+
+   function Symbol_Compare (Left  : in Symbol_Access;
+                            Right : in Symbol_Access)
+                           return Boolean
+   is
+      L : Symbol_Record renames Left.all;
+      R : Symbol_Record renames Right.all;
+
+      L_I : constant Integer
+        := (if L.Kind = Multi_Terminal then 3 else
+             (if Character'Pos (To_String (L.Name) (1)) > Character'Pos ('Z') then 2 else 1));
+
+      R_I : constant Integer
+        := (if R.Kind = Multi_Terminal then 3 else
+             (if Character'Pos (To_String (R.Name) (1)) > Character'Pos ('Z') then 2 else 1));
+   begin
+      if L_I = R_I then
+         return L.Index < R.Index;
+      else
+         return L_I < R_I;
+      end if;
+   end Symbol_Compare;
+
+
+   package Symbol_Sorting is
+      new Symbol_Bases.Generic_Sorting (Symbol_Compare);
+
+
+   procedure Sort is
+      Index : Symbol_Index;
+   begin
+      --  Set index field in symbols in symbol table
+      Index := 0;
+      for Symbol of Base loop
+         Symbol.all.Index := Index;
+         Index := Index + 1;
+      end loop;
+
+      Symbol_Sorting.Sort (Base);
+   end Sort;
 
    --  Debug
    procedure JQ_Dump_Symbols is

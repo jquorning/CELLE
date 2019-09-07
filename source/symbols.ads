@@ -187,6 +187,9 @@ package Symbols is
 --     return Symbol_Access;
 
 
+   procedure Sort;
+   --  Sort the symbol table
+
    --  Debug
    procedure JQ_Dump_Symbols;
 

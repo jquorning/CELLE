@@ -173,7 +173,7 @@ begin
       Extras.Set_Error;
 
       --  Count and index the symbols of the grammar
-      Extras.Symbol_Append (Key => "{default}");
+--      Extras.Symbol_Append (Key => "{default}");
       declare
          Dummy : constant Symbol_Access := Create_New ("{default}");
       begin
@@ -183,10 +183,15 @@ begin
       Symbols.Symbol_Allocate (Ada.Containers.Count_Type (Extras.Symbol_Count));
 
       Ada.Text_IO.Put_Line ("jq_dump_symbols before sort");
-      Extras.JQ_Dump_Symbols;
+--      Extras.JQ_Dump_Symbols;
       Symbols.JQ_Dump_Symbols;
 
-      Extras.Fill_And_Sort;
+--      Extras.Fill_And_Sort;
+      Symbols.Sort;
+
+      Ada.Text_IO.Put_Line ("jq_dump_symbols after sort");
+--      Extras.JQ_Dump_Symbols;
+      Symbols.JQ_Dump_Symbols;
 
       Symbols.Do_Some_Things (Count_In  => Extras.Symbol_Count,
                               Count_Out => Dummy_Symbol_Count);
