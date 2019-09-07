@@ -57,40 +57,63 @@ package Symbols is
 
    type Symbol_Record is
       record
-         Name      : Key_Type;
-         Index     : Symbol_Index;      --  Index number for this symbol
-         Kind      : Symbol_Kind;       --  Symbols are all either TERMINALS or NTs
-         Rule      : access Rules.Rule_Record; --  Linked list of rules of this (if an NT)
-         Fallback  : access Symbol_Record;     --  fallback token in case this token doesn't parse
-         Prec      : Integer;           --  Precedence if defined (-1 otherwise)
-         Assoc     : E_Assoc;           --  Associativity if precedence is defined
-         First_Set : Unbounded_String;  --  First-set for all rules of this symbol
-         Lambda    : Boolean;           --  True if NT and can generate an empty string
-         Use_Count : Natural;           --  Number of times used
+         Name      : Key_Type       := Null_Unbounded_String;
 
-         Destructor  : aliased Unbounded_String;
+         Index     : Symbol_Index   := 0;
+         --  Index number for this symbol
+
+         Kind      : Symbol_Kind    := Terminal;
+         --  Symbols are all either TERMINALS or NTs
+
+         Rule      : access Rules.Rule_Record := null;
+         --  Linked list of rules of this (if an NT)
+
+         Fallback  : access Symbol_Record     := null;
+         --  fallback token in case this token doesn't parse
+
+         Prec      : Integer          := 0;
+         --  Precedence if defined (-1 otherwise)
+
+         Assoc     : E_Assoc          := Left;
+         --  Associativity if precedence is defined
+
+         First_Set : Unbounded_String := Null_Unbounded_String;
+         --  First-set for all rules of this symbol
+
+         Lambda    : Boolean          := False;
+         --  True if NT and can generate an empty string
+
+         Use_Count : Natural          := 0;
+         --  Number of times used
+
+         Destructor  : aliased Unbounded_String := Null_Unbounded_String;
          --  Code which executes whenever this symbol is
          --  popped from the stack during error processing
 
-         Dest_Lineno : aliased Integer;
+         Dest_Lineno : aliased Integer := 0;
          --  Line number for start of destructor.  Set to
          --  -1 for duplicate destructors.
 
-         Data_Type   : aliased Unbounded_String; -- Strings.chars_ptr;
+         Data_Type   : aliased Unbounded_String := Null_Unbounded_String;
          --  The data type of information held by this
          --  object. Only used if type==NONTERMINAL
 
-         Dt_Num      : Integer;
+         Dt_Num      : Integer := 0;
          --  The data type number.  In the parser, the value
          --  stack is a union.  The .yy%d element of this
          --  union is the correct data type for this object
 
-         Content : Boolean;
+         Content : Boolean := False;
          --  True if this symbol ever carries content - if
          --  it is ever more than just syntax
 
+         --
          --  The following fields are used by MULTITERMINALs only
-         Sub_Sym : Vector;   --  Array of constituent symbols
+         --
+
+         Sub_Sym : Vector := Empty_Vector;
+         --  Array of constituent symbols
+
       end record;
 
 

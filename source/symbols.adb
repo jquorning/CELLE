@@ -338,8 +338,10 @@ package body Symbols is
       for Symbol of Base loop
          Put ("SYM ");
          Put (To_String (Symbol.Name));
---         Put (ASCII.HT & "INDEX");
---         Put (Symbol.Index'Img);
+         Put (" INDEX");
+         Put (Symbol.Index'Img);
+         Put (" NSUB");
+         Put (Symbol.Sub_Sym.Length'Img);
          New_Line;
       end loop;
    end JQ_Dump_Symbols;
