@@ -266,7 +266,7 @@ package body Symbols is
          Symbol.Fallback    := null;
          Symbol.Prec        := -1;
          Symbol.Assoc       := Unk;
-         Symbol.First_Set   := Null_Unbounded_String;
+         Symbol.First_Set   := Sets.Null_Set;
          Symbol.Lambda      := False;
          Symbol.Destructor  := Null_Unbounded_String;
          Symbol.Dest_Lineno := 0;
@@ -359,6 +359,26 @@ package body Symbols is
 
       Symbol_Sorting.Sort (Base);
    end Sort;
+
+
+   procedure Set_Lambda_False_And_Set_Firstset (First : in Natural;
+                                                Last  : in Natural)
+   is
+   begin
+      for Symbol of Base loop
+         Symbol.Lambda := False;
+      end loop;
+
+      for I in First .. Last loop
+         declare
+            Symbol : constant Symbol_Access := Base.Element (I);
+         begin
+            Symbol.all.First_Set := Sets.Set_New;
+            Base (I) := Symbol;
+         end;
+      end loop;
+
+   end Set_Lambda_False_And_Set_Firstset;
 
 
    --  Debug

@@ -202,7 +202,8 @@ begin
       begin
          Symbols.Count_Symbols_And_Terminals (Symbol_Count   => Symbol_Count,
                                               Terminal_Count => Terminal_Count);
-
+         Lemon.N_Symbol   := Symbol_Index (Symbol_Count);
+         Lemon.N_Terminal := Symbol_Index (Terminal_Count);
          Ada.Text_IO.Put ("nsymbol:" & Symbol_Count'Img);
          Ada.Text_IO.Put ("  nterminal:" & Terminal_Count'Img);
          Ada.Text_IO.Put_Line (" ");

@@ -29,6 +29,7 @@ with Generate_C;
 with Backend;
 with Setup;
 with Builds;
+with Sets;
 
 package body Reports is
 
@@ -482,6 +483,8 @@ package body Reports is
 
       for I in 0 .. Extras.Symbol_Count - 1 loop
          declare
+            use type Sets.Set_Type;
+
             SP : Symbol_Access;
          begin
             SP := Element_At (Lemp.Extra, Index => I);
@@ -492,8 +495,11 @@ package body Reports is
                   Put (File, " <lambda>");
                end if;
                for J in 0 .. Lemp.N_Terminal - 1 loop
-                  if Symbols."=" (SP.First_Set, Null_Set) then
-                     --  XXX and SetFind (SP.First_Set, J) then
+--                  if Symbols."=" (SP.First_Set, Null_Set) then
+                  if
+                    SP.First_Set /= Sets.Null_Set and then
+                    Sets.Set_Find (SP.First_Set, Natural (J))
+                  then
                      Put (File, " ");
                      Put (File, From_Key (Element_At (Lemp.Extra, Index => J).Name));
                   end if;
@@ -1949,16 +1955,17 @@ package body Reports is
 --      if Options.RP_Flag then
 --         Reports.Reprint (Lemon_Lemp);
 --      else
-         Put_Line ("### 2-1");
+
          --  Initialize the size for all follow and first sets
-         Set_Size (Terminal_Last + 1);
-         Put_Line ("### 2-2");
+         Sets.Set_Size (Terminal_Last + 1);
+
          --  Find the precedence for every production rule (that has one)
          Builds.Find_Rule_Precedences (Lemon_Lemp);
-         Put_Line ("### 2-3");
+
          --  Compute the lambda-nonterminals and the first-sets for every
          --  nonterminal
-         Find_First_Sets (Lemon_Lemp);
+         Put_Line ("### 2-3");
+         Builds.Find_First_Sets (Lemon_Lemp);
          Put_Line ("### 2-4");
          --  Compute all LR(0) states.  Also record follow-set propagation
          --  links so that the follow-set can be computed later

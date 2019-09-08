@@ -673,7 +673,7 @@ package body Parser_FSM is
 
             Debug (Debug_On, "Scanner.LHS: " & Scanner.LHS.Length'Img);
             Debug (Debug_On, "Scanner.LHS_Alias: " & Scanner.LHS_Alias.Length'Img);
-            Rule.LHS        := Scanner.LHS.First_Element;
+            Rule.LHS        := LHS_Access (Scanner.LHS.First_Element);
             if Scanner.LHS_Alias.Is_Empty then
                Rule.LHS_Alias := Null_Unbounded_String;
             else

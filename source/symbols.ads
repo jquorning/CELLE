@@ -11,6 +11,7 @@ with Ada.Containers;
 with Ada.Strings.Unbounded;
 with Ada.Containers.Vectors;
 
+with Sets;
 limited with Rules;
 
 package Symbols is
@@ -45,7 +46,7 @@ package Symbols is
 
    subtype S_Set is Unbounded_String;
 
-   Null_Set : S_Set renames Null_Unbounded_String;
+   --  Null_Set : S_Set renames Null_Unbounded_String;
 
    function "=" (Left, Right : S_Set)
                 return Boolean
@@ -77,7 +78,8 @@ package Symbols is
          Assoc     : E_Assoc          := Left;
          --  Associativity if precedence is defined
 
-         First_Set : Unbounded_String := Null_Unbounded_String;
+         First_Set : Sets.Set_Type := Sets.Null_Set;
+         --  Unbounded_String := Null_Unbounded_String;
          --  First-set for all rules of this symbol
 
          Lambda    : Boolean          := False;
@@ -188,6 +190,14 @@ package Symbols is
 
    procedure Sort;
    --  Sort the symbol table
+
+
+   procedure Set_Lambda_False_And_Set_Firstset (First : in Natural;
+                                                Last  : in Natural);
+   --  Helper procedure split out of Builds.Find_First_Sets.
+   --  Set all symbol lambda to False.
+   --  New_Set to symbol in range First to Last.
+
 
    --  Debug
    procedure JQ_Dump_Symbols;

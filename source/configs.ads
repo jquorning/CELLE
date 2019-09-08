@@ -7,9 +7,8 @@
 --    May you share freely, not taking more than you give.
 --
 
-with Ada.Strings.Unbounded;
-
 with Rules;
+with Sets;
 limited with States;
 
 package Configs is
@@ -38,7 +37,7 @@ package Configs is
       RP          : Rules.Rule_Access;         --  The rule upon which the configuration is based
       DOT         : Integer;                   --  The parse point
 
-      Follow_Set  : Ada.Strings.Unbounded.Unbounded_String;
+      Follow_Set  : Sets.Set_Type;
       --  FWS, Follow-set for this configuration only
 
       FS_Forward  : access Plink_Record;            --  fplp, forward propagation links
