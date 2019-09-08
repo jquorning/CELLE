@@ -1425,8 +1425,10 @@ package body Reports is
 
       RP : Rules.Rule_Access renames Rule;
    begin
+      --  Print LHS
       Put (File, To_String (RP.LHS.Name));
 
+      --  Print LHS alias
       --  This part is uncommented in lemon.c
       if False then
          if RP.LHS_Alias /= Null_Unbounded_String then
@@ -1438,20 +1440,24 @@ package body Reports is
 
       Put (File, " ::=");
 
+      --  Print RHS
       for I in RP.RHS.all'Range loop
          declare
-            SP : constant Symbols.Symbol_Access := RP.RHS (I);
+            Symbol : constant Symbols.Symbol_Access := RP.RHS (I);
+            First_Sub_Sym : Boolean := True;
          begin
-            if Symbols."=" (SP.Kind, Symbols.Multi_Terminal) then
+            if Symbols."=" (Symbol.Kind, Symbols.Multi_Terminal) then
                Put (File, " ");
-               Put (File, To_String (SP.Sub_Sym.First_Element.Name));
-               for J in 1 .. SP.Sub_Sym.Last_Index loop
-                  Put (File, "|");
-                  Put (File, To_String (SP.Sub_Sym.Element (J).Name));
+               for Sub_Sym of Symbol.Sub_Sym loop
+                  if not First_Sub_Sym then
+                     Put (File, "|");
+                  end if;
+                  Put (File, To_String (Sub_Sym.Name));
+                  First_Sub_Sym := False;
                end loop;
             else
                Put (File, " ");
-               Put (File, To_String (SP.Name));
+               Put (File, To_String (Symbol.Name));
             end if;
 
             if RP.RHS_Alias.Element (I) /= Null_Unbounded_String then
