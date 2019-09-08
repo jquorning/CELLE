@@ -82,7 +82,12 @@ package Errors is
    procedure Parser_Error
      (Kind        : in K_Error_Parse;
       Line_Number : in Natural;
-      Arguments   : in Argument_List := Null_Argument_List);
+      Arguments   : in Argument_List);
 
+   procedure Parser_Error
+     (Kind        : in K_Error_Parse;
+      Line_Number : in Natural;
+      Argument_1  : in String := "";
+      Argument_2  : in String := "");
 
 end Errors;

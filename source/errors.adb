@@ -82,7 +82,7 @@ package body Errors is
    procedure Parser_Error
      (Kind        : in K_Error_Parse;
       Line_Number : in Natural;
-      Arguments   : in Argument_List := Null_Argument_List)
+      Arguments   : in Argument_List)
    is
       use Ada.Strings;
 
@@ -111,6 +111,20 @@ package body Errors is
                            Line_Number => Line_Number,
                            Message     => Kind_Image & To_String (Message));
       Error_Count := Error_Count + 1;
+   end Parser_Error;
+
+
+   procedure Parser_Error
+     (Kind        : in K_Error_Parse;
+      Line_Number : in Natural;
+      Argument_1  : in String := "";
+      Argument_2  : in String := "")
+   is
+   begin
+      Parser_Error
+        (Kind, Line_Number,
+         Arguments => (1 => To_Unbounded_String (Argument_1),
+                       2 => To_Unbounded_String (Argument_2)));
    end Parser_Error;
 
 

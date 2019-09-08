@@ -250,9 +250,7 @@ package body Parser_FSM is
          Scanner.State := PRECEDENCE_MARK_1;
 
       else
-         Parser_Error
-           (E003, Scanner.Token_Lineno,
-            (1 => To_Unbounded_String (Token)));
+         Parser_Error  (E003, Scanner.Token_Lineno, Token);
       end if;
    end Do_State_Waiting_For_Decl_Or_Rule;
 
@@ -266,8 +264,7 @@ package body Parser_FSM is
          Parser_Error (E004, Scanner.Token_Lineno);
 
       elsif Scanner.Prev_Rule = null then
-         Parser_Error (E005, Scanner.Token_Lineno,
-                       (1 => To_Unbounded_String (Token)));
+         Parser_Error (E005, Scanner.Token_Lineno, Token);
 
       elsif Scanner.Prev_Rule.Prec_Sym /= null then
          Parser_Error (E006, Scanner.Token_Lineno);
@@ -467,7 +464,7 @@ package body Parser_FSM is
         Token (Token'First) not in 'a' .. 'z' and
         Token (Token'First) not in 'A' .. 'Z'
       then
-         Parser_Error (E205, Line_Number => Scanner.Token_Lineno);
+         Parser_Error (E205, Scanner.Token_Lineno);
          Scanner.State := RESYNC_AFTER_DECL_ERROR;
       else
          declare
@@ -505,8 +502,7 @@ package body Parser_FSM is
          begin
             Parser_Error
               (E008, Scanner.Token_Lineno,
-               (1 => To_Unbounded_String
-                  (From_Key (Scanner.LHS.First_Element.Name))));
+               From_Key (Scanner.LHS.First_Element.Name));
             Scanner.State := RESYNC_AFTER_RULE_ERROR;
          end;
       end if;
@@ -521,15 +517,15 @@ package body Parser_FSM is
         Token (Token'First) in 'a' .. 'z' or
         Token (Token'First) in 'A' .. 'Z'
       then
---            Scanner.LHS_Alias  := Interfaces.C.Strings.New_String (X);
---            Scanner.LHS_Alias.Append (Interfaces.C.Strings.New_String (X));
+         Debug (True, "LHA_Alias_1: " & Token);
+         Scanner.LHS_Alias.Clear;
          Scanner.LHS_Alias.Append (To_Alias (Token));
          Scanner.State := LHS_ALIAS_2;
       else
-         Parser_Error (E009, Scanner.Token_Lineno,
-                       (1 => To_Unbounded_String (Token),
-                        2 => To_Unbounded_String
-                          (Symbols.From_Key (Scanner.LHS.First_Element.Name))));
+         Parser_Error
+           (E009, Scanner.Token_Lineno,
+            Argument_1 => Token,
+            Argument_2 => Symbols.From_Key (Scanner.LHS.First_Element.Name));
          Scanner.State := RESYNC_AFTER_RULE_ERROR;
       end if;
    end Do_State_LHS_Alias_1;
@@ -543,7 +539,7 @@ package body Parser_FSM is
          Scanner.State := LHS_ALIAS_3;
       else
          Parser_Error (E010, Scanner.Token_Lineno,
-                       (1 => Scanner.LHS_Alias.First_Element));
+                       To_String (Scanner.LHS_Alias.First_Element));
          Scanner.State := RESYNC_AFTER_RULE_ERROR;
       end if;
    end Do_State_LHS_Alias_2;
@@ -556,10 +552,10 @@ package body Parser_FSM is
       if Token (Token'First .. Token'First + 2) = "::=" then
          Scanner.State := IN_RHS;
       else
-         Parser_Error (E011, Scanner.Token_Lineno,
-                       (1 => To_Unbounded_String
-                          (Symbols.From_Key (Scanner.LHS.First_Element.Name)),
-                        2 => Scanner.LHS_Alias.First_Element));
+         Parser_Error
+           (E011, Scanner.Token_Lineno,
+            Argument_1 => Symbols.From_Key (Scanner.LHS.First_Element.Name),
+            Argument_2 => To_String (Scanner.LHS_Alias.First_Element));
          Scanner.State := RESYNC_AFTER_RULE_ERROR;
       end if;
    end Do_State_LHS_Alias_3;
@@ -579,9 +575,8 @@ package body Parser_FSM is
       else
          Parser_Error
            (E012, Scanner.Token_Lineno,
-            (1 => To_Unbounded_String (Token),
-             2 => To_Unbounded_String
-               (Symbols.From_Key (Scanner.RHS.Last_Element.Name))));
+            Argument_1 => Token,
+            Argument_2 => Symbols.From_Key (Scanner.RHS.Last_Element.Name));
          Scanner.State := RESYNC_AFTER_RULE_ERROR;
 
       end if;
@@ -597,7 +592,7 @@ package body Parser_FSM is
 
       else
          Parser_Error (E013, Scanner.Token_Lineno,
-                       (1 => Scanner.LHS_Alias.First_Element));
+                       To_String (Scanner.LHS_Alias.First_Element));
          Scanner.State := RESYNC_AFTER_RULE_ERROR;
       end if;
    end Do_State_RHS_Alias_2;
@@ -738,7 +733,7 @@ package body Parser_FSM is
               Token (Token'First + 1) in 'a' .. 'z' or
               To_String (Symbol.Sub_Sym.First_Element.Name) (1) in 'a' .. 'z'
             then
-               Parser_Error (E201, Line_Number => Scanner.Token_Lineno);
+               Parser_Error (E201, Scanner.Token_Lineno);
             end if;
          end;
 
@@ -746,8 +741,7 @@ package body Parser_FSM is
          Scanner.State := RHS_ALIAS_1;
 
       else
-         Parser_Error (E202, Scanner.Token_Lineno,
-                       (1 => To_Unbounded_String (Token)));
+         Parser_Error (E202, Scanner.Token_Lineno, Token);
          Scanner.State := RESYNC_AFTER_RULE_ERROR;
       end if;
    end Do_State_In_RHS;
@@ -878,9 +872,8 @@ package body Parser_FSM is
          end;
       else
          Parser_Error (E213, Scanner.Token_Lineno,
-                       (1 => Scanner.Decl_Keyword,
-                        2 => To_Unbounded_String (Token)));
-
+                       Argument_1 => To_String (Scanner.Decl_Keyword),
+                       Argument_2 => Token);
          Scanner.State := RESYNC_AFTER_DECL_ERROR;
       end if;
 
@@ -897,7 +890,7 @@ package body Parser_FSM is
         Token (Token'First) not in 'a' .. 'z' and
         Token (Token'First) not in 'A' .. 'Z'
       then
-         Parser_Error (E206, Line_Number => Scanner.Token_Lineno);
+         Parser_Error (E206, Scanner.Token_Lineno);
          Scanner.State := RESYNC_AFTER_DECL_ERROR;
       else
          declare
@@ -909,9 +902,7 @@ package body Parser_FSM is
               Symbol /= null and then
               Symbols."/=" (Symbol.Data_Type, Null_Unbounded_String)
             then
-               Parser_Error (E207,
-                             Arguments   => (1 => To_Unbounded_String (Token)),
-                             Line_Number => Scanner.Token_Lineno);
+               Parser_Error (E207, Scanner.Line_Number, Token);
                Scanner.State := RESYNC_AFTER_DECL_ERROR;
             else
                if Symbol = null then
@@ -945,16 +936,14 @@ package body Parser_FSM is
             Symbol : constant Symbol_Access := Create_New (Token);
          begin
             if Symbol.Prec >= 0 then
-               Parser_Error (E217, Scanner.Token_Lineno,
-                             (1 => (To_Unbounded_String (Token))));
+               Parser_Error (E217, Scanner.Token_Lineno, Token);
             else
                Symbol.Prec  := Scanner.Prec_Counter;
                Symbol.Assoc := Scanner.Decl_Assoc;
             end if;
          end;
       else
-         Parser_Error (E218, Scanner.Token_Lineno,
-                       (1 => (To_Unbounded_String (Token))));
+         Parser_Error (E218, Scanner.Token_Lineno, Token);
       end if;
 
    end Do_State_Waiting_For_Precedence_Symbol;
@@ -969,8 +958,7 @@ package body Parser_FSM is
          Scanner.State := WAITING_FOR_DECL_OR_RULE;
 
       elsif Token (Token'First) not in 'A' .. 'Z' then
-         Parser_Error (E215, Scanner.Token_Lineno,
-                       (1 => (To_Unbounded_String (Token))));
+         Parser_Error (E215, Scanner.Token_Lineno, Token);
       else
          declare
             use Symbols;
@@ -980,8 +968,7 @@ package body Parser_FSM is
             if Scanner.Fallback = null then
                Scanner.Fallback := Symbol;
             elsif Symbol.Fallback /= null then
-               Parser_Error (E216, Scanner.Token_Lineno,
-                             (1 => (To_Unbounded_String (Token))));
+               Parser_Error (E216, Scanner.Token_Lineno, Token);
             else
                Symbol.Fallback := Scanner.Fallback;
                Lemon.Has_Fallback := True;
@@ -1009,8 +996,7 @@ package body Parser_FSM is
          Scanner.State := WAITING_FOR_DECL_OR_RULE;
 
       elsif Token (Token'First) not in 'A' .. 'Z' then
-         Parser_Error (E214, Scanner.Token_Lineno,
-                      (1 => To_Unbounded_String (Token)));
+         Parser_Error (E214, Scanner.Token_Lineno, Token);
       else
          declare
             use Symbols;
@@ -1033,10 +1019,7 @@ package body Parser_FSM is
          Scanner.State := WAITING_FOR_DECL_OR_RULE;
 
       elsif C not in 'A' .. 'Z' then
-         Parser_Error
-           (E211,
-            Line_Number => Scanner.Token_Lineno,
-            Arguments   => (1 => To_Unbounded_String (Token)));
+         Parser_Error (E211, Scanner.Token_Lineno, Token);
       else
          declare
             use Symbols, Extras;
@@ -1046,8 +1029,7 @@ package body Parser_FSM is
             if Get_Wildcard (Lemon.Extra) = null then
                Set_Wildcard (Lemon.Extra, Symbol);
             else
-               Parser_Error (E212, Scanner.Token_Lineno,
-                             (1 => To_Unbounded_String (Token)));
+               Parser_Error (E212, Scanner.Token_Lineno, Token);
             end if;
          end;
       end if;
@@ -1063,13 +1045,11 @@ package body Parser_FSM is
       C : Character renames Token (Token'First);
    begin
       if C not in 'a' .. 'z' then
-         Parser_Error (E209, Scanner.Token_Lineno,
-                       (1 => To_Unbounded_String (Token)));
+         Parser_Error (E209, Scanner.Token_Lineno, Token);
          Scanner.State := RESYNC_AFTER_DECL_ERROR;
 
       elsif Find (Token) /= null then
-         Parser_Error (E210, Scanner.Token_Lineno,
-                       (1 => To_Unbounded_String (Token)));
+         Parser_Error (E210, Scanner.Token_Lineno, Token);
          Scanner.State := RESYNC_AFTER_DECL_ERROR;
 
       else
@@ -1107,8 +1087,7 @@ package body Parser_FSM is
             Symbol.Sub_Sym.Append (Create_New (Token (First .. Token'Last)));
          end;
       else
-         Parser_Error (E208, Scanner.Token_Lineno,
-                       (1 => To_Unbounded_String (Token)));
+         Parser_Error (E208, Scanner.Token_Lineno, Token);
          Scanner.State := RESYNC_AFTER_DECL_ERROR;
       end if;
    end Do_State_Waiting_For_Class_Token;
