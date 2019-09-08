@@ -345,20 +345,24 @@ package body Reports is
       use Rules;
       use Extras;
 
+      package Symbol_Index_IO is
+         new Ada.Text_IO.Integer_IO (Symbol_Index);
+
       RP   : Rules.Rule_Access;
       SP   : Symbol_Access;
       J    : Symbol_Index;
       Max_Len, Len, N_Columns, Skip : Integer;
+      Column : Natural;
    begin
-      Put ("// Reprint of input file '");
+      Put ("// Reprint of input file """);
       Put (To_String (Unbounded_String'(Lemp.File_Name)));
-      Put_Line ("'.");
+      Put_Line (""".");
       Put_Line ("// Symbols:");
       Max_Len := 10;
 
       --  Determine Max_Len
-      for I in 0 .. Extras.Symbol_Count loop
-         SP  := Element_At (Lemp.Extra, Index => I);
+      for I in 0 .. Symbols.Last_Index loop
+         SP  := Symbols.Element_At (Index => I);
          Len := Length (SP.Name);
          if Len > Max_Len then
             Max_Len := Len;
@@ -371,27 +375,34 @@ package body Reports is
          N_Columns := 1;
       end if;
 
-      Skip := (Integer (Extras.Symbol_Count) + N_Columns - 1) / N_Columns;
+      --  Print symbol list
+      Skip := (Integer (Lemp.N_Symbol) + N_Columns - 1) / N_Columns;
       for I in 0 .. Skip - 1 loop
          Put ("//");
          J := Symbols.Symbol_Index (I);
+         Column := 0;
          loop
-            exit when J >= Extras.Symbol_Count;
-            SP := Element_At (Lemp.Extra, Index => J);
+            exit when J >= Lemp.N_Symbol;
+            SP := Symbols.Element_At (Index => Natural (J));
             pragma Assert (SP.Index = J);
-            --  printf(" %3d %-*.*s",j,maxlen,maxlen,sp->name);
-            --  XXX
+
             Put (" ");
-            Put (Symbol_Index'Image (J));
+            Symbol_Index_IO.Put (J, Width => 3);
             Put (" ");
-            Put (Integer'Image (Max_Len));
-            Put (Integer'Image (Max_Len));
-            Put (Symbols.From_Key (SP.Name));
+            declare
+               Name  : constant String := Symbols.From_Key (SP.Name);
+               Field : String (1 .. Max_Len) := (others => ' ');
+            begin
+               Field (Name'Range) := Name;
+               Put (Field);
+            end;
             J := J + Symbol_Index (Skip);
+            Column := Column + 1;
          end loop;
          New_Line;
       end loop;
 
+      --  Print rules
       RP := Lemp.Rule;
       loop
          exit when RP = null;
@@ -1410,32 +1421,41 @@ package body Reports is
    procedure Rule_Print_2 (File : in Ada.Text_IO.File_Type;
                            RP   : in Rules.Rule_Access)
    is
+      use Ada.Text_IO;
+      use Ada.Strings.Unbounded;
    begin
---    int i, j;
---    fprintf(out, "%s",rp->lhs->name);
---    //lime_put (rp->lhs->name);
---    /*    if( rp->lhsalias ) fprintf(out,"(%s)",rp->lhsalias); */
---    fprintf(out," ::=");
---    //lime_put (" ::=");
---    for(i=0; i<rp->nrhs; i++){
---      struct symbol *sp = rp->rhs[i];
---      if( sp->type==MULTITERMINAL ){
---        fprintf(out," %s", sp->subsym[0]->name);
---        //lime_put (" ");
---        //lime_put (sp->subsym[0]->name);
---        for(j=1; j<sp->nsubsym; j++){
---          fprintf(out,"|%s", sp->subsym[j]->name);
---          //lime_put ("|");
---          //lime_put (sp->subsym[j]->name);
---        }
---      }else{
---        fprintf(out," %s", sp->name);
---        //lime_put (" ");
---        //lime_put (sp->name);
---      }
---      /* if( rp->rhsalias[i] ) fprintf(out,"(%s)",rp->rhsalias[i]); */
---    }
-      null;
+      Put (File, To_String (RP.LHS.Name));
+      if RP.LHS_Alias /= Null_Unbounded_String then
+         Put (File, "(");
+         Put (File, To_String (RP.LHS_Alias));
+         Put (File, ")");
+      end if;
+
+      Put (File, " ::=");
+
+      for I in RP.RHS.all'Range loop
+         declare
+            SP : constant Symbols.Symbol_Access := RP.RHS (I);
+         begin
+            if Symbols."=" (SP.Kind, Symbols.Multi_Terminal) then
+               Put (File, " ");
+               Put (File, To_String (SP.Sub_Sym.First_Element.Name));
+               for J in 1 .. SP.Sub_Sym.Last_Index loop
+                  Put (File, "|");
+                  Put (File, To_String (SP.Sub_Sym.Element (J).Name));
+               end loop;
+            else
+               Put (File, " ");
+               Put (File, To_String (SP.Name));
+            end if;
+
+            if RP.RHS_Alias.Element (I) /= Null_Unbounded_String then
+               Put (File, "(");
+               Put (File, To_String (RP.RHS_Alias.Element (I)));
+               Put (File, ")");
+            end if;
+         end;
+      end loop;
    end Rule_Print_2;
 
 

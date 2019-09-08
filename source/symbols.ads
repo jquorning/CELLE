@@ -187,6 +187,12 @@ package Symbols is
 --     (Name : in Interfaces.C.Strings.chars_ptr)
 --     return Symbol_Access;
 
+   function Last_Index return Natural;
+   --  get symbol last index.
+
+   function Element_At (Index : in Natural) return Symbol_Access;
+   --  Get symbol at Index position.
+
 
    procedure Sort;
    --  Sort the symbol table

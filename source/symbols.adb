@@ -381,6 +381,18 @@ package body Symbols is
    end Set_Lambda_False_And_Set_Firstset;
 
 
+   function Last_Index return Natural is
+   begin
+      return Base.Last_Index;
+   end Last_Index;
+
+
+   function Element_At (Index : in Natural) return Symbol_Access is
+   begin
+      return Base.Element (Index);
+   end Element_At;
+
+
    --  Debug
    procedure JQ_Dump_Symbols is
       use Ada.Text_IO;
