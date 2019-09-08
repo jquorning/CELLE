@@ -227,9 +227,9 @@ package body Parser_FSM is
       elsif Cur in 'a' .. 'z' then
          Scanner.LHS.Clear;
          Scanner.LHS.Append (Symbols.Create_New (Token));
-         Scanner.RHS       := Symbols.Symbol_Vectors.Empty_Vector;
-         Scanner.LHS_Alias := Parser_Data.Alias_Vectors.Empty_Vector;
-         Scanner.State     := WAITING_FOR_ARROW;
+         Scanner.RHS.Clear;
+         Scanner.LHS_Alias.Clear;
+         Scanner.State := WAITING_FOR_ARROW;
 
       elsif Cur = '{' then
 
@@ -770,9 +770,6 @@ package body Parser_FSM is
         Cur in '0' .. '9'
       then
          declare
---          const char *zOld, *zNew;
---          char *zBuf, *z;
---          int nOld, n, nLine = 0, nNew, nBack;
             N    : Integer;
             Back : Integer;
             New_String     : constant String := Token;
@@ -781,7 +778,6 @@ package body Parser_FSM is
             Z              : Unbounded_String;
             New_First      : Positive := New_String'First;
             Old_Length     : Natural;
-            Buf_Length     : Natural;
             Z_Pos          : Natural;
             Add_Line_Macro : Boolean;
             Line           : Unbounded_String;
@@ -792,14 +788,13 @@ package body Parser_FSM is
             then
                New_First := New_First + 1;
             end if;
-            --  nNew := LemonStrlen (zNew);
 
             if Scanner.Decl_Arg_Slot /= null then  --  A_Declaration (Null_Unbounded_String) then
                Old_String := Scanner.Decl_Arg_Slot.all;
             else
                Old_String := To_Unbounded_String ("");
             end if;
-            --  nOld = lemonStrlen(zOld);
+            Old_Length := Length (Old_String);
             N := Old_Length + New_First + 20;
 
             Add_Line_Macro :=
