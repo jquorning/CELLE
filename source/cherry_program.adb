@@ -222,40 +222,11 @@ begin
       Ada.Text_IO.Put_Line ("jq_dump_rules second");
       Debugs.JQ_Dump_Rules (Lemon);
 
---        I := 0;
---        RP := Lemon.Rule;
---        loop
---           exit when RP /= null;
---           if RP.code /= Null_Ptr then
---              RP.iRule := int (I);
---              I := I + 1;
---           else
---              RP.iRule := -1;
---           end if;
---           RP := RP.next;
---        end loop;
-
---        I := 0;
---        RP := Lemon.Rule;
---        loop
---           exit when RP = null;
---           RP := RP.next;
---        end loop;
-
---        RP := Lemon.Rule;
---        loop
---           exit when RP = null;
---           if RP.iRule < 0 then
---              RP.iRule := int (I);
---              I := I + 1;
---           end if;
---           RP := RP.next;
---        end loop;
-
       Lemon.Start_Rule := Lemon.Rule;
-      Ada.Text_IO.Put_Line ("Rule_Sort");
       Lemon.Rule       := Rule_Sort (Lemon.Rule);
-      Ada.Text_IO.Put_Line ("Rule_Sort done");
+
+      Ada.Text_IO.Put_Line ("jq_dump_rules third");
+      Debugs.JQ_Dump_Rules (Lemon);
 
       --  Generate a reprint of the grammar, if requested on the command line
       if Options.RP_Flag then

@@ -9,7 +9,6 @@
 
 with Ada.Strings.Unbounded;
 with Ada.Containers.Vectors;
-with Ada.Containers.Doubly_Linked_Lists;
 
 limited with Symbols;
 
@@ -96,12 +95,10 @@ package Rules is
 
    type Rule_Access is access all Rule_Record;
 
-   package Rule_Lists is
-      new Ada.Containers.Doubly_Linked_Lists (Rule_Access);
 
-   procedure Merge (Left   : in out Rule_Lists.List;
-                    Right  : in out Rule_Lists.List;
-                    Result :    out Rule_Lists.List);
+   function Merge (Pa : in Rule_Access;
+                   Pb : in Rule_Access)
+                  return Rule_Access;
    --  Merge together to lists of rules ordered by rule.iRule
 
 
