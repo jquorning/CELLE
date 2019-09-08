@@ -1426,10 +1426,14 @@ package body Reports is
       RP : Rules.Rule_Access renames Rule;
    begin
       Put (File, To_String (RP.LHS.Name));
-      if RP.LHS_Alias /= Null_Unbounded_String then
-         Put (File, "(");
-         Put (File, To_String (RP.LHS_Alias));
-         Put (File, ")");
+
+      --  This part is uncommented in lemon.c
+      if False then
+         if RP.LHS_Alias /= Null_Unbounded_String then
+            Put (File, "(");
+            Put (File, To_String (RP.LHS_Alias));
+            Put (File, ")");
+         end if;
       end if;
 
       Put (File, " ::=");

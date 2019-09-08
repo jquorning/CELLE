@@ -517,7 +517,6 @@ package body Parser_FSM is
         Token (Token'First) in 'a' .. 'z' or
         Token (Token'First) in 'A' .. 'Z'
       then
-         Debug (True, "LHA_Alias_1: " & Token);
          Scanner.LHS_Alias.Clear;
          Scanner.LHS_Alias.Append (To_Alias (Token));
          Scanner.State := LHS_ALIAS_2;
