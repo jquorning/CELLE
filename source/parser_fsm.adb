@@ -225,6 +225,7 @@ package body Parser_FSM is
          Scanner.State := WAITING_FOR_DECL_KEYWORD;
 
       elsif Cur in 'a' .. 'z' then
+         Scanner.LHS.Clear;
          Scanner.LHS.Append (Symbols.Create_New (Token));
          Scanner.RHS       := Symbols.Symbol_Vectors.Empty_Vector;
          Scanner.LHS_Alias := Parser_Data.Alias_Vectors.Empty_Vector;

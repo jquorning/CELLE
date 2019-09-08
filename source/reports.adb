@@ -60,16 +60,17 @@ package body Reports is
       Resort_States (Lemp.all);
    end Resort_States_C;
 
-   procedure Rule_Print_2 (File : in Ada.Text_IO.File_Type;
-                           RP   : in Rules.Rule_Access);
+   procedure Rule_Print (File : in Ada.Text_IO.File_Type;
+                         Rule : in Rules.Rule_Access);
+   --  Print the text of a rule.
 
    procedure Print_Action
      (AP     : in     Actions.Action_Access;
       File   : in     Ada.Text_IO.File_Type;
       Indent : in     Integer;
       Result :    out Boolean);
-  --  Print an action to the given file descriptor.  Return FALSE if
-  --  nothing was actually printed.
+   --  Print an action to the given file descriptor.  Return FALSE if
+   --  nothing was actually printed.
 
    procedure Config_Print (File : in Ada.Text_IO.File_Type;
                            CFP  : in Configs.Config_Access);
@@ -121,8 +122,6 @@ package body Reports is
    --  union, also set the ".dtnum" field of every terminal and nonterminal
    --  symbol.
 
-   procedure Rule_Print (RP : in Rules.Rule_Access);
-   --  Print the text of a rule
 
    procedure Generate_Tokens
      (Lemon        : in Lime.Lemon_Record;
@@ -406,7 +405,7 @@ package body Reports is
       RP := Lemp.Rule;
       loop
          exit when RP = null;
-         Rule_Print_2 (Standard_Output, RP);
+         Rule_Print (Standard_Output, RP);
          Put (".");
          if RP.Prec_Sym /= null then
             Put (" [" & From_Key (RP.Prec_Sym.Name) & "]");
@@ -563,7 +562,7 @@ package body Reports is
          exit when RP = null;
          Put (File, RP.Rule'Img); -- XXX "%4d: ", rp->iRule);
          Put (File, ": ");
-         Rule_Print_2 (File, RP);
+         Rule_Print (File, RP);
          Put (File, ".");
          if RP.Prec_Sym /= null then
             Put (File, " [");
@@ -1129,7 +1128,7 @@ package body Reports is
 --      lime_put (", /* (");
 --      lime_put_int (i);
 --      lime_put (" ");
-      Rule_Print (RP);
+      Rule_Print (Ada.Text_IO.Standard_Output, RP);
 --      lime_put_line (" */");
 --    }
 --
@@ -1418,11 +1417,13 @@ package body Reports is
    end Dummy;
 
 
-   procedure Rule_Print_2 (File : in Ada.Text_IO.File_Type;
-                           RP   : in Rules.Rule_Access)
+   procedure Rule_Print (File : in Ada.Text_IO.File_Type;
+                         Rule : in Rules.Rule_Access)
    is
       use Ada.Text_IO;
       use Ada.Strings.Unbounded;
+
+      RP : Rules.Rule_Access renames Rule;
    begin
       Put (File, To_String (RP.LHS.Name));
       if RP.LHS_Alias /= Null_Unbounded_String then
@@ -1456,7 +1457,7 @@ package body Reports is
             end if;
          end;
       end loop;
-   end Rule_Print_2;
+   end Rule_Print;
 
 
    procedure Print_Action
@@ -1865,11 +1866,11 @@ package body Reports is
    end Print_Stack_Union;
 
 
-   procedure Rule_Print (RP : in Rules.Rule_Access)
-   is
+ --  procedure Rule_Print (RP : in Rules.Rule_Access)
+ --  is
       --  int i, j;
-   begin
-      null;
+--   begin
+--      null;
 --    lime_put (rp->lhs->name);
 --    /*    if( rp->lhsalias ) fprintf(out,"(%s)",rp->lhsalias); */ // XXX
 --    lime_put (" ::=");
@@ -1888,7 +1889,7 @@ package body Reports is
 --      }
 --      /* if( rp->rhsalias[i] ) fprintf(out,"(%s)",rp->rhsalias[i]); */  //  XXX
 --    }
-   end Rule_Print;
+--   end Rule_Print;
 
 
 --  /* Print a single rule.
