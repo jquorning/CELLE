@@ -243,7 +243,7 @@ void lemon_compress_tables(struct lemon *);
 void lemon_resort_states(struct lemon *);
 
 /********** From the file "build.h" ************************************/
-void lemon_find_rule_precedences(struct lemon*);
+//void lemon_find_rule_precedences(struct lemon*);
 void lemon_find_first_sets(struct lemon*);
 /*void lemon_find_states(struct lemon*);*/
 void lemon_find_links(struct lemon*);

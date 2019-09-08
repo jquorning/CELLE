@@ -147,7 +147,7 @@ package Lime is
    --
 --   procedure Reprint (Lemon : in out Lemon_Record);
    procedure Set_Size (Size : in Natural);
-   procedure Find_Rule_Precedences (Lemon : in Lemon_Record);
+--   procedure Find_Rule_Precedences (Lemon : in Lemon_Record);
    procedure Find_First_Sets (Lemon : in Lemon_Record);
    procedure Compute_LR_States (Lemon : in Lemon_Record);
    procedure Find_Links (Lemon : in Lemon_Record);
@@ -163,7 +163,7 @@ package Lime is
 private
 
    pragma Import (C, Set_Size,              "lemon_set_size");
-   pragma Import (C, Find_Rule_Precedences, "lemon_find_rule_precedences");
+--   pragma Import (C, Find_Rule_Precedences, "lemon_find_rule_precedences");
    pragma Import (C, Find_First_Sets,       "lemon_find_first_sets");
    pragma Import (C, Compute_LR_States,     "lemon_compute_LR_states");
    pragma Import (C, Find_Links,            "lemon_find_links");

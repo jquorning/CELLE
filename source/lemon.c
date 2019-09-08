@@ -374,38 +374,38 @@ void Action_add(
 ** parser generator.
 */
 
-/* Find a precedence symbol of every rule in the grammar.
-**
-** Those rules which have a precedence symbol coded in the input
-** grammar using the "[symbol]" construct will already have the
-** rp->precsym field filled.  Other rules take as their precedence
-** symbol the first RHS symbol with a defined precedence.  If there
-** are not RHS symbols with a defined precedence, the precedence
-** symbol field is left blank.
-*/
-void lemon_find_rule_precedences(struct lemon *xp)
-{
-  struct rule *rp;
-  for(rp=xp->rule; rp; rp=rp->next){
-    if( rp->precsym==0 ){
-      int i, j;
-      for(i=0; i<rp->nrhs && rp->precsym==0; i++){
-        struct symbol *sp = rp->rhs[i];
-        if( sp->type==MULTITERMINAL ){
-          for(j=0; j<sp->nsubsym; j++){
-            if( sp->subsym[j]->prec>=0 ){
-              rp->precsym = sp->subsym[j];
-              break;
-            }
-          }
-        }else if( sp->prec>=0 ){
-          rp->precsym = rp->rhs[i];
-        }
-      }
-    }
-  }
-  return;
-}
+/* /\* Find a precedence symbol of every rule in the grammar. */
+/* ** */
+/* ** Those rules which have a precedence symbol coded in the input */
+/* ** grammar using the "[symbol]" construct will already have the */
+/* ** rp->precsym field filled.  Other rules take as their precedence */
+/* ** symbol the first RHS symbol with a defined precedence.  If there */
+/* ** are not RHS symbols with a defined precedence, the precedence */
+/* ** symbol field is left blank. */
+/* *\/ */
+/* void lemon_find_rule_precedences(struct lemon *xp) */
+/* { */
+/*   struct rule *rp; */
+/*   for(rp=xp->rule; rp; rp=rp->next){ */
+/*     if( rp->precsym==0 ){ */
+/*       int i, j; */
+/*       for(i=0; i<rp->nrhs && rp->precsym==0; i++){ */
+/*         struct symbol *sp = rp->rhs[i]; */
+/*         if( sp->type==MULTITERMINAL ){ */
+/*           for(j=0; j<sp->nsubsym; j++){ */
+/*             if( sp->subsym[j]->prec>=0 ){ */
+/*               rp->precsym = sp->subsym[j]; */
+/*               break; */
+/*             } */
+/*           } */
+/*         }else if( sp->prec>=0 ){ */
+/*           rp->precsym = rp->rhs[i]; */
+/*         } */
+/*       } */
+/*     } */
+/*   } */
+/*   return; */
+/* } */
 
 /* Find all nonterminals which will generate the empty string.
 ** Then go back and compute the first sets of every nonterminal.

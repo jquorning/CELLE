@@ -28,6 +28,7 @@ with Generate_Ada;
 with Generate_C;
 with Backend;
 with Setup;
+with Builds;
 
 package body Reports is
 
@@ -1953,7 +1954,7 @@ package body Reports is
          Set_Size (Terminal_Last + 1);
          Put_Line ("### 2-2");
          --  Find the precedence for every production rule (that has one)
-         Find_Rule_Precedences (Lemon_Lemp);
+         Builds.Find_Rule_Precedences (Lemon_Lemp);
          Put_Line ("### 2-3");
          --  Compute the lambda-nonterminals and the first-sets for every
          --  nonterminal
