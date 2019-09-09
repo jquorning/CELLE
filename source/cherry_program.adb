@@ -16,7 +16,7 @@ with Ada.Exceptions;
 with Setup;
 with Options;
 with Command_Line;
-with Lime;
+with Sessions;
 with Cherry;
 with Rules;
 with Symbols;
@@ -33,7 +33,7 @@ procedure Cherry_Program is
    procedure Put_Blessing;
    procedure Put_Help;
    procedure Put_Version;
-   procedure Put_Statistics (Lemon : in Lime.Lemon_Record);
+   procedure Put_Statistics (Session : in Sessions.Session_Type);
 
 
    procedure Put_Blessing is
@@ -68,7 +68,7 @@ procedure Cherry_Program is
    end Put_Version;
 
 
-   procedure Put_Statistics (Lemon : in Lime.Lemon_Record)
+   procedure Put_Statistics (Session : in Sessions.Session_Type)
    is
       procedure Stats_Line (Text  : in String;
                             Value : in Integer);
@@ -90,15 +90,15 @@ procedure Cherry_Program is
       use type Symbols.Symbol_Index;
    begin
       Ada.Text_IO.Put_Line ("Parser statistics:");
-      Stats_Line ("terminal symbols", Integer (Lemon.N_Terminal));
-      Stats_Line ("non-terminal symbols", Integer (Lemon.N_Symbol - Lemon.N_Terminal));
-      Stats_Line ("total symbols", Integer (Lemon.N_Symbol));
-      Stats_Line ("rules", Lemon.N_Rule);
-      Stats_Line ("states", Lemon.Nx_State);
-      Stats_Line ("conflicts", Lemon.N_Conflict);
-      Stats_Line ("action table entries", Lemon.N_Action_Tab);
-      Stats_Line ("lookahead table entries", Lemon.N_Lookahead_Tab);
-      Stats_Line ("total table size (bytes)", Lemon.Table_Size);
+      Stats_Line ("terminal symbols", Integer (Session.N_Terminal));
+      Stats_Line ("non-terminal symbols", Integer (Session.N_Symbol - Session.N_Terminal));
+      Stats_Line ("total symbols", Integer (Session.N_Symbol));
+      Stats_Line ("rules", Session.N_Rule);
+      Stats_Line ("states", Session.Nx_State);
+      Stats_Line ("conflicts", Session.N_Conflict);
+      Stats_Line ("action table entries", Session.N_Action_Tab);
+      Stats_Line ("lookahead table entries", Session.N_Lookahead_Tab);
+      Stats_Line ("total table size (bytes)", Session.Table_Size);
    end Put_Statistics;
 
 
@@ -132,24 +132,24 @@ begin
       use Symbols;
       use Rules;
 
-      Lemon : aliased Lime.Lemon_Record;
+      Session : aliased Sessions.Session_Type;
 
       Failure : Ada.Command_Line.Exit_Status renames Ada.Command_Line.Failure;
 
       Dummy_Symbol_Count : Symbol_Index;
    begin
-      Lemon := Lime.Clean_Lemon;
-      Lemon.Error_Cnt := 0;
+      Session := Sessions.Clean_Session;
+      Session.Error_Cnt := 0;
 
       --  Initialize the machine
-      Lime.Strsafe_Init;
+      Sessions.Strsafe_Init;
       Symbols.Symbol_Init;
-      Lime.State_Init;
+      Sessions.State_Init;
 
-      Lemon.Argv0           := To_Unbounded_String (Options.Program_Name.all);
-      Lemon.File_Name       := To_Unbounded_String (Options.Input_File.all);
-      Lemon.Basis_Flag      := Options.Basis_Flag;
-      Lemon.No_Linenos_Flag := Options.No_Line_Nos;
+      Session.Argv0           := To_Unbounded_String (Options.Program_Name.all);
+      Session.File_Name       := To_Unbounded_String (Options.Input_File.all);
+      Session.Basis_Flag      := Options.Basis_Flag;
+      Session.No_Linenos_Flag := Options.No_Line_Nos;
 
       --  Extras.Symbol_Append (Key => "$");
       declare
@@ -159,14 +159,14 @@ begin
       end;
 
       --  Parse the input file
-      Parsers.Parse (Lemon);
+      Parsers.Parse (Session);
 
-      if Lemon.Error_Cnt /= 0 then
+      if Session.Error_Cnt /= 0 then
          Ada.Command_Line.Set_Exit_Status (Failure);
          return;
       end if;
 
-      if Lemon.N_Rule = 0 then
+      if Session.N_Rule = 0 then
          Put_Line (Standard_Error, "Empty grammar.");
          Ada.Command_Line.Set_Exit_Status (Failure);
          return;
@@ -201,8 +201,8 @@ begin
       begin
          Symbols.Count_Symbols_And_Terminals (Symbol_Count   => Symbol_Count,
                                               Terminal_Count => Terminal_Count);
-         Lemon.N_Symbol   := Symbol_Index (Symbol_Count);
-         Lemon.N_Terminal := Symbol_Index (Terminal_Count);
+         Session.N_Symbol   := Symbol_Index (Symbol_Count);
+         Session.N_Terminal := Symbol_Index (Terminal_Count);
          Ada.Text_IO.Put ("nsymbol:" & Natural'Image (Symbol_Count));
          Ada.Text_IO.Put ("  nterminal:" & Natural'Image (Terminal_Count));
          Ada.Text_IO.Put_Line (" ");
@@ -213,45 +213,45 @@ begin
       --  statement that selects reduction actions will have a smaller jump table.
 
       Ada.Text_IO.Put_Line ("jq_dump_rules first");
-      Debugs.JQ_Dump_Rules (Lemon);
+      Debugs.JQ_Dump_Rules (Session);
 
       Rules.Assing_Sequential_Rule_Numbers
-        (Lemon.Rule,
-         Lemon.Start_Rule);
+        (Session.Rule,
+         Session.Start_Rule);
 
       Ada.Text_IO.Put_Line ("jq_dump_rules second");
-      Debugs.JQ_Dump_Rules (Lemon);
+      Debugs.JQ_Dump_Rules (Session);
 
-      Lemon.Start_Rule := Lemon.Rule;
-      Lemon.Rule       := Rule_Sort (Lemon.Rule);
+      Session.Start_Rule := Session.Rule;
+      Session.Rule       := Rule_Sort (Session.Rule);
 
       Ada.Text_IO.Put_Line ("jq_dump_rules third");
-      Debugs.JQ_Dump_Rules (Lemon);
+      Debugs.JQ_Dump_Rules (Session);
 
       --  Generate a reprint of the grammar, if requested on the command line
       if Options.RP_Flag then
-         Reports.Reprint (Lemon);
+         Reports.Reprint (Session);
       else
          Reports.Reprint_Of_Grammar
-           (Lemon,
+           (Session,
             Base_Name     => "XXX",
             Token_Prefix  => "YYY",
             Terminal_Last => 999);
       end if;
 
       if Options.Statistics then
-         Put_Statistics (Lemon);
+         Put_Statistics (Session);
       end if;
 
-      if Lemon.N_Conflict > 0 then
+      if Session.N_Conflict > 0 then
          Put_Line
            (Standard_Error,
-            Integer'Image (Lemon.N_Conflict) & " parsing conflicts.");
+            Integer'Image (Session.N_Conflict) & " parsing conflicts.");
       end if;
 
       if
-        Lemon.Error_Cnt  > 0 or
-        Lemon.N_Conflict > 0
+        Session.Error_Cnt  > 0 or
+        Session.N_Conflict > 0
       then
          Ada.Command_Line.Set_Exit_Status (Failure);
          return;

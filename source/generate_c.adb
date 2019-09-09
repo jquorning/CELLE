@@ -108,7 +108,7 @@ package body Generate_C is
    Header_Extension : constant String := ".h";
 
    procedure Generate_Spec
-     (Lemp      : in     Lime.Lemon_Record;
+     (Session   : in     Sessions.Session_Type;
       Context   : in out Context_Type;
       File_Name : in     String;
       Module    : in     String;
@@ -133,7 +133,7 @@ package body Generate_C is
       for I in First .. Last - 1 loop
          declare
             Symbol : constant String :=
-              Prefix & Name_Of (Element_At (Lemp.Extra,
+              Prefix & Name_Of (Element_At (Session.Extra,
                                             Symbol_Index (I)));
          begin
             Put (File, "#define ");

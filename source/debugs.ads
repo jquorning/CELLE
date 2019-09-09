@@ -2,10 +2,10 @@
 --
 --
 
-with Lime;
+with Sessions;
 
 package Debugs is
 
-   procedure JQ_Dump_Rules (Lemon : in Lime.Lemon_Record);
+   procedure JQ_Dump_Rules (Session : in Sessions.Session_Type);
 
 end Debugs;

@@ -30,7 +30,7 @@ package body Parsers is
    function Read_File (File_Name : in String) return String;
    --  Read file File_Name into a string with lines separated by Latin_1.LF
 
-   procedure Parse_One_Token (Lemon   : in out Lime.Lemon_Record;
+   procedure Parse_One_Token (Session : in out Sessions.Session_Type;
                               Scanner : in out Scanner_Record;
                               Token   : in     String);
    --  Parse a single Token.
@@ -69,7 +69,7 @@ package body Parsers is
 
    use Errors;
 
-   procedure Parse (Lemon : in out Lime.Lemon_Record)
+   procedure Parse (Session : in out Sessions.Session_Type)
    is
       use Ada.Strings.Unbounded;
       use Ada.Characters;
@@ -77,12 +77,12 @@ package body Parsers is
       Success : Boolean;
       Scanner : Scanner_Record;
    begin
-      Scanner.File_Name    := Lemon.File_Name;
+      Scanner.File_Name    := Session.File_Name;
       Scanner.Token_Lineno := 0;
       Scanner.Error_Count  := 0;
 
       --  Begin by opening the input file
-      Parser_FSM.Initialize_FSM (Lemon, Scanner);
+      Parser_FSM.Initialize_FSM (Session, Scanner);
       Errors.Set_File_Name (Scanner.File_Name);
 
       declare
@@ -314,7 +314,7 @@ package body Parsers is
 
             C := Filebuf (Index);
 
-            Parse_One_Token (Lemon, Scanner,
+            Parse_One_Token (Session, Scanner,
                              Token => Filebuf (Scanner.Token_First .. Index - 1));
 
             Index := Next_Index;
@@ -324,12 +324,12 @@ package body Parsers is
          end loop;
       end;
 
-      Lemon.Rule      := Rules.Rule_Access (Scanner.First_Rule);
-      Lemon.Error_Cnt := Scanner.Error_Count;
+      Session.Rule      := Rules.Rule_Access (Scanner.First_Rule);
+      Session.Error_Cnt := Scanner.Error_Count;
    end Parse;
 
 
-   procedure Parse_One_Token (Lemon   : in out Lime.Lemon_Record;
+   procedure Parse_One_Token (Session : in out Sessions.Session_Type;
                               Scanner : in out Scanner_Record;
                               Token   : in     String)
    is
@@ -352,7 +352,7 @@ package body Parsers is
               := Fixed.Trim (State_Scanner'Pos (Scanner.State)'Img, Left);
          begin
             Error (Standard_Output,
-                   To_String (Lemon.File_Name),
+                   To_String (Session.File_Name),
                    Scanner.Token_Lineno,
                    "Token=[" & Token &
                      "] "
@@ -360,7 +360,7 @@ package body Parsers is
          end;
       end if;
 
-      Do_State (Lemon, Scanner, Token);
+      Do_State (Session, Scanner, Token);
    end Parse_One_Token;
 
 

@@ -7,16 +7,16 @@
 --    May you share freely, not taking more than you give.
 --
 
-with Lime;
+with Sessions;
 with Parser_Data;
 
 package Parser_FSM is
 
-   procedure Initialize_FSM (Lemon   : in out Lime.Lemon_Record;
+   procedure Initialize_FSM (Session : in out Sessions.Session_Type;
                              Scanner : in out Parser_Data.Scanner_Record);
    --  Initialize the parser finite state machine
 
-   procedure Do_State (Lemon   : in out Lime.Lemon_Record;
+   procedure Do_State (Session : in out Sessions.Session_Type;
                        Scanner : in out Parser_Data.Scanner_Record;
                        Token   : in     String);
    --  The parser state machine

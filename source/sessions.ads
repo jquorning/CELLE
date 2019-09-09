@@ -20,7 +20,7 @@ with Symbols;
 with Report_Parsers;
 with Extras;
 
-package Lime is
+package Sessions is
 
    --  Symbols (terminals and nonterminals) of the grammar are stored
    --  in the following:
@@ -83,7 +83,7 @@ package Lime is
 
    Parser_Names : aliased Parser_Names_Record;
 
-   type Lemon_Record is
+   type Session_Type is
       record
          Sorted           : Rule_Access;        --  Table of states sorted by state number
          Rule             : Rule_Access;        --  List of all rules
@@ -121,8 +121,8 @@ package Lime is
          Parser           : Report_Parsers.Context_Access;
       end record;
 
-   Clean_Lemon : constant Lemon_Record :=
-     Lemon_Record'(Sorted       => null,       Rule         => null,      Start_Rule       => null,
+   Clean_Session : constant Session_Type :=
+     Session_Type'(Sorted       => null,       Rule         => null,      Start_Rule       => null,
                    N_State      => 0,          Nx_State     => 0,         N_Rule           => 0,
                    N_Symbol     => 0,          N_Terminal   => 0,         Min_Shift_Reduce => 0,
                    Err_Action   => 0,          Acc_Action   => 0,         No_Action        => 0,
@@ -145,14 +145,14 @@ package Lime is
    --
    --  Other way round specs
    --
---   procedure Reprint (Lemon : in out Lemon_Record);
+--   procedure Reprint (Session : in out Session_Type);
 --   procedure Set_Size (Size : in Natural);
---   procedure Find_Rule_Precedences (Lemon : in Lemon_Record);
---   procedure Find_First_Sets (Lemon : in Lemon_Record);
-   procedure Compute_LR_States (Lemon : in Lemon_Record);
-   procedure Find_Links (Lemon : in Lemon_Record);
-   procedure Find_Follow_Sets (Lemon : in Lemon_Record);
-   procedure Find_Actions (Lemon : in Lemon_Record);
+--   procedure Find_Rule_Precedences (Session : in Session_Type);
+--   procedure Find_First_Sets (Session : in Session_Type);
+   procedure Compute_LR_States (Session : in Session_Type);
+   procedure Find_Links (Session : in Session_Type);
+   procedure Find_Follow_Sets (Session : in Session_Type);
+   procedure Find_Actions (Session : in Session_Type);
 
    procedure Strsafe_Init;
    procedure State_Init;
@@ -175,4 +175,4 @@ private
 
 --   pragma Import (C, Rule_Sort, "lime_rule_sort");
 
-end Lime;
+end Sessions;

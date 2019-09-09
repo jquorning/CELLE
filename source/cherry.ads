@@ -7,7 +7,7 @@
 --    May you share freely, not taking more than you give.
 --
 
-with Lime;
+with Sessions;
 with Symbols;
 with Sets;
 
@@ -16,8 +16,8 @@ package Cherry is
    procedure Dummy is null;
 
    procedure Add_The_Accepting_Token
-     (Lemp   : in out Lime.Lemon_Record;
-      Symbol : in out Symbols.Symbol_Access);
+     (Session : in out Sessions.Session_Type;
+      Symbol  : in out Symbols.Symbol_Access);
    --  Add the accepting Token.
 
 

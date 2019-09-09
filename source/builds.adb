@@ -14,14 +14,14 @@ with Configs;
 package body Builds is
 
 
-   procedure Find_Rule_Precedences (Lemon : in out Lime.Lemon_Record)
+   procedure Find_Rule_Precedences (Session : in out Sessions.Session_Type)
    is
       use Rules;
       use Symbols;
 
       Rule : Rule_Access;
    begin
-      Rule := Lemon.Rule;
+      Rule := Session.Rule;
       while Rule /= null loop
          if Rule.Prec_Sym = null then
             for I in Rule.RHS.all'Range loop
@@ -49,7 +49,7 @@ package body Builds is
    end Find_Rule_Precedences;
 
 
-   procedure Find_First_Sets (Lemon : in out Lime.Lemon_Record)
+   procedure Find_First_Sets (Session : in out Sessions.Session_Type)
    is
       use Rules;
       use Symbols;
@@ -58,20 +58,20 @@ package body Builds is
       Rule       : Rule_Access;
       Progress : Boolean;
    begin
-      Symbols.Set_Lambda_False_And_Set_Firstset (First => Natural (Lemon.N_Terminal),
-                                                 Last  => Natural (Lemon.N_Symbol - 1));
---        for I in 0 .. Lemon.N_Symbol - 1 loop
---           Lemon.Symbols (I).lambda := False;
+      Symbols.Set_Lambda_False_And_Set_Firstset (First => Natural (Session.N_Terminal),
+                                                 Last  => Natural (Session.N_Symbol - 1));
+--        for I in 0 .. Session.N_Symbol - 1 loop
+--           Session.Symbols (I).lambda := False;
 --        end loop;
 
---        for I in Lemon.N_Terminal .. Lemon.N_Symbol - 1 loop
---           Lemon.Symbols (I).firstset := SetNew (void);
+--        for I in Session.N_Terminal .. Session.N_Symbol - 1 loop
+--           Session.Symbols (I).firstset := SetNew (void);
 --        end loop;
 
       --  First compute all lambdas
       loop
          Progress := False;
-         Rule := Lemon.Rule;
+         Rule := Session.Rule;
          loop
             exit when Rule = null;
 
@@ -108,7 +108,7 @@ package body Builds is
             S2 : Symbol_Access;
          begin
             Progress := False;
-            Rule := Lemon.Rule;
+            Rule := Session.Rule;
             loop
                exit when Rule = null;
                S1 := Rule.LHS;
@@ -154,16 +154,15 @@ package body Builds is
 
 
    procedure Find_States
-     (Lemon : in out Lime.Lemon_Record)
+     (Session : in out Sessions.Session_Type)
    is
       use Ada.Strings.Unbounded;
       use Lemon_Bind;
       use Symbols;
       use Rules;
 
-      Lemp   : Lime.Lemon_Record renames Lemon;
       Symbol : Symbol_Access;
-      Rule : Rule_Access;
+      Rule   : Rule_Access;
    begin
       Configlist_Init;
 
@@ -171,36 +170,36 @@ package body Builds is
       --  lime_partial_database_dump_c ();
       --  lime_partial_database_dump_ada ();
 
-      if Lemp.Names.Start /= "" then
-         Symbol := Find (To_String (Lemp.Names.Start));
+      if Session.Names.Start /= "" then
+         Symbol := Find (To_String (Session.Names.Start));
          if Symbol = null then
             Errors.Error_Plain
-              (File_Name   => Lemp.File_Name,
+              (File_Name   => Session.File_Name,
                Line_Number => 0,
                Text        =>
                  "The specified start symbol '%1' Start is not in a nonterminal " &
                  "of the grammar.  '%2' will be used as the start symbol instead.",
                Arguments   =>
-                 (1 => Lemp.Names.Start,
-                  2 => To_Unbounded_String (Name_Of (Symbol_Access (Lemp.Start_Rule.LHS))))
+                 (1 => Session.Names.Start,
+                  2 => To_Unbounded_String (Name_Of (Symbol_Access (Session.Start_Rule.LHS))))
               );
-            Lemp.Error_Cnt := Lemp.Error_Cnt + 1;
-            Symbol := Symbol_Access (Lemp.Start_Rule.LHS);
+            Session.Error_Cnt := Session.Error_Cnt + 1;
+            Symbol := Symbol_Access (Session.Start_Rule.LHS);
          end if;
       else
-         Symbol := Symbol_Access (Lemp.Start_Rule.LHS);
+         Symbol := Symbol_Access (Session.Start_Rule.LHS);
       end if;
 
       --  Make sure the start symbol doesn't occur on the right-hand side of
       --  any rule.  Report an error if it does.  (YACC would generate a new
       --  start symbol in this case.)
-      Rule := Lemp.Rule;
+      Rule := Session.Rule;
       loop
          exit when Rule = null;
          for I in Rule.RHS'Range loop
             if Rule.RHS (I) = Symbol then   --  FIX ME:  Deal with multiterminals XXX
                Errors.Error_Plain
-                 (File_Name   => Lemp.File_Name,
+                 (File_Name   => Session.File_Name,
                   Line_Number => 0,
                   Text        =>
                     "The start symbol '%1' occurs on the right-hand " &
@@ -208,7 +207,7 @@ package body Builds is
                     "does not work properly.",
                   Arguments   => (1 => To_Unbounded_String (Name_Of (Symbol)))
                  );
-               Lemp.Error_Cnt := Lemp.Error_Cnt + 1;
+               Session.Error_Cnt := Session.Error_Cnt + 1;
             end if;
          end loop;
          Rule := Rule.Next;
@@ -234,7 +233,7 @@ package body Builds is
       --  Compute the first state.  All other states will be
       --  computed automatically during the computation of the first one.
       --  The returned pointer to the first state is not used. */
-      Get_State (Lemp);
+      Get_State (Session);
 
    end Find_States;
 

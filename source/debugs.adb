@@ -8,12 +8,12 @@ with Rules;
 
 package body Debugs is
 
-   procedure JQ_Dump_Rules (Lemon : in Lime.Lemon_Record)
+   procedure JQ_Dump_Rules (Session : in Sessions.Session_Type)
    is
       use Ada.Text_IO;
       use Rules;
 
-      Rule : Rule_Access := Lemon.Rule;
+      Rule : Rule_Access := Session.Rule;
    begin
       while Rule /= null loop
          Put ("RULE INDEX");

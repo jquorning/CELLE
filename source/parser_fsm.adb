@@ -18,10 +18,10 @@ with Extras;
 
 package body Parser_FSM is
 
-   use Lime;
+   use Sessions;
    use Parser_Data;
 
-   procedure Do_State_Waiting_For_Decl_Or_Rule (Lemon   : in out Lemon_Record;
+   procedure Do_State_Waiting_For_Decl_Or_Rule (Session : in out Session_Type;
                                                 Scanner : in out Scanner_Record;
                                                 Token   : in     String);
 
@@ -31,15 +31,15 @@ package body Parser_FSM is
    procedure Do_State_Precedence_Mark_2 (Scanner : in out Scanner_Record;
                                          Token   : in     String);
 
-   procedure Do_State_Waiting_For_Decl_Keyword (Lemon   : in out Lemon_Record;
+   procedure Do_State_Waiting_For_Decl_Keyword (Session : in out Session_Type;
                                                 Scanner : in out Scanner_Record;
                                                 Token   : in     String);
 
-   procedure Do_State_Waiting_For_Destructor_Symbol (Lemon   : in out Lemon_Record;
+   procedure Do_State_Waiting_For_Destructor_Symbol (Session : in out Session_Type;
                                                      Scanner : in out Scanner_Record;
                                                      Token   : in     String);
 
-   procedure Do_State_Waiting_For_Decl_Arg (Lemon   : in     Lemon_Record;
+   procedure Do_State_Waiting_For_Decl_Arg (Session : in     Session_Type;
                                             Scanner : in out Scanner_Record;
                                             Token   : in     String);
 
@@ -62,26 +62,26 @@ package body Parser_FSM is
                                    Token   : in     String);
 
 
-   procedure Do_State_In_RHS (Lemon   : in out Lemon_Record;
+   procedure Do_State_In_RHS (Session : in out Session_Type;
                               Scanner : in out Scanner_Record;
                               Token   : in     String);
 
-   procedure Do_State_Waiting_For_Datatype_Symbol (Lemon   : in out Lemon_Record;
+   procedure Do_State_Waiting_For_Datatype_Symbol (Session : in out Session_Type;
                                                    Scanner : in out Scanner_Record;
                                                    Token   : in     String);
 
-   procedure Do_State_Waiting_For_Precedence_Symbol (Lemon   : in out Lemon_Record;
+   procedure Do_State_Waiting_For_Precedence_Symbol (Session : in out Session_Type;
                                                      Scanner : in out Scanner_Record;
                                                      Token   : in     String);
 
-   procedure Do_State_Waiting_For_Fallback_Id (Lemon   : in out Lemon_Record;
+   procedure Do_State_Waiting_For_Fallback_Id (Session : in out Session_Type;
                                                Scanner : in out Scanner_Record;
                                                Token   : in     String);
 
    procedure Do_State_Waiting_For_Token_Name (Scanner : in out Scanner_Record;
                                               Token   : in     String);
 
-   procedure Do_State_Waiting_For_Wildcard_Id (Lemon   : in out Lemon_Record;
+   procedure Do_State_Waiting_For_Wildcard_Id (Session : in out Session_Type;
                                                Scanner : in out Scanner_Record;
                                                Token   : in     String);
 
@@ -104,7 +104,7 @@ package body Parser_FSM is
    use Ada.Strings.Unbounded;
 
 
-   procedure Do_State (Lemon   : in out Lemon_Record;
+   procedure Do_State (Session : in out Session_Type;
                        Scanner : in out Scanner_Record;
                        Token   : in     String)
    is
@@ -117,7 +117,7 @@ package body Parser_FSM is
             null;
 
          when WAITING_FOR_DECL_OR_RULE =>
-            Do_State_Waiting_For_Decl_Or_Rule (Lemon, Scanner, Token);
+            Do_State_Waiting_For_Decl_Or_Rule (Session, Scanner, Token);
 
          when PRECEDENCE_MARK_1 =>
             Do_State_Precedence_Mark_1 (Scanner, Token);
@@ -138,7 +138,7 @@ package body Parser_FSM is
             Do_State_LHS_Alias_3 (Scanner, Token);
 
          when IN_RHS =>
-            Do_State_In_RHS (Lemon, Scanner, Token);
+            Do_State_In_RHS (Session, Scanner, Token);
 
          when RHS_ALIAS_1 =>
             Do_State_RHS_Alias_1 (Scanner, Token);
@@ -147,28 +147,28 @@ package body Parser_FSM is
             Do_State_RHS_Alias_2 (Scanner, Token);
 
          when WAITING_FOR_DECL_KEYWORD =>
-            Do_State_Waiting_For_Decl_Keyword (Lemon, Scanner, Token);
+            Do_State_Waiting_For_Decl_Keyword (Session, Scanner, Token);
 
          when WAITING_FOR_DESTRUCTOR_SYMBOL =>
-            Do_State_Waiting_For_Destructor_Symbol (Lemon, Scanner, Token);
+            Do_State_Waiting_For_Destructor_Symbol (Session, Scanner, Token);
 
          when WAITING_FOR_DATATYPE_SYMBOL =>
-            Do_State_Waiting_For_Datatype_Symbol (Lemon, Scanner, Token);
+            Do_State_Waiting_For_Datatype_Symbol (Session, Scanner, Token);
 
          when WAITING_FOR_PRECEDENCE_SYMBOL =>
-            Do_State_Waiting_For_Precedence_Symbol (Lemon, Scanner, Token);
+            Do_State_Waiting_For_Precedence_Symbol (Session, Scanner, Token);
 
          when WAITING_FOR_DECL_ARG =>
-            Do_State_Waiting_For_Decl_Arg (Lemon, Scanner, Token);
+            Do_State_Waiting_For_Decl_Arg (Session, Scanner, Token);
 
          when WAITING_FOR_FALLBACK_ID =>
-            Do_State_Waiting_For_Fallback_Id (Lemon, Scanner, Token);
+            Do_State_Waiting_For_Fallback_Id (Session, Scanner, Token);
 
          when WAITING_FOR_TOKEN_NAME =>
             Do_State_Waiting_For_Token_Name (Scanner, Token);
 
          when WAITING_FOR_WILDCARD_ID =>
-            Do_State_Waiting_For_Wildcard_Id (Lemon, Scanner, Token);
+            Do_State_Waiting_For_Wildcard_Id (Session, Scanner, Token);
 
          when WAITING_FOR_CLASS_ID =>
             Do_State_Waiting_For_Class_Id (Scanner, Token);
@@ -195,7 +195,7 @@ package body Parser_FSM is
    end Do_State;
 
 
-   procedure Initialize_FSM (Lemon   : in out Lemon_Record;
+   procedure Initialize_FSM (Session : in out Session_Type;
                              Scanner : in out Scanner_Record)
    is
    begin
@@ -204,16 +204,16 @@ package body Parser_FSM is
       Scanner.First_Rule   := null;
       Scanner.Last_Rule    := null;
 
-      Lemon.N_Rule  := 0;
+      Session.N_Rule  := 0;
       Scanner.State := WAITING_FOR_DECL_OR_RULE;
    end Initialize_FSM;
 
 
-   procedure Do_State_Waiting_For_Decl_Or_Rule (Lemon   : in out Lemon_Record;
+   procedure Do_State_Waiting_For_Decl_Or_Rule (Session : in out Session_Type;
                                                 Scanner : in out Scanner_Record;
                                                 Token   : in     String)
    is
-      pragma Unreferenced (Lemon);
+      pragma Unreferenced (Session);
       use Rules;
 
       On_True : constant Boolean := False;
@@ -300,7 +300,7 @@ package body Parser_FSM is
    end Do_State_Precedence_Mark_2;
 
 
-   procedure Do_State_Waiting_For_Decl_Keyword (Lemon   : in out Lemon_Record;
+   procedure Do_State_Waiting_For_Decl_Keyword (Session : in out Session_Type;
                                                 Scanner : in out Scanner_Record;
                                                 Token   : in     String)
    is
@@ -344,65 +344,65 @@ package body Parser_FSM is
          Scanner.State := WAITING_FOR_DECL_ARG;
 
          if Match ("name") then
-            Scanner.Decl_Arg_Slot := Lemon.Names.Name'Access;
+            Scanner.Decl_Arg_Slot := Session.Names.Name'Access;
             Scanner.Insert_Line_Macro := False;
 
          elsif Match ("include") then
-            Scanner.Decl_Arg_Slot := Lemon.Names.Include'Access;
+            Scanner.Decl_Arg_Slot := Session.Names.Include'Access;
 
          elsif Match ("code") then
-            Scanner.Decl_Arg_Slot := Lemon.Names.Extra_Code'Access;
+            Scanner.Decl_Arg_Slot := Session.Names.Extra_Code'Access;
 
          elsif Match ("token_destructor") then
             Debug (Debug_On, "  token_destructor");
-            Scanner.Decl_Arg_Slot := Lemon.Names.Token_Dest'Access;
+            Scanner.Decl_Arg_Slot := Session.Names.Token_Dest'Access;
 
          elsif Match ("default_destructor") then
-            Scanner.Decl_Arg_Slot := Lemon.Names.Var_Dest'Access;
+            Scanner.Decl_Arg_Slot := Session.Names.Var_Dest'Access;
 
          elsif Match ("token_prefix") then
             Debug (Debug_On, "  token_prefix");
-            Scanner.Decl_Arg_Slot     := Lemon.Names.Token_Prefix'Access;
+            Scanner.Decl_Arg_Slot     := Session.Names.Token_Prefix'Access;
             Scanner.Insert_Line_Macro := False;
             --  Advance_Until_After_Space (Scanner);
 
          elsif Match ("syntax_error") then
-            Scanner.Decl_Arg_Slot := Lemon.Names.Error'Access;
+            Scanner.Decl_Arg_Slot := Session.Names.Error'Access;
 
          elsif Match ("parse_accept") then
-            Scanner.Decl_Arg_Slot := Lemon.Names.C_Accept'Access;
+            Scanner.Decl_Arg_Slot := Session.Names.C_Accept'Access;
 
          elsif Match ("parse_failure") then
-            Scanner.Decl_Arg_Slot := Lemon.Names.Failure'Access;
+            Scanner.Decl_Arg_Slot := Session.Names.Failure'Access;
 
          elsif Match ("stack_overflow") then
-            Scanner.Decl_Arg_Slot := Lemon.Names.Overflow'Access;
+            Scanner.Decl_Arg_Slot := Session.Names.Overflow'Access;
 
          elsif Match ("extra_argument") then
-            Scanner.Decl_Arg_Slot     := Lemon.Names.ARG2'Access;
+            Scanner.Decl_Arg_Slot     := Session.Names.ARG2'Access;
             Scanner.Insert_Line_Macro := False;
 
          elsif Match ("extra_context") then
             Debug (False, "  extra_context");
-            Scanner.Decl_Arg_Slot     := Lemon.Names.CTX2'Access;
+            Scanner.Decl_Arg_Slot     := Session.Names.CTX2'Access;
             Scanner.Insert_Line_Macro := False;
 
          elsif Match ("token_type") then
             Debug (Debug_On, "  token_type");
-            Scanner.Decl_Arg_Slot     := Lemon.Names.Token_Type'Access;
+            Scanner.Decl_Arg_Slot     := Session.Names.Token_Type'Access;
             Scanner.Insert_Line_Macro := False;
 
          elsif Match ("default_type") then
             Debug (False, "  default_type");
-            Scanner.Decl_Arg_Slot     := Lemon.Names.Var_Type'Access;
+            Scanner.Decl_Arg_Slot     := Session.Names.Var_Type'Access;
             Scanner.Insert_Line_Macro := False;
 
          elsif Match ("stack_size") then
-            Scanner.Decl_Arg_Slot     := Lemon.Names.Stack_Size'Access;
+            Scanner.Decl_Arg_Slot     := Session.Names.Stack_Size'Access;
             Scanner.Insert_Line_Macro := False;
 
          elsif Match ("start_symbol") then
-            Scanner.Decl_Arg_Slot     := Lemon.Names.Start'Access;
+            Scanner.Decl_Arg_Slot     := Session.Names.Start'Access;
             Scanner.Insert_Line_Macro := False;
 
          elsif Match ("left") then
@@ -455,11 +455,11 @@ package body Parser_FSM is
    end Do_State_Waiting_For_Decl_Keyword;
 
 
-   procedure Do_State_Waiting_For_Destructor_Symbol (Lemon   : in out Lemon_Record;
+   procedure Do_State_Waiting_For_Destructor_Symbol (Session : in out Session_Type;
                                                      Scanner : in out Scanner_Record;
                                                      Token   : in     String)
    is
-      pragma Unreferenced (Lemon);
+      pragma Unreferenced (Session);
    begin
       if
         Token (Token'First) not in 'a' .. 'z' and
@@ -597,7 +597,7 @@ package body Parser_FSM is
    end Do_State_RHS_Alias_2;
 
 
-   procedure Do_State_In_RHS (Lemon   : in out Lemon_Record;
+   procedure Do_State_In_RHS (Session : in out Session_Type;
                               Scanner : in out Scanner_Record;
                               Token   : in     String)
    is
@@ -676,8 +676,8 @@ package body Parser_FSM is
             Rule.No_Code    := True;
             Rule.Prec_Sym   := null;
 
-            Rule.Index   := Lemon.N_Rule;
-            Lemon.N_Rule := Lemon.N_Rule + 1;
+            Rule.Index   := Session.N_Rule;
+            Session.N_Rule := Session.N_Rule + 1;
 
 --            Rule.Next_LHS   := Rule.LHS.Rule;
 --            Rule.LHS.Rule   := Rule;
@@ -744,7 +744,7 @@ package body Parser_FSM is
    end Do_State_In_RHS;
 
 
-   procedure Do_State_Waiting_For_Decl_Arg (Lemon   : in     Lemon_Record;
+   procedure Do_State_Waiting_For_Decl_Arg (Session : in     Session_Type;
                                             Scanner : in out Scanner_Record;
                                             Token   : in     String)
    is
@@ -790,7 +790,7 @@ package body Parser_FSM is
 
             Add_Line_Macro :=
               --  not Scanner.Gp.No_Linenos_Flag and
-              not Lemon.No_Linenos_Flag and
+              not Session.No_Linenos_Flag and
               Scanner.Insert_Line_Macro and
               (Scanner.Decl_Lineno_Slot = null or
                  Scanner.Decl_Lineno_Slot.all /= 0);
@@ -877,11 +877,11 @@ package body Parser_FSM is
    end Do_State_Waiting_For_Decl_Arg;
 
 
-   procedure Do_State_Waiting_For_Datatype_Symbol (Lemon   : in out Lemon_Record;
+   procedure Do_State_Waiting_For_Datatype_Symbol (Session : in out Session_Type;
                                                    Scanner : in out Scanner_Record;
                                                    Token   : in     String)
    is
-      pragma Unreferenced (Lemon);
+      pragma Unreferenced (Session);
    begin
       if
         Token (Token'First) not in 'a' .. 'z' and
@@ -917,11 +917,11 @@ package body Parser_FSM is
    end Do_State_Waiting_For_Datatype_Symbol;
 
 
-   procedure Do_State_Waiting_For_Precedence_Symbol (Lemon   : in out Lemon_Record;
+   procedure Do_State_Waiting_For_Precedence_Symbol (Session : in out Session_Type;
                                                      Scanner : in out Scanner_Record;
                                                      Token   : in     String)
    is
-      pragma Unreferenced (Lemon);
+      pragma Unreferenced (Session);
    begin
       if Token (Token'First) = '.' then
          Scanner.State := WAITING_FOR_DECL_OR_RULE;
@@ -946,7 +946,7 @@ package body Parser_FSM is
    end Do_State_Waiting_For_Precedence_Symbol;
 
 
-   procedure Do_State_Waiting_For_Fallback_Id (Lemon   : in out Lemon_Record;
+   procedure Do_State_Waiting_For_Fallback_Id (Session : in out Session_Type;
                                                Scanner : in out Scanner_Record;
                                                Token   : in     String)
    is
@@ -968,7 +968,7 @@ package body Parser_FSM is
                Parser_Error (E216, Scanner.Token_Lineno, Token);
             else
                Symbol.Fallback := Scanner.Fallback;
-               Lemon.Has_Fallback := True;
+               Session.Has_Fallback := True;
                --  Scanner.Gp.Has_Fallback := True;
             end if;
          end;
@@ -1005,7 +1005,7 @@ package body Parser_FSM is
    end Do_State_Waiting_For_Token_Name;
 
 
-   procedure Do_State_Waiting_For_Wildcard_Id (Lemon   : in out Lemon_Record;
+   procedure Do_State_Waiting_For_Wildcard_Id (Session : in out Session_Type;
                                                Scanner : in out Scanner_Record;
                                                Token   : in     String)
    is
@@ -1023,8 +1023,8 @@ package body Parser_FSM is
 
             Symbol : constant Symbol_Access := Create (Token);
          begin
-            if Get_Wildcard (Lemon.Extra) = null then
-               Set_Wildcard (Lemon.Extra, Symbol);
+            if Get_Wildcard (Session.Extra) = null then
+               Set_Wildcard (Session.Extra, Symbol);
             else
                Parser_Error (E212, Scanner.Token_Lineno, Token);
             end if;

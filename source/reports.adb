@@ -33,31 +33,31 @@ with Sets;
 
 package body Reports is
 
-   procedure Reprint_C (Lemp : access Lime.Lemon_Record) is
+   procedure Reprint_C (Session : access Sessions.Session_Type) is
    begin
-      Reprint (Lemp.all);
+      Reprint (Session.all);
    end Reprint_C;
 
-   procedure Report_Output_C (Lemp : access Lime.Lemon_Record) is
+   procedure Report_Output_C (Session : access Sessions.Session_Type) is
    begin
-      Reprint (Lemp.all);
+      Reprint (Session.all);
    end Report_Output_C;
 
-   procedure Report_Table_C (Lemp : access Lime.Lemon_Record) is
+   procedure Report_Table_C (Session : access Sessions.Session_Type) is
    begin
       Report_Table
-        (Lemp.all,
+        (Session.all,
         User_Template_Name => Options.User_Template.all);
    end Report_Table_C;
 
-   procedure Compress_Tables_C (Lemp : access Lime.Lemon_Record) is
+   procedure Compress_Tables_C (Session : access Sessions.Session_Type) is
    begin
-      Compress_Tables (Lemp.all);
+      Compress_Tables (Session.all);
    end Compress_Tables_C;
 
-   procedure Resort_States_C (Lemp : access Lime.Lemon_Record) is
+   procedure Resort_States_C (Session : access Sessions.Session_Type) is
    begin
-      Resort_States (Lemp.all);
+      Resort_States (Session.all);
    end Resort_States_C;
 
    procedure Rule_Print (File : in Ada.Text_IO.File_Type;
@@ -86,7 +86,7 @@ package body Reports is
    --  lwr and upr, inclusive.  If pnByte!=NULL then also write the sizeof
    --  for that type (1, 2, or 4) into *pnByte.
 
-   function File_Makename (Global    : in Lime.Lemon_Record;
+   function File_Makename (Session   : in Sessions.Session_Type;
                            Extension : in String) return String;
 
 
@@ -94,24 +94,20 @@ package body Reports is
    --  Write text on "out" that describes the rule "rp".
 
    procedure Emit_Destructor_Code
-     (Symbol : in Symbols.Symbol_Access;
-      Lemp   : in Lime.Lemon_Record);
+     (Symbol  : in Symbols.Symbol_Access;
+      Session : in Sessions.Session_Type);
    --  The following routine emits code for the destructor for the
    --  symbol sp
 
    procedure Emit_Code
-     (
-      --  FILE *out,
-      Rule   : in Rules.Rule_Access;
-      Lemp : in Lime.Lemon_Record
-      --  int *lineno
-     );
+     (Rule    : in Rules.Rule_Access;
+      Session : in Sessions.Session_Type);
    --  Generate code which executes when the rule "rp" is reduced.  Write
    --  the code to "out".  Make sure lineno stays up-to-date.
 
 
    procedure Print_Stack_Union
-     (Lemp : in Lime.Lemon_Record);  --  The main info structure for this parser
+     (Session : in Sessions.Session_Type);  --  The main info structure for this parser
 
    --  struct lemon *lemp //,
    --  //  int mhflag                  /* True if generating makeheaders output */
@@ -124,7 +120,7 @@ package body Reports is
 
 
    procedure Generate_Tokens
-     (Lemon        : in Lime.Lemon_Record;
+     (Session        : in Sessions.Session_Type;
       Token_Prefix : in String;
       First        : in Integer;
       Last         : in Integer);
@@ -160,7 +156,7 @@ package body Reports is
    --
 
    procedure Output_YY_Shift_Offsets
-     (Lemp          : in Lime.Lemon_Record;
+     (Session       : in Sessions.Session_Type;
       N             : in Integer;
       MnTknOfst     : in Integer;
       MxTknOfst     : in Integer;
@@ -173,7 +169,7 @@ package body Reports is
    --
 
    procedure Output_YY_Reduce_Offsets
-     (Lemp          : in Lime.Lemon_Record;
+     (Session       : in Sessions.Session_Type;
       N             : in Integer;
       MnNtOfst      : in Integer;
       MxNtOfst      : in Integer;
@@ -182,7 +178,7 @@ package body Reports is
 
 
    procedure Output_Default_Action_Table
-     (Lemp         : in Lime.Lemon_Record;
+     (Session      : in Sessions.Session_Type;
       N            : in Integer;
       Error_Action : in Integer;
       Min_Reduce   : in Integer);
@@ -225,7 +221,7 @@ package body Reports is
      end record;
 
    procedure Report_Header
-     (Lemp          : in Lime.Lemon_Record;
+     (Session       : in Sessions.Session_Type;
       Token_Prefix  : in String;
       Base_Name     : in String;
       Module_Name   : in String;
@@ -234,7 +230,7 @@ package body Reports is
 
 
    procedure Generate_Spec
-     (Lemp      : in Lime.Lemon_Record;
+     (Session   : in Sessions.Session_Type;
       Base_Name : in String;
       Prefix    : in String;    --  Prefix of symbols in spec
       Module    : in String;    --  Prefix of symbols in spec
@@ -336,7 +332,7 @@ package body Reports is
 --    return c;
 --  }
 
-   procedure Reprint (Lemp : in Lime.Lemon_Record)
+   procedure Reprint (Session : in Sessions.Session_Type)
    is
       use Ada.Text_IO;
       use Ada.Strings.Unbounded;
@@ -354,7 +350,7 @@ package body Reports is
       Column : Natural;
    begin
       Put ("// Reprint of input file """);
-      Put (To_String (Unbounded_String'(Lemp.File_Name)));
+      Put (To_String (Unbounded_String'(Session.File_Name)));
       Put_Line (""".");
       Put_Line ("// Symbols:");
       Max_Len := 10;
@@ -375,12 +371,12 @@ package body Reports is
       end if;
 
       --  Print symbol list
-      Skip := (Integer (Lemp.N_Symbol) + N_Columns - 1) / N_Columns;
+      Skip := (Integer (Session.N_Symbol) + N_Columns - 1) / N_Columns;
       for I in 0 .. Skip - 1 loop
          Put ("//");
          J := Symbols.Symbol_Index (I);
          Column := 0;
-         while J < Lemp.N_Symbol loop
+         while J < Session.N_Symbol loop
             Symbol := Symbols.Element_At (Index => Natural (J));
             pragma Assert (Symbol.Index = J);
 
@@ -401,7 +397,7 @@ package body Reports is
       end loop;
 
       --  Print rules
-      Rule := Lemp.Rule;
+      Rule := Session.Rule;
       while Rule /= null loop
          Rule_Print (Standard_Output, Rule);
          Put (".");
@@ -415,7 +411,7 @@ package body Reports is
    end Reprint;
 
 
-   procedure Report_Output (Lemp : in Lime.Lemon_Record)
+   procedure Report_Output (Session : in Sessions.Session_Type)
    is
       use Ada.Text_IO;
       use Symbols;
@@ -437,14 +433,14 @@ package body Reports is
 --  fp = file_open(lemp,".out","wb");
       Open (File, Out_File, "XXX.out");
 
-      for I in Symbol_Index range 0 .. Symbol_Index (Lemp.Nx_State) - 1 loop
-         STP := Sorted_At (Lemp.Extra, Index => I);
+      for I in Symbol_Index range 0 .. Symbol_Index (Session.Nx_State) - 1 loop
+         STP := Sorted_At (Session.Extra, Index => I);
          Put (File, "State ");
          Put (File, Integer'Image (STP.State_Num));
          Put (File, ":");
          New_Line;
 
-         if Lemp.Basis_Flag then
+         if Session.Basis_Flag then
             CFP := Config_Access (STP.BP);
          else
             CFP := Config_Access (STP.CFP);
@@ -465,7 +461,7 @@ package body Reports is
 --      PlinkPrint(fp,cfp->fplp,"To  ");
 --      PlinkPrint(fp,cfp->bplp,"From");
 
-            if Lemp.Basis_Flag then
+            if Session.Basis_Flag then
                CFP := CFP.Basis;
             else
                CFP := CFP.Next;
@@ -495,20 +491,20 @@ package body Reports is
 
             Symbol : Symbol_Access;
          begin
-            Symbol := Element_At (Lemp.Extra, Index => I);
+            Symbol := Element_At (Session.Extra, Index => I);
             Put (File, "  " & I'Img & ": " & Name_Of (Symbol));
             if Symbol.Kind = Non_Terminal then
                Put (File, ":");
                if Symbol.Lambda then
                   Put (File, " <lambda>");
                end if;
-               for J in 0 .. Lemp.N_Terminal - 1 loop
+               for J in 0 .. Session.N_Terminal - 1 loop
                   if
                     Symbol.First_Set /= Sets.Null_Set and then
                     Sets.Set_Find (Symbol.First_Set, Natural (J))
                   then
                      Put (File, " ");
-                     Put (File, Name_Of (Element_At (Lemp.Extra, Index => J)));
+                     Put (File, Name_Of (Element_At (Session.Extra, Index => J)));
                   end if;
                end loop;
             end if;
@@ -530,7 +526,7 @@ package body Reports is
       for I in 0 .. Extras.Symbol_Count loop
          declare
             W      : Integer;
-            Symbol : constant Symbol_Access := Element_At (Lemp.Extra, Index => I);
+            Symbol : constant Symbol_Access := Element_At (Session.Extra, Index => I);
          begin
             if not Symbol.Content then
                W := Ada.Strings.Unbounded.Length (Symbol.Name);
@@ -554,7 +550,7 @@ package body Reports is
       Put_Line (File, "----------------------------------------------------");
       Put_Line (File, "Rules:");
 
-      Rule := Lemp.Rule;
+      Rule := Session.Rule;
       loop
          exit when Rule = null;
          Put (File, Rule.Rule'Img); -- XXX "%4d: ", rp->iRule);
@@ -577,15 +573,15 @@ package body Reports is
 
 
    procedure Report_Table
-     (Lemp               : in out Lime.Lemon_Record;
+     (Session            : in out Sessions.Session_Type;
       User_Template_Name : in     String)
    is
       use Ada.Strings.Unbounded;
-      use Lime;
+      use Sessions;
       use Rules;
       package Acttab renames Actions;
 
-      Lemp_Name : constant String := To_String (Lemp.Names.Name);
+      Session_Name : constant String := To_String (Session.Names.Name);
 --    char line[LINESIZE];
       STP : States.State_Access;
 --    struct action *ap;
@@ -607,35 +603,36 @@ package body Reports is
       Template_Open_Success : Integer;
       Error_Count           : Natural := 0;
    begin
-      Lemp.Min_Shift_Reduce := Lemp.N_State;
-      Lemp.Err_Action       := Lemp.Min_Shift_Reduce + Lemp.N_Rule;
-      Lemp.Acc_Action       := Lemp.Err_Action + 1;
-      Lemp.No_Action        := Lemp.Acc_Action + 1;
-      Lemp.Min_Reduce       := Lemp.No_Action + 1;
-      Lemp.Max_Action       := Lemp.Min_Reduce + Lemp.N_Rule;
+      Session.Min_Shift_Reduce := Session.N_State;
+      Session.Err_Action       := Session.Min_Shift_Reduce + Session.N_Rule;
+      Session.Acc_Action       := Session.Err_Action + 1;
+      Session.No_Action        := Session.Acc_Action + 1;
+      Session.Min_Reduce       := Session.No_Action + 1;
+      Session.Max_Action       := Session.Min_Reduce + Session.N_Rule;
 
       Template_Open (User_Template_Name, Error_Count, Template_Open_Success);
-      Implementation_Open (File_Makename (Lemp, ".c"));
+      Implementation_Open (File_Makename (Session, ".c"));
 
-      Template_Transfer (Lemp_Name);
+      Template_Transfer (Session_Name);
 
       --  Generate the include code, if any
-      --  Lime_Print (Lemp.Outname, Lemp.No_Linenos_Flag, Lemp.Include);
-      Template_Print (Ada.Strings.Unbounded.To_String (Lemp.Out_Name),
-                      Boolean'Pos (Lemp.No_Linenos_Flag),
-                      To_String (Lemp.Names.Include));
+      --  Sessions_Print (Session.Outname, Session.No_Linenos_Flag, Session.Include);
+      Template_Print (Ada.Strings.Unbounded.To_String (Session.Out_Name),
+                      Boolean'Pos (Session.No_Linenos_Flag),
+                      To_String (Session.Names.Include));
       --  lime_print (lime_get_ouüt_name (), lemp->nolinenosflag, lemap->include);
       --  lime_write_include (lime_get_mh_flag(), file_makename(lemp, ".h"));
-      Write_Include (File_Makename (Lemp, ".h"));
+      Write_Include (File_Makename (Session, ".h"));
 
-      Template_Transfer (Lemp_Name);
+      Template_Transfer (Session_Name);
 
       --  Generate #defines for all tokens
---  XXX    Lime_Lemp_Copy := Lemp;
+--  XXX    Sessions_Session_Copy := Session;
       --  lime_generate_tokens (lime_get_mh_flag(), lemp->tokenprefix, 1, lemp->nterminal);
-      Generate_Tokens (Lemp, To_String (Lemp.Names.Token_Prefix), 1, Integer (Lemp.N_Terminal));
+      Generate_Tokens (Session, To_String (Session.Names.Token_Prefix),
+                       1, Integer (Session.N_Terminal));
 
-      Template_Transfer (Lemp_Name);
+      Template_Transfer (Session_Name);
 
       --  Generate the defines
       declare
@@ -645,9 +642,9 @@ package body Reports is
          Code     : constant String := Minimum_Size_Type (0,
                                                           Integer (Extras.Symbol_Count),
                                                           Size_Of_Code_Type);
-         Action   : constant String := Minimum_Size_Type (0, Lemp.Max_Action,
+         Action   : constant String := Minimum_Size_Type (0, Session.Max_Action,
                                                           Size_Of_Action_Type);
-         Wildcard    : constant Symbol_Access := Get_Wildcard (Lemp.Extra);
+         Wildcard    : constant Symbol_Access := Get_Wildcard (Session.Extra);
          Is_Wildcard : constant Boolean       := (Wildcard /= null);
       begin
          if Is_Wildcard then
@@ -668,8 +665,8 @@ package body Reports is
       end;
 
       --  print_stack_union (lemp, lime_get_mh_flag());
-      Print_Stack_Union (Lemp);
-      Generate_The_Defines_2 (To_String (Lemp.Names.Stack_Size));
+      Print_Stack_Union (Session);
+      Generate_The_Defines_2 (To_String (Session.Names.Stack_Size));
 
 --    //if( lime_get_mh_flag() ){
 --    //  lime_put_line ("#if INTERFACE");
@@ -682,8 +679,8 @@ package body Reports is
 
          function Get_Name return String is
          begin
-            if Lemp.Names.Name /= "" then
-               return To_String (Lemp.Names.Name);
+            if Session.Names.Name /= "" then
+               return To_String (Session.Names.Name);
             else
                return "Parse";
             end if;
@@ -740,14 +737,14 @@ package body Reports is
          use Symbols;
          use Extras;
       begin
-         AX := new AX_Set_Array (0 .. Symbol_Index (Lemp.Nx_State) - 1);
+         AX := new AX_Set_Array (0 .. Symbol_Index (Session.Nx_State) - 1);
 
       --  if( ax==0 ){
       --    fprintf(stderr,"malloc failed\n");
       --    exit(1);
 
-         for I in Symbol_Index range 0 .. Symbol_Index (Lemp.Nx_State - 1) loop
-            STP := Sorted_At (Lemp.Extra, Index => I);
+         for I in Symbol_Index range 0 .. Symbol_Index (Session.Nx_State - 1) loop
+            STP := Sorted_At (Session.Extra, Index => I);
 
             AX (I).Token := (STP      => STP,
                              Is_Token => True,
@@ -770,7 +767,7 @@ package body Reports is
       --  of placing the largest action sets first
 --    for(i=0; i<lemp->nxstate*2; i++) ax[i].iOrder = i;
 --    qsort(ax, lemp->nxstate*2, sizeof(ax[0]), axset_compare);
-      Act_Tab := Acttab.Alloc (Integer (Extras.Symbol_Count), Integer (Lemp.N_Terminal));
+      Act_Tab := Acttab.Alloc (Integer (Extras.Symbol_Count), Integer (Session.N_Terminal));
 --    for(i=0; i<lemp->nxstate*2 && ax[i].nAction>0; i++){
 --      stp = ax[i].stp;
 --      if( ax[i].isTkn ){
@@ -827,16 +824,16 @@ package body Reports is
       --  been computed
       Render_Constants
         (Render =>
-           (Nx_State         => Lemp.Nx_State,
-            N_Rule           => Lemp.N_Rule,
-            N_Terminal       => Integer (Lemp.N_Terminal),
-            Min_Shift_Reduce => Lemp.Min_Shift_Reduce,
-            Err_Action       => Lemp.Err_Action,
-            Acc_Action       => Lemp.Acc_Action,
-            No_Action        => Lemp.No_Action,
-            Min_Reduce       => Lemp.Min_Reduce));
+           (Nx_State         => Session.Nx_State,
+            N_Rule           => Session.N_Rule,
+            N_Terminal       => Integer (Session.N_Terminal),
+            Min_Shift_Reduce => Session.Min_Shift_Reduce,
+            Err_Action       => Session.Err_Action,
+            Acc_Action       => Session.Acc_Action,
+            No_Action        => Session.No_Action,
+            Min_Reduce       => Session.Min_Reduce));
 
-      Template_Transfer (Lemp_Name);
+      Template_Transfer (Session_Name);
 
 
       --
@@ -857,18 +854,18 @@ package body Reports is
          --
          --  Output the yy_action table
          --
-         Lemp.N_Action_Tab := Acttab.Action_Size (Act_Tab.all);
-         N := Lemp.N_Action_Tab;
-         Lemp.Table_Size := Lemp.Table_Size + N * Size_Of_Action_Type;
+         Session.N_Action_Tab := Acttab.Action_Size (Act_Tab.all);
+         N := Session.N_Action_Tab;
+         Session.Table_Size := Session.Table_Size + N * Size_Of_Action_Type;
 
-         Output_Action_Table (Act_Tab, N, Lemp.No_Action);
+         Output_Action_Table (Act_Tab, N, Session.No_Action);
 
          --
          --  Output the yy_lookahead table
          --
-         Lemp.N_Lookahead_Tab := Acttab.Lookahead_Size (Act_Tab.all);
-         N := Lemp.N_Lookahead_Tab;
-         Lemp.Table_Size := Lemp.Table_Size + N * Size_Of_Code_Type;
+         Session.N_Lookahead_Tab := Acttab.Lookahead_Size (Act_Tab.all);
+         N := Session.N_Lookahead_Tab;
+         Session.Table_Size := Session.Table_Size + N * Size_Of_Code_Type;
       end;
 
       Output_YY_Lookahead (Act_Tab, N, Integer (Extras.Symbol_Count));
@@ -877,71 +874,71 @@ package body Reports is
       --  Output the yy_shift_ofst[] table
       --
 
-      N := Lemp.Nx_State;
---      while  N > 0 and Lemp.Sorted(N - 1).I_Tkn_Ofst = NO_Offset loop
+      N := Session.Nx_State;
+--      while  N > 0 and Session.Sorted(N - 1).I_Tkn_Ofst = NO_Offset loop
 --         N := N - 1;
 --      end loop;
 --
 --    lime_lemp = lemp;
       Output_YY_Shift_Offsets
-        (Lemp, N,
+        (Session, N,
          Mn_Tkn_Ofst,
          Mx_Tkn_Ofst,
-         Minimum_Size_Type (Mn_Tkn_Ofst, Integer (Lemp.N_Terminal) + Lemp.N_Action_Tab, SZ),
-         Lemp.N_Action_Tab,
+         Minimum_Size_Type (Mn_Tkn_Ofst, Integer (Session.N_Terminal) + Session.N_Action_Tab, SZ),
+         Session.N_Action_Tab,
          No_Offset);
 
-      Lemp.Table_Size := Lemp.Table_Size + N * SZ;
+      Session.Table_Size := Session.Table_Size + N * SZ;
 
       --
       --  Output the yy_reduce_ofst[] table
       --
-      N := Lemp.Nx_State;
+      N := Session.Nx_State;
 --    while( n>0 && lemp->sorted[n-1]->iNtOfst==NO_OFFSET ) n--;
 --
       Output_YY_Reduce_Offsets
-        (Lemp, N,
+        (Session, N,
          Mn_Nt_Ofst,
          Mx_Nt_Ofst,
          Minimum_Size_Type (Mn_Nt_Ofst - 1, Mx_Nt_Ofst, SZ),
          No_Offset);
-      Lemp.Table_Size := Lemp.Table_Size + N * SZ;
+      Session.Table_Size := Session.Table_Size + N * SZ;
 
       --
       --  Output the default action table
       --
       Output_Default_Action_Table
-        (Lemp, Lemp.Nx_State,
-         Lemp.Err_Action,
-         Lemp.Min_Reduce);
-      Lemp.Table_Size := Lemp.Table_Size + N * Size_Of_Action_Type;
+        (Session, Session.Nx_State,
+         Session.Err_Action,
+         Session.Min_Reduce);
+      Session.Table_Size := Session.Table_Size + N * Size_Of_Action_Type;
 
-      Template_Transfer (Lemp_Name);
+      Template_Transfer (Session_Name);
 
       --
       --  Generate the table of fallback tokens.
       --
-      if Lemp.Has_Fallback then
+      if Session.Has_Fallback then
          declare
 --            use Ada.Strings.Unbounded;
             use Symbols;
             use Extras;
 
-            MX : Symbol_Index := Lemp.N_Terminal - 1;
+            MX : Symbol_Index := Session.N_Terminal - 1;
          begin
-            --  while MX > 0 and Lemp.Symbols (MX).Fallback = 0 loop
+            --  while MX > 0 and Session.Symbols (MX).Fallback = 0 loop
             while
               MX > 0 and
-              Element_At (Lemp.Extra, Index => MX).Fallback = null
+              Element_At (Session.Extra, Index => MX).Fallback = null
             loop
                MX := MX - 1;
             end loop;
-            Lemp.Table_Size := Lemp.Table_Size + Integer (MX + 1) * Size_Of_Code_Type;
+            Session.Table_Size := Session.Table_Size + Integer (MX + 1) * Size_Of_Code_Type;
 
             for I in 0 .. MX loop
                declare
                   use Text_Out;
-                  P : constant Symbol_Access := Element_At (Lemp.Extra, I);
+                  P : constant Symbol_Access := Element_At (Session.Extra, I);
                begin
                   if P.Fallback = null then
                      Put ("    0,  /* ");
@@ -961,7 +958,7 @@ package body Reports is
          end;
       end if;
 
-      Template_Transfer (Lemp_Name);
+      Template_Transfer (Session_Name);
 
       --
       --  Generate A Table Containing the symbolic name of every symbol
@@ -976,9 +973,9 @@ package body Reports is
       begin
          for I in Symbol_Index range 0 .. Extras.Symbol_Count - 1 loop
             declare
-               Name : constant String := Name_Of (Element_At (Lemp.Extra, I));
+               Name : constant String := Name_Of (Element_At (Session.Extra, I));
             begin
-               --  Lemon_Sprintf (Line, """" & Name & """,");
+               --  Session_Sprintf (Line, """" & Name & """,");
                Put ("  /* "); --  %4d */ \"%s\",\n",i, lemp->symbols[i]->name);
                --  lineno++;
                Put_Int (Integer (I));
@@ -991,13 +988,13 @@ package body Reports is
             end;
          end loop;
 
-         Template_Transfer (Lemp_Name);
+         Template_Transfer (Session_Name);
 
          --  Generate a table containing a text string that describes every
          --  rule in the rule set of the grammar.  This information is used
          --  when tracing REDUCE actions.
          J  := 0;
-         Rule := Lemp.Rule;
+         Rule := Session.Rule;
 
          while Rule /= null loop
             pragma Assert (Rule.Rule = J);
@@ -1012,7 +1009,7 @@ package body Reports is
          end loop;
       end;
 
-      Template_Transfer (Lemp_Name);
+      Template_Transfer (Session_Name);
 
       --  Generate code which executes every time a symbol is popped from
       --  the stack while processing errors or while destroying the parser.
@@ -1040,13 +1037,13 @@ package body Reports is
          I := 0;
          loop
             exit when I >= Integer (Extras.Symbol_Count);
-            exit when Element_At (Lemp.Extra, Symbol_Index (I)).Kind = Terminal;
+            exit when Element_At (Session.Extra, Symbol_Index (I)).Kind = Terminal;
             I := I + 1;
          end loop;
 
          --  I : Symbols.Symbol_Index;
          --      if( i<lemp->nsymbol ){
-         Emit_Destructor_Code (Element_At (Lemp.Extra, Symbol_Index (I)), Lemp);
+         Emit_Destructor_Code (Element_At (Session.Extra, Symbol_Index (I)), Session);
          --        lime_put_line ("      break;");
          --      }
       end;
@@ -1129,7 +1126,7 @@ package body Reports is
 --      lime_put_line (" */");
 --    }
 --
-      Template_Transfer (Lemp_Name);
+      Template_Transfer (Session_Name);
 --
 --    for(i=0, rp=lemp->rule; rp; rp=rp->next, i++){
 --      lime_put ("  ");
@@ -1141,13 +1138,13 @@ package body Reports is
 --      lime_put_line (" */");
 --    }
 --
-      Template_Transfer (Lemp_Name);
+      Template_Transfer (Session_Name);
 
       --  Generate code which execution during each REDUCE action
       I  := 0;
-      Rule := Lemp.Rule;
+      Rule := Session.Rule;
       while Rule /= null loop
-         --  I  := I + Translate_Code (Lemp, Rule);
+         --  I  := I + Translate_Code (Session, Rule);
          Rule := Rule.Next;
       end loop;
 
@@ -1156,7 +1153,7 @@ package body Reports is
       end if;
 
       --  First output rules other than the default: rule
-      Rule := Lemp.Rule;
+      Rule := Session.Rule;
       while Rule /= null loop
       --      struct rule *rp2;               /* Other rules with the same action */
 --      if( rp->codeEmitted ) continue;
@@ -1184,7 +1181,7 @@ package body Reports is
 --            rp2->codeEmitted = 1;
 --          }
 --      }
-         Emit_Code (Rule, Lemp);
+         Emit_Code (Rule, Session);
 --      lime_put_line ("        break;");
 --      rp->codeEmitted = 1;
          Rule := Rule.Next;
@@ -1244,7 +1241,7 @@ package body Reports is
    end Report_Table;
 
 
-   procedure Compress_Tables (Lemp : in Lime.Lemon_Record)
+   procedure Compress_Tables (Session : in Sessions.Session_Type)
    is
    begin
       null;
@@ -1364,7 +1361,7 @@ package body Reports is
    end  Compress_Tables;
 
 
-   procedure Resort_States (Lemp : in Lime.Lemon_Record)
+   procedure Resort_States (Session : in Sessions.Session_Type)
    is
    begin
       null;
@@ -1584,13 +1581,13 @@ package body Reports is
    end Minimum_Size_Type;
 
 
-   function File_Makename (Global    : in Lime.Lemon_Record;
+   function File_Makename (Session   : in Sessions.Session_Type;
                            Extension : in String) return String
    is
       use Ada.Strings;
       use Ada.Strings.Unbounded;
 
-      File_Name    : constant String  := To_String (Global.File_Name);
+      File_Name    : constant String  := To_String (Session.File_Name);
       Dot_Position : constant Natural := Fixed.Index (File_Name, ".", Backward);
    begin
       if Dot_Position = 0 then
@@ -1634,7 +1631,7 @@ package body Reports is
 
    procedure Emit_Destructor_Code
      (Symbol : in Symbols.Symbol_Access;
-      Lemp   : in Lime.Lemon_Record)
+      Session   : in Sessions.Session_Type)
    is
       --  char *cp = 0;
    begin
@@ -1687,7 +1684,7 @@ package body Reports is
 
    procedure Emit_Code
      (Rule   : in Rules.Rule_Access;
-      Lemp : in Lime.Lemon_Record)
+      Session : in Sessions.Session_Type)
    is
 --         const char *cp;
    begin
@@ -1738,7 +1735,7 @@ package body Reports is
 
 
    procedure Print_Stack_Union
-     (Lemp : Lime.Lemon_Record)  --  The main info structure for this parser
+     (Session : Sessions.Session_Type)  --  The main info structure for this parser
    is
 --    char **types;             /* A hash table of datatypes */
 --    int arraysize;            /* Size of the "types" array */
@@ -1921,7 +1918,7 @@ package body Reports is
 --  }
 
    procedure Generate_Tokens
-     (Lemon        : in Lime.Lemon_Record;
+     (Session        : in Sessions.Session_Type;
       Token_Prefix : in String;
       First        : in Integer;
       Last         : in Integer)
@@ -1960,7 +1957,7 @@ package body Reports is
             --  Put_CP (Get_Token_Callback (I));
             --  return lime_lemp_copy->symbols[index]->name;
             Put (Name_Of
-                   (Element_At (Lemon.Extra,
+                   (Element_At (Session.Extra,
                                 Symbol_Index (I))));
             Put (" ");
             Put_Int (I);
@@ -1972,75 +1969,75 @@ package body Reports is
 
 
    procedure Reprint_Of_Grammar
-     (Lemon_Lemp    : in out Lime.Lemon_Record;
+     (Session       : in out Sessions.Session_Type;
       Base_Name     : in     String;
       Token_Prefix  : in     String;
       Terminal_Last : in     Natural)
    is
       use Ada.Text_IO;
-      use Lime;
+      use Sessions;
    begin
 --      if Options.RP_Flag then
---         Reports.Reprint (Lemon_Lemp);
+--         Reports.Reprint (Session);
 --      else
 
          --  Initialize the size for all follow and first sets
          Sets.Set_Size (Terminal_Last + 1);
 
          --  Find the precedence for every production rule (that has one)
-         Builds.Find_Rule_Precedences (Lemon_Lemp);
+         Builds.Find_Rule_Precedences (Session);
 
          --  Compute the lambda-nonterminals and the first-sets for every
          --  nonterminal
          Put_Line ("### 2-3");
-         Builds.Find_First_Sets (Lemon_Lemp);
+         Builds.Find_First_Sets (Session);
          Put_Line ("### 2-4");
          --  Compute all LR(0) states.  Also record follow-set propagation
          --  links so that the follow-set can be computed later
-         Compute_LR_States (Lemon_Lemp);
+         Compute_LR_States (Session);
          Put_Line ("### 2-5");
-         --         Lemon_Lemp->nstate = 0;
---         FindStates (Lemon_lemp);
---         Lemon_Lemp->sorted = State_arrayof();
+         --         Session->nstate = 0;
+--         FindStates (Session_lemp);
+--         Session->sorted = State_arrayof();
 
          --  Tie up loose ends on the propagation links
-         Find_Links (Lemon_Lemp);
+         Find_Links (Session);
          Put_Line ("### 2-6");
          --  Compute the follow set of every reducible configuration
-         Find_Follow_Sets (Lemon_Lemp);
+         Find_Follow_Sets (Session);
          Put_Line ("### 2-7");
          --  Compute the action tables
-         Find_Actions (Lemon_Lemp);
+         Find_Actions (Session);
          Put_Line ("### 2-8");
          --  Compress the action tables
          if not Options.Compress then
-            Reports.Compress_Tables (Lemon_Lemp);
+            Reports.Compress_Tables (Session);
          end if;
          Put_Line ("### 2-9");
          --  Reorder and renumber the states so that states with fewer choices
          --  occur at the end.  This is an optimization that helps make the
          --  generated parser tables smaller.
          if not Options.No_Resort then
-            Reports.Resort_States (Lemon_Lemp);
+            Reports.Resort_States (Session);
          end if;
          Put_Line ("### 2-10");
          --   Generate a report of the parser generated.  (the "y.output" file)
          if not Options.Be_Quiet then
-            Reports.Report_Output (Lemon_Lemp);
+            Reports.Report_Output (Session);
          end if;
 
          --  Generate the source code for the parser
          Reports.Report_Table
-           (Lemon_Lemp,
+           (Session,
            User_Template_Name => Options.User_Template.all);
 
          --  Produce a header file for use by the scanner.  (This step is
          --  omitted if the "-m" option is used because makeheaders will
          --  generate the file for us.)
          Report_Header
-           (Lemon_Lemp,
+           (Session,
             Token_Prefix,
-            Base_Name, -- File_Makename (Lemon_Lemp, ""),
+            Base_Name, -- File_Makename (Session, ""),
             "MODULE XXX",
             Terminal_Last);
 --      end if;
@@ -2155,7 +2152,7 @@ package body Reports is
 
    --  lemon.c:4414
    procedure Output_YY_Shift_Offsets
-     (Lemp          : in Lime.Lemon_Record;
+     (Session          : in Sessions.Session_Type;
       N             : in Integer;
       MnTknOfst     : in Integer;
       MxTknOfst     : in Integer;
@@ -2184,7 +2181,7 @@ package body Reports is
             STP : access States.State_Record;  --  States.State_Access;
          begin
             --  stp := lemp->sorted[i];
-            STP := Sorted_At (Lemp.Extra,
+            STP := Sorted_At (Session.Extra,
                               Symbol_Index (I));
             --  ofst := stp->iTknOfst;
             --  Ofst := Get_Token_Offset (I);
@@ -2210,7 +2207,7 @@ package body Reports is
 
    --  lemon.c:4440
    procedure Output_YY_Reduce_Offsets
-     (Lemp          : in Lime.Lemon_Record;
+     (Session          : in Sessions.Session_Type;
       N             : in Integer;
       MnNtOfst      : in Integer;
       MxNtOfst      : in Integer;
@@ -2235,7 +2232,7 @@ package body Reports is
 
             STP : access States.State_Record;
          begin
-            STP := Sorted_At (Lemp.Extra, Symbol_Index (I));
+            STP := Sorted_At (Session.Extra, Symbol_Index (I));
             Ofst := STP.iNtOfst;
          end;
          if Ofst = NO_OFFSET then
@@ -2258,7 +2255,7 @@ package body Reports is
 
    --  lemon.c:4465
    procedure Output_Default_Action_Table
-     (Lemp         : in Lime.Lemon_Record;
+     (Session         : in Sessions.Session_Type;
       N            : in Integer;
       Error_Action : in Integer;
       Min_Reduce   : in Integer)
@@ -2274,7 +2271,8 @@ package body Reports is
             use Symbols;
             use Extras;
 
-            STP : constant access States.State_Record := Sorted_At (Lemp.Extra, Symbol_Index (I));
+            STP : constant access States.State_Record :=
+              Sorted_At (Session.Extra, Symbol_Index (I));
          begin
 --         IDfltReduce := Get_Default_Reduce (I);
 --         stp := lemp->sorted[i];
@@ -2405,7 +2403,7 @@ package body Reports is
 
 
    procedure Report_Header
-     (Lemp          : in Lime.Lemon_Record;
+     (Session          : in Sessions.Session_Type;
       Token_Prefix  : in String;
       Base_Name     : in String;
       Module_Name   : in String;
@@ -2423,7 +2421,7 @@ package body Reports is
 --      end if;
 
       --  Generate parse.h.ads
-      Generate_Spec (Lemp,
+      Generate_Spec (Session,
                      Base_Name, Prefix, Module_Name,
                      First => 1,
                      Last  => Terminal_Last);
@@ -2431,7 +2429,7 @@ package body Reports is
 
 
    procedure Generate_Spec
-     (Lemp      : in Lime.Lemon_Record;
+     (Session      : in Sessions.Session_Type;
       Base_Name : in String;
       Prefix    : in String;
       Module    : in String;
@@ -2454,7 +2452,7 @@ package body Reports is
 
          when Options.Language_C =>
             Generate_C.Generate_Spec
-              (Lemp      => Lemp,
+              (Session   => Session,
                Context   => Context,
                File_Name => Base_Name,
                Module    => Module,

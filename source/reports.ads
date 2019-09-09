@@ -7,26 +7,26 @@
 --    May you share freely, not taking more than you give.
 --
 
-with Lime;
+with Sessions;
 
 package Reports is
 
-   procedure Reprint_C (Lemp : access Lime.Lemon_Record);
-   procedure Reprint (Lemp : in Lime.Lemon_Record);
+   procedure Reprint_C (Session : access Sessions.Session_Type);
+   procedure Reprint (Session : in Sessions.Session_Type);
    --  Duplicate the input file without comments and without actions
    --  on rules
 
-   procedure Report_Output_C (Lemp : access Lime.Lemon_Record);
-   procedure Report_Output (Lemp : in Lime.Lemon_Record);
+   procedure Report_Output_C (Session : access Sessions.Session_Type);
+   procedure Report_Output (Session : in Sessions.Session_Type);
    --  Generate the "*.out" log file
 
-   procedure Report_Table_C (Lemp : access Lime.Lemon_Record);
-   procedure Report_Table (Lemp               : in out Lime.Lemon_Record;
+   procedure Report_Table_C (Session : access Sessions.Session_Type);
+   procedure Report_Table (Session            : in out Sessions.Session_Type;
                            User_Template_Name : in     String);
    --  Generate C source code for the parser
 
-   procedure Compress_Tables_C (Lemp : access Lime.Lemon_Record);
-   procedure Compress_Tables (Lemp : in Lime.Lemon_Record);
+   procedure Compress_Tables_C (Session : access Sessions.Session_Type);
+   procedure Compress_Tables (Session : in Sessions.Session_Type);
    --  Reduce the size of the action tables, if possible, by making use
    --  of defaults.
    --
@@ -35,8 +35,8 @@ package Reports is
    --  is a possible look-ahead.
 
 
-   procedure Resort_States_C (Lemp : access Lime.Lemon_Record);
-   procedure Resort_States (Lemp : in Lime.Lemon_Record);
+   procedure Resort_States_C (Session : access Sessions.Session_Type);
+   procedure Resort_States (Session : in Sessions.Session_Type);
    --  Renumber and resort states so that states with fewer choices
    --  occur at the end.  Except, keep state 0 as the first state.
 
@@ -44,7 +44,7 @@ package Reports is
 
 
    procedure Reprint_Of_Grammar
-     (Lemon_Lemp    : in out Lime.Lemon_Record;
+     (Session       : in out Sessions.Session_Type;
       Base_Name     : in     String;
       Token_Prefix  : in     String;
       Terminal_Last : in     Natural);

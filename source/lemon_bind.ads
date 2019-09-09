@@ -7,7 +7,7 @@
 --    May you share freely, not taking more than you give.
 --
 
-with Lime;
+with Sessions;
 with Rules;
 with Configs;
 
@@ -19,7 +19,7 @@ package Lemon_Bind is
      (Rule : in Rules.Rule_Access;
       I    : in Integer) return Configs.Config_Access;
 
-   procedure Get_State (Lem : in out Lime.Lemon_Record);
+   procedure Get_State (Lem : in out Sessions.Session_Type);
 
 private
 

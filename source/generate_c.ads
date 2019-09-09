@@ -8,7 +8,7 @@
 --
 
 with Backend;
-with Lime;
+with Sessions;
 
 package Generate_C is
 
@@ -22,7 +22,7 @@ package Generate_C is
       Error_Count   : in out Integer);
 
    procedure Generate_Spec
-     (Lemp      : in     Lime.Lemon_Record;
+     (Session   : in     Sessions.Session_Type;
       Context   : in out Context_Type;
       File_Name : in     String;
       Module    : in     String;
