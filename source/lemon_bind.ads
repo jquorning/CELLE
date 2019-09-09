@@ -16,8 +16,8 @@ package Lemon_Bind is
    procedure Configlist_Init;
 
    function Configlist_Add_Basis
-     (RP : in Rules.Rule_Access;
-      I  : in Integer) return Configs.Config_Access;
+     (Rule : in Rules.Rule_Access;
+      I    : in Integer) return Configs.Config_Access;
 
    procedure Get_State (Lem : in out Lime.Lemon_Record);
 

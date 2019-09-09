@@ -102,7 +102,7 @@ package body Reports is
    procedure Emit_Code
      (
       --  FILE *out,
-      RP   : in Rules.Rule_Access;
+      Rule   : in Rules.Rule_Access;
       Lemp : in Lime.Lemon_Record
       --  int *lineno
      );
@@ -347,7 +347,7 @@ package body Reports is
       package Symbol_Index_IO is
          new Ada.Text_IO.Integer_IO (Num => Symbol_Index);
 
-      RP     : Rules.Rule_Access;
+      Rule     : Rules.Rule_Access;
       Symbol : Symbol_Access;
       J      : Symbol_Index;
       Max_Len, Len, N_Columns, Skip : Integer;
@@ -401,16 +401,16 @@ package body Reports is
       end loop;
 
       --  Print rules
-      RP := Lemp.Rule;
-      while RP /= null loop
-         Rule_Print (Standard_Output, RP);
+      Rule := Lemp.Rule;
+      while Rule /= null loop
+         Rule_Print (Standard_Output, Rule);
          Put (".");
-         if RP.Prec_Sym /= null then
-            Put (" [" & Name_Of (Symbol_Access (RP.Prec_Sym)) & "]");
+         if Rule.Prec_Sym /= null then
+            Put (" [" & Name_Of (Symbol_Access (Rule.Prec_Sym)) & "]");
          end if;
          --  /* if( rp->code ) printf("\n    %s",rp->code); */
          New_Line;
-         RP := RP.Next;
+         Rule := Rule.Next;
       end loop;
    end Reprint;
 
@@ -432,7 +432,7 @@ package body Reports is
       STP : States.State_Access;
       CFP : Config_Access;
       AP  : Action_Access;
-      RP  : Rule_Access;
+      Rule  : Rule_Access;
    begin
 --  fp = file_open(lemp,".out","wb");
       Open (File, Out_File, "XXX.out");
@@ -451,9 +451,9 @@ package body Reports is
          end if;
 
          while CFP /= null loop
-            if CFP.DOT = CFP.RP.RHS'Length then
+            if CFP.DOT = CFP.Rule.RHS'Length then
                Put (File, "    (");
-               Put (File, CFP.RP.Rule'Img);
+               Put (File, CFP.Rule.Rule'Img);
                Put (File, ") ");
             else
                Put (File, "          ");
@@ -554,22 +554,22 @@ package body Reports is
       Put_Line (File, "----------------------------------------------------");
       Put_Line (File, "Rules:");
 
-      RP := Lemp.Rule;
+      Rule := Lemp.Rule;
       loop
-         exit when RP = null;
-         Put (File, RP.Rule'Img); -- XXX "%4d: ", rp->iRule);
+         exit when Rule = null;
+         Put (File, Rule.Rule'Img); -- XXX "%4d: ", rp->iRule);
          Put (File, ": ");
-         Rule_Print (File, RP);
+         Rule_Print (File, Rule);
          Put (File, ".");
-         if RP.Prec_Sym /= null then
+         if Rule.Prec_Sym /= null then
             Put (File, " [");
-            Put (File, Name_Of (Symbol_Access (RP.Prec_Sym)));
+            Put (File, Name_Of (Symbol_Access (Rule.Prec_Sym)));
             Put (File, " precedence=");
-            Put (File, RP.Prec_Sym.Prec'Img);
+            Put (File, Rule.Prec_Sym.Prec'Img);
             Put (File, "]");
          end if;
          New_Line (File);
-         RP := RP.Next;
+         Rule := Rule.Next;
       end loop;
 
       Close (File);
@@ -589,7 +589,7 @@ package body Reports is
 --    char line[LINESIZE];
       STP : States.State_Access;
 --    struct action *ap;
-      RP  : Rules.Rule_Access;
+      Rule  : Rules.Rule_Access;
 
       Act_Tab : Actions.A_Action_Table;
 --    int i, j, n, sz;
@@ -972,7 +972,7 @@ package body Reports is
          use Extras;
 
          J : Integer;
-         RP : Rules.Rule_Access;
+         Rule : Rules.Rule_Access;
       begin
          for I in Symbol_Index range 0 .. Extras.Symbol_Count - 1 loop
             declare
@@ -997,18 +997,18 @@ package body Reports is
          --  rule in the rule set of the grammar.  This information is used
          --  when tracing REDUCE actions.
          J  := 0;
-         RP := Lemp.Rule;
+         Rule := Lemp.Rule;
 
-         while RP /= null loop
-            pragma Assert (RP.Rule = J);
+         while Rule /= null loop
+            pragma Assert (Rule.Rule = J);
             --  fprintf(out," /* %3d */ \"", i);
             Put (" /* ");
             Put_Int (J);
             Put (" */ """);
-            Write_Rule_Text (RP);
+            Write_Rule_Text (Rule);
             --  fprintf(out,"\",\n"); lineno++;
             Put_Line (""",");
-            RP := RP.Next;
+            Rule := Rule.Next;
          end loop;
       end;
 
@@ -1125,7 +1125,7 @@ package body Reports is
 --      lime_put (", /* (");
 --      lime_put_int (i);
 --      lime_put (" ");
-      Rule_Print (Ada.Text_IO.Standard_Output, RP);
+      Rule_Print (Ada.Text_IO.Standard_Output, Rule);
 --      lime_put_line (" */");
 --    }
 --
@@ -1145,10 +1145,10 @@ package body Reports is
 
       --  Generate code which execution during each REDUCE action
       I  := 0;
-      RP := Lemp.Rule;
-      while RP /= null loop
-         --  I  := I + Translate_Code (Lemp, RP);
-         RP := RP.Next;
+      Rule := Lemp.Rule;
+      while Rule /= null loop
+         --  I  := I + Translate_Code (Lemp, Rule);
+         Rule := Rule.Next;
       end loop;
 
       if I /= 0 then
@@ -1156,8 +1156,8 @@ package body Reports is
       end if;
 
       --  First output rules other than the default: rule
-      RP := Lemp.Rule;
-      while RP /= null loop
+      Rule := Lemp.Rule;
+      while Rule /= null loop
       --      struct rule *rp2;               /* Other rules with the same action */
 --      if( rp->codeEmitted ) continue;
 --      if( rp->noCode ){
@@ -1184,10 +1184,10 @@ package body Reports is
 --            rp2->codeEmitted = 1;
 --          }
 --      }
-         Emit_Code (RP, Lemp);
+         Emit_Code (Rule, Lemp);
 --      lime_put_line ("        break;");
 --      rp->codeEmitted = 1;
-         RP := RP.Next;
+         Rule := Rule.Next;
       end loop;
 --
 --    /* Finally, output the default: rule.  We choose as the default: all
@@ -1686,7 +1686,7 @@ package body Reports is
 
 
    procedure Emit_Code
-     (RP   : in Rules.Rule_Access;
+     (Rule   : in Rules.Rule_Access;
       Lemp : in Lime.Lemon_Record)
    is
 --         const char *cp;
@@ -1873,7 +1873,7 @@ package body Reports is
    end Print_Stack_Union;
 
 
- --  procedure Rule_Print (RP : in Rules.Rule_Access)
+ --  procedure Rule_Print (Rule : in Rules.Rule_Access)
  --  is
       --  int i, j;
 --   begin

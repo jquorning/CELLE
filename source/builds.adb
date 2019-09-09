@@ -19,32 +19,32 @@ package body Builds is
       use Rules;
       use Symbols;
 
-      RP : Rule_Access;
+      Rule : Rule_Access;
    begin
-      RP := Lemon.Rule;
-      while RP /= null loop
-         if RP.Prec_Sym = null then
-            for I in RP.RHS.all'Range loop
-               exit when RP.Prec_Sym /= null;
+      Rule := Lemon.Rule;
+      while Rule /= null loop
+         if Rule.Prec_Sym = null then
+            for I in Rule.RHS.all'Range loop
+               exit when Rule.Prec_Sym /= null;
                declare
-                  Symbol : constant Symbol_Access := RP.RHS (I);
+                  Symbol : constant Symbol_Access := Rule.RHS (I);
                begin
                   if Symbol.Kind = Multi_Terminal then
 
                      for J in Symbol.Sub_Sym.First_Index .. Symbol.Sub_Sym.Last_Index loop
                         if Symbol.Sub_Sym (J).Prec >= 0 then
-                           RP.Prec_Sym := Rule_Symbol_Access (Symbol.Sub_Sym.Element (J));
+                           Rule.Prec_Sym := Rule_Symbol_Access (Symbol.Sub_Sym.Element (J));
                            exit;
                         end if;
                      end loop;
 
                   elsif Symbol.Prec >= 0 then
-                     RP.Prec_Sym := Rule_Symbol_Access (RP.RHS (I));
+                     Rule.Prec_Sym := Rule_Symbol_Access (Rule.RHS (I));
                   end if;
                end;
             end loop;
          end if;
-         RP := RP.Next;
+         Rule := Rule.Next;
       end loop;
    end Find_Rule_Precedences;
 
@@ -55,7 +55,7 @@ package body Builds is
       use Symbols;
 
       I_Copy   : Integer;
-      RP       : Rule_Access;
+      Rule       : Rule_Access;
       Progress : Boolean;
    begin
       Symbols.Set_Lambda_False_And_Set_Firstset (First => Natural (Lemon.N_Terminal),
@@ -71,30 +71,30 @@ package body Builds is
       --  First compute all lambdas
       loop
          Progress := False;
-         RP := Lemon.Rule;
+         Rule := Lemon.Rule;
          loop
-            exit when RP = null;
+            exit when Rule = null;
 
-            if RP.LHS.Lambda then
+            if Rule.LHS.Lambda then
                goto Continue;
             end if;
 
-            for I in RP.RHS'Range loop
+            for I in Rule.RHS'Range loop
                I_Copy := I;
                declare
-                  Symbol : constant Symbol_Access := RP.RHS (I);
+                  Symbol : constant Symbol_Access := Rule.RHS (I);
                begin
                   pragma Assert (Symbol.Kind = Non_Terminal or Symbol.Lambda = False);
                   exit when Symbol.Lambda = False;
                end;
             end loop;
 
-            if I_Copy = RP.RHS'Last then
-               RP.LHS.Lambda := True;
+            if I_Copy = Rule.RHS'Last then
+               Rule.LHS.Lambda := True;
                Progress := True;
             end if;
 
-            RP := RP.Next;
+            Rule := Rule.Next;
          end loop;
          exit when not Progress;
          <<Continue>>
@@ -108,13 +108,13 @@ package body Builds is
             S2 : Symbol_Access;
          begin
             Progress := False;
-            RP := Lemon.Rule;
+            Rule := Lemon.Rule;
             loop
-               exit when RP = null;
-               S1 := RP.LHS;
+               exit when Rule = null;
+               S1 := Rule.LHS;
 
-               for I in RP.RHS'Range loop
-                  S2 := RP.RHS (I);
+               for I in Rule.RHS'Range loop
+                  S2 := Rule.RHS (I);
 
                   if S2.Kind = Terminal then
                      if Sets.Set_Add (S1.First_Set, Natural (S2.Index)) then
@@ -144,7 +144,7 @@ package body Builds is
 
                   end if;
                end loop;
-               RP := RP.Next;
+               Rule := Rule.Next;
             end loop;
          end;
          exit when not Progress;
@@ -163,7 +163,7 @@ package body Builds is
 
       Lemp   : Lime.Lemon_Record renames Lemon;
       Symbol : Symbol_Access;
-      RP : Rule_Access;
+      Rule : Rule_Access;
    begin
       Configlist_Init;
 
@@ -194,11 +194,11 @@ package body Builds is
       --  Make sure the start symbol doesn't occur on the right-hand side of
       --  any rule.  Report an error if it does.  (YACC would generate a new
       --  start symbol in this case.)
-      RP := Lemp.Rule;
+      Rule := Lemp.Rule;
       loop
-         exit when RP = null;
-         for I in RP.RHS'Range loop
-            if RP.RHS (I) = Symbol then   --  FIX ME:  Deal with multiterminals XXX
+         exit when Rule = null;
+         for I in Rule.RHS'Range loop
+            if Rule.RHS (I) = Symbol then   --  FIX ME:  Deal with multiterminals XXX
                Errors.Error_Plain
                  (File_Name   => Lemp.File_Name,
                   Line_Number => 0,
@@ -211,24 +211,24 @@ package body Builds is
                Lemp.Error_Cnt := Lemp.Error_Cnt + 1;
             end if;
          end loop;
-         RP := RP.Next;
+         Rule := Rule.Next;
       end loop;
 
       --  The basis configuration set for the first state
       --  is all rules which have the start symbol as their
       --  left-hand side
-      RP := Rule_Access (Symbol.Rule);
+      Rule := Rule_Access (Symbol.Rule);
       loop
-         exit when RP = null;
+         exit when Rule = null;
          declare
             Dummy   : Boolean;
             New_CFP : Configs.Config_Access;
          begin
-            RP.LHS_Start := True;
-            New_CFP := Configlist_Add_Basis (RP, 0);
+            Rule.LHS_Start := True;
+            New_CFP := Configlist_Add_Basis (Rule, 0);
             Dummy := Sets.Set_Add (New_CFP.Follow_Set, 0);
          end;
-         RP := RP.Next_LHS;
+         Rule := Rule.Next_LHS;
       end loop;
 
       --  Compute the first state.  All other states will be

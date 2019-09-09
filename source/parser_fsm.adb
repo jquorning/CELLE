@@ -637,10 +637,10 @@ package body Parser_FSM is
             --  Rp.rhsalias := (const char**)&(rp->rhs[psp->nrhs]);
 
             --                    for I in 0 .. PSP.N_RHS - 1 loop
-            --                       RP.RHS       (I) := PSP.RHS   (I);
-            --                       RP.RHS_Alias (I) := PSP.Alias (I);
-            --                       if RP.RHS_Alias (I) /= null then
-            --                          RP.RHS (I).Content := True;
+            --                       Rule.RHS       (I) := PSP.RHS   (I);
+            --                       Rule.RHS_Alias (I) := PSP.Alias (I);
+            --                       if Rule.RHS_Alias (I) /= null then
+            --                          Rule.RHS (I).Content := True;
             --                       end if;
             --                    end loop;
 
@@ -652,11 +652,11 @@ package body Parser_FSM is
                   Debug (Debug_On, "I:" & Integer'Image (I));
                   Rule.RHS (I) := Scanner.RHS   (I);
                   Append (Rule.RHS_Alias, Scanner.Alias.Element (I));
-                  --  if Symbols."/=" (RP.RHS_Alias (I), Null_Unbounded_String) then
+                  --  if Symbols."/=" (Rule.RHS_Alias (I), Null_Unbounded_String) then
                   --                        declare
                   --                           use
                   --                        begin
-                  --  if RP.RHS_Alias (I) /= Null_Unbounded_String then
+                  --  if Rule.RHS_Alias (I) /= Null_Unbounded_String then
                   if Length (Rule.RHS_Alias (I)) /= 0 then
                      Rule.RHS (I).Content := True;
                   end if;

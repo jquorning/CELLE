@@ -34,7 +34,7 @@ package Configs is
    pragma Convention (C_Pass_By_Copy, Plink_Record);  -- lemon.h:188
 
    type Config_Record is record
-      RP          : Rules.Rule_Access;         --  The rule upon which the configuration is based
+      Rule        : Rules.Rule_Access;         --  The rule upon which the configuration is based
       DOT         : Integer;                   --  The parse point
 
       Follow_Set  : Sets.Set_Type;

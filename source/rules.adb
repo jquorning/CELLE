@@ -18,30 +18,30 @@ package body Rules is
    is
       use type Symbols.Symbol_Index;
 
-      I  : Symbols.Symbol_Index;
-      RP : Rules.Rule_Access;
+      I    : Symbols.Symbol_Index;
+      Rule : Rules.Rule_Access;
    begin
       --  Assing .Rule
-      I := 0;
-      RP := Lemon_Rule;
-      while RP /= null loop
-         if RP.Code = Null_Code then
-            RP.Rule := -1;
+      I    := 0;
+      Rule := Lemon_Rule;
+      while Rule /= null loop
+         if Rule.Code = Null_Code then
+            Rule.Rule := -1;
          else
-            RP.Rule := Integer (I);
+            Rule.Rule := Integer (I);
             I := I + 1;
          end if;
-         RP := RP.Next;
+         Rule := Rule.Next;
       end loop;
 
       --  Assign Rule numbers when Rule < 0 stop when Rule = 0.
-      RP := Lemon_Rule;
-      while RP /= null loop
-         if RP.Rule < 0 then
-            RP.Rule := Integer (I);
+      Rule := Lemon_Rule;
+      while Rule /= null loop
+         if Rule.Rule < 0 then
+            Rule.Rule := Integer (I);
             I := I + 1;
          end if;
-         RP := RP.Next;
+         Rule := Rule.Next;
       end loop;
 
       Start_Rule := Lemon_Rule;
