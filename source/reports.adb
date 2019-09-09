@@ -94,8 +94,8 @@ package body Reports is
    --  Write text on "out" that describes the rule "rp".
 
    procedure Emit_Destructor_Code
-     (SP   : in Symbols.Symbol_Access;
-      Lemp : in Lime.Lemon_Record);
+     (Symbol : in Symbols.Symbol_Access;
+      Lemp   : in Lime.Lemon_Record);
    --  The following routine emits code for the destructor for the
    --  symbol sp
 
@@ -347,9 +347,9 @@ package body Reports is
       package Symbol_Index_IO is
          new Ada.Text_IO.Integer_IO (Num => Symbol_Index);
 
-      RP   : Rules.Rule_Access;
-      SP   : Symbol_Access;
-      J    : Symbol_Index;
+      RP     : Rules.Rule_Access;
+      Symbol : Symbol_Access;
+      J      : Symbol_Index;
       Max_Len, Len, N_Columns, Skip : Integer;
       Column : Natural;
    begin
@@ -361,8 +361,8 @@ package body Reports is
 
       --  Determine Max_Len
       for I in 0 .. Symbols.Last_Index loop
-         SP  := Symbols.Element_At (Index => I);
-         Len := Length (SP.Name);
+         Symbol := Symbols.Element_At (Index => I);
+         Len := Length (Symbol.Name);
          if Len > Max_Len then
             Max_Len := Len;
          end if;
@@ -381,14 +381,14 @@ package body Reports is
          J := Symbols.Symbol_Index (I);
          Column := 0;
          while J < Lemp.N_Symbol loop
-            SP := Symbols.Element_At (Index => Natural (J));
-            pragma Assert (SP.Index = J);
+            Symbol := Symbols.Element_At (Index => Natural (J));
+            pragma Assert (Symbol.Index = J);
 
             Put (" ");
             Symbol_Index_IO.Put (J, Width => 3);
             Put (" ");
             declare
-               Name  : constant String := Symbols.Name_Of (SP);
+               Name  : constant String := Symbols.Name_Of (Symbol);
                Field : String (1 .. Max_Len) := (others => ' ');
             begin
                Field (Name'Range) := Name;
@@ -493,29 +493,28 @@ package body Reports is
          declare
             use type Sets.Set_Type;
 
-            SP : Symbol_Access;
+            Symbol : Symbol_Access;
          begin
-            SP := Element_At (Lemp.Extra, Index => I);
-            Put (File, "  " & I'Img & ": " & Name_Of (SP));
-            if SP.Kind = Non_Terminal then
+            Symbol := Element_At (Lemp.Extra, Index => I);
+            Put (File, "  " & I'Img & ": " & Name_Of (Symbol));
+            if Symbol.Kind = Non_Terminal then
                Put (File, ":");
-               if SP.Lambda then
+               if Symbol.Lambda then
                   Put (File, " <lambda>");
                end if;
                for J in 0 .. Lemp.N_Terminal - 1 loop
---                  if Symbols."=" (SP.First_Set, Null_Set) then
                   if
-                    SP.First_Set /= Sets.Null_Set and then
-                    Sets.Set_Find (SP.First_Set, Natural (J))
+                    Symbol.First_Set /= Sets.Null_Set and then
+                    Sets.Set_Find (Symbol.First_Set, Natural (J))
                   then
                      Put (File, " ");
                      Put (File, Name_Of (Element_At (Lemp.Extra, Index => J)));
                   end if;
                end loop;
             end if;
-            if SP.Prec >= 0 then
+            if Symbol.Prec >= 0 then
                Put (File, " (precedence=");
-               Put (File, SP.Prec'Img);
+               Put (File, Symbol.Prec'Img);
                Put (File, ")");
             end if;
          end;
@@ -1634,8 +1633,8 @@ package body Reports is
 
 
    procedure Emit_Destructor_Code
-     (SP   : in Symbols.Symbol_Access;
-      Lemp : in Lime.Lemon_Record)
+     (Symbol : in Symbols.Symbol_Access;
+      Lemp   : in Lime.Lemon_Record)
    is
       --  char *cp = 0;
    begin

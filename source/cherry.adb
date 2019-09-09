@@ -13,18 +13,18 @@ package body Cherry is
 
 
    procedure Add_The_Accepting_Token
-     (Lemp : in out Lime.Lemon_Record;
-      SP   : in out Symbols.Symbol_Access)
+     (Lemp   : in out Lime.Lemon_Record;
+      Symbol : in out Symbols.Symbol_Access)
    is
       use Ada.Strings.Unbounded;
       use Symbols;
    begin
       if Lemp.Names.Start = "" then
-         SP := Symbol_Access (Lemp.Start_Rule.LHS);
+         Symbol := Symbol_Access (Lemp.Start_Rule.LHS);
       else
-         SP := Find (To_String (Lemp.Names.Start));
-         if SP = null then
-            SP := Symbol_Access (Lemp.Start_Rule.LHS);
+         Symbol := Find (To_String (Lemp.Names.Start));
+         if Symbol = null then
+            Symbol := Symbol_Access (Lemp.Start_Rule.LHS);
          end if;
       end if;
    end Add_The_Accepting_Token;

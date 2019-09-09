@@ -27,18 +27,18 @@ package body Builds is
             for I in RP.RHS.all'Range loop
                exit when RP.Prec_Sym /= null;
                declare
-                  SP : constant Symbol_Access := RP.RHS (I);
+                  Symbol : constant Symbol_Access := RP.RHS (I);
                begin
-                  if SP.Kind = Multi_Terminal then
+                  if Symbol.Kind = Multi_Terminal then
 
-                     for J in SP.Sub_Sym.First_Index .. SP.Sub_Sym.Last_Index loop
-                        if SP.Sub_Sym (J).Prec >= 0 then
-                           RP.Prec_Sym := Rule_Symbol_Access (SP.Sub_Sym.Element (J));
+                     for J in Symbol.Sub_Sym.First_Index .. Symbol.Sub_Sym.Last_Index loop
+                        if Symbol.Sub_Sym (J).Prec >= 0 then
+                           RP.Prec_Sym := Rule_Symbol_Access (Symbol.Sub_Sym.Element (J));
                            exit;
                         end if;
                      end loop;
 
-                  elsif SP.Prec >= 0 then
+                  elsif Symbol.Prec >= 0 then
                      RP.Prec_Sym := Rule_Symbol_Access (RP.RHS (I));
                   end if;
                end;
@@ -82,10 +82,10 @@ package body Builds is
             for I in RP.RHS'Range loop
                I_Copy := I;
                declare
-                  SP : constant Symbol_Access := RP.RHS (I);
+                  Symbol : constant Symbol_Access := RP.RHS (I);
                begin
-                  pragma Assert (SP.Kind = Non_Terminal or SP.Lambda = False);
-                  exit when SP.Lambda = False;
+                  pragma Assert (Symbol.Kind = Non_Terminal or Symbol.Lambda = False);
+                  exit when Symbol.Lambda = False;
                end;
             end loop;
 
@@ -161,8 +161,8 @@ package body Builds is
       use Symbols;
       use Rules;
 
-      Lemp : Lime.Lemon_Record renames Lemon;
-      SP : Symbol_Access;
+      Lemp   : Lime.Lemon_Record renames Lemon;
+      Symbol : Symbol_Access;
       RP : Rule_Access;
    begin
       Configlist_Init;
@@ -172,8 +172,8 @@ package body Builds is
       --  lime_partial_database_dump_ada ();
 
       if Lemp.Names.Start /= "" then
-         SP := Find (To_String (Lemp.Names.Start));
-         if SP = null then
+         Symbol := Find (To_String (Lemp.Names.Start));
+         if Symbol = null then
             Errors.Error_Plain
               (File_Name   => Lemp.File_Name,
                Line_Number => 0,
@@ -185,10 +185,10 @@ package body Builds is
                   2 => To_Unbounded_String (Name_Of (Symbol_Access (Lemp.Start_Rule.LHS))))
               );
             Lemp.Error_Cnt := Lemp.Error_Cnt + 1;
-            SP := Symbol_Access (Lemp.Start_Rule.LHS);
+            Symbol := Symbol_Access (Lemp.Start_Rule.LHS);
          end if;
       else
-         SP := Symbol_Access (Lemp.Start_Rule.LHS);
+         Symbol := Symbol_Access (Lemp.Start_Rule.LHS);
       end if;
 
       --  Make sure the start symbol doesn't occur on the right-hand side of
@@ -198,7 +198,7 @@ package body Builds is
       loop
          exit when RP = null;
          for I in RP.RHS'Range loop
-            if RP.RHS (I) = SP then   --  FIX ME:  Deal with multiterminals XXX
+            if RP.RHS (I) = Symbol then   --  FIX ME:  Deal with multiterminals XXX
                Errors.Error_Plain
                  (File_Name   => Lemp.File_Name,
                   Line_Number => 0,
@@ -206,7 +206,7 @@ package body Builds is
                     "The start symbol '%1' occurs on the right-hand " &
                     "side of a rule. This will result in a parser which " &
                     "does not work properly.",
-                  Arguments   => (1 => To_Unbounded_String (Name_Of (SP)))
+                  Arguments   => (1 => To_Unbounded_String (Name_Of (Symbol)))
                  );
                Lemp.Error_Cnt := Lemp.Error_Cnt + 1;
             end if;
@@ -217,7 +217,7 @@ package body Builds is
       --  The basis configuration set for the first state
       --  is all rules which have the start symbol as their
       --  left-hand side
-      RP := Rule_Access (SP.Rule);
+      RP := Rule_Access (Symbol.Rule);
       loop
          exit when RP = null;
          declare

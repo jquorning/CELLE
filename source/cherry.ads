@@ -16,8 +16,8 @@ package Cherry is
    procedure Dummy is null;
 
    procedure Add_The_Accepting_Token
-     (Lemp : in out Lime.Lemon_Record;
-      SP   : in out Symbols.Symbol_Access);
+     (Lemp   : in out Lime.Lemon_Record;
+      Symbol : in out Symbols.Symbol_Access);
    --  Add the accepting Token.
 
 
