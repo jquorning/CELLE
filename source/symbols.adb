@@ -116,9 +116,12 @@ package body Symbols is
          Name : constant String      := To_String (Item.Name);
          Char : constant Character   := Name (Name'First);
       begin
-         if Kind = Multi_Terminal then return 3;
-         elsif Char > 'Z'         then return 2;
-         else                          return 1;
+         if Kind = Multi_Terminal then
+            return 3;
+         elsif Char > 'Z' then
+            return 2;
+         else
+            return 1;
          end if;
       end Value_Of;
 
@@ -126,9 +129,9 @@ package body Symbols is
       I_Right : constant Integer := Value_Of (Right);
    begin
       if I_Left = I_Right then
-         return (Left.Index - Right.Index) > 0;
+         return Left.Index - Right.Index > 0;
       else
-         return (I_Left - I_Right) > 0;
+         return I_Left - I_Right > 0;
       end if;
    end "<";
 
@@ -228,8 +231,9 @@ package body Symbols is
 
       Symbol_Count := Index - 1;
       Index := 1;
+      while
+         To_String (Base (Index).all.Name) (1) in 'A' .. 'Z'
       loop
-         exit when To_String (Base (Index).all.Name) (1) not in 'A' .. 'Z';
          Index := Index + 1;
       end loop;
       Terminal_Count := Index;

@@ -15,8 +15,7 @@ package body Debugs is
 
       Rule : Rule_Access := Lemon.Rule;
    begin
-      loop
-         exit when Rule = null;
+      while Rule /= null loop
          Put ("RULE INDEX");
          Put (Rule.Index'Img);
          Put (" RULE");

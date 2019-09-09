@@ -23,8 +23,8 @@ package Symbols is
    pragma Convention (C, Symbol_Kind);
 
    type E_Assoc is
-     (Left,
-      Right,
+     (Left_Assoc,
+      Right_Assoc,
       None,
       Unk);
    pragma Convention (C, E_Assoc);
@@ -75,7 +75,7 @@ package Symbols is
          Prec      : Integer          := 0;
          --  Precedence if defined (-1 otherwise)
 
-         Assoc     : E_Assoc          := Left;
+         Assoc     : E_Assoc          := Left_Assoc;
          --  Associativity if precedence is defined
 
          First_Set : Sets.Set_Type := Sets.Null_Set;

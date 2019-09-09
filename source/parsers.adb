@@ -71,7 +71,6 @@ package body Parsers is
 
    procedure Parse (Lemon : in out Lime.Lemon_Record)
    is
-      use Ada.Text_IO;
       use Ada.Strings.Unbounded;
       use Ada.Characters;
 
@@ -233,7 +232,7 @@ package body Parsers is
                                  C := Filebuf (Index);
                                  Debug (On_True, "C code literal:" & C);
                                  exit when C = Latin_1.NUL;
-                                 exit when (C = Start_Char and Prev_C /= '\');
+                                 exit when C = Start_Char and Prev_C /= '\';
                                  if C = Latin_1.LF then
                                     Scanner.Line_Number := Scanner.Line_Number + 1;
                                  end if;
@@ -293,15 +292,14 @@ package body Parsers is
                         C := Filebuf (Index);
                         exit when C = Latin_1.NUL;
                         if
-                          C in 'a' .. 'z' or
-                          C in 'A' .. 'Z' or
-                          C in '0' .. '9' or
-                          C = '_'
+                          not (C in 'a' .. 'z' or
+                                 C in 'A' .. 'Z' or
+                                 C in '0' .. '9' or
+                                 C = '_')
                         then
-                           Index := Index + 1;
-                        else
                            exit;
                         end if;
+                        Index := Index + 1;
                      end loop;
                      Next_Index := Index;
 

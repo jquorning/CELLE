@@ -58,8 +58,10 @@ package body Auxiliary is
    function Is_Upper (C : in Character) return Boolean is
    begin
       case C is
-         when 'A' .. 'Z' =>  return True;
-         when others     =>  return False;
+         when 'A' .. 'Z' =>
+            return True;
+         when others     =>
+            return False;
       end case;
    end Is_Upper;
 
@@ -67,8 +69,10 @@ package body Auxiliary is
    function Is_Lower (C : in Character) return Boolean is
    begin
       case C is
-         when 'a' .. 'z' =>  return True;
-         when others     =>  return False;
+         when 'a' .. 'z' =>
+            return True;
+         when others     =>
+            return False;
       end case;
    end Is_Lower;
 
@@ -76,9 +80,12 @@ package body Auxiliary is
    function Is_Alpha (C : in Character) return Boolean is
    begin
       case C is
-         when 'A' .. 'Z' =>  return True;
-         when 'a' .. 'z' =>  return True;
-         when others     =>  return False;
+         when 'A' .. 'Z' =>
+            return True;
+         when 'a' .. 'z' =>
+            return True;
+         when others     =>
+            return False;
       end case;
    end Is_Alpha;
 

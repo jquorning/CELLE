@@ -23,12 +23,12 @@ package body Macros is
      (Positive,
       Unbounded_String);
 
-   Macros : Macro_Vectors.Vector;
+   Macro_List : Macro_Vectors.Vector;
 
    procedure Append (Name : in String)
    is
    begin
-      Macros.Append (To_Unbounded_String (Name));
+      Macro_List.Append (To_Unbounded_String (Name));
    end Append;
 
 
@@ -49,8 +49,7 @@ package body Macros is
    begin
 
       I := Buffer'First;
-      loop
-         exit when Buffer (I) = Latin_1.NUL;
+      while  Buffer (I) /= Latin_1.NUL loop
 
          if Buffer (I) = Latin_1.LF then
             Lineno := Lineno + 1;
@@ -65,18 +64,19 @@ package body Macros is
             if Exclude /= 0 then
                Exclude := Exclude - 1;
                if Exclude = 0 then
-                  for J in Start .. I - 1 loop
-                     if Buffer (J) /= Latin_1.LF then
-                        Buffer (J) := ' ';
+                  for M in Start .. I - 1 loop
+                     if Buffer (M) /= Latin_1.LF then
+                        Buffer (M) := ' ';
                      end if;
                   end loop;
                end if;
             end if;
 
             J := I;
+            while
+              Buffer (J) /= Latin_1.NUL and
+              Buffer (J) /= Latin_1.LF
             loop
-               exit when Buffer (J) = Latin_1.NUL;
-               exit when Buffer (J) = Latin_1.LF;
                Buffer (J) := ' ';
                J := J + 1;
             end loop;
@@ -87,38 +87,35 @@ package body Macros is
            (Buffer (I .. I + 6) = "%ifndef" and Is_Space (Buffer (I + 7)))
          then
 
-            if Exclude /= 0 then
-               Exclude := Exclude + 1;
-            else
-
+            if Exclude = 0 then
                J := I + 7;
-               loop
-                  exit when not Is_Space (Buffer (J));
+               while Is_Space (Buffer (J)) loop
                   J := J + 1;
                end loop;
 
                --  Find lenght of macro name
                N := 0;
+               while
+                 Buffer (J + N) /= Latin_1.NUL and
+                 not Is_Space (Buffer (J + N))
                loop
-                  exit when Buffer (J + N) = Latin_1.NUL;
-                  exit when Is_Space (Buffer (J + N));
                   N := N + 1;
                end loop;
 
                --  Find macro name in list of appended macro names
                Exclude := 1;
-               for K of Macros loop
-                  if Buffer (J .. J + N) = K then
+               for Macro of Macro_List loop
+                  if Buffer (J .. J + N) = Macro then
                      Exclude := 0;
                      exit;
                   end if;
                end loop;
 
                if Buffer (I + 3) = 'n' then
-                  if Exclude /= 0 then
-                     Exclude := 0;
-                  else
+                  if Exclude = 0 then
                      Exclude := 1;
+                  else
+                     Exclude := 0;
                   end if;
                end if;
 
@@ -127,12 +124,15 @@ package body Macros is
                   Start_Lineno := Lineno;
                end if;
 
+            else
+               Exclude := Exclude + 1;
             end if;
 
             J := I;
+            while
+              Buffer (J) /= Latin_1.NUL and
+              Buffer (J) /= Latin_1.LF
             loop
-               exit when Buffer (J) = Latin_1.NUL;
-               exit when Buffer (J) = Latin_1.LF;
                Buffer (J) := ' ';
                J := J + 1;
             end loop;

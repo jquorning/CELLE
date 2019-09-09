@@ -22,8 +22,7 @@ package body Builds is
       RP : Rule_Access;
    begin
       RP := Lemon.Rule;
-      loop
-         exit when RP = null;
+      while RP /= null loop
          if RP.Prec_Sym = null then
             for I in RP.RHS.all'Range loop
                exit when RP.Prec_Sym /= null;

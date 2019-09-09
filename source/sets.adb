@@ -45,7 +45,7 @@ package body Sets is
    begin
 --  int lemon_set_add(char *s, int e)
       pragma Assert (Item >= 0 and Item < Size);
-      RV := (Set (Item) /= '0');
+      RV := Set (Item) /= '0';
       Set (Item) := '1';
       return RV;
    end Set_Add;
@@ -73,7 +73,8 @@ package body Sets is
 
 
    function Set_Find (Set  : in Set_Type;
-                      Item : in Natural) return Boolean is
+                      Item : in Natural) return Boolean
+   is
    begin
       return Set (Item) = '1';
    end Set_Find;

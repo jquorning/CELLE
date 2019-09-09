@@ -81,7 +81,7 @@ package body Generate_Ada is
             Template_Name := To_Unbounded_String (Default_Template);
          else
             Ada.Text_IO.Put_Line ("### 3-3");
-            null;  --  Template_Name := Pathsearch (Lemp.Argv0, Templatename, 0);
+            --  Template_Name := Pathsearch (Lemp.Argv0, Templatename, 0);
          end if;
       end;
 

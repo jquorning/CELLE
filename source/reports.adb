@@ -341,8 +341,7 @@ package body Reports is
       use Ada.Text_IO;
       use Ada.Strings.Unbounded;
       use Symbols;
-      use Rules;
-      use Extras;
+      use type Rules.Rule_Access;
 
       package Symbol_Index_IO is
          new Ada.Text_IO.Integer_IO (Symbol_Index);
@@ -380,8 +379,7 @@ package body Reports is
          Put ("//");
          J := Symbols.Symbol_Index (I);
          Column := 0;
-         loop
-            exit when J >= Lemp.N_Symbol;
+         while J < Lemp.N_Symbol loop
             SP := Symbols.Element_At (Index => Natural (J));
             pragma Assert (SP.Index = J);
 
@@ -403,8 +401,7 @@ package body Reports is
 
       --  Print rules
       RP := Lemp.Rule;
-      loop
-         exit when RP = null;
+      while RP /= null loop
          Rule_Print (Standard_Output, RP);
          Put (".");
          if RP.Prec_Sym /= null then

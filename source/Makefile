@@ -13,3 +13,5 @@ build:
 clean:
 	cd ..; make clean
 
+check:
+	cd ..; make check

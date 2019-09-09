@@ -57,8 +57,10 @@ package Actions is
    type State_Rule_Kind is (Is_State, Is_Rule);
    type anon1015_x_union (discr : State_Rule_Kind := Is_State) is record
       case discr is
-         when Is_State  => stp  : access States.State_Record;  --  The look-ahead symbol
-         when Is_Rule   => Rule : access Rules.Rule_Record;    --  The new state, if a shift
+         when Is_State  =>
+            stp  : access States.State_Record;  --  The look-ahead symbol
+         when Is_Rule   =>
+            Rule : access Rules.Rule_Record;    --  The new state, if a shift
       end case;
    end record;
 

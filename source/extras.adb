@@ -50,13 +50,13 @@ package body Extras is
       end record;
 
 
-   Extra : aliased Extra_Record;
+   Extra_Base : aliased Extra_Record;
    --  The one and only Extra instance.
 
 
    function Get_Extra return Extra_Access is
    begin
-      return Extra'Access;
+      return Extra_Base'Access;
    end Get_Extra;
 
 
@@ -111,7 +111,7 @@ package body Extras is
       Position : Symbol_Maps.Cursor;
    begin
       Position :=
-        Symbol_Maps.Find (Extra.Symbol_Map, Name);
+        Symbol_Maps.Find (Extra_Base.Symbol_Map, Name);
       --      Key => Symbols.From_Key (Key));
       return null;  --  XXX
    end Find;
@@ -148,13 +148,13 @@ package body Extras is
       Name_Left     : constant String        := To_String (Element_Left.Name);
       Name_Right    : constant String        := To_String (Element_Right.Name);
    begin
-      return (Name_Left = Name_Right);
+      return Name_Left = Name_Right;
    end "=";
 
 
    procedure Set_Error is
    begin
-      Extra.Error := Find ("error");
+      Extra_Base.Error := Find ("error");
    end Set_Error;
 
 
@@ -164,8 +164,8 @@ package body Extras is
 
       Index : Symbol_Index := 0;
    begin
-      for I of Extra.Symbol_List loop
-         I.Index := Index; -- Lemon.Symbols.all (I).Index := I;
+      for Symbol of Extra_Base.Symbol_List loop
+         Symbol.Index := Index; -- Lemon.Symbols.all (I).Index := I;
          Index := Index + 1;
       end loop;
 
@@ -173,8 +173,8 @@ package body Extras is
       --  Symbol_Maps.Length (Extra.Symbol_Map));
       declare
          use Ada.Containers;
-         Length_List : constant Count_Type := Symbol_Lists.Length (Extra.Symbol_List);
-         Length_Map  : constant Count_Type := Symbol_Maps. Length (Extra.Symbol_Map);
+         Length_List : constant Count_Type := Symbol_Lists.Length (Extra_Base.Symbol_List);
+         Length_Map  : constant Count_Type := Symbol_Maps. Length (Extra_Base.Symbol_Map);
       begin
          if Length_List /= Length_Map then
             raise Program_Error;
@@ -185,12 +185,12 @@ package body Extras is
       declare
          use Ada.Containers;
          --  function Cursor_To_Cursor (Cursor : Symbol_Lists.Cursor) return Symbol_Maps.Cursor;
-         Length_List : constant Count_Type := Symbol_Lists.Length (Extra.Symbol_List);
+         Length_List : constant Count_Type := Symbol_Lists.Length (Extra_Base.Symbol_List);
          Indirect : array (1 .. Length_List) of Symbol_Cursor;
          Running  : Symbol_Lists.Cursor :=
-           Symbol_Lists.First (Extra.Symbol_List);
+           Symbol_Lists.First (Extra_Base.Symbol_List);
       begin
-         for Index in Indirect'Range loop
+         for Index_2 in Indirect'Range loop
             --  Indirect (Index) :=
             --    Symbol_Lists.Element (Extra.Symbol_List,
             --                          Position => To_Cursor (To_Cursor (Running)));
@@ -206,7 +206,7 @@ package body Extras is
    procedure Symbol_Append (Key      : in Symbols.Key_Type;
                             New_Item : in Symbols.Symbol_Record)
    is
-      First    : constant Symbol_Lists.Cursor := Symbol_Lists.First (Extra.Symbol_List);
+      First    : constant Symbol_Lists.Cursor := Symbol_Lists.First (Extra_Base.Symbol_List);
       --      Element  : Symbol_Record;
       Position : Symbol_Maps.Cursor;
    begin
@@ -242,7 +242,7 @@ package body Extras is
    is
       Count : Ada.Containers.Count_Type;
    begin
-      Count := Symbol_Maps.Length (Extra.Symbol_Map);
+      Count := Symbol_Maps.Length (Extra_Base.Symbol_Map);
       return Symbols.Symbol_Index (Count);
    end Symbol_Count;
 

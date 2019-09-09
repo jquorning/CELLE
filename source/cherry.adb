@@ -19,13 +19,13 @@ package body Cherry is
       use Ada.Strings.Unbounded;
       use Symbols;
    begin
-      if Lemp.Names.Start /= "" then
+      if Lemp.Names.Start = "" then
+         SP := Symbol_Access (Lemp.Start_Rule.LHS);
+      else
          SP := Find (To_String (Lemp.Names.Start));
          if SP = null then
             SP := Symbol_Access (Lemp.Start_Rule.LHS);
          end if;
-      else
-         SP := Symbol_Access (Lemp.Start_Rule.LHS);
       end if;
    end Add_The_Accepting_Token;
 
@@ -47,21 +47,24 @@ package body Cherry is
 
 
    function Set_Add_C (Set  : in out Set_Type;
-                       Item : in     Natural) return Integer is
+                       Item : in     Natural) return Integer
+   is
    begin
       return Boolean'Pos (Sets.Set_Add (Set, Item));
    end Set_Add_C;
 
 
    function Set_Union_C (Set_1 : in out Set_Type;
-                         Set_2 : in out Set_Type) return Integer is
+                         Set_2 : in out Set_Type) return Integer
+   is
    begin
       return Boolean'Pos (Sets.Set_Union (Set_1, Set_2));
    end Set_Union_C;
 
 
    function Set_Find_C (Set : in Set_Type;
-                        Item : in Natural) return Integer is
+                        Item : in Natural) return Integer
+   is
    begin
       return Boolean'Pos (Sets.Set_Find (Set, Item));
    end Set_Find_C;

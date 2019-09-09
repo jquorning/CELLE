@@ -67,9 +67,10 @@ package body Report_Parsers is
    function Is_Alnum (C : Character) return Boolean
    is
    begin
-      return (C in 'a' .. 'z' or
-                C in 'A' .. 'Z' or
-                C in '0' .. '9');
+      return
+        C in 'a' .. 'z' or
+        C in 'A' .. 'Z' or
+        C in '0' .. '9';
    end Is_Alnum;
 
 

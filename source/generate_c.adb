@@ -77,8 +77,8 @@ package body Generate_C is
             Template_Name := Buf;
          elsif Ada.Directories.Exists (Default_Template) then
             Template_Name := To_Unbounded_String (Default_Template);
-         else
-            null;  --  Template_Name := Pathsearch (Lemp.Argv0, Templatename, 0);
+         --  else
+         --  null;  --  Template_Name := Pathsearch (Lemp.Argv0, Templatename, 0);
          end if;
       end;
 

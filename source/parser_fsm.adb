@@ -183,9 +183,12 @@ package body Parser_FSM is
 
       when RESYNC_AFTER_DECL_ERROR =>
          case C is
-            when '.' =>  Scanner.State := WAITING_FOR_DECL_OR_RULE;
-            when '%' =>  Scanner.State := WAITING_FOR_DECL_KEYWORD;
-            when others => null;
+            when '.' =>
+               Scanner.State := WAITING_FOR_DECL_OR_RULE;
+            when '%' =>
+               Scanner.State := WAITING_FOR_DECL_KEYWORD;
+            when others =>
+               null;
          end case;
 
       end case;
@@ -402,12 +405,12 @@ package body Parser_FSM is
 
          elsif Match ("left") then
             Scanner.Prec_Counter := Scanner.Prec_Counter + 1;
-            Scanner.Decl_Assoc   := Symbols.Left;
+            Scanner.Decl_Assoc   := Symbols.Left_Assoc;
             Scanner.State   := WAITING_FOR_PRECEDENCE_SYMBOL;
 
          elsif Match ("right") then
             Scanner.Prec_Counter := Scanner.Prec_Counter + 1;
-            Scanner.Decl_Assoc   := Symbols.Right;
+            Scanner.Decl_Assoc   := Symbols.Right_Assoc;
             Scanner.State   := WAITING_FOR_PRECEDENCE_SYMBOL;
 
          elsif Match ("nonassoc") then
@@ -613,14 +616,13 @@ package body Parser_FSM is
 
             Rule : access Rule_Record;
          begin
-            begin
-               Debug (Debug_On, "Scanner.RHS: " & Scanner.RHS.Length'Img);
-               Debug (Debug_On, "Scanner.Alias: " & Scanner.Alias.Length'Img);
-               Rule := new Rule_Record;
-               Rule.RHS :=
-                 new Symbol_Access_Array'
-                 (Natural (1) .. Natural (Scanner.RHS.Length)
-                    => new Symbol_Record);
+            Debug (Debug_On, "Scanner.RHS: " & Scanner.RHS.Length'Img);
+            Debug (Debug_On, "Scanner.Alias: " & Scanner.Alias.Length'Img);
+            Rule := new Rule_Record;
+            Rule.RHS :=
+              new Symbol_Access_Array'
+              (1 .. Natural (Scanner.RHS.Length)
+                 => new Symbol_Record);
 --               Rule.RHS_Alias.Count (Scanner.RHS.Length);
             --  Rp := (struct rule *)calloc( sizeof(struct rule) +
             --                               sizeof(struct symbol*)*psp->nrhs +
@@ -632,7 +634,6 @@ package body Parser_FSM is
 --                           "Can't allocate enough memory for this rule.");
 --                  psp->errorcnt++;
 --                  Psp.Prev_Rule := 0;
-            end;
 
             Rule.Rule_Line := Scanner.Token_Lineno;
             --  Rp.rhs      := (struct symbol**)&rp[1];
@@ -782,10 +783,10 @@ package body Parser_FSM is
                New_First := New_First + 1;
             end if;
 
-            if Scanner.Decl_Arg_Slot /= null then  --  A_Declaration (Null_Unbounded_String) then
-               Old_String := Scanner.Decl_Arg_Slot.all;
-            else
+            if Scanner.Decl_Arg_Slot = null then  --  A_Declaration (Null_Unbounded_String) then
                Old_String := To_Unbounded_String ("");
+            else
+               Old_String := Scanner.Decl_Arg_Slot.all;
             end if;
             Old_Length := Length (Old_String);
             N := Old_Length + New_First + 20;
@@ -1070,7 +1071,7 @@ package body Parser_FSM is
          Scanner.State := WAITING_FOR_DECL_OR_RULE;
 
       elsif
-        (C in 'A' .. 'Z') or
+        C in 'A' .. 'Z' or
         ((C = '|' or C = '/') and
            Token (Token'First + 1) in 'A' .. 'Z')
       then

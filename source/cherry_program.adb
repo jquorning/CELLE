@@ -129,7 +129,6 @@ begin
    declare
       use Ada.Strings.Unbounded;
       use Ada.Text_IO;
-      use Lime;
       use Symbols;
       use Rules;
 
