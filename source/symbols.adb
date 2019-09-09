@@ -47,18 +47,16 @@ package body Symbols is
 
 
 
-   function To_Key (Item : in String) return Key_Type
-   is
-   begin
-      return To_Unbounded_String (Item);
-   end To_Key;
-
-
-   function From_Key (Key : in Key_Type) return String
-   is
-   begin
-      return To_String (Key);
-   end From_Key;
+--     function From_Key (Key : in Key_Type) return String
+--     is
+--     begin
+--        return To_String (Key);
+--     end From_Key;
+--    function Name (Symbol : in Symbol_Access) return String
+--     is
+--     begin
+--        return To_String (Symbol.Name);
+--     end Name;
 
 
 

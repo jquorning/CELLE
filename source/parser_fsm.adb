@@ -261,6 +261,8 @@ package body Parser_FSM is
    procedure Do_State_Precedence_Mark_1 (Scanner : in out Scanner_Record;
                                          Token   : in     String)
    is
+      use Rules;
+
       Cur : Character renames Token (Token'First);
    begin
       if Cur not in 'A' .. 'Z' then
@@ -274,7 +276,7 @@ package body Parser_FSM is
 
       else
          Scanner.Prev_Rule.Prec_Sym :=
-           Symbols.Create_New (Token);
+           Rule_Symbol_Access (Symbols.Create_New (Token));
       end if;
 
       Scanner.State := PRECEDENCE_MARK_2;
@@ -499,9 +501,8 @@ package body Parser_FSM is
          declare
             use Symbols;
          begin
-            Parser_Error
-              (E008, Scanner.Token_Lineno,
-               From_Key (Scanner.LHS.First_Element.Name));
+            Parser_Error (E008, Scanner.Token_Lineno,
+                          Name_Of (Scanner.LHS.First_Element));
             Scanner.State := RESYNC_AFTER_RULE_ERROR;
          end;
       end if;
@@ -523,7 +524,7 @@ package body Parser_FSM is
          Parser_Error
            (E009, Scanner.Token_Lineno,
             Argument_1 => Token,
-            Argument_2 => Symbols.From_Key (Scanner.LHS.First_Element.Name));
+            Argument_2 => Symbols.Name_Of (Scanner.LHS.First_Element));
          Scanner.State := RESYNC_AFTER_RULE_ERROR;
       end if;
    end Do_State_LHS_Alias_1;
@@ -552,7 +553,7 @@ package body Parser_FSM is
       else
          Parser_Error
            (E011, Scanner.Token_Lineno,
-            Argument_1 => Symbols.From_Key (Scanner.LHS.First_Element.Name),
+            Argument_1 => Symbols.Name_Of (Scanner.LHS.First_Element),
             Argument_2 => To_String (Scanner.LHS_Alias.First_Element));
          Scanner.State := RESYNC_AFTER_RULE_ERROR;
       end if;
@@ -574,7 +575,7 @@ package body Parser_FSM is
          Parser_Error
            (E012, Scanner.Token_Lineno,
             Argument_1 => Token,
-            Argument_2 => Symbols.From_Key (Scanner.RHS.Last_Element.Name));
+            Argument_2 => Symbols.Name_Of (Scanner.RHS.Last_Element));
          Scanner.State := RESYNC_AFTER_RULE_ERROR;
 
       end if;
@@ -665,7 +666,7 @@ package body Parser_FSM is
 
             Debug (Debug_On, "Scanner.LHS: " & Scanner.LHS.Length'Img);
             Debug (Debug_On, "Scanner.LHS_Alias: " & Scanner.LHS_Alias.Length'Img);
-            Rule.LHS        := LHS_Access (Scanner.LHS.First_Element);
+            Rule.LHS        := Rule_Symbol_Access (Scanner.LHS.First_Element);
             if Scanner.LHS_Alias.Is_Empty then
                Rule.LHS_Alias := Null_Unbounded_String;
             else
@@ -896,7 +897,7 @@ package body Parser_FSM is
          begin
             if
               Symbol /= null and then
-              Symbols."/=" (Symbol.Data_Type, Null_Unbounded_String)
+              Symbol.Data_Type /= Null_Unbounded_String
             then
                Parser_Error (E207, Scanner.Line_Number, Token);
                Scanner.State := RESYNC_AFTER_DECL_ERROR;

@@ -42,21 +42,11 @@ package Symbols is
       new Ada.Containers.Vectors (Index_Type   => Positive,
                                   Element_Type => Unbounded_String);
 
-   subtype S_Set is Unbounded_String;
-
-   --  Null_Set : S_Set renames Null_Unbounded_String;
-
-   function "=" (Left, Right : in S_Set)
-                return Boolean
-     renames Ada.Strings.Unbounded."=";
-
    type Symbol_Index is new Natural;
-
-   subtype Key_Type is Unbounded_String;
 
    type Symbol_Record is
       record
-         Name      : Key_Type       := Null_Unbounded_String;
+         Name      : Unbounded_String := Null_Unbounded_String;
 
          Index     : Symbol_Index   := 0;
          --  Index number for this symbol
@@ -127,10 +117,8 @@ package Symbols is
    --  Routines for handling symbols of the grammar
    --
 
-   function To_Key (Item : in String) return Key_Type;
-   --  Make symbol name from plain string.
-
-   function From_Key (Key : in Key_Type) return String;
+   function Name_Of (Symbol : in Symbol_Access) return String
+   is (To_String (Symbol.Name));
 
    procedure Count_Symbols_And_Terminals (Symbol_Count   : out Natural;
                                           Terminal_Count : out Natural);
@@ -152,7 +140,6 @@ package Symbols is
 --   function Symbol_Nth (Index : in Symbol_Index)
 --                       return Symbol_Cursor; -- Symbol_Access;
    --  Return the n-th data.  Return NULL if n is out of range.
-
 
    procedure Symbol_Allocate (Count : in Ada.Containers.Count_Type);
    --  Return an array of pointers to all data in the table.

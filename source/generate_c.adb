@@ -133,8 +133,8 @@ package body Generate_C is
       for I in First .. Last - 1 loop
          declare
             Symbol : constant String :=
-              Prefix & From_Key (Element_At (Lemp.Extra,
-                                             Symbol_Index (I)).Name);
+              Prefix & Name_Of (Element_At (Lemp.Extra,
+                                            Symbol_Index (I)));
          begin
             Put (File, "#define ");
             Put (File, Symbol);

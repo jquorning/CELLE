@@ -342,6 +342,7 @@ package body Reports is
       use Ada.Strings.Unbounded;
       use Symbols;
       use type Rules.Rule_Access;
+      use type Rules.Rule_Symbol_Access;
 
       package Symbol_Index_IO is
          new Ada.Text_IO.Integer_IO (Num => Symbol_Index);
@@ -387,7 +388,7 @@ package body Reports is
             Symbol_Index_IO.Put (J, Width => 3);
             Put (" ");
             declare
-               Name  : constant String := Symbols.From_Key (SP.Name);
+               Name  : constant String := Symbols.Name_Of (SP);
                Field : String (1 .. Max_Len) := (others => ' ');
             begin
                Field (Name'Range) := Name;
@@ -405,7 +406,7 @@ package body Reports is
          Rule_Print (Standard_Output, RP);
          Put (".");
          if RP.Prec_Sym /= null then
-            Put (" [" & From_Key (RP.Prec_Sym.Name) & "]");
+            Put (" [" & Name_Of (Symbol_Access (RP.Prec_Sym)) & "]");
          end if;
          --  /* if( rp->code ) printf("\n    %s",rp->code); */
          New_Line;
@@ -495,7 +496,7 @@ package body Reports is
             SP : Symbol_Access;
          begin
             SP := Element_At (Lemp.Extra, Index => I);
-            Put (File, "  " & I'Img & ": " & From_Key (SP.Name));
+            Put (File, "  " & I'Img & ": " & Name_Of (SP));
             if SP.Kind = Non_Terminal then
                Put (File, ":");
                if SP.Lambda then
@@ -508,7 +509,7 @@ package body Reports is
                     Sets.Set_Find (SP.First_Set, Natural (J))
                   then
                      Put (File, " ");
-                     Put (File, From_Key (Element_At (Lemp.Extra, Index => J).Name));
+                     Put (File, Name_Of (Element_At (Lemp.Extra, Index => J)));
                   end if;
                end loop;
             end if;
@@ -542,7 +543,7 @@ package body Reports is
                   Put (File, " ");
                   N := N + 1;
                end if;
-               Put (File, From_Key (Symbol.Name));
+               Put (File, Name_Of (Symbol));
                N := N + W;
             end if;
          end;
@@ -563,7 +564,7 @@ package body Reports is
          Put (File, ".");
          if RP.Prec_Sym /= null then
             Put (File, " [");
-            Put (File, From_Key (RP.Prec_Sym.Name));
+            Put (File, Name_Of (Symbol_Access (RP.Prec_Sym)));
             Put (File, " precedence=");
             Put (File, RP.Prec_Sym.Prec'Img);
             Put (File, "]");
@@ -945,13 +946,13 @@ package body Reports is
                begin
                   if P.Fallback = null then
                      Put ("    0,  /* ");
-                     Put (From_Key (P.Name));
+                     Put (Name_Of (P));
                      Put_Line (" => nothing */");
                   else
                      Put ("  ");
                      Put_Int (Integer (P.Fallback.Index));
                      Put (",  /* ");
-                     Put (From_Key (P.Name));
+                     Put (Name_Of (P));
                      Put (" => ");
                      Put (To_String (P.Fallback.Name));
                      Put_Line (" */");
@@ -976,7 +977,7 @@ package body Reports is
       begin
          for I in Symbol_Index range 0 .. Extras.Symbol_Count - 1 loop
             declare
-               Name : constant String := From_Key (Element_At (Lemp.Extra, I).Name);
+               Name : constant String := Name_Of (Element_At (Lemp.Extra, I));
             begin
                --  Lemon_Sprintf (Line, """" & Name & """,");
                Put ("  /* "); --  %4d */ \"%s\",\n",i, lemp->symbols[i]->name);
@@ -1419,18 +1420,18 @@ package body Reports is
    is
       use Ada.Text_IO;
       use Ada.Strings.Unbounded;
-
-      RP : Rules.Rule_Access renames Rule;
+--      use type Symbols.Symbol_Kind;
+      use Symbols;
    begin
       --  Print LHS
-      Put (File, To_String (RP.LHS.Name));
+      Put (File, To_String (Rule.LHS.Name));
 
       --  Print LHS alias
       --  This part is uncommented in lemon.c
       if False then
-         if RP.LHS_Alias /= Null_Unbounded_String then
+         if Rule.LHS_Alias /= Null_Unbounded_String then
             Put (File, "(");
-            Put (File, To_String (RP.LHS_Alias));
+            Put (File, To_String (Rule.LHS_Alias));
             Put (File, ")");
          end if;
       end if;
@@ -1438,12 +1439,12 @@ package body Reports is
       Put (File, " ::=");
 
       --  Print RHS
-      for I in RP.RHS.all'Range loop
+      for I in Rule.RHS.all'Range loop
          declare
-            Symbol : constant Symbols.Symbol_Access := RP.RHS (I);
+            Symbol : constant Symbols.Symbol_Access := Rule.RHS (I);
             First_Sub_Sym : Boolean := True;
          begin
-            if Symbols."=" (Symbol.Kind, Symbols.Multi_Terminal) then
+            if Symbol.Kind = Symbols.Multi_Terminal then
                Put (File, " ");
                for Sub_Sym of Symbol.Sub_Sym loop
                   if not First_Sub_Sym then
@@ -1457,9 +1458,9 @@ package body Reports is
                Put (File, To_String (Symbol.Name));
             end if;
 
-            if RP.RHS_Alias.Element (I) /= Null_Unbounded_String then
+            if Rule.RHS_Alias.Element (I) /= Null_Unbounded_String then
                Put (File, "(");
-               Put (File, To_String (RP.RHS_Alias.Element (I)));
+               Put (File, To_String (Rule.RHS_Alias.Element (I)));
                Put (File, ")");
             end if;
          end;
@@ -1608,7 +1609,7 @@ package body Reports is
 
       Symbol : Symbol_Access;
    begin
-      Put (From_Key (Rule.LHS.Name));
+      Put (Name_Of (Symbol_Access (Rule.LHS)));
       Put (" ::=");
       for J in 0 .. Rule.RHS'Length - 1 loop
 
@@ -1616,15 +1617,15 @@ package body Reports is
 
          if Symbol.Kind /= Multi_Terminal then
             Put (" ");
-            Put (From_Key (Symbol.Name));
+            Put (Name_Of (Symbol));
 
          else
             Put (" ");
-            Put (From_Key (Symbol.Sub_Sym.First_Element.Name));
+            Put (Name_Of (Symbol.Sub_Sym.First_Element));
 
             for K in 1 .. Symbol.Sub_Sym.Last_Index loop
                Put ("|");
-               Put (From_Key (Symbol.Sub_Sym.Element (K).Name));
+               Put (Name_Of (Symbol.Sub_Sym.Element (K)));
             end loop;
          end if;
 
@@ -1959,9 +1960,9 @@ package body Reports is
             Put (Prefix);
             --  Put_CP (Get_Token_Callback (I));
             --  return lime_lemp_copy->symbols[index]->name;
-            Put (From_Key
+            Put (Name_Of
                    (Element_At (Lemon.Extra,
-                                Symbol_Index (I)).Name));
+                                Symbol_Index (I))));
             Put (" ");
             Put_Int (I);
             New_Line;

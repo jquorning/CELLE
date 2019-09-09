@@ -33,13 +33,13 @@ package body Builds is
 
                      for J in SP.Sub_Sym.First_Index .. SP.Sub_Sym.Last_Index loop
                         if SP.Sub_Sym (J).Prec >= 0 then
-                           RP.Prec_Sym := SP.Sub_Sym (J);
+                           RP.Prec_Sym := Rule_Symbol_Access (SP.Sub_Sym.Element (J));
                            exit;
                         end if;
                      end loop;
 
                   elsif SP.Prec >= 0 then
-                     RP.Prec_Sym := RP.RHS (I);
+                     RP.Prec_Sym := Rule_Symbol_Access (RP.RHS (I));
                   end if;
                end;
             end loop;
@@ -104,7 +104,7 @@ package body Builds is
       --  Now compute all first sets
       loop
          declare
-            S1 : LHS_Access;
+            S1 : Rule_Symbol_Access;
             S2 : Symbol_Access;
          begin
             Progress := False;
@@ -180,8 +180,9 @@ package body Builds is
                Text        =>
                  "The specified start symbol '%1' Start is not in a nonterminal " &
                  "of the grammar.  '%2' will be used as the start symbol instead.",
-               Arguments   => (1 => Lemp.Names.Start,
-                               2 => To_Unbounded_String (From_Key (Lemp.Start_Rule.LHS.all.Name)))
+               Arguments   =>
+                 (1 => Lemp.Names.Start,
+                  2 => To_Unbounded_String (Name_Of (Symbol_Access (Lemp.Start_Rule.LHS))))
               );
             Lemp.Error_Cnt := Lemp.Error_Cnt + 1;
             SP := Symbol_Access (Lemp.Start_Rule.LHS);
@@ -205,7 +206,7 @@ package body Builds is
                     "The start symbol '%1' occurs on the right-hand " &
                     "side of a rule. This will result in a parser which " &
                     "does not work properly.",
-                  Arguments   => (1 => To_Unbounded_String (From_Key (SP.Name)))
+                  Arguments   => (1 => To_Unbounded_String (Name_Of (SP)))
                  );
                Lemp.Error_Cnt := Lemp.Error_Cnt + 1;
             end if;

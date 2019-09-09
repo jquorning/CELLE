@@ -34,23 +34,23 @@ package Extras is
                        Index : in Symbols.Symbol_Index)
                       return States.State_Access;
 
-   function Create (Name : in String) return Symbol_Cursor;
+--   function Create (Name : in String) return Symbol_Cursor;
    --  Create a new symbol with Name
 
    --   function Symbol_Find (Key : in Key_Type) return Symbol_Cursor;
-   function Find (Name : in String) return Symbol_Cursor;
+--   function Find (Name : in String) return Symbol_Cursor;
    --  Find symbol wiht Name
 
-   procedure Symbol_Append (Key : in String);
+--   procedure Symbol_Append (Key : in String);
 
    function Symbol_Count return Symbols.Symbol_Index;
    --  Return the size of the array.
 
    procedure Set_Error;
-   procedure Fill_And_Sort;
+--   procedure Fill_And_Sort;
 
    --  Debug
-   procedure JQ_Dump_Symbols;
+--   procedure JQ_Dump_Symbols;
 
 private
 

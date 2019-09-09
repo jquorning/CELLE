@@ -29,8 +29,8 @@ package body Extras is
    function To_Cursor (Position : in Symbol_Cursor) return Symbol_Lists.Cursor;
    function From_Cursor (Cursor : in Symbol_Cursor) return Symbol_Lists.Cursor;
    function "=" (Left, Right : in Symbol_Cursor) return Boolean;
-   function Find (Name : in Symbols.Key_Type)
-                 return Symbol_Cursor;
+--   function Find (Name : in Symbols.Key_Type)
+--                 return Symbol_Cursor;
 
    --
    --  Routines for handling symbols of the grammar
@@ -93,35 +93,35 @@ package body Extras is
    end Set_Wildcard;
 
 
-   function Create (Name : in String)
-                   return Symbol_Cursor
-   is
-      use Symbols;
+--     function Create (Name : in String)
+--                     return Symbol_Cursor
+--     is
+--        use Symbols;
 
-      Element : Symbol_Record;
-   begin
-      Symbol_Append (Name);
-      return null;
-   end Create;
-
-
-   function Find (Name : in Symbols.Key_Type)
-                 return Symbol_Cursor
-   is
-      Position : Symbol_Maps.Cursor;
-   begin
-      Position :=
-        Symbol_Maps.Find (Extra_Base.Symbol_Map, Name);
-      --      Key => Symbols.From_Key (Key));
-      return null;  --  XXX
-   end Find;
+--        Element : Symbol_Record;
+--     begin
+--        Symbol_Append (Name);
+--        return null;
+--     end Create;
 
 
-   function Find (Name : in String) return Symbol_Cursor  is
-      use Symbols;
-   begin
-      return Find (To_Key (Name));
-   end Find;
+--     function Find (Name : in Symbols.Key_Type)
+--                   return Symbol_Cursor
+--     is
+--        Position : Symbol_Maps.Cursor;
+--     begin
+--        Position :=
+--          Symbol_Maps.Find (Extra_Base.Symbol_Map, Name);
+--        --      Key => Symbols.From_Key (Key));
+--        return null;  --  XXX
+--     end Find;
+
+
+--     function Find (Name : in String) return Symbol_Cursor  is
+--        use Symbols;
+--     begin
+--        return Find (To_Key (Name));
+--     end Find;
 
 
    function To_Cursor (Position : in Symbol_Cursor) return Symbol_Lists.Cursor
@@ -154,88 +154,90 @@ package body Extras is
 
    procedure Set_Error is
    begin
-      Extra_Base.Error := Find ("error");
+      null;
+      --      Extra_Base.Error := Symbols.Find ("error");
+--      Extra_Base.Error := Find ("error");
    end Set_Error;
 
 
-   procedure Fill_And_Sort
-   is
-      use Symbols;
+--     procedure Fill_And_Sort
+--     is
+--        use Symbols;
 
-      Index : Symbol_Index := 0;
-   begin
-      for Symbol of Extra_Base.Symbol_List loop
-         Symbol.Index := Index; -- Lemon.Symbols.all (I).Index := I;
-         Index := Index + 1;
-      end loop;
+--        Index : Symbol_Index := 0;
+--     begin
+--        for Symbol of Extra_Base.Symbol_List loop
+--           Symbol.Index := Index; -- Lemon.Symbols.all (I).Index := I;
+--           Index := Index + 1;
+--        end loop;
 
-      --  pragma Assert (Symbol_Lists.Length (Extra.Symbol_List) =
-      --  Symbol_Maps.Length (Extra.Symbol_Map));
-      declare
-         use Ada.Containers;
-         Length_List : constant Count_Type := Symbol_Lists.Length (Extra_Base.Symbol_List);
-         Length_Map  : constant Count_Type := Symbol_Maps. Length (Extra_Base.Symbol_Map);
-      begin
-         if Length_List /= Length_Map then
-            raise Program_Error;
-         end if;
-      end;
+--        --  pragma Assert (Symbol_Lists.Length (Extra.Symbol_List) =
+--        --  Symbol_Maps.Length (Extra.Symbol_Map));
+--        declare
+--           use Ada.Containers;
+--           Length_List : constant Count_Type := Symbol_Lists.Length (Extra_Base.Symbol_List);
+--           Length_Map  : constant Count_Type := Symbol_Maps. Length (Extra_Base.Symbol_Map);
+--        begin
+--           if Length_List /= Length_Map then
+--              raise Program_Error;
+--           end if;
+--        end;
 
-      --  Sort map/list.
-      declare
-         use Ada.Containers;
-         --  function Cursor_To_Cursor (Cursor : Symbol_Lists.Cursor) return Symbol_Maps.Cursor;
-         Length_List : constant Count_Type := Symbol_Lists.Length (Extra_Base.Symbol_List);
-         Indirect : array (1 .. Length_List) of Symbol_Cursor;
-         Running  : Symbol_Lists.Cursor :=
-           Symbol_Lists.First (Extra_Base.Symbol_List);
-      begin
-         for Index_2 in Indirect'Range loop
-            --  Indirect (Index) :=
-            --    Symbol_Lists.Element (Extra.Symbol_List,
-            --                          Position => To_Cursor (To_Cursor (Running)));
-            Running := Symbol_Lists.Next (Running);
-         end loop;
-      end;
-   end Fill_And_Sort;
-
-
-   procedure Symbol_Append (Key      : in Symbols.Key_Type;
-                            New_Item : in Symbols.Symbol_Record);
-
-   procedure Symbol_Append (Key      : in Symbols.Key_Type;
-                            New_Item : in Symbols.Symbol_Record)
-   is
-      First    : constant Symbol_Lists.Cursor := Symbol_Lists.First (Extra_Base.Symbol_List);
-      --      Element  : Symbol_Record;
-      Position : Symbol_Maps.Cursor;
-   begin
-      --  Insert payload record in list.
---      Symbol_Lists.Insert
---        (Container => Extra.Symbol_List,
---         Before    => First,
---         New_Item  => New_Item,
---         Position  => To_Cursor (Position));
-
-      --  Insert key to payload relation in map.
---      Symbol_Maps.Insert
---        (Container => Extra.Symbol_Map,
---         Key       => Unbounded_String (Key),
---        New_Item  => To_Cursor (To_Cursor (Position)));
-      null;
-   end Symbol_Append;
+--        --  Sort map/list.
+--        declare
+--           use Ada.Containers;
+--     --  function Cursor_To_Cursor (Cursor : Symbol_Lists.Cursor) return Symbol_Maps.Cursor;
+--           Length_List : constant Count_Type := Symbol_Lists.Length (Extra_Base.Symbol_List);
+--           Indirect : array (1 .. Length_List) of Symbol_Cursor;
+--           Running  : Symbol_Lists.Cursor :=
+--             Symbol_Lists.First (Extra_Base.Symbol_List);
+--        begin
+--           for Index_2 in Indirect'Range loop
+--              --  Indirect (Index) :=
+--              --    Symbol_Lists.Element (Extra.Symbol_List,
+--              --                          Position => To_Cursor (To_Cursor (Running)));
+--              Running := Symbol_Lists.Next (Running);
+--           end loop;
+--        end;
+--     end Fill_And_Sort;
 
 
-   procedure Symbol_Append (Key : in String)
-   is
-      use Symbols;
+--     procedure Symbol_Append (Key      : in Symbols.Key_Type;
+--                              New_Item : in Symbols.Symbol_Record);
 
-      Dummy_Element : Symbol_Record;
-   begin
-      Symbol_Append
-        (Key      => To_Key (Key),
-         New_Item => Dummy_Element);
-   end Symbol_Append;
+--     procedure Symbol_Append (Key      : in Symbols.Key_Type;
+--                              New_Item : in Symbols.Symbol_Record)
+--     is
+--        First    : constant Symbol_Lists.Cursor := Symbol_Lists.First (Extra_Base.Symbol_List);
+--        --      Element  : Symbol_Record;
+--        Position : Symbol_Maps.Cursor;
+--     begin
+--        --  Insert payload record in list.
+--  --      Symbol_Lists.Insert
+--  --        (Container => Extra.Symbol_List,
+--  --         Before    => First,
+--  --         New_Item  => New_Item,
+--  --         Position  => To_Cursor (Position));
+
+--        --  Insert key to payload relation in map.
+--  --      Symbol_Maps.Insert
+--  --        (Container => Extra.Symbol_Map,
+--  --         Key       => Unbounded_String (Key),
+--  --        New_Item  => To_Cursor (To_Cursor (Position)));
+--        null;
+--     end Symbol_Append;
+
+
+--     procedure Symbol_Append (Key : in String)
+--     is
+--        use Symbols;
+
+--        Dummy_Element : Symbol_Record;
+--     begin
+--        Symbol_Append
+--          (Key      => To_Key (Key),
+--           New_Item => Dummy_Element);
+--     end Symbol_Append;
 
 
    function Symbol_Count return Symbols.Symbol_Index
@@ -247,18 +249,18 @@ package body Extras is
    end Symbol_Count;
 
 
-   procedure JQ_Dump_Symbols is
-      use Ada.Text_IO;
-      use Ada.Strings.Unbounded;
-   begin
-      for Symbol of Get_Extra.Symbol_List loop
-         Put ("SYM ");
-         Put (To_String (Symbol.Name));
-         Put (ASCII.HT & "INDEX");
-         Put (Symbols.Symbol_Index'Image (Symbol.Index));
-         New_Line;
-      end loop;
-   end JQ_Dump_Symbols;
+--     procedure JQ_Dump_Symbols is
+--        use Ada.Text_IO;
+--        use Ada.Strings.Unbounded;
+--     begin
+--        for Symbol of Get_Extra.Symbol_List loop
+--           Put ("SYM ");
+--           Put (To_String (Symbol.Name));
+--           Put (ASCII.HT & "INDEX");
+--           Put (Symbols.Symbol_Index'Image (Symbol.Index));
+--           New_Line;
+--        end loop;
+--     end JQ_Dump_Symbols;
 
 
 end Extras;

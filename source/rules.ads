@@ -21,7 +21,7 @@ package Rules is
 
    type RHS_Array_Access   is access all Symbols.Symbol_Access_Array;
    type Alias_Array_Access is access all Symbols.Symbol_Access_Array;
-   type LHS_Access         is access all Symbols.Symbol_Record;
+   type Rule_Symbol_Access is access all Symbols.Symbol_Record;
 
    use Ada.Strings.Unbounded;
    package Alias_Vectors is
@@ -46,7 +46,7 @@ package Rules is
    --  structure.
    type Rule_Record is
       record
-         LHS          : LHS_Access := null;
+         LHS          : Rule_Symbol_Access := null;
 --         LHS          : access Symbols.Symbol_Record := null;
          LHS_Alias    : Unbounded_String := Null_Unbounded_String;
          --  Alias for the LHS (NULL if none)
@@ -75,7 +75,7 @@ package Rules is
          Code_Emitted : Boolean := False;
          --  True if the code has been emitted already
 
-         Prec_Sym     : access Symbols.Symbol_Record := null;
+         Prec_Sym     : Rule_Symbol_Access := null;
          --  Precedence symbol for this rule
 
          Index        : Integer := 0;

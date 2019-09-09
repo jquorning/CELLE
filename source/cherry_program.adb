@@ -91,8 +91,8 @@ procedure Cherry_Program is
    begin
       Ada.Text_IO.Put_Line ("Parser statistics:");
       Stats_Line ("terminal symbols", Integer (Lemon.N_Terminal));
-      Stats_Line ("non-terminal symbols", Integer (Extras.Symbol_Count - Lemon.N_Terminal));
-      Stats_Line ("total symbols", Integer (Extras.Symbol_Count));
+      Stats_Line ("non-terminal symbols", Integer (Lemon.N_Symbol - Lemon.N_Terminal));
+      Stats_Line ("total symbols", Integer (Lemon.N_Symbol));
       Stats_Line ("rules", Lemon.N_Rule);
       Stats_Line ("states", Lemon.Nx_State);
       Stats_Line ("conflicts", Lemon.N_Conflict);
@@ -151,7 +151,7 @@ begin
       Lemon.Basis_Flag      := Options.Basis_Flag;
       Lemon.No_Linenos_Flag := Options.No_Line_Nos;
 
-      Extras.Symbol_Append (Key => "$");
+      --  Extras.Symbol_Append (Key => "$");
       declare
          Dummy : constant Symbol_Access := Create_New ("$");
       begin
@@ -182,7 +182,7 @@ begin
          null;
       end;
 
-      Symbols.Symbol_Allocate (Ada.Containers.Count_Type (Extras.Symbol_Count));
+--      Symbols.Symbol_Allocate (Ada.Containers.Count_Type (Extras.Symbol_Count));
 
       Ada.Text_IO.Put_Line ("jq_dump_symbols before sort");
 --      Extras.JQ_Dump_Symbols;
