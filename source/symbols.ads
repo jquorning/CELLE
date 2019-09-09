@@ -33,22 +33,20 @@ package Symbols is
    type Symbol_Access is access all Symbol_Record;
 
    package Symbol_Vectors is
-      new Ada.Containers.Vectors
-     (Positive,
-      Symbol_Access);
+      new Ada.Containers.Vectors (Index_Type   => Positive,
+                                  Element_Type => Symbol_Access);
    use Symbol_Vectors;
 
    use Ada.Strings.Unbounded;
    package Alias_Vectors is
-      new Ada.Containers.Vectors
-     (Positive,
-      Unbounded_String);
+      new Ada.Containers.Vectors (Index_Type   => Positive,
+                                  Element_Type => Unbounded_String);
 
    subtype S_Set is Unbounded_String;
 
    --  Null_Set : S_Set renames Null_Unbounded_String;
 
-   function "=" (Left, Right : S_Set)
+   function "=" (Left, Right : in S_Set)
                 return Boolean
      renames Ada.Strings.Unbounded."=";
 

@@ -51,12 +51,11 @@ package Parser_Data is
 
    use Ada.Strings.Unbounded;
    subtype S_Alias is Unbounded_String;
-   function To_Alias (Item : String) return S_Alias renames To_Unbounded_String;
+   function To_Alias (Item : in String) return S_Alias renames To_Unbounded_String;
 
    package Alias_Vectors is
-      new Ada.Containers.Vectors
-     (Positive,
-      S_Alias);
+      new Ada.Containers.Vectors (Index_Type   => Positive,
+                                  Element_Type => S_Alias);
 
    type A_Declaration is access all Unbounded_String;
 

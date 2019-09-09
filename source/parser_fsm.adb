@@ -440,16 +440,12 @@ package body Parser_FSM is
             Scanner.State := WAITING_FOR_CLASS_ID;
 
          else
-            Parser_Error
-              (E203, Scanner.Token_Lineno,
-               Arguments => (1 => To_Unbounded_String (X)));
+            Parser_Error (E203, Scanner.Token_Lineno, X);
 
             Scanner.State := RESYNC_AFTER_DECL_ERROR;
          end if;
       else
-         Parser_Error
-           (E204, Scanner.Token_Lineno,
-            Arguments => (1 => To_Unbounded_String (X)));
+         Parser_Error (E204, Scanner.Token_Lineno, X);
 
          Scanner.State := RESYNC_AFTER_DECL_ERROR;
       end if;
@@ -652,7 +648,7 @@ package body Parser_FSM is
                  Scanner.RHS.First_Index .. Scanner.RHS.Last_Index;
             begin
                for I in Index_Range loop
-                  Debug (Debug_On, "I:" & I'Img);
+                  Debug (Debug_On, "I:" & Integer'Image (I));
                   Rule.RHS (I) := Scanner.RHS   (I);
                   Append (Rule.RHS_Alias, Scanner.Alias.Element (I));
                   --  if Symbols."/=" (RP.RHS_Alias (I), Null_Unbounded_String) then

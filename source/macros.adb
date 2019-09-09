@@ -14,14 +14,13 @@ with Ada.Text_IO;
 
 package body Macros is
 
-   function Is_Space (C : Character) return Boolean;
+   function Is_Space (C : in Character) return Boolean;
    --  True when C is a white space
 
    use Ada.Strings.Unbounded;
    package Macro_Vectors is
-      new Ada.Containers.Vectors
-     (Positive,
-      Unbounded_String);
+      new Ada.Containers.Vectors (Index_Type   => Positive,
+                                  Element_Type => Unbounded_String);
 
    Macro_List : Macro_Vectors.Vector;
 
@@ -47,6 +46,7 @@ package body Macros is
       Lineno       : Integer := 1;
       Start_Lineno : Integer := 1;
    begin
+      Success := False;
 
       I := Buffer'First;
       while  Buffer (I) /= Latin_1.NUL loop
@@ -144,7 +144,8 @@ package body Macros is
 
       if Exclude /= 0 then
          Ada.Text_IO.Put_Line (Ada.Text_IO.Standard_Error,
-                               "unterminated %%ifdef starting on line " & Start_Lineno'Img);
+                               "unterminated %%ifdef starting on line "
+                                 & Integer'Image (Start_Lineno));
          Success := False;
          return;
       end if;
@@ -154,7 +155,7 @@ package body Macros is
    end Preprocess;
 
 
-   function Is_Space (C : Character) return Boolean is
+   function Is_Space (C : in Character) return Boolean is
    begin
       return
         C = Ada.Characters.Latin_1.Space or

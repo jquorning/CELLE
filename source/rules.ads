@@ -25,16 +25,15 @@ package Rules is
 
    use Ada.Strings.Unbounded;
    package Alias_Vectors is
-      new Ada.Containers.Vectors
-     (Positive,
-      Unbounded_String);
+      new Ada.Containers.Vectors (Index_Type   => Positive,
+                                  Element_Type => Unbounded_String);
 
 
    subtype T_Code is Unbounded_String;
 
    Null_Code : T_Code renames Null_Unbounded_String;
 
-   function "=" (Left, Right : T_Code) return Boolean
+   function "=" (Left, Right : in T_Code) return Boolean
      renames Ada.Strings.Unbounded."=";
 
    --  A configuration is a production rule of the grammar together with

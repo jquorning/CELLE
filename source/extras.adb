@@ -255,7 +255,7 @@ package body Extras is
          Put ("SYM ");
          Put (To_String (Symbol.Name));
          Put (ASCII.HT & "INDEX");
-         Put (Symbol.Index'Img);
+         Put (Symbols.Symbol_Index'Image (Symbol.Index));
          New_Line;
       end loop;
    end JQ_Dump_Symbols;

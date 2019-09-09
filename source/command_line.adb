@@ -18,7 +18,7 @@ with Macros;
 package body Command_Line is
 
    procedure Getopt_Callback
-     (Switch  : String;  Param : String;  Section : String);
+     (Switch  : in String;  Param : in String;  Section : in String);
    --  To be installed and called by Getopt on command line switch encounter.
 
    Long_Switch_Output_Dir    : constant String := "--output-dir";
@@ -34,7 +34,7 @@ package body Command_Line is
    Config     : Command_Line_Configuration;
    File_Count : Natural := Natural'First;
 
-   procedure Getopt_Callback (Switch, Param, Section : String) is
+   procedure Getopt_Callback (Switch, Param, Section : in String) is
       pragma Unreferenced (Section);
 
    begin

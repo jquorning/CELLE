@@ -12,6 +12,6 @@ with Ada.Exceptions;
 package Exceptions is
 
    procedure Put_Message
-     (Occurrence : Ada.Exceptions.Exception_Occurrence);
+     (Occurrence : in Ada.Exceptions.Exception_Occurrence);
 
 end Exceptions;

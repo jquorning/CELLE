@@ -122,22 +122,22 @@ package Lime is
       end record;
 
    Clean_Lemon : constant Lemon_Record :=
-     (Sorted       => null,       Rule         => null,      Start_Rule       => null,
-      N_State      => 0,          Nx_State     => 0,         N_Rule           => 0,
-      N_Symbol     => 0,          N_Terminal   => 0,         Min_Shift_Reduce => 0,
-      Err_Action   => 0,          Acc_Action   => 0,         No_Action        => 0,
-      Min_Reduce   => 0,          Max_Action   => 0,         Symbols2         => 999,
-      Error_Cnt    => 0,          Err_Sym2     => 999,
-      Wildcard2    => 999,
-      Names        => Parser_Names'Access,
-      File_Name    => Null_Unbounded_String,
-      Out_Name     => Null_Unbounded_String,
-      N_Conflict   => 0,        N_Action_Tab => 0,         N_Lookahead_Tab  => 0,
-      Table_Size   => 0,        Basis_Flag   => False,     Has_Fallback     => False,
-      No_Linenos_Flag => False, Argv0        => Null_Unbounded_String,
---      Extra           => Symbols.Get_Extra,
-      Extra           => Extras.Get_Extra,
-      Parser          => Report_Parsers.Get_Context);
+     Lemon_Record'(Sorted       => null,       Rule         => null,      Start_Rule       => null,
+                   N_State      => 0,          Nx_State     => 0,         N_Rule           => 0,
+                   N_Symbol     => 0,          N_Terminal   => 0,         Min_Shift_Reduce => 0,
+                   Err_Action   => 0,          Acc_Action   => 0,         No_Action        => 0,
+                   Min_Reduce   => 0,          Max_Action   => 0,         Symbols2         => 999,
+                   Error_Cnt    => 0,          Err_Sym2     => 999,
+                   Wildcard2    => 999,
+                   Names        => Parser_Names'Access,
+                   File_Name    => Null_Unbounded_String,
+                   Out_Name     => Null_Unbounded_String,
+                   N_Conflict   => 0,        N_Action_Tab => 0,         N_Lookahead_Tab  => 0,
+                   Table_Size   => 0,        Basis_Flag   => False,     Has_Fallback     => False,
+                   No_Linenos_Flag => False, Argv0        => Null_Unbounded_String,
+                   --      Extra           => Symbols.Get_Extra,
+                   Extra           => Extras.Get_Extra,
+                   Parser          => Report_Parsers.Get_Context);
 
    No_Offset : aliased constant Integer := Integer'First;
 

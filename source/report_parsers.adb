@@ -20,7 +20,7 @@ package body Report_Parsers is
 
    Global_Parser_Context : aliased Context_Record;
 
-   function Is_Alnum (C : Character) return Boolean;
+   function Is_Alnum (C : in Character) return Boolean;
    --
 
 
@@ -64,7 +64,7 @@ package body Report_Parsers is
    end Trim_Right_Symbol;
 
 
-   function Is_Alnum (C : Character) return Boolean
+   function Is_Alnum (C : in Character) return Boolean
    is
    begin
       return

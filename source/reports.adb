@@ -111,7 +111,7 @@ package body Reports is
 
 
    procedure Print_Stack_Union
-     (Lemp : Lime.Lemon_Record);  --  The main info structure for this parser
+     (Lemp : in Lime.Lemon_Record);  --  The main info structure for this parser
 
    --  struct lemon *lemp //,
    --  //  int mhflag                  /* True if generating makeheaders output */
@@ -344,7 +344,7 @@ package body Reports is
       use type Rules.Rule_Access;
 
       package Symbol_Index_IO is
-         new Ada.Text_IO.Integer_IO (Symbol_Index);
+         new Ada.Text_IO.Integer_IO (Num => Symbol_Index);
 
       RP   : Rules.Rule_Access;
       SP   : Symbol_Access;

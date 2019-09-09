@@ -13,5 +13,10 @@ build:
 clean:
 	cd ..; make clean
 
+ # Adacontrol
 check:
 	cd ..; make check
+
+ # Adacontrol
+verify:
+	cd ..; make verify

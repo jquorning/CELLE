@@ -206,7 +206,8 @@ package body Symbols is
    --  2019-09-06 JQ
    --  Simply try to make a vector for symbols
    package Symbol_Bases is
-      new Ada.Containers.Vectors (Natural, Symbol_Access);
+      new Ada.Containers.Vectors (Index_Type   => Natural,
+                                  Element_Type => Symbol_Access);
    Base : Symbol_Bases.Vector;
 
 
@@ -215,6 +216,8 @@ package body Symbols is
    is
       Index : Natural;
    begin
+      Symbol_Count   := Natural'First;
+      Terminal_Count := Natural'First;
 
       --  Sequential index of symbols
       Index := 0;
@@ -333,11 +336,11 @@ package body Symbols is
 
       L_I : constant Integer
         := (if L.Kind = Multi_Terminal then 3 else
-             (if Character'Pos (To_String (L.Name) (1)) > Character'Pos ('Z') then 2 else 1));
+             (if To_String (L.Name) (1) > 'Z' then 2 else 1));
 
       R_I : constant Integer
         := (if R.Kind = Multi_Terminal then 3 else
-             (if Character'Pos (To_String (R.Name) (1)) > Character'Pos ('Z') then 2 else 1));
+             (if To_String (R.Name) (1) > 'Z' then 2 else 1));
    begin
       if L_I = R_I then
          return L.Index < R.Index;
@@ -405,7 +408,7 @@ package body Symbols is
          Put ("SYM ");
          Put (To_String (Symbol.Name));
          Put (" INDEX");
-         Put (Symbol.Index'Img);
+         Put (Symbol_Index'Image (Symbol.Index));
          Put (" NSUB");
          Put (Symbol.Sub_Sym.Length'Img);
          Put (" KIND");

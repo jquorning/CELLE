@@ -18,8 +18,11 @@ build:
 clean:
 	gprclean -q cherry.gpr
 
+verify:
+	adactl -r -v -p cherry.gpr -f ../../adacontrol/rules/verif.aru source/cherry_program.adb
+
 check:
-	adactl -r -v -p cherry.gpr -f ../../adacontrol/rules/verif.aru <source/cherry_program.adb
+	adactl -r -v -p cherry.gpr -f ../../adacontrol/rules/gnatcheck.aru source/cherry_program.adb
 
 
 

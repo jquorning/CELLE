@@ -119,7 +119,7 @@ package body Generate_C is
       pragma Unreferenced (Context, Module);
 
       package Integer_IO is
-         new Ada.Text_IO.Integer_IO (Integer);
+         new Ada.Text_IO.Integer_IO (Num => Integer);
 
       use Ada.Text_IO, Auxiliary;
       use Symbols, Extras;

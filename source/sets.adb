@@ -31,8 +31,8 @@ package body Sets is
 
    procedure Set_Free (Set : in out Set_Type) is
       procedure Free is
-         new Ada.Unchecked_Deallocation (Set_Array,
-                                         Set_Type);
+         new Ada.Unchecked_Deallocation (Object => Set_Array,
+                                         Name   => Set_Type);
    begin
       Free (Set);
    end Set_Free;

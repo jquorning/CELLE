@@ -17,13 +17,13 @@ package body Debugs is
    begin
       while Rule /= null loop
          Put ("RULE INDEX");
-         Put (Rule.Index'Img);
+         Put (Natural'Image (Rule.Index));
          Put (" RULE");
-         Put (Rule.Rule'Img);
+         Put (Natural'Image (Rule.Rule));
          Put (" LINE");
-         Put (Rule.Line'Img);
+         Put (Natural'Image (Rule.Line));
          Put (" RULELINE");
-         Put (Rule.Rule_Line'Img);
+         Put (Natural'Image (Rule.Rule_Line));
          New_Line;
          Rule := Rule.Next;
       end loop;

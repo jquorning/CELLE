@@ -145,7 +145,7 @@ package body Parsers is
             Scanner.Token_First  := Index;
             Scanner.Token_Lineno := Scanner.Line_Number;
 
-            Debug (On_True, "Token_First: " & Scanner.Token_First'Img);
+            Debug (On_True, "Token_First: " & Natural'Image (Scanner.Token_First));
 
             case C is
 

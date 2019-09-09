@@ -18,7 +18,9 @@ package Errors is
    type Argument_List is array (Positive range <>) of Unbounded_String;
 
    subtype Empty_Range is Positive range 1 .. 0;
-   Null_Argument_List : constant Argument_List (Empty_Range) := (others => Null_Unbounded_String);
+
+   Null_Argument_List : constant Argument_List (Empty_Range) :=
+     (others => Null_Unbounded_String);
 
    procedure Error_Plain (File_Name   : in Unbounded_String;
                           Line_Number : in Natural;

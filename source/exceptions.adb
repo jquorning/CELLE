@@ -13,7 +13,7 @@ package body Exceptions is
 
 
    procedure Put_Message
-     (Occurrence : Ada.Exceptions.Exception_Occurrence)
+     (Occurrence : in Ada.Exceptions.Exception_Occurrence)
    is
       use Ada.Text_IO;
       use Ada.Exceptions;

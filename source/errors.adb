@@ -31,8 +31,8 @@ package body Errors is
 
    type String_Access is access all String;
 
-   function "-" (Item : String) return String_Access;
-   function "-" (Item : String) return String_Access is
+   function "-" (Item : in String) return String_Access;
+   function "-" (Item : in String) return String_Access is
    begin
       return new String'(Item);
    end "-";
@@ -123,8 +123,8 @@ package body Errors is
    begin
       Parser_Error
         (Kind, Line_Number,
-         Arguments => (1 => To_Unbounded_String (Argument_1),
-                       2 => To_Unbounded_String (Argument_2)));
+         Arguments => Argument_List'(1 => To_Unbounded_String (Argument_1),
+                                     2 => To_Unbounded_String (Argument_2)));
    end Parser_Error;
 
 
