@@ -42,6 +42,7 @@ package body Errors is
       E015 => -("The start symbol '$1' occurs on the right-hand " &
                   "side of a rule. This will result in a parser which " &
                   "does not work properly."),
+      E016 => -"Can not open '$1' for reading.",
 
       E101 => -"Can't open this file for reading.",
       E102 => -"C code starting on this line is not terminated before the end of the file.",

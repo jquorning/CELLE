@@ -64,6 +64,10 @@ package body Parsers is
          Append (Buffer, Ada.Characters.Latin_1.NUL);
          return To_String (Buffer);
 
+      when Name_Error =>
+         Errors.Parser_Error (Errors.E016, 0, File_Name);
+         return "" & ASCII.NUL;
+
    end Read_File;
 
 

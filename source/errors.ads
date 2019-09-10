@@ -34,6 +34,7 @@ package Errors is
       E013,
       E014,
       E015,
+      E016,
 
       E101,
       E102,
