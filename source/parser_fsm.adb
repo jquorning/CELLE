@@ -7,7 +7,6 @@
 --    May you share freely, not taking more than you give.
 --
 
-with Ada.Text_IO;
 with Ada.Strings.Unbounded;
 
 with Symbols;
@@ -89,10 +88,6 @@ package body Parser_FSM is
 
    procedure Do_State_Waiting_For_Class_Token (Scanner : in out Scanner_Record;
                                                Token   : in     String);
-
-
-   procedure Debug (On   : in Boolean;
-                    Text : in String);
 
 
    --
@@ -293,21 +288,7 @@ package body Parser_FSM is
                                                 Scanner : in out Scanner_Record;
                                                 Token   : in     String)
    is
-      function Match (Item : in String) return Boolean;
-
       Cur : Character renames Token (Token'First);
-
-      function Match (Item : in String) return Boolean
-      is
-         Length     : constant Natural := Natural'Min (Token'Length, Item'Length);
-         Item_Last  : constant Natural := Item'First + Length - 1;
-         Length_2   : constant Natural := Natural'Min (Token'Length, Item_Last - Item'First + 1);
-         Left       : String renames Token (Token'First .. Token'First    + Length_2 - 1);
-         Right      : String renames Item  (Item'First  .. Item'First + Length_2 - 1);
-      begin
-         return Token = Item;
-      end Match;
-
    begin
 
       if
@@ -320,94 +301,94 @@ package body Parser_FSM is
 
          Scanner.State := WAITING_FOR_DECL_ARG;
 
-         if Match ("name") then
+         if Token = "name" then
             Scanner.Decl_Arg_Slot := Session.Names.Name'Access;
             Scanner.Insert_Line_Macro := False;
 
-         elsif Match ("include") then
+         elsif Token = "include" then
             Scanner.Decl_Arg_Slot := Session.Names.Include'Access;
 
-         elsif Match ("code") then
+         elsif Token = "code" then
             Scanner.Decl_Arg_Slot := Session.Names.Extra_Code'Access;
 
-         elsif Match ("token_destructor") then
+         elsif Token = "token_destructor" then
             Scanner.Decl_Arg_Slot := Session.Names.Token_Dest'Access;
 
-         elsif Match ("default_destructor") then
+         elsif Token = "default_destructor" then
             Scanner.Decl_Arg_Slot := Session.Names.Var_Dest'Access;
 
-         elsif Match ("token_prefix") then
+         elsif Token = "token_prefix" then
             Scanner.Decl_Arg_Slot     := Session.Names.Token_Prefix'Access;
             Scanner.Insert_Line_Macro := False;
 
-         elsif Match ("syntax_error") then
+         elsif Token = "syntax_error" then
             Scanner.Decl_Arg_Slot := Session.Names.Error'Access;
 
-         elsif Match ("parse_accept") then
+         elsif Token = "parse_accept" then
             Scanner.Decl_Arg_Slot := Session.Names.C_Accept'Access;
 
-         elsif Match ("parse_failure") then
+         elsif Token = "parse_failure" then
             Scanner.Decl_Arg_Slot := Session.Names.Failure'Access;
 
-         elsif Match ("stack_overflow") then
+         elsif Token = "stack_overflow" then
             Scanner.Decl_Arg_Slot := Session.Names.Overflow'Access;
 
-         elsif Match ("extra_argument") then
+         elsif Token = "extra_argument" then
             Scanner.Decl_Arg_Slot     := Session.Names.ARG2'Access;
             Scanner.Insert_Line_Macro := False;
 
-         elsif Match ("extra_context") then
+         elsif Token = "extra_context" then
             Scanner.Decl_Arg_Slot     := Session.Names.CTX2'Access;
             Scanner.Insert_Line_Macro := False;
 
-         elsif Match ("token_type") then
+         elsif Token = "token_type" then
             Scanner.Decl_Arg_Slot     := Session.Names.Token_Type'Access;
             Scanner.Insert_Line_Macro := False;
 
-         elsif Match ("default_type") then
+         elsif Token = "default_type" then
             Scanner.Decl_Arg_Slot     := Session.Names.Var_Type'Access;
             Scanner.Insert_Line_Macro := False;
 
-         elsif Match ("stack_size") then
+         elsif Token = "stack_size" then
             Scanner.Decl_Arg_Slot     := Session.Names.Stack_Size'Access;
             Scanner.Insert_Line_Macro := False;
 
-         elsif Match ("start_symbol") then
+         elsif Token = "start_symbol" then
             Scanner.Decl_Arg_Slot     := Session.Names.Start'Access;
             Scanner.Insert_Line_Macro := False;
 
-         elsif Match ("left") then
+         elsif Token = "left" then
             Scanner.Prec_Counter := Scanner.Prec_Counter + 1;
             Scanner.Decl_Assoc   := Symbols.Left_Assoc;
             Scanner.State   := WAITING_FOR_PRECEDENCE_SYMBOL;
 
-         elsif Match ("right") then
+         elsif Token = "right" then
             Scanner.Prec_Counter := Scanner.Prec_Counter + 1;
             Scanner.Decl_Assoc   := Symbols.Right_Assoc;
             Scanner.State   := WAITING_FOR_PRECEDENCE_SYMBOL;
 
-         elsif Match ("nonassoc") then
+         elsif Token = "nonassoc" then
             Scanner.Prec_Counter := Scanner.Prec_Counter + 1;
             Scanner.Decl_Assoc   := Symbols.None;
             Scanner.State   := WAITING_FOR_PRECEDENCE_SYMBOL;
 
-         elsif Match ("destructor") then
+         elsif Token = "destructor" then
             Scanner.State := WAITING_FOR_DESTRUCTOR_SYMBOL;
 
-         elsif Match ("type") then
+         elsif Token = "type" then
             Scanner.State := WAITING_FOR_DATATYPE_SYMBOL;
 
-         elsif Match ("fallback") then
+         elsif Token = "fallback" then
             Scanner.Fallback := null;
             Scanner.State := WAITING_FOR_FALLBACK_ID;
 
-         elsif Match ("token") then
+         elsif Token = "token" then
             Scanner.State := WAITING_FOR_TOKEN_NAME;
 
-         elsif Match ("wildcard") then
+         elsif Token = "wildcard" then
             Scanner.State := WAITING_FOR_WILDCARD_ID;
 
-         elsif Match ("token_class") then
+         elsif Token = "token_class" then
             Scanner.State := WAITING_FOR_CLASS_ID;
 
          else
@@ -1046,17 +1027,6 @@ package body Parser_FSM is
          Scanner.State := RESYNC_AFTER_DECL_ERROR;
       end if;
    end Do_State_Waiting_For_Class_Token;
-
-
-   procedure Debug (On   : in Boolean;
-                    Text : in String)
-   is
-      use Ada.Text_IO;
-   begin
-      if On then
-         Put_Line (Text);
-      end if;
-   end Debug;
 
 
 end Parser_FSM;
