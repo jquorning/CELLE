@@ -29,4 +29,15 @@ package body Debugs is
       end loop;
    end JQ_Dump_Rules;
 
+
+   procedure Debug (On      : in Boolean;
+                    Message : in String)
+   is
+   begin
+      if On then
+         Ada.Text_IO.Put_Line (Message);
+      end if;
+   end Debug;
+
+
 end Debugs;

@@ -657,12 +657,12 @@ package body Parser_FSM is
                   Orig_Symbol : constant Symbol_Access := Symbol;
                begin
                   Symbol := new Symbol_Record;
-                  Symbol.Kind    := Multi_Terminal;
-                  Symbol.Sub_Symbol := Symbol_Vectors.Empty_Vector;
+                  Symbol.Kind := Multi_Terminal;
                   Symbol.Sub_Symbol.Append (Orig_Symbol);
 
                   Symbol.Name := Orig_Symbol.Name;
 
+                  Scanner.RHS.Delete_Last;
                   Scanner.RHS.Append (Symbol);
                end;
             end if;
