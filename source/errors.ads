@@ -15,11 +15,8 @@ package Errors is
    Default_File_Name : Unbounded_String := To_Unbounded_String ("<null>");
    Error_Count       : Natural          := 0;
 
-   type K_Message is
-     (W001,
-      W002,
-
-      E001,
+   type Error_Id is
+     (E001,
       E002,
       E003,
       E004,
@@ -57,23 +54,14 @@ package Errors is
       E215,
       E216,
       E217,
-      E218,
-
-      F001,
-      F002
+      E218
      );
-   subtype K_Warning is K_Message range W001 .. W001;
-   subtype K_Error   is K_Message range E001 .. K_Message'Val (K_Message'Pos (F001) - 1);
-   subtype K_Fatal   is K_Message range F001 .. K_Message'Last;
-
-   type K_Error_Parse is new K_Error range E001 .. E218;
-
 
    procedure Set_File_Name
      (File_Name : in Ada.Strings.Unbounded.Unbounded_String);
 
    procedure Parser_Error
-     (Kind        : in K_Error_Parse;
+     (Id          : in Error_Id;
       Line_Number : in Natural;
       Argument_1  : in String := "";
       Argument_2  : in String := "");

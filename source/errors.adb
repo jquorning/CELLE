@@ -21,7 +21,7 @@ package body Errors is
       return new String'(Item);
    end "-";
 
-   Table : constant array (K_Error_Parse) of String_Access :=
+   Table : constant array (Error_Id) of String_Access :=
      (E001 => -("There is no prior rule upon which to attach the code fragment which " &
                   "begins on this line."),
       E002 => -("Code fragment beginning on this line is not the first to follow the " &
@@ -70,7 +70,7 @@ package body Errors is
 
 
    procedure Parser_Error
-     (Kind        : in K_Error_Parse;
+     (Id          : in Error_Id;
       Line_Number : in Natural;
       Argument_1  : in String := "";
       Argument_2  : in String := "")
@@ -78,8 +78,8 @@ package body Errors is
       use Ada.Strings;
 
       File_Name  : constant String  := To_String (Default_File_Name);
-      Kind_Image : constant String  := Kind'Image & " ";
-      Message    : Unbounded_String := To_Unbounded_String (Table (Kind).all);
+      Kind_Image : constant String  := Id'Image & " ";
+      Message    : Unbounded_String := To_Unbounded_String (Table (Id).all);
       Position   : Natural          := 1;
    begin
 
