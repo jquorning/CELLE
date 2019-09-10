@@ -101,7 +101,7 @@ package Symbols is
          --  The following fields are used by MULTITERMINALs only
          --
 
-         Sub_Sym : Vector := Empty_Vector;
+         Sub_Symbol : Vector := Empty_Vector;
          --  Array of constituent symbols
 
       end record;

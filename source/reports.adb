@@ -1438,16 +1438,16 @@ package body Reports is
       for I in Rule.RHS.all'Range loop
          declare
             Symbol : constant Symbols.Symbol_Access := Rule.RHS (I);
-            First_Sub_Sym : Boolean := True;
+            First  : Boolean := True;
          begin
             if Symbol.Kind = Symbols.Multi_Terminal then
                Put (File, " ");
-               for Sub_Sym of Symbol.Sub_Sym loop
-                  if not First_Sub_Sym then
+               for Sub_Symbol of Symbol.Sub_Symbol loop
+                  if not First then
                      Put (File, "|");
                   end if;
-                  Put (File, To_String (Sub_Sym.Name));
-                  First_Sub_Sym := False;
+                  Put (File, To_String (Sub_Symbol.Name));
+                  First := False;
                end loop;
             else
                Put (File, " ");
@@ -1617,11 +1617,11 @@ package body Reports is
 
          else
             Put (" ");
-            Put (Name_Of (Symbol.Sub_Sym.First_Element));
+            Put (Name_Of (Symbol.Sub_Symbol.First_Element));
 
-            for K in 1 .. Symbol.Sub_Sym.Last_Index loop
+            for K in 1 .. Symbol.Sub_Symbol.Last_Index loop
                Put ("|");
-               Put (Name_Of (Symbol.Sub_Sym.Element (K)));
+               Put (Name_Of (Symbol.Sub_Symbol.Element (K)));
             end loop;
          end if;
 

@@ -31,9 +31,9 @@ package body Builds is
                begin
                   if Symbol.Kind = Multi_Terminal then
 
-                     for J in Symbol.Sub_Sym.First_Index .. Symbol.Sub_Sym.Last_Index loop
-                        if Symbol.Sub_Sym (J).Prec >= 0 then
-                           Rule.Prec_Sym := Rule_Symbol_Access (Symbol.Sub_Sym.Element (J));
+                     for J in Symbol.Sub_Symbol.First_Index .. Symbol.Sub_Symbol.Last_Index loop
+                        if Symbol.Sub_Symbol (J).Prec >= 0 then
+                           Rule.Prec_Sym := Rule_Symbol_Access (Symbol.Sub_Symbol.Element (J));
                            exit;
                         end if;
                      end loop;
@@ -123,10 +123,10 @@ package body Builds is
                      exit;
 
                   elsif S2.Kind = Multi_Terminal then
-                     for J in S2.Sub_Sym.First_Index .. S2.Sub_Sym.Last_Index loop
+                     for J in S2.Sub_Symbol.First_Index .. S2.Sub_Symbol.Last_Index loop
                         if
                           Sets.Set_Add (S1.First_Set,
-                                        Natural (S2.Sub_Sym (J).Index))
+                                        Natural (S2.Sub_Symbol (J).Index))
                         then
                            Progress := True;
                         end if;

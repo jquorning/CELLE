@@ -643,6 +643,7 @@ package body Parser_FSM is
       then
          Scanner.RHS  .Append (Symbols.Create_New (Token));
          Scanner.Alias.Append (Null_Unbounded_String);
+
       elsif
         (Cur = '|' or Cur = '/') and not
         Scanner.RHS.Is_Empty
@@ -657,8 +658,8 @@ package body Parser_FSM is
                begin
                   Symbol := new Symbol_Record;
                   Symbol.Kind    := Multi_Terminal;
-                  Symbol.Sub_Sym := Symbol_Vectors.Empty_Vector;
-                  Symbol.Sub_Sym.Append (Orig_Symbol);
+                  Symbol.Sub_Symbol := Symbol_Vectors.Empty_Vector;
+                  Symbol.Sub_Symbol.Append (Orig_Symbol);
 
                   Symbol.Name := Orig_Symbol.Name;
 
@@ -666,12 +667,12 @@ package body Parser_FSM is
                end;
             end if;
 
-            Symbol.Sub_Sym.Append
+            Symbol.Sub_Symbol.Append
               (Symbols.Create_New (Token (Token'First + 1 .. Token'Last)));
 
             if
               Token (Token'First + 1) in 'a' .. 'z' or
-              To_String (Symbol.Sub_Sym.First_Element.Name) (1) in 'a' .. 'z'
+              To_String (Symbol.Sub_Symbol.First_Element.Name) (1) in 'a' .. 'z'
             then
                Parser_Error (E201, Scanner.Token_Lineno);
             end if;
@@ -1020,7 +1021,7 @@ package body Parser_FSM is
             if C not in 'A' .. 'Z' then
                First := Token'First + 1;
             end if;
-            Symbol.Sub_Sym.Append (Create_New (Token (First .. Token'Last)));
+            Symbol.Sub_Symbol.Append (Create_New (Token (First .. Token'Last)));
          end;
       else
          Parser_Error (E208, Scanner.Token_Lineno, Token);

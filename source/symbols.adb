@@ -408,7 +408,7 @@ package body Symbols is
          Put (" INDEX");
          Put (Symbol_Index'Image (Symbol.Index));
          Put (" NSUB");
-         Put (Symbol.Sub_Sym.Length'Img);
+         Put (Symbol.Sub_Symbol.Length'Img);
          Put (" KIND");
          Put (Symbol_Kind'Pos (Symbol.Kind)'Img);
          New_Line;
