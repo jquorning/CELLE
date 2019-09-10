@@ -15,22 +15,10 @@ package Errors is
    Default_File_Name : Unbounded_String := To_Unbounded_String ("<null>");
    Error_Count       : Natural          := 0;
 
-   type Argument_List is array (Positive range <>) of Unbounded_String;
-
-   subtype Empty_Range is Positive range 1 .. 0;
-
-   Null_Argument_List : constant Argument_List (Empty_Range) :=
-     (others => Null_Unbounded_String);
-
-   procedure Error_Plain (File_Name   : in Unbounded_String;
-                          Line_Number : in Natural;
-                          Text        : in String;
-                          Arguments   : in Argument_List);
-   --
-
    type K_Message is
      (W001,
       W002,
+
       E001,
       E002,
       E003,
@@ -44,6 +32,8 @@ package Errors is
       E011,
       E012,
       E013,
+      E014,
+      E015,
 
       E101,
       E102,
@@ -80,11 +70,6 @@ package Errors is
 
    procedure Set_File_Name
      (File_Name : in Ada.Strings.Unbounded.Unbounded_String);
-
-   procedure Parser_Error
-     (Kind        : in K_Error_Parse;
-      Line_Number : in Natural;
-      Arguments   : in Argument_List);
 
    procedure Parser_Error
      (Kind        : in K_Error_Parse;

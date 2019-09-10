@@ -157,6 +157,7 @@ package body Builds is
      (Session : in out Sessions.Session_Type)
    is
       use Ada.Strings.Unbounded;
+      use Errors;
       use Lemon_Bind;
       use Symbols;
       use Rules;
@@ -173,17 +174,10 @@ package body Builds is
       if Session.Names.Start /= "" then
          Symbol := Find (To_String (Session.Names.Start));
          if Symbol = null then
-            Errors.Error_Plain
-              (File_Name   => Session.File_Name,
-               Line_Number => 0,
-               Text        =>
-                 "The specified start symbol '%1' Start is not in a nonterminal " &
-                 "of the grammar.  '%2' will be used as the start symbol instead.",
-               Arguments   =>
-                 (1 => Session.Names.Start,
-                  2 => To_Unbounded_String (Name_Of (Symbol_Access (Session.Start_Rule.LHS))))
-              );
-            Session.Error_Cnt := Session.Error_Cnt + 1;
+            Errors.Parser_Error
+              (E014, Line_Number => 0,
+               Argument_1 => To_String (Session.Names.Start),
+               Argument_2 => Name_Of (Symbol_Access (Session.Start_Rule.LHS)));
             Symbol := Symbol_Access (Session.Start_Rule.LHS);
          end if;
       else
@@ -198,16 +192,9 @@ package body Builds is
          exit when Rule = null;
          for I in Rule.RHS'Range loop
             if Rule.RHS (I) = Symbol then   --  FIX ME:  Deal with multiterminals XXX
-               Errors.Error_Plain
-                 (File_Name   => Session.File_Name,
-                  Line_Number => 0,
-                  Text        =>
-                    "The start symbol '%1' occurs on the right-hand " &
-                    "side of a rule. This will result in a parser which " &
-                    "does not work properly.",
-                  Arguments   => (1 => To_Unbounded_String (Name_Of (Symbol)))
-                 );
-               Session.Error_Cnt := Session.Error_Cnt + 1;
+               Errors.Parser_Error (E015,
+                                    Line_Number => 0,
+                                    Argument_1  => Name_Of (Symbol));
             end if;
          end loop;
          Rule := Rule.Next;

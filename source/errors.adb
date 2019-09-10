@@ -8,26 +8,10 @@
 --
 
 with Ada.Text_IO;
-with Ada.Strings.Fixed;
 
 with DK8543.Errors;
 
 package body Errors is
-
-
-   procedure Error_Plain (File_Name   : in Unbounded_String;
-                          Line_Number : in Natural;
-                          Text        : in String;
-                          Arguments   : in Argument_List)
-   is
-      pragma Unreferenced (Arguments);
-   begin
-      DK8543.Errors.Error
-        (Ada.Text_IO.Standard_Output,
-         Ada.Strings.Unbounded.To_String (File_Name),
-         Line_Number, Text);
-   end Error_Plain;
-
 
    type String_Access is access all String;
 
@@ -53,6 +37,11 @@ package body Errors is
       E011 => -"Missing '->' following: '$1($2)'.",
       E012 => -"'$1' is not a valid alias for the RHS symbol '$2'",
       E013 => -"Missing ')' following LHS alias name '$1'.",
+      E014 => -("The specified start symbol '$1' Start is not in a nonterminal " &
+                  "of the grammar.  '$2' will be used as the start symbol instead."),
+      E015 => -("The start symbol '$1' occurs on the right-hand " &
+                  "side of a rule. This will result in a parser which " &
+                  "does not work properly."),
 
       E101 => -"Can't open this file for reading.",
       E102 => -"C code starting on this line is not terminated before the end of the file.",
@@ -82,29 +71,32 @@ package body Errors is
    procedure Parser_Error
      (Kind        : in K_Error_Parse;
       Line_Number : in Natural;
-      Arguments   : in Argument_List)
+      Argument_1  : in String := "";
+      Argument_2  : in String := "")
    is
       use Ada.Strings;
 
       File_Name  : constant String  := To_String (Default_File_Name);
       Kind_Image : constant String  := Kind'Image & " ";
       Message    : Unbounded_String := To_Unbounded_String (Table (Kind).all);
-      Position   : Natural          := 1; --  First_Index (Message);
+      Position   : Natural          := 1;
    begin
-      --  Fill in placeholders
-      for I in Arguments'Range loop
-         declare
-            Placeholder : constant String := "$" & Fixed.Trim (Positive'Image (I), Left);
-         begin
-            Position := Index (Message, Placeholder, Position);
-            if Position = 0 then
-               raise Program_Error with "No placeholder '" & Placeholder & "'";
-            end if;
+
+      --  Substitued $1 placeholder
+      Position := Index (Message, "$1", Position);
+      if Position /= 0 then
             Replace_Slice (Message, Position,
-                           Position + Placeholder'Length - 1,
-                           To_String (Arguments (I)));
-         end;
-      end loop;
+                           Position + 2 - 1,
+                           Argument_1);
+      end if;
+
+      --  Substitute $2 placeholder
+      Position := Index (Message, "$2", Position);
+      if Position /= 0 then
+            Replace_Slice (Message, Position,
+                           Position + 2 - 1,
+                           Argument_2);
+      end if;
 
       DK8543.Errors.Error (File        => Ada.Text_IO.Standard_Output,
                            File_Name   => File_Name,
@@ -114,44 +106,12 @@ package body Errors is
    end Parser_Error;
 
 
-   procedure Parser_Error
-     (Kind        : in K_Error_Parse;
-      Line_Number : in Natural;
-      Argument_1  : in String := "";
-      Argument_2  : in String := "")
-   is
-   begin
-      Parser_Error
-        (Kind, Line_Number,
-         Arguments => Argument_List'(1 => To_Unbounded_String (Argument_1),
-                                     2 => To_Unbounded_String (Argument_2)));
-   end Parser_Error;
-
-
    procedure Set_File_Name
      (File_Name : in Ada.Strings.Unbounded.Unbounded_String)
    is
    begin
       Errors.Default_File_Name := File_Name;
    end Set_File_Name;
-
-
---     procedure Error (Kind        : in K_Error_Parse_One_Token;
---                      Arguments   : in Argument_List;
---                      Line_Number : in Natural             := Start_Line)
---     is
---     begin
---        Errors.Error (Kind, Line_Number, Arguments);
---        Error_Count := Error_Count + 1;
---     end Error;
-
-
---     procedure Error (Kind        : in K_Error_Parse_One_Token;
---                      Line_Number : in Natural                 := Start_Line)
---     is
---     begin
---        Error (Kind, Null_Argument_List, Line_Number);
---     end Error;
 
 
 end Errors;
