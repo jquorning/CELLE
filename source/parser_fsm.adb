@@ -307,19 +307,18 @@ package body Parser_FSM is
       function Match (Item : in String) return Boolean;
 
       Cur : Character renames Token (Token'First);
-      X   : String    renames Token;
 
       function Match (Item : in String) return Boolean
       is
 --         use Ada.Strings.Fixed;
 
-         Length     : constant Natural := Natural'Min (X'Length, Item'Length);
+         Length     : constant Natural := Natural'Min (Token'Length, Item'Length);
          Item_Last  : constant Natural := Item'First + Length - 1;
 --         Right_Pos  : constant Natural := Index (Item (Item'First .. Item_Last), " ");
 --       Right_Last : constant Natural := Natural'Max (Right_Pos, Item_Last - 1);
-         Length_2   : constant Natural := Natural'Min (X'Length, Item_Last - Item'First + 1);
-         Left       : String renames X    (X'First    .. X'First    + Length_2 - 1);
-         Right      : String renames Item (Item'First .. Item'First + Length_2 - 1);
+         Length_2   : constant Natural := Natural'Min (Token'Length, Item_Last - Item'First + 1);
+         Left       : String renames Token (Token'First .. Token'First    + Length_2 - 1);
+         Right      : String renames Item  (Item'First  .. Item'First + Length_2 - 1);
       begin
          Debug (False, "    Left : " & Left);
          Debug (False, "    Right: " & Right);
@@ -331,13 +330,13 @@ package body Parser_FSM is
    begin
       Debug (Debug_On, "Do_State_Waiting_For_Decl_Keyword");
       Debug (Debug_On, "  Cur: " & Cur);
-      Debug (Debug_On, "  X  : " & X);
+      Debug (Debug_On, "  Token: " & Token);
 
       if
         Cur in 'a' .. 'z' or
         Cur in 'A' .. 'Z'
       then
-         Scanner.Decl_Keyword      := To_Unbounded_String (X);
+         Scanner.Decl_Keyword      := To_Unbounded_String (Token);
          Scanner.Decl_Arg_Slot     := null;
          Scanner.Insert_Line_Macro := True;
 
@@ -442,12 +441,12 @@ package body Parser_FSM is
             Scanner.State := WAITING_FOR_CLASS_ID;
 
          else
-            Parser_Error (E203, Scanner.Token_Lineno, X);
+            Parser_Error (E203, Scanner.Token_Lineno, Token);
 
             Scanner.State := RESYNC_AFTER_DECL_ERROR;
          end if;
       else
-         Parser_Error (E204, Scanner.Token_Lineno, X);
+         Parser_Error (E204, Scanner.Token_Lineno, Token);
 
          Scanner.State := RESYNC_AFTER_DECL_ERROR;
       end if;
@@ -752,7 +751,7 @@ package body Parser_FSM is
       Debug_On : constant Boolean := False;
    begin
       Debug (Debug_On, "##Cur: " & Cur);
-      Debug (Debug_On, "##X  : " & Token);
+      Debug (Debug_On, "##Token: " & Token);
       if
         Cur = '{' or
         Cur = '"' or

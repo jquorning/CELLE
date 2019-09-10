@@ -10,7 +10,6 @@
 with Ada.Text_IO;
 with Ada.Strings.Unbounded;
 with Ada.Command_Line;
-with Ada.Containers;
 with Ada.Exceptions;
 
 with Setup;
