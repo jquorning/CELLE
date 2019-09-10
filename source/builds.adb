@@ -60,14 +60,6 @@ package body Builds is
    begin
       Symbols.Set_Lambda_False_And_Set_Firstset (First => Natural (Session.N_Terminal),
                                                  Last  => Natural (Session.N_Symbol - 1));
---        for I in 0 .. Session.N_Symbol - 1 loop
---           Session.Symbols (I).lambda := False;
---        end loop;
-
---        for I in Session.N_Terminal .. Session.N_Symbol - 1 loop
---           Session.Symbols (I).firstset := SetNew (void);
---        end loop;
-
       --  First compute all lambdas
       loop
          Progress := False;
@@ -94,11 +86,10 @@ package body Builds is
                Progress := True;
             end if;
 
+            <<Continue>>
             Rule := Rule.Next;
          end loop;
          exit when not Progress;
-         <<Continue>>
-         null;
       end loop;
 
       --  Now compute all first sets

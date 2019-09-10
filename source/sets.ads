@@ -35,7 +35,7 @@ package Sets is
 
 private
 
-   type Set_Array is array (Natural range <>) of Character;
+   type Set_Array is array (Natural range <>) of Boolean;
    type Set_Type  is access Set_Array;
 
    Null_Set : constant Set_Type := null;

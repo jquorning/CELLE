@@ -18,7 +18,7 @@ package body Sets is
 
    function Set_New return Set_Type is
    begin
-      return new Set_Array'(0 .. Size => '0');
+      return new Set_Array'(0 .. Size => False);
 --        char *s;
 --    s = (char*)calloc( size, 1);
 --    if( s==0 ){
@@ -43,11 +43,10 @@ package body Sets is
    is
       RV : Boolean;
    begin
---  int lemon_set_add(char *s, int e)
       pragma Assert (Item >= 0 and Item < Size);
-      RV := Set (Item) /= '0';
-      Set (Item) := '1';
-      return RV;
+      RV := Set (Item);
+      Set (Item) := True;
+      return not RV;
    end Set_Add;
 
 
@@ -56,15 +55,12 @@ package body Sets is
    is
       Progress : Boolean;
    begin
---  int SetUnion(char *s1, char *s2)
       Progress := False;
       for I in 0 .. Size - 1 loop
-         if Set_2 (I) = '0' then
-            null;
-         else
-            if Set_1 (I) = '0' then
+         if Set_2 (I) then
+            if not Set_1 (I) then
                Progress := True;
-               Set_1 (I) := '1';
+               Set_1 (I) := True;
             end if;
          end if;
       end loop;
@@ -76,7 +72,7 @@ package body Sets is
                       Item : in Natural) return Boolean
    is
    begin
-      return Set (Item) = '1';
+      return Set (Item);
    end Set_Find;
 
 
