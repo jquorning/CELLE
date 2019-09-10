@@ -8,7 +8,6 @@
 --
 
 with Ada.Text_IO;
---  with Ada.Strings.Fixed;
 with Ada.Strings.Unbounded;
 
 with Symbols;
@@ -216,13 +215,8 @@ package body Parser_FSM is
       pragma Unreferenced (Session);
       use Rules;
 
-      On_True : constant Boolean := False;
-
       Cur : Character renames Token (Token'First);
    begin
-      Debug (On_True, "Do_State_Waiting_For_Decl_Or_Rule");
-      Debug (On_True, "  Cur  : " & Cur);
-      Debug (On_True, "  Token: " & Token);
 
       if Cur = '%' then
          Scanner.State := WAITING_FOR_DECL_KEYWORD;
@@ -262,10 +256,8 @@ package body Parser_FSM is
                                          Token   : in     String)
    is
       use Rules;
-
-      Cur : Character renames Token (Token'First);
    begin
-      if Cur not in 'A' .. 'Z' then
+      if Token (Token'First) not in 'A' .. 'Z' then
          Parser_Error (E004, Scanner.Token_Lineno);
 
       elsif Scanner.Prev_Rule = null then
@@ -287,11 +279,8 @@ package body Parser_FSM is
    procedure Do_State_Precedence_Mark_2 (Scanner : in out Scanner_Record;
                                          Token   : in     String)
    is
---      Cur : constant Character := Current_Char (Scanner);
-      Cur : Character renames Token (Token'First);
    begin
-      if Cur /= ']' then
-         --  Error ("Missing ']' on precedence mark.");
+      if Token (Token'First) /= ']' then
          Parser_Error (E007, Scanner.Token_Lineno);
       end if;
 
@@ -310,27 +299,16 @@ package body Parser_FSM is
 
       function Match (Item : in String) return Boolean
       is
---         use Ada.Strings.Fixed;
-
          Length     : constant Natural := Natural'Min (Token'Length, Item'Length);
          Item_Last  : constant Natural := Item'First + Length - 1;
---         Right_Pos  : constant Natural := Index (Item (Item'First .. Item_Last), " ");
---       Right_Last : constant Natural := Natural'Max (Right_Pos, Item_Last - 1);
          Length_2   : constant Natural := Natural'Min (Token'Length, Item_Last - Item'First + 1);
          Left       : String renames Token (Token'First .. Token'First    + Length_2 - 1);
          Right      : String renames Item  (Item'First  .. Item'First + Length_2 - 1);
       begin
-         Debug (False, "    Left : " & Left);
-         Debug (False, "    Right: " & Right);
---         return Left = Right;
          return Token = Item;
       end Match;
 
-      Debug_On : constant Boolean := False;
    begin
-      Debug (Debug_On, "Do_State_Waiting_For_Decl_Keyword");
-      Debug (Debug_On, "  Cur: " & Cur);
-      Debug (Debug_On, "  Token: " & Token);
 
       if
         Cur in 'a' .. 'z' or
@@ -353,17 +331,14 @@ package body Parser_FSM is
             Scanner.Decl_Arg_Slot := Session.Names.Extra_Code'Access;
 
          elsif Match ("token_destructor") then
-            Debug (Debug_On, "  token_destructor");
             Scanner.Decl_Arg_Slot := Session.Names.Token_Dest'Access;
 
          elsif Match ("default_destructor") then
             Scanner.Decl_Arg_Slot := Session.Names.Var_Dest'Access;
 
          elsif Match ("token_prefix") then
-            Debug (Debug_On, "  token_prefix");
             Scanner.Decl_Arg_Slot     := Session.Names.Token_Prefix'Access;
             Scanner.Insert_Line_Macro := False;
-            --  Advance_Until_After_Space (Scanner);
 
          elsif Match ("syntax_error") then
             Scanner.Decl_Arg_Slot := Session.Names.Error'Access;
@@ -382,17 +357,14 @@ package body Parser_FSM is
             Scanner.Insert_Line_Macro := False;
 
          elsif Match ("extra_context") then
-            Debug (False, "  extra_context");
             Scanner.Decl_Arg_Slot     := Session.Names.CTX2'Access;
             Scanner.Insert_Line_Macro := False;
 
          elsif Match ("token_type") then
-            Debug (Debug_On, "  token_type");
             Scanner.Decl_Arg_Slot     := Session.Names.Token_Type'Access;
             Scanner.Insert_Line_Macro := False;
 
          elsif Match ("default_type") then
-            Debug (False, "  default_type");
             Scanner.Decl_Arg_Slot     := Session.Names.Var_Type'Access;
             Scanner.Insert_Line_Macro := False;
 
@@ -430,14 +402,12 @@ package body Parser_FSM is
             Scanner.State := WAITING_FOR_FALLBACK_ID;
 
          elsif Match ("token") then
-            Debug (Debug_On, "Match on token");
             Scanner.State := WAITING_FOR_TOKEN_NAME;
 
          elsif Match ("wildcard") then
             Scanner.State := WAITING_FOR_WILDCARD_ID;
 
          elsif Match ("token_class") then
-            Debug (Debug_On, "Match on token_class");
             Scanner.State := WAITING_FOR_CLASS_ID;
 
          else
@@ -600,8 +570,6 @@ package body Parser_FSM is
                               Scanner : in out Scanner_Record;
                               Token   : in     String)
    is
-      Debug_On : constant Boolean := False;
-
       Cur : Character renames Token (Token'First);
    begin
       if Cur = '.' then
@@ -612,8 +580,6 @@ package body Parser_FSM is
 
             Rule : access Rule_Record;
          begin
-            Debug (Debug_On, "Scanner.RHS: " & Scanner.RHS.Length'Img);
-            Debug (Debug_On, "Scanner.Alias: " & Scanner.Alias.Length'Img);
             Rule := new Rule_Record;
             Rule.RHS :=
               new Symbol_Access_Array'
@@ -648,7 +614,6 @@ package body Parser_FSM is
                  Scanner.RHS.First_Index .. Scanner.RHS.Last_Index;
             begin
                for I in Index_Range loop
-                  Debug (Debug_On, "I:" & Integer'Image (I));
                   Rule.RHS (I) := Scanner.RHS   (I);
                   Append (Rule.RHS_Alias, Scanner.Alias.Element (I));
                   --  if Symbols."/=" (Rule.RHS_Alias (I), Null_Unbounded_String) then
@@ -663,8 +628,6 @@ package body Parser_FSM is
                end loop;
             end;
 
-            Debug (Debug_On, "Scanner.LHS: " & Scanner.LHS.Length'Img);
-            Debug (Debug_On, "Scanner.LHS_Alias: " & Scanner.LHS_Alias.Length'Img);
             Rule.LHS        := Rule_Symbol_Access (Scanner.LHS.First_Element);
             if Scanner.LHS_Alias.Is_Empty then
                Rule.LHS_Alias := Null_Unbounded_String;
@@ -748,10 +711,7 @@ package body Parser_FSM is
                                             Token   : in     String)
    is
       Cur : Character renames Token (Token'First);
-      Debug_On : constant Boolean := False;
    begin
-      Debug (Debug_On, "##Cur: " & Cur);
-      Debug (Debug_On, "##Token: " & Token);
       if
         Cur = '{' or
         Cur = '"' or
@@ -862,7 +822,6 @@ package body Parser_FSM is
             Buf_String := To_Unbounded_String (New_String);
             --  Buf_String := Buf_String; --   + nNew;
             --  *zBuf := 0;
-            Debug (False, "QQQ" & To_String (Buf_String));
             Scanner.State := WAITING_FOR_DECL_OR_RULE;
 --            Scanner.Done  := True;
          end;
