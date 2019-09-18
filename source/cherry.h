@@ -12,6 +12,6 @@
 #define __CHERRY_H__
 
 void cherry_find_states(struct lemon*);
-void cherry_add_the_accepting_token (struct lemon*, struct symbol*);
+//void cherry_add_the_accepting_token (struct lemon*, struct symbol*);
 
 #endif /* __CHERRY_H__ */

@@ -30,7 +30,12 @@
 --  state number.
 --
 
+with Ada.Containers.Doubly_Linked_Lists;
+
 package body Actions is
+
+   package Action_Lists is
+      new Ada.Containers.Doubly_Linked_Lists (Element_Type => Action_Record);
 
 --  /* Return the number of entries in the yy_action table */
 --  #define acttab_lookahead_size(X) ((X)->nAction)
@@ -227,19 +232,19 @@ package body Actions is
 
 
    function Action_Cmp (Left, Right : in Action_Record)
-                       return Integer
+                       return Boolean
    is
       RC : Integer;
    begin
       RC := Integer (Left.Symbol.Index) - Integer (Right.Symbol.Index);
 
       if RC = 0 then
-         RC := E_Action'Pos (Left.Kind) - E_Action'Pos (Right.Kind);
+         RC := Action_Kind'Pos (Left.Kind) - Action_Kind'Pos (Right.Kind);
       end if;
 
       if
         RC = 0 and
-        (Left.Kind = REDUCE or Left.Kind = SHIFTREDUCE)
+        (Left.Kind = Reduce or Left.Kind = Shift_Reduce)
       then
          RC := Left.X.Rule.Index - Right.X.Rule.Index;
       end if;
@@ -249,8 +254,107 @@ package body Actions is
          --  RC := (int) (ap2 - ap1); -- XXX Pointer
          raise Program_Error;
       end if;
-      return RC;
+      return RC /= 0;
    end Action_Cmp;
 
+
+
+
+   --   Free_List : Action_Access := null;
+--
+--     function Action_New return Action_Access is
+--        New_Action : Action_Access;
+--     begin
+--        if Free_List = null then
+--           declare
+--              I   : Integer;
+--              amt : Integer := 100;
+--           begin
+--      freelist = (struct action *)calloc(amt, sizeof(struct action));
+--      if( freelist==0 ){
+--        fprintf(stderr,"Unable to allocate memory for a new parser action.");
+--        exit(1);
+--      }
+--      for(i=0; i<amt-1; i++) freelist[i].next = &freelist[i+1];
+--      freelist[amt-1].next = 0;
+--      end;
+--           end if;
+--    New_Action := Free_List;
+--    Free_List  := Free_List.Next;
+--    return New_Action;
+--  end Action_New;
+
+
+   function Resolve_Conflict (Left  : in out Action_Record;
+                              Right : in out Action_Record) return Integer
+   is
+      use Symbols;
+
+--      Apx : Action_Access renames Left;
+--      Apy : Action_Access renames Right;
+      Apx : Action_Record renames Left;
+      Apy : Action_Record renames Right;
+      Spx : Symbol_Access;
+      Spy : Symbol_Access;
+      Error_Count : Natural := 0;
+   begin
+      pragma Assert (Apx.Symbol = Apy.Symbol);  --  Otherwise there would be no conflict
+
+      if Apx.Kind = Shift and Apy.Kind = Shift then
+         Apy.Kind := SS_Conflict;
+         Error_Count := Error_Count + 1;
+      end if;
+
+      if Apx.Kind = Shift and Apy.Kind = Reduce then
+         Spx := Symbol_Access (Apx.Symbol);
+         Spy := Symbol_Access (Apy.X.Rule.Prec_Sym);
+         if Spy = null or Spx.Prec < 0 or Spy.Prec < 0 then
+            --  Not enough precedence information
+            Apy.Kind := SR_Conflict;
+            Error_Count := Error_Count + 1;
+         elsif Spx.Prec > Spy.Prec then    -- higher precedence wins
+            Apy.Kind := RD_Resolved;
+         elsif Spx.Prec < Spy.Prec then
+            Apx.Kind := SH_Resolved;
+         elsif Spx.Prec = Spy.Prec and Spx.Assoc = Right_Assoc then -- Use operator
+            Apy.Kind := RD_Resolved;                             -- associativity
+         elsif Spx.Prec = Spy.Prec and Spx.Assoc = Left_Assoc then  -- to break tie
+            Apx.Kind := SH_Resolved;
+         else
+            pragma Assert (Spx.Prec = Spy.Prec and Spx.Assoc = None);
+            Apx.Kind := Error;
+         end if;
+      elsif Apx.Kind = Reduce and Apy.Kind = Reduce then
+         Spx := Symbol_Access (Apx.X.Rule.Prec_Sym);
+         Spy := Symbol_Access (Apy.X.Rule.Prec_Sym);
+         if
+           Spx = null or Spy = null or Spx.Prec < 0 or
+           Spy.Prec < 0 or Spx.Prec = Spy.Prec
+         then
+            Apy.Kind := RR_Conflict;
+            Error_Count := Error_Count + 1;
+         elsif Spx.Prec > Spy.Prec then
+            Apy.Kind := RD_Resolved;
+         elsif Spx.Prec < Spy.Prec then
+            Apx.Kind := RD_Resolved;
+         end if;
+      else
+         pragma Assert
+           (Apx.Kind = SH_Resolved or
+            Apx.Kind = RD_Resolved or
+            Apx.Kind = SS_Conflict or
+            Apx.Kind = SR_Conflict or
+            Apx.Kind = RR_Conflict or
+            Apy.Kind = SH_Resolved or
+            Apy.Kind = RD_Resolved or
+            Apy.Kind = SS_Conflict or
+            Apy.Kind = SR_Conflict or
+            Apy.Kind = RR_Conflict);
+         --  The REDUCE/SHIFT case cannot happen because SHIFTs come before
+         --  REDUCEs on the list.  If we reach this point it must be because
+         --  the parser conflict had already been resolved.
+      end if;
+      return Error_Count;
+   end Resolve_Conflict;
 
 end Actions;

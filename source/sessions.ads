@@ -150,9 +150,6 @@ package Sessions is
 --   procedure Find_Rule_Precedences (Session : in Session_Type);
 --   procedure Find_First_Sets (Session : in Session_Type);
    procedure Compute_LR_States (Session : in Session_Type);
-   procedure Find_Links (Session : in Session_Type);
-   procedure Find_Follow_Sets (Session : in Session_Type);
-   procedure Find_Actions (Session : in Session_Type);
 
    procedure Strsafe_Init;
    procedure State_Init;
@@ -166,9 +163,6 @@ private
 --   pragma Import (C, Find_Rule_Precedences, "lemon_find_rule_precedences");
 --   pragma Import (C, Find_First_Sets,       "lemon_find_first_sets");
    pragma Import (C, Compute_LR_States,     "lemon_compute_LR_states");
-   pragma Import (C, Find_Links,            "lemon_find_links");
-   pragma Import (C, Find_Follow_Sets,      "lemon_find_follow_sets");
-   pragma Import (C, Find_Actions,          "lemon_find_actions");
 
    pragma Import (C, Strsafe_Init, "Strsafe_init");
    pragma Import (C, State_Init,   "State_init");

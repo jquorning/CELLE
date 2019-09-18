@@ -65,7 +65,7 @@ package body Reports is
    --  Print the text of a rule.
 
    procedure Print_Action
-     (AP     : in     Actions.Action_Access;
+     (Action : in     Actions.Action_Record;
       File   : in     Ada.Text_IO.File_Type;
       Indent : in     Integer;
       Result :    out Boolean);
@@ -424,37 +424,36 @@ package body Reports is
 
       Action_Result : Boolean;
 
-      N   : Integer;
-      STP : States.State_Access;
-      CFP : Config_Access;
-      AP  : Action_Access;
-      Rule  : Rule_Access;
+      N      : Integer;
+      State  : States.State_Access;
+      Config : Config_Access;
+      Rule   : Rule_Access;
    begin
 --  fp = file_open(lemp,".out","wb");
       Open (File, Out_File, "XXX.out");
 
       for I in Symbol_Index range 0 .. Symbol_Index (Session.Nx_State) - 1 loop
-         STP := Sorted_At (Session.Extra, Index => I);
+         State := Sorted_At (Session.Extra, Index => I);
          Put (File, "State ");
-         Put (File, Integer'Image (STP.State_Num));
+         Put (File, Integer'Image (State.State_Num));
          Put (File, ":");
          New_Line;
 
          if Session.Basis_Flag then
-            CFP := Config_Access (STP.BP);
+            Config := State.Basis;
          else
-            CFP := Config_Access (STP.CFP);
+            Config := State.Config;
          end if;
 
-         while CFP /= null loop
-            if CFP.DOT = CFP.Rule.RHS'Length then
+         while Config /= null loop
+            if Config.Dot = Config.Rule.RHS'Length then
                Put (File, "    (");
-               Put (File, CFP.Rule.Rule'Img);
+               Put (File, Config.Rule.Rule'Img);
                Put (File, ") ");
             else
                Put (File, "          ");
             end if;
-            Config_Print (File, CFP);
+            Config_Print (File, Config);
             New_Line (File);
 
 --      SetPrint(fp,cfp->fws,lemp);
@@ -462,20 +461,18 @@ package body Reports is
 --      PlinkPrint(fp,cfp->bplp,"From");
 
             if Session.Basis_Flag then
-               CFP := CFP.Basis;
+               Config := Config.Basis;
             else
-               CFP := CFP.Next;
+               Config := Config.Next;
             end if;
          end loop;
          New_Line (File);
 
-         AP := Actions.Action_Access (STP.AP);
-         while AP /= null loop
-            Print_Action (AP, File, 30, Action_Result);
+         for Action of State.Action loop
+            Print_Action (Action, File, 30, Action_Result);
             if Action_Result then
                New_Line (File);
             end if;
-            AP := AP.Next;
          end loop;
          New_Line (File);
       end loop;
@@ -583,7 +580,7 @@ package body Reports is
 
       Session_Name : constant String := To_String (Session.Names.Name);
 --    char line[LINESIZE];
-      STP : States.State_Access;
+      State : States.State_Access;
 --    struct action *ap;
       Rule  : Rules.Rule_Access;
 
@@ -744,16 +741,16 @@ package body Reports is
       --    exit(1);
 
          for I in Symbol_Index range 0 .. Symbol_Index (Session.Nx_State - 1) loop
-            STP := Sorted_At (Session.Extra, Index => I);
+            State := Sorted_At (Session.Extra, Index => I);
 
-            AX (I).Token := (STP      => STP,
+            AX (I).Token := (STP      => State,
                              Is_Token => True,
-                             N_Action => STP.N_Tkn_Act,
+                             N_Action => State.N_Tkn_Act,
                              Order    => <>);
 
-            AX (I).Non_Terminal := (STP      => STP,
+            AX (I).Non_Terminal := (STP      => State,
                                     Is_Token => False,
-                                    N_Action => STP.N_Nt_Act,
+                                    N_Action => State.N_Nt_Act,
                                     Order    => <>);
          end loop;
       end;
@@ -1465,7 +1462,7 @@ package body Reports is
 
 
    procedure Print_Action
-     (AP     : in     Actions.Action_Access;
+     (Action : in     Actions.Action_Record;
       File   : in     Ada.Text_IO.File_Type;
       Indent : in     Integer;
       Result :    out Boolean)
@@ -2001,13 +1998,13 @@ package body Reports is
 --         Session->sorted = State_arrayof();
 
          --  Tie up loose ends on the propagation links
-         Find_Links (Session);
+         Builds.Find_Links (Session);
          Put_Line ("### 2-6");
          --  Compute the follow set of every reducible configuration
-         Find_Follow_Sets (Session);
+         Builds.Find_Follow_Sets (Session);
          Put_Line ("### 2-7");
          --  Compute the action tables
-         Find_Actions (Session);
+         Builds.Find_Actions (Session);
          Put_Line ("### 2-8");
          --  Compress the action tables
          if not Options.Compress then
@@ -2178,14 +2175,14 @@ package body Reports is
             use Symbols;
             use Extras;
 
-            STP : access States.State_Record;  --  States.State_Access;
+            State : access States.State_Record;  --  States.State_Access;
          begin
             --  stp := lemp->sorted[i];
-            STP := Sorted_At (Session.Extra,
-                              Symbol_Index (I));
+            State := Sorted_At (Session.Extra,
+                                Symbol_Index (I));
             --  ofst := stp->iTknOfst;
             --  Ofst := Get_Token_Offset (I);
-            Ofst := STP.Token_Offset;
+            Ofst := State.Token_Offset;
          end;
          if Ofst = NO_OFFSET then
             Ofst := Nactiontab;
@@ -2230,10 +2227,10 @@ package body Reports is
             use Symbols;
             use Extras;
 
-            STP : access States.State_Record;
+            State : access States.State_Record;
          begin
-            STP := Sorted_At (Session.Extra, Symbol_Index (I));
-            Ofst := STP.iNtOfst;
+            State := Sorted_At (Session.Extra, Symbol_Index (I));
+            Ofst := State.iNtOfst;
          end;
          if Ofst = NO_OFFSET then
             Ofst := MnNtOfst - 1;
@@ -2271,7 +2268,7 @@ package body Reports is
             use Symbols;
             use Extras;
 
-            STP : constant access States.State_Record :=
+            State : constant access States.State_Record :=
               Sorted_At (Session.Extra, Symbol_Index (I));
          begin
 --         IDfltReduce := Get_Default_Reduce (I);
@@ -2279,10 +2276,10 @@ package body Reports is
             if J = 0 then
                Put (" /* " & Image (I) & " */ ");
             end if;
-            if STP.iDfltReduce then
+            if State.iDfltReduce then
                Put (" " & Image (Error_Action) & ",");
             else
-               Put (" " & Image (Boolean'Pos (STP.iDfltReduce) + Min_Reduce) & ",");
+               Put (" " & Image (Boolean'Pos (State.iDfltReduce) + Min_Reduce) & ",");
             end if;
          end;
          if J = 9 or I = N - 1 then

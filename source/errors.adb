@@ -65,7 +65,9 @@ package body Errors is
       E215 => -"%fallback argument $1 should be a token",
       E216 => -"More than one fallback assigned to token $1",
       E217 => -"Symbol $1 has already be given a precedence.",
-      E218 => -"Can't assign a precedence to $1."
+      E218 => -"Can't assign a precedence to $1.",
+
+      E301 => -"This rule can not be reduced."
      );
 
 

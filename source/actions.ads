@@ -30,32 +30,32 @@
 --  state number.
 --
 
-with States;
+limited with States;
 with Rules;
 with Symbols;
 
 package Actions is
 
-   type E_Action is
-     (SHIFT,
-      c_ACCEPT,
-      REDUCE,
-      ERROR,
-      SSCONFLICT,   --  A shift/shift conflict
-      SRCONFLICT,   --  Was a reduce, but part of a conflict
-      RRCONFLICT,   --  Was a reduce, but part of a conflict
-      SH_RESOLVED,  --  Was a shift.  Precedence resolved conflict
-      RD_RESOLVED,  --  Was reduce.  Precedence resolved conflict
-      NOT_USED,     --  Deleted by compression
-      SHIFTREDUCE   --  Shift first, then reduce
+   type Action_Kind is
+     (Shift,
+      C_Accept,
+      Reduce,
+      Error,
+      SS_Conflict,   --  A shift/shift conflict
+      SR_Conflict,   --  Was a reduce, but part of a conflict
+      RR_Conflict,   --  Was a reduce, but part of a conflict
+      SH_Resolved,   --  Was a shift.  Precedence resolved conflict
+      RD_Resolved,   --  Was reduce.  Precedence resolved conflict
+      Not_Used,      --  Deleted by compression
+      Shift_Reduce   --  Shift first, then reduce
      );
-   pragma Convention (C, E_Action);  -- lemon.h:141
+--   pragma Convention (C, E_Action);  -- lemon.h:141
 
    type Action_Record;
    type Action_Access is access all Action_Record;
 
    type State_Rule_Kind is (Is_State, Is_Rule);
-   type anon1015_x_union (discr : State_Rule_Kind := Is_State) is record
+   type X_Union (discr : State_Rule_Kind := Is_State) is record
       case discr is
          when Is_State  =>
             stp  : access States.State_Record;  --  The look-ahead symbol
@@ -64,20 +64,20 @@ package Actions is
       end case;
    end record;
 
-   pragma Convention (C_Pass_By_Copy, anon1015_x_union);
-   pragma Unchecked_Union (anon1015_x_union);
+--   pragma Convention (C_Pass_By_Copy, X_Union);
+   pragma Unchecked_Union (X_Union);
 
    --  Every shift or reduce operation is stored as one of the following
    type Action_Record is
       record
          Symbol  : access Symbols.Symbol_Record;
-         Kind    : E_Action;
-         X       : anon1015_x_union;            --  The rule, if a reduce
+         Kind    : Action_Kind;
+         X       : X_Union;                     --  The rule, if a reduce
          spOpt   : access Symbols.Symbol_Kind;  --  SHIFTREDUCE optimization to this symbol
-         Next    : access Action_Record;        --  Next action for this state
-         collide : access Action_Record;        --  Next action with the same hash
+--         Next    : access Action_Record;        --  Next action for this state
+         Collide : access Action_Record;        --  Next action with the same hash
       end record;
-   pragma Convention (C_Pass_By_Copy, Action_Record);
+--   pragma Convention (C_Pass_By_Copy, Action_Record);
 
    type Lookahead_Action is
       record
@@ -120,13 +120,39 @@ package Actions is
    --  entries.
 
    function Action_Cmp (Left, Right : in Action_Record)
-                       return Integer;
+                       return Boolean;
    --  Compare two actions for sorting purposes.  Return negative, zero, or
    --  positive if the first action is less than, equal to, or greater than
    --  the first
+   --  Return True when Left is 'less than' Right.
 
-private
+--   function Action_Sort (Action : in Action_Access) return Action_Access;
 
-   pragma Export (C, Action_Cmp, "actioncmp");
+--     --  Sort parser actions
+
+--  --   function Action_New return Action_Access;
+--     --  Allocate a new parser action
+
+--     procedure Action_Add (Action : in out Action_Access;
+--                           Kind   : in     Action_Kind;
+--                           Symbol : in     Symbols.Symbol_Access;
+--                           State  : in     States.State_Access;
+--                           Rule   : in     Rules.Rule_Access);
+--  See Action_lists.Append
+
+   function Resolve_Conflict (Left  : in out Action_Record;
+                              Right : in out Action_Record) return Integer;
+   --  Resolve a conflict between the two given actions.  If the
+   --  conflict can't be resolved, return non-zero.
+   --
+   --  NO LONGER TRUE:
+   --   To resolve a conflict, first look to see if either action
+   --   is on an error rule.  In that case, take the action which
+   --   is not associated with the error rule.  If neither or both
+   --   actions are associated with an error rule, then try to
+   --   use precedence to resolve the conflict.
+   --
+   --  If either action is a SHIFT, then it must be apx.  This
+   --  function won't work if apx->type==REDUCE and apy->type==SHIFT.
 
 end Actions;

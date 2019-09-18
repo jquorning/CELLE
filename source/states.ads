@@ -8,19 +8,19 @@
 --
 
 with Configs;
-limited with Actions;
+with Action_Lists;
 limited with Rules;
 
 package States is
 
    --  Each state of the generated parser's finite state machine
    --  is encoded as an instance of the following structure.
-
+--   type State_Action_Access is access all Actions.Action_Record;
    type State_Record is record
-      BP           : access Configs.Config_Record;  --  The basis configurations for this state
-      CFP          : access Configs.Config_Record;  --  All configurations in this set
-      State_Num    : Integer;                       --  Sequential number for this state
-      AP           : access Actions.Action_Record;  --  List of actions for this state
+      Basis        : Configs.Config_Access;    --  The basis configurations for this state
+      Config       : Configs.Config_Access;    --  All configurations in this set
+      State_Num    : Integer;                  --  Sequential number for this state
+      Action       : Action_Lists.List; -- State_Action_Access; --  List of actions for this state
       N_Tkn_Act    : Integer;
       --  Number of actions on terminals and nonterminals
 
@@ -35,5 +35,18 @@ package States is
    end record;
 
    type State_Access is access all State_Record;
+
+   function Find (Config : in Configs.Config_Access) return State_Access;
+
+   function Create return State_Access;
+
+   procedure Insert (State  : in out State_Access;
+                     Config : in     Configs.Config_Access);
+
+private
+
+   pragma Import (C, Find,   "State_find");
+   pragma Import (C, Create, "State_new");
+   pragma Import (C, Insert, "State_insert");
 
 end States;

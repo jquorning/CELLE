@@ -176,7 +176,7 @@ struct lemon;
 struct action;
 
 static struct action *Action_new(void);
-static struct action *Action_sort(struct action *);
+//static struct action *Action_sort(struct action *);
 
 /********* From the file "configlist.h" *********************************/
 void lemon_configlist_init(void);
@@ -188,7 +188,7 @@ void Configlist_sortbasis(void);
 struct config *Configlist_return(void);
 struct config *Configlist_basis(void);
 void Configlist_eat(struct config *);
-void Configlist_reset(void);
+void lemon_configlist_reset(void);
 
 /********* From the file "error.h" ***************************************/
 void ErrorMsg(const char *, int,const char *, ...);
@@ -198,7 +198,7 @@ void Parse(struct lemon *lemp);
 
 /********* From the file "plink.h" ***************************************/
 struct plink *Plink_new(void);
-void Plink_add(struct plink **, struct config *);
+void lemon_plink_add(struct plink **, struct config *);
 void Plink_copy(struct plink **, struct plink *);
 void Plink_delete(struct plink *);
 
@@ -341,6 +341,7 @@ static int actioncmp(
 #endif
 
 /* Sort parser actions */
+#if 0
 static struct action *Action_sort(
   struct action *ap
 ){
@@ -368,6 +369,7 @@ void Action_add(
     newaction->x.rp = (struct rule *)arg;
   }
 }
+#endif
 
 /********************** From the file "build.c" *****************************/
 /*
@@ -475,12 +477,13 @@ void Action_add(
 ** are added to between some states so that the LR(1) follow sets
 ** can be computed later.
 */
-PRIVATE struct state *lemon_get_state(struct lemon *);  /* forward reference */
+//PRIVATE struct state *lemon_get_state(struct lemon *);  /* forward reference */
 
 
 /* Return a pointer to a state which is described by the configuration
 ** list which has been built from calls to Configlist_add.
 */
+#if 0
 PRIVATE void buildshifts(struct lemon *, struct state *); /* Forwd ref */
 PRIVATE struct state *lemon_get_state(struct lemon *lemp)
 {
@@ -559,7 +562,7 @@ PRIVATE void buildshifts(struct lemon *lemp, struct state *stp)
   for(cfp=stp->cfp; cfp; cfp=cfp->next){
     if( cfp->status==COMPLETE ) continue;    /* Already used by inner loop */
     if( cfp->dot>=cfp->rp->nrhs ) continue;  /* Can't shift this config */
-    Configlist_reset();                      /* Reset the new config set */
+    lemon_configlist_reset();                      /* Reset the new config set */
     sp = cfp->rp->rhs[cfp->dot];             /* Symbol after the dot */
 
     /* For every configuration in the state "stp" which has the symbol "sp"
@@ -572,7 +575,7 @@ PRIVATE void buildshifts(struct lemon *lemp, struct state *stp)
       if( !same_symbol(bsp,sp) ) continue;      /* Must be same as for "cfp" */
       bcfp->status = COMPLETE;                  /* Mark this config as used */
       newcfg = lemon_configlist_add_basis(bcfp->rp,bcfp->dot+1);
-      Plink_add(&newcfg->bplp,bcfp);
+      lemon_plink_add(&newcfg->bplp,bcfp);
     }
 
     /* Get a pointer to the state described by the basis configuration set
@@ -591,6 +594,7 @@ PRIVATE void buildshifts(struct lemon *lemp, struct state *stp)
     }
   }
 }
+#endif
 
 /*
 ** Construct the propagation links
@@ -619,7 +623,7 @@ void lemon_find_links (struct lemon *lemp)
     for(cfp=stp->cfp; cfp; cfp=cfp->next){
       for(plp=cfp->bplp; plp; plp=plp->next){
         other = plp->cfp;
-        Plink_add(&other->fplp,cfp);
+        lemon_plink_add(&other->fplp,cfp);
       }
     }
   }
@@ -666,70 +670,70 @@ static int resolve_conflict(struct action *,struct action *);
 
 /* Compute the reduce actions, and resolve conflicts.
 */
-void lemon_find_actions(struct lemon *lemp)
-{
-  int i,j;
-  struct config *cfp;
-  struct state *stp;
-  struct symbol *sp;
-  struct rule *rp;
+/* void lemon_find_actions(struct lemon *lemp) */
+/* { */
+/*   int i,j; */
+/*   struct config *cfp; */
+/*   struct state *stp; */
+/*   struct symbol *sp; */
+/*   struct rule *rp; */
 
-  /* Add all of the reduce actions
-  ** A reduce action is added for each element of the followset of
-  ** a configuration which has its dot at the extreme right.
-  */
-  for(i=0; i<lemp->nstate; i++){   /* Loop over all states */
-    stp = lemp->sorted[i];
-    for(cfp=stp->cfp; cfp; cfp=cfp->next){  /* Loop over all configurations */
-      if( cfp->rp->nrhs==cfp->dot ){        /* Is dot at extreme right? */
-        for(j=0; j<lemp->nterminal; j++){
-          if( lemon_set_find(cfp->fws,j) ){
-            /* Add a reduce action to the state "stp" which will reduce by the
-            ** rule "cfp->rp" if the lookahead symbol is "lemp->symbols[j]" */
-            Action_add(&stp->ap,REDUCE,lemp->symbols[j],(char *)cfp->rp);
-          }
-        }
-      }
-    }
-  }
+/*   /\* Add all of the reduce actions */
+/*   ** A reduce action is added for each element of the followset of */
+/*   ** a configuration which has its dot at the extreme right. */
+/*   *\/ */
+/*   for(i=0; i<lemp->nstate; i++){   /\* Loop over all states *\/ */
+/*     stp = lemp->sorted[i]; */
+/*     for(cfp=stp->cfp; cfp; cfp=cfp->next){  /\* Loop over all configurations *\/ */
+/*       if( cfp->rp->nrhs==cfp->dot ){        /\* Is dot at extreme right? *\/ */
+/*         for(j=0; j<lemp->nterminal; j++){ */
+/*           if( lemon_set_find(cfp->fws,j) ){ */
+/*             /\* Add a reduce action to the state "stp" which will reduce by the */
+/*             ** rule "cfp->rp" if the lookahead symbol is "lemp->symbols[j]" *\/ */
+/*             Action_add(&stp->ap,REDUCE,lemp->symbols[j],(char *)cfp->rp); */
+/*           } */
+/*         } */
+/*       } */
+/*     } */
+/*   } */
 
-  /* Add the accepting token */
-  cherry_add_the_accepting_token (lemp, sp);
+/*   /\* Add the accepting token *\/ */
+/*   cherry_add_the_accepting_token (lemp, sp); */
 
-  /* Add to the first state (which is always the starting state of the
-  ** finite state machine) an action to ACCEPT if the lookahead is the
-  ** start nonterminal.  */
-  Action_add(&lemp->sorted[0]->ap,ACCEPT,sp,0);
+/*   /\* Add to the first state (which is always the starting state of the */
+/*   ** finite state machine) an action to ACCEPT if the lookahead is the */
+/*   ** start nonterminal.  *\/ */
+/*   Action_add(&lemp->sorted[0]->ap,ACCEPT,sp,0); */
 
-  /* Resolve conflicts */
-  for(i=0; i<lemp->nstate; i++){
-    struct action *ap, *nap;
-    stp = lemp->sorted[i];
-    /* assert( stp->ap ); */
-    stp->ap = Action_sort(stp->ap);
-    for(ap=stp->ap; ap && ap->next; ap=ap->next){
-      for(nap=ap->next; nap && nap->sp==ap->sp; nap=nap->next){
-         /* The two actions "ap" and "nap" have the same lookahead.
-         ** Figure out which one should be used */
-         lemp->nconflict += resolve_conflict(ap,nap);
-      }
-    }
-  }
+/*   /\* Resolve conflicts *\/ */
+/*   for(i=0; i<lemp->nstate; i++){ */
+/*     struct action *ap, *nap; */
+/*     stp = lemp->sorted[i]; */
+/*     /\* assert( stp->ap ); *\/ */
+/*     stp->ap = Action_sort(stp->ap); */
+/*     for(ap=stp->ap; ap && ap->next; ap=ap->next){ */
+/*       for(nap=ap->next; nap && nap->sp==ap->sp; nap=nap->next){ */
+/*          /\* The two actions "ap" and "nap" have the same lookahead. */
+/*          ** Figure out which one should be used *\/ */
+/*          lemp->nconflict += resolve_conflict(ap,nap); */
+/*       } */
+/*     } */
+/*   } */
 
-  /* Report an error for each rule that can never be reduced. */
-  for(rp=lemp->rule; rp; rp=rp->next) rp->canReduce = LEMON_FALSE;
-  for(i=0; i<lemp->nstate; i++){
-    struct action *ap;
-    for(ap=lemp->sorted[i]->ap; ap; ap=ap->next){
-      if( ap->type==REDUCE ) ap->x.rp->canReduce = LEMON_TRUE;
-    }
-  }
-  for(rp=lemp->rule; rp; rp=rp->next){
-    if( rp->canReduce ) continue;
-    ErrorMsg(lemp->filename,rp->ruleline,"This rule can not be reduced.\n");
-    lemp->errorcnt++;
-  }
-}
+/*   /\* Report an error for each rule that can never be reduced. *\/ */
+/*   for(rp=lemp->rule; rp; rp=rp->next) rp->canReduce = LEMON_FALSE; */
+/*   for(i=0; i<lemp->nstate; i++){ */
+/*     struct action *ap; */
+/*     for(ap=lemp->sorted[i]->ap; ap; ap=ap->next){ */
+/*       if( ap->type==REDUCE ) ap->x.rp->canReduce = LEMON_TRUE; */
+/*     } */
+/*   } */
+/*   for(rp=lemp->rule; rp; rp=rp->next){ */
+/*     if( rp->canReduce ) continue; */
+/*     ErrorMsg(lemp->filename,rp->ruleline,"This rule can not be reduced.\n"); */
+/*     lemp->errorcnt++; */
+/*   } */
+/* } */
 
 /* Resolve a conflict between the two given actions.  If the
 ** conflict can't be resolved, return non-zero.
@@ -854,7 +858,7 @@ void lemon_configlist_init(void){
 }
 
 /* Initialized the configuration list builder */
-void Configlist_reset(void){
+void lemon_configlist_reset(void){
   current = 0;
   currentend = &current;
   basis = 0;
@@ -956,7 +960,7 @@ void Configlist_closure(struct lemon *lemp)
             if( xsp->lambda==LEMON_FALSE ) break;
           }
         }
-        if( i==rp->nrhs ) Plink_add(&cfp->fplp,newcfp);
+        if( i==rp->nrhs ) lemon_plink_add(&cfp->fplp,newcfp);
       }
     }
   }
@@ -1303,7 +1307,7 @@ struct plink *Plink_new(void){
 }
 
 /* Add a plink to a plink list */
-void Plink_add(struct plink **plpp, struct config *cfp)
+void lemon_plink_add(struct plink **plpp, struct config *cfp)
 {
   struct plink *newlink;
   newlink = Plink_new();

@@ -42,8 +42,8 @@ package Cherry is
 
 private
 
-   pragma Export (C, Add_The_Accepting_Token,
-                  "cherry_add_the_accepting_token");
+--   pragma Export (C, Add_The_Accepting_Token,
+--                  "cherry_add_the_accepting_token");
    pragma Export (C, Set_New_C,   "lemon_set_new");
    pragma Export (C, Set_Free_C,  "lemon_set_free");
    pragma Export (C, Set_Add_C,   "lemon_set_add");

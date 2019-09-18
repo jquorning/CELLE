@@ -54,7 +54,9 @@ package Errors is
       E215,
       E216,
       E217,
-      E218
+      E218,
+
+      E301
      );
 
    procedure Set_File_Name
