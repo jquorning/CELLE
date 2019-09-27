@@ -2,9 +2,12 @@
 --
 --
 
+with Ada.Text_IO;
 with Ada.Strings.Unbounded;
 with Ada.Containers;
 
+with Reports;
+with Options;
 with Rules;
 with Symbols;
 with Sets;
@@ -13,9 +16,9 @@ with Configs;
 with Actions;
 with Action_Lists;
 with Cherry;
-with Extras;
 with Config_Lists;
 with Prop_Links;
+with Debugs;
 
 package body Builds is
 
@@ -29,9 +32,9 @@ package body Builds is
    begin
       Rule := Session.Rule;
       while Rule /= null loop
-         if Rule.Prec_Sym = null then
+         if Rule.Prec_Symbol = null then
             for I in Rule.RHS.all'Range loop
-               exit when Rule.Prec_Sym /= null;
+               exit when Rule.Prec_Symbol /= null;
                declare
                   Symbol : constant Symbol_Access := Rule.RHS (I);
                begin
@@ -39,13 +42,13 @@ package body Builds is
 
                      for J in Symbol.Sub_Symbol.First_Index .. Symbol.Sub_Symbol.Last_Index loop
                         if Symbol.Sub_Symbol (J).Prec >= 0 then
-                           Rule.Prec_Sym := Rule_Symbol_Access (Symbol.Sub_Symbol.Element (J));
+                           Rule.Prec_Symbol := Rule_Symbol_Access (Symbol.Sub_Symbol.Element (J));
                            exit;
                         end if;
                      end loop;
 
                   elsif Symbol.Prec >= 0 then
-                     Rule.Prec_Sym := Rule_Symbol_Access (Rule.RHS (I));
+                     Rule.Prec_Symbol := Rule_Symbol_Access (Rule.RHS (I));
                   end if;
                end;
             end loop;
@@ -61,7 +64,7 @@ package body Builds is
       use Symbols;
 
       I_Copy   : Integer;
-      Rule       : Rule_Access;
+      Rule     : Rule_Access;
       Progress : Boolean;
    begin
       Symbols.Set_Lambda_False_And_Set_Firstset (First => Natural (Session.N_Terminal),
@@ -240,7 +243,7 @@ package body Builds is
       --  a configuration which has its dot at the extreme right.
 
       for I in 0 .. Session.N_State - 1 loop   --  Loop over all states
-         State  := Extras.Sorted_At (Extras.Get_Extra, Symbol_Index (I));
+         State  := Session.Sorted (I);
          Config := State.Config;
          while Config /= null loop  --  Loop over all configurations
             if Config.Rule.RHS'Length = Config.Dot then          --  Is dot at extreme right?
@@ -249,8 +252,7 @@ package body Builds is
                      --  Add a reduce action to the state "stp" which will reduce by the
                      --  rule "cfp->rp" if the lookahead symbol is "lemp->symbols[j]"
                      Action_Lists.Append (State.Action, Reduce,
-                                          Symbols.Element_At (Integer (J)),
-                                          --  Session.Symbols (J),
+                                          Element_At (J),
                                           State => null,
                                           Rule  => Config.Rule);
                   end if;
@@ -267,7 +269,7 @@ package body Builds is
       --  finite state machine) an action to ACCEPT if the lookahead is the
       --  start nonterminal.
       --      Action_Add (Extras.Sorted_At (Extras.Get_Extra, 0).Action,
-      Action_Lists.Append (Extras.Sorted_At (Extras.Get_Extra, 0).Action,
+      Action_Lists.Append (Session.Sorted (0).Action,
                            C_Accept, Symbol,
                            State => null,
                            Rule  => null);
@@ -281,7 +283,7 @@ package body Builds is
             First_Action : Cursor;
             Next_Action  : Cursor;
          begin
-            State := Extras.Sorted_At (Extras.Get_Extra, Symbol_Index (I));
+            State := Session.Sorted (I);
             --  assert( stp->ap );
 --            State.Action := State_Action_Access (Action_Sort (Action_Access (State.Action)));
             Action_Lists.Sort (State.Action);
@@ -323,7 +325,7 @@ package body Builds is
       end loop;
 
       for I in 0 .. Session.N_State - 1 loop
-         for Action of Extras.Sorted_At (Extras.Get_Extra, Symbol_Index (I)).Action loop
+         for Action of Session.Sorted (I).Action loop
 --         declare
 --            Action : Action_Access;
 --         begin
@@ -353,18 +355,19 @@ package body Builds is
    is
       use Configs;
       use States;
+      use type Sessions.State_Index;
 
       Config : Config_Access;
-      Bp     : Config_Access;
+      Basis  : Config_Access;
       State  : State_Access;
    begin
       --  Extract the sorted basis of the new state.  The basis was constructed
       --  by prior calls to "Configlist_addbasis()".
       Config_Lists.Sort_Basis;
-      Bp := Config_Lists.Basis;
+      Basis := Config_Lists.Basis;
 
       --  Get a state with the same basis
-      State := States.Find (Bp);
+      State := States.Find (Basis);
       if State /= null then
          --  A state with the same basis already exists!  Copy all the follow-set
          --  propagation links from the state under construction into the
@@ -372,7 +375,7 @@ package body Builds is
          declare
             X, Y : Config_Access;
          begin
-            X := Bp;
+            X := Basis;
             Y := State.Basis;
             while X /= null and Y /= null loop
                Prop_Links.Copy (Y.Backward_PL, X.Backward_PL);
@@ -392,11 +395,12 @@ package body Builds is
          Config := Config_Lists.Xreturn;  -- Get a pointer to the config list
          State  := States.Create;         -- A new state structure
                                           --  MemoryCheck(stp);
-         State.Basis  := Bp;                  -- Remember the configuration basis
+         State.Basis  := Basis;               -- Remember the configuration basis
          State.Config := Config;              -- Remember the configuration closure
-         State.State_Num := Session.N_State;  -- Every state gets a sequence number
+         State.State_Num := Natural (Session.N_State);  -- Every state gets a sequence number
          Session.N_State := Session.N_State + 1;
          State.Action.Clear;                  -- No actions, yet.
+         Debugs.Debug (True, "States.Insert");
          States.Insert (State, State.Basis);  -- Add to the state table
          Build_Shifts (Session, State.all);   -- Recursively compute successor states
       end if;
@@ -526,6 +530,128 @@ package body Builds is
       end loop;
    end Build_Shifts;
 
+
+   procedure Find_Links (Session : in out Session_Type)
+   is
+      use Configs;
+      use States;
+      use type Sessions.State_Index;
+
+      Config : Config_Access;
+      Other  : Config_Access;
+      State  : State_Access;
+--      struct plink *plp;
+   begin
+      --  Housekeeping detail:
+      --  Add to every propagate link a pointer back to the state to
+      --  which the link is attached.
+      for I in 0 .. Session.N_State - 1 loop
+         Debugs.Debug (True, "Sessions.Sorted'Length: " & Session.Sorted.Length'Image);
+         State  := Session.Sorted (I);
+         Config := State.Config;
+         while Config /= null loop
+            Config.State := State;
+            Config       := Config.Next;
+         end loop;
+      end loop;
+
+      --  Convert all backlinks into forward links.  Only the forward
+      --  links are used in the follow-set computation.
+      for I in 0 .. Session.N_State - 1 loop
+         State  := Session.Sorted (I);
+         Config := State.Config;
+         while Config /= null loop
+            for Link of Config.Backward_PL loop
+               Other := Config_Access (Link);
+               Prop_Links.Append (Other.Forward_PL, Config);
+            end loop;
+            Config := Config.Next;
+         end loop;
+      end loop;
+   end Find_Links;
+
+
+   procedure Reprint_Of_Grammar
+     (Session       : in out Sessions.Session_Type;
+      Base_Name     : in     String;
+      Token_Prefix  : in     String;
+      Terminal_Last : in     Natural)
+   is
+      use Ada.Text_IO;
+   begin
+--      if Options.RP_Flag then
+--         Reports.Reprint (Session);
+--      else
+
+         --  Initialize the size for all follow and first sets
+         Sets.Set_Size (Terminal_Last + 1);
+
+         --  Find the precedence for every production rule (that has one)
+         Builds.Find_Rule_Precedences (Session);
+         Ada.Text_IO.Put_Line ("16 dump_symbols");
+         Symbols.JQ_Dump_Symbols (Mode => 1);
+
+         --  Compute the lambda-nonterminals and the first-sets for every
+         --  nonterminal
+         Builds.Find_First_Sets (Session);
+
+         Ada.Text_IO.Put_Line ("17 dump_symbols");
+         Symbols.JQ_Dump_Symbols (Mode => 1);
+
+         Ada.Text_IO.Put_Line ("17 dump_rules");
+         Debugs.JQ_Dump_Rules (Session, Mode => 1);
+
+         --  Compute all LR(0) states.  Also record follow-set propagation
+         --  links so that the follow-set can be computed later
+--         Compute_LR_States (Session);
+         Put_Line ("### 2-5");
+         Session.N_State := 0;
+         Builds.Find_States (Session);
+         Put_Line ("### 2-5-2");
+         Session.Sorted := Sessions.Create_Sorted_States; --  State_Arrayof;
+
+         --  Tie up loose ends on the propagation links
+         Builds.Find_Links (Session);
+         Put_Line ("### 2-6");
+         --  Compute the follow set of every reducible configuration
+         Builds.Find_Follow_Sets (Session);
+         Put_Line ("### 2-7");
+         --  Compute the action tables
+         Builds.Find_Actions (Session);
+         Put_Line ("### 2-8");
+         --  Compress the action tables
+         if not Options.Compress then
+            Reports.Compress_Tables (Session);
+         end if;
+         Put_Line ("### 2-9");
+         --  Reorder and renumber the states so that states with fewer choices
+         --  occur at the end.  This is an optimization that helps make the
+         --  generated parser tables smaller.
+         if not Options.No_Resort then
+            Reports.Resort_States (Session);
+         end if;
+         Put_Line ("### 2-10");
+         --   Generate a report of the parser generated.  (the "y.output" file)
+         if not Options.Be_Quiet then
+            Reports.Report_Output (Session);
+         end if;
+
+         --  Generate the source code for the parser
+         Reports.Report_Table
+           (Session,
+           User_Template_Name => Options.User_Template.all);
+
+         --  Produce a header file for use by the scanner.  (This step is
+         --  omitted if the "-m" option is used because makeheaders will
+         --  generate the file for us.)
+         Reports.Report_Header
+           (Session,
+            Token_Prefix,
+            Base_Name, -- File_Makename (Session, ""),
+            "MODULE XXX",
+            Terminal_Last);
+--      end if;
+   end Reprint_Of_Grammar;
 
 
 end Builds;

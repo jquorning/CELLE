@@ -36,17 +36,27 @@ package States is
 
    type State_Access is access all State_Record;
 
-   function Find (Config : in Configs.Config_Access) return State_Access;
+   procedure Initialize;
+   --  Initialize states
+
+   function Find (Config : in not null Configs.Config_Access) return State_Access;
+   --  Find state from Config
 
    function Create return State_Access;
+   --  Create state
 
-   procedure Insert (State  : in out State_Access;
-                     Config : in     Configs.Config_Access);
+   procedure Insert (State  : in State_Access;
+                     Config : in Configs.Config_Access);
+   --  Insert state
 
-private
+   type Process_Access is access procedure (State : in State_Access);
+   procedure Iterate (Process : in Process_Access);
 
-   pragma Import (C, Find,   "State_find");
-   pragma Import (C, Create, "State_new");
-   pragma Import (C, Insert, "State_insert");
+--  private
+
+--   pragma Import (C, Initialize, "State_init");
+--   pragma Import (C, Find,       "State_find");
+--   pragma Import (C, Create,     "State_new");
+--   pragma Import (C, Insert,     "State_insert");
 
 end States;

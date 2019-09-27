@@ -307,7 +307,7 @@ package body Actions is
 
       if Apx.Kind = Shift and Apy.Kind = Reduce then
          Spx := Symbol_Access (Apx.Symbol);
-         Spy := Symbol_Access (Apy.X.Rule.Prec_Sym);
+         Spy := Symbol_Access (Apy.X.Rule.Prec_Symbol);
          if Spy = null or Spx.Prec < 0 or Spy.Prec < 0 then
             --  Not enough precedence information
             Apy.Kind := SR_Conflict;
@@ -325,8 +325,8 @@ package body Actions is
             Apx.Kind := Error;
          end if;
       elsif Apx.Kind = Reduce and Apy.Kind = Reduce then
-         Spx := Symbol_Access (Apx.X.Rule.Prec_Sym);
-         Spy := Symbol_Access (Apy.X.Rule.Prec_Sym);
+         Spx := Symbol_Access (Apx.X.Rule.Prec_Symbol);
+         Spy := Symbol_Access (Apy.X.Rule.Prec_Symbol);
          if
            Spx = null or Spy = null or Spx.Prec < 0 or
            Spy.Prec < 0 or Spx.Prec = Spy.Prec

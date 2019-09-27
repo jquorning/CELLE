@@ -204,7 +204,7 @@ package body Symbols is
    --  2019-09-06 JQ
    --  Simply try to make a vector for symbols
    package Symbol_Bases is
-      new Ada.Containers.Vectors (Index_Type   => Natural,
+      new Ada.Containers.Vectors (Index_Type   => Symbol_Index,
                                   Element_Type => Symbol_Access);
    Base : Symbol_Bases.Vector;
 
@@ -212,7 +212,7 @@ package body Symbols is
    procedure Count_Symbols_And_Terminals (Symbol_Count   : out Natural;
                                           Terminal_Count : out Natural)
    is
-      Index : Natural;
+      Index : Symbol_Index;
    begin
       Symbol_Count   := Natural'First;
       Terminal_Count := Natural'First;
@@ -220,7 +220,7 @@ package body Symbols is
       --  Sequential index of symbols
       Index := 0;
       for Symbol of Base loop
-         Symbol.all.Index := Symbol_Index (Index);
+         Symbol.all.Index := Index;
          Index := Index + 1;
       end loop;
 
@@ -230,14 +230,14 @@ package body Symbols is
 
       pragma Assert (To_String (Base (Index - 1).Name) = "{default}");
 
-      Symbol_Count := Index - 1;
+      Symbol_Count := Natural (Index - 1);
       Index := 1;
       while
          To_String (Base (Index).all.Name) (1) in 'A' .. 'Z'
       loop
          Index := Index + 1;
       end loop;
-      Terminal_Count := Index;
+      Terminal_Count := Natural (Index);
    end Count_Symbols_And_Terminals;
 
 
@@ -376,30 +376,32 @@ package body Symbols is
 
       for I in First .. Last loop
          declare
-            Symbol : constant Symbol_Access := Base.Element (I);
+            Symbol : constant Symbol_Access := Base.Element (Symbol_Index (I));
          begin
             Symbol.all.First_Set := Sets.Set_New;
-            Base (I) := Symbol;
+            Base (Symbol_Index (I)) := Symbol;
          end;
       end loop;
 
    end Set_Lambda_False_And_Set_Firstset;
 
 
-   function Last_Index return Natural is
+   function Last_Index return Symbol_Index is
    begin
       return Base.Last_Index;
    end Last_Index;
 
 
-   function Element_At (Index : in Natural) return Symbol_Access is
+   function Element_At (Index : in Symbol_Index) return Symbol_Access
+   is
    begin
       return Base.Element (Index);
    end Element_At;
 
 
+
    --  Debug
-   procedure JQ_Dump_Symbols is
+   procedure JQ_Dump_Symbols (Mode : in Integer) is
       use Ada.Text_IO;
    begin
       for Symbol of Base loop
@@ -411,6 +413,25 @@ package body Symbols is
          Put (Symbol.Sub_Symbol.Length'Img);
          Put (" KIND");
          Put (Symbol_Kind'Pos (Symbol.Kind)'Img);
+
+         if Mode = 1 then
+            Put (" PREC");
+            if Symbol.Kind = Multi_Terminal then
+               Put (" (");
+               for J in Symbol.Sub_Symbol.First_Index .. Symbol.Sub_Symbol.Last_Index loop
+                  Put (Natural'Image (Symbol.Sub_Symbol.Element (J).Prec));
+                  Put (" ");
+               end loop;
+               Put (")");
+            else
+               if Symbol.Prec = -1 then
+                  Put (" -1"); -- Hack
+               else
+                  Put (Natural'Image (Symbol.Prec));
+               end if;
+            end if;
+         end if;
+
          New_Line;
       end loop;
    end JQ_Dump_Symbols;

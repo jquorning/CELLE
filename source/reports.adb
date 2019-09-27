@@ -28,7 +28,6 @@ with Generate_Ada;
 with Generate_C;
 with Backend;
 with Setup;
-with Builds;
 with Sets;
 
 package body Reports is
@@ -220,14 +219,6 @@ package body Reports is
         Order    : Integer;                    --  Original order of action sets
      end record;
 
-   procedure Report_Header
-     (Session       : in Sessions.Session_Type;
-      Token_Prefix  : in String;
-      Base_Name     : in String;
-      Module_Name   : in String;
-      Terminal_Last : in Natural);
-   --  Generate a header file for the Parser.
-
 
    procedure Generate_Spec
      (Session   : in Sessions.Session_Type;
@@ -377,7 +368,7 @@ package body Reports is
          J := Symbols.Symbol_Index (I);
          Column := 0;
          while J < Session.N_Symbol loop
-            Symbol := Symbols.Element_At (Index => Natural (J));
+            Symbol := Symbols.Element_At (J);
             pragma Assert (Symbol.Index = J);
 
             Put (" ");
@@ -401,8 +392,8 @@ package body Reports is
       while Rule /= null loop
          Rule_Print (Standard_Output, Rule);
          Put (".");
-         if Rule.Prec_Sym /= null then
-            Put (" [" & Name_Of (Symbol_Access (Rule.Prec_Sym)) & "]");
+         if Rule.Prec_Symbol /= null then
+            Put (" [" & Name_Of (Symbol_Access (Rule.Prec_Symbol)) & "]");
          end if;
          --  /* if( rp->code ) printf("\n    %s",rp->code); */
          New_Line;
@@ -432,8 +423,8 @@ package body Reports is
 --  fp = file_open(lemp,".out","wb");
       Open (File, Out_File, "XXX.out");
 
-      for I in Symbol_Index range 0 .. Symbol_Index (Session.Nx_State) - 1 loop
-         State := Sorted_At (Session.Extra, Index => I);
+      for I in 0 .. Session.Nx_State - 1 loop
+         State := Session.Sorted (I);
          Put (File, "State ");
          Put (File, Integer'Image (State.State_Num));
          Put (File, ":");
@@ -488,7 +479,7 @@ package body Reports is
 
             Symbol : Symbol_Access;
          begin
-            Symbol := Element_At (Session.Extra, Index => I);
+            Symbol := Element_At (I);
             Put (File, "  " & I'Img & ": " & Name_Of (Symbol));
             if Symbol.Kind = Non_Terminal then
                Put (File, ":");
@@ -501,7 +492,7 @@ package body Reports is
                     Sets.Set_Find (Symbol.First_Set, Natural (J))
                   then
                      Put (File, " ");
-                     Put (File, Name_Of (Element_At (Session.Extra, Index => J)));
+                     Put (File, Name_Of (Element_At (J)));
                   end if;
                end loop;
             end if;
@@ -523,7 +514,7 @@ package body Reports is
       for I in 0 .. Extras.Symbol_Count loop
          declare
             W      : Integer;
-            Symbol : constant Symbol_Access := Element_At (Session.Extra, Index => I);
+            Symbol : constant Symbol_Access := Element_At (I);
          begin
             if not Symbol.Content then
                W := Ada.Strings.Unbounded.Length (Symbol.Name);
@@ -554,11 +545,11 @@ package body Reports is
          Put (File, ": ");
          Rule_Print (File, Rule);
          Put (File, ".");
-         if Rule.Prec_Sym /= null then
+         if Rule.Prec_Symbol /= null then
             Put (File, " [");
-            Put (File, Name_Of (Symbol_Access (Rule.Prec_Sym)));
+            Put (File, Name_Of (Symbol_Access (Rule.Prec_Symbol)));
             Put (File, " precedence=");
-            Put (File, Rule.Prec_Sym.Prec'Img);
+            Put (File, Rule.Prec_Symbol.Prec'Img);
             Put (File, "]");
          end if;
          New_Line (File);
@@ -600,7 +591,7 @@ package body Reports is
       Template_Open_Success : Integer;
       Error_Count           : Natural := 0;
    begin
-      Session.Min_Shift_Reduce := Session.N_State;
+      Session.Min_Shift_Reduce := Natural (Session.N_State);
       Session.Err_Action       := Session.Min_Shift_Reduce + Session.N_Rule;
       Session.Acc_Action       := Session.Err_Action + 1;
       Session.No_Action        := Session.Acc_Action + 1;
@@ -740,8 +731,8 @@ package body Reports is
       --    fprintf(stderr,"malloc failed\n");
       --    exit(1);
 
-         for I in Symbol_Index range 0 .. Symbol_Index (Session.Nx_State - 1) loop
-            State := Sorted_At (Session.Extra, Index => I);
+         for I in 0 .. Session.Nx_State - 1 loop
+            State := Session.Sorted (I);
 
             AX (I).Token := (STP      => State,
                              Is_Token => True,
@@ -821,7 +812,7 @@ package body Reports is
       --  been computed
       Render_Constants
         (Render =>
-           (Nx_State         => Session.Nx_State,
+           (Nx_State         => Natural (Session.Nx_State),
             N_Rule           => Session.N_Rule,
             N_Terminal       => Integer (Session.N_Terminal),
             Min_Shift_Reduce => Session.Min_Shift_Reduce,
@@ -871,7 +862,7 @@ package body Reports is
       --  Output the yy_shift_ofst[] table
       --
 
-      N := Session.Nx_State;
+      N := Natural (Session.Nx_State);
 --      while  N > 0 and Session.Sorted(N - 1).I_Tkn_Ofst = NO_Offset loop
 --         N := N - 1;
 --      end loop;
@@ -890,7 +881,7 @@ package body Reports is
       --
       --  Output the yy_reduce_ofst[] table
       --
-      N := Session.Nx_State;
+      N := Natural (Session.Nx_State);
 --    while( n>0 && lemp->sorted[n-1]->iNtOfst==NO_OFFSET ) n--;
 --
       Output_YY_Reduce_Offsets
@@ -905,7 +896,7 @@ package body Reports is
       --  Output the default action table
       --
       Output_Default_Action_Table
-        (Session, Session.Nx_State,
+        (Session, Natural (Session.Nx_State),
          Session.Err_Action,
          Session.Min_Reduce);
       Session.Table_Size := Session.Table_Size + N * Size_Of_Action_Type;
@@ -926,7 +917,7 @@ package body Reports is
             --  while MX > 0 and Session.Symbols (MX).Fallback = 0 loop
             while
               MX > 0 and
-              Element_At (Session.Extra, Index => MX).Fallback = null
+              Element_At (Index => MX).Fallback = null
             loop
                MX := MX - 1;
             end loop;
@@ -935,7 +926,7 @@ package body Reports is
             for I in 0 .. MX loop
                declare
                   use Text_Out;
-                  P : constant Symbol_Access := Element_At (Session.Extra, I);
+                  P : constant Symbol_Access := Element_At (I);
                begin
                   if P.Fallback = null then
                      Put ("    0,  /* ");
@@ -970,7 +961,7 @@ package body Reports is
       begin
          for I in Symbol_Index range 0 .. Extras.Symbol_Count - 1 loop
             declare
-               Name : constant String := Name_Of (Element_At (Session.Extra, I));
+               Name : constant String := Name_Of (Element_At (I));
             begin
                --  Session_Sprintf (Line, """" & Name & """,");
                Put ("  /* "); --  %4d */ \"%s\",\n",i, lemp->symbols[i]->name);
@@ -1034,13 +1025,13 @@ package body Reports is
          I := 0;
          loop
             exit when I >= Integer (Extras.Symbol_Count);
-            exit when Element_At (Session.Extra, Symbol_Index (I)).Kind = Terminal;
+            exit when Element_At (Symbol_Index (I)).Kind = Terminal;
             I := I + 1;
          end loop;
 
          --  I : Symbols.Symbol_Index;
          --      if( i<lemp->nsymbol ){
-         Emit_Destructor_Code (Element_At (Session.Extra, Symbol_Index (I)), Session);
+         Emit_Destructor_Code (Element_At (Symbol_Index (I)), Session);
          --        lime_put_line ("      break;");
          --      }
       end;
@@ -1915,11 +1906,12 @@ package body Reports is
 --  }
 
    procedure Generate_Tokens
-     (Session        : in Sessions.Session_Type;
+     (Session      : in Sessions.Session_Type;
       Token_Prefix : in String;
       First        : in Integer;
       Last         : in Integer)
    is
+      pragma Unreferenced (Session);
 
       function Get_Prefix return String;
 
@@ -1953,9 +1945,7 @@ package body Reports is
             Put (Prefix);
             --  Put_CP (Get_Token_Callback (I));
             --  return lime_lemp_copy->symbols[index]->name;
-            Put (Name_Of
-                   (Element_At (Session.Extra,
-                                Symbol_Index (I))));
+            Put (Name_Of (Element_At (Symbol_Index (I))));
             Put (" ");
             Put_Int (I);
             New_Line;
@@ -1965,80 +1955,6 @@ package body Reports is
    end Generate_Tokens;
 
 
-   procedure Reprint_Of_Grammar
-     (Session       : in out Sessions.Session_Type;
-      Base_Name     : in     String;
-      Token_Prefix  : in     String;
-      Terminal_Last : in     Natural)
-   is
-      use Ada.Text_IO;
-      use Sessions;
-   begin
---      if Options.RP_Flag then
---         Reports.Reprint (Session);
---      else
-
-         --  Initialize the size for all follow and first sets
-         Sets.Set_Size (Terminal_Last + 1);
-
-         --  Find the precedence for every production rule (that has one)
-         Builds.Find_Rule_Precedences (Session);
-
-         --  Compute the lambda-nonterminals and the first-sets for every
-         --  nonterminal
-         Put_Line ("### 2-3");
-         Builds.Find_First_Sets (Session);
-         Put_Line ("### 2-4");
-         --  Compute all LR(0) states.  Also record follow-set propagation
-         --  links so that the follow-set can be computed later
-         Compute_LR_States (Session);
-         Put_Line ("### 2-5");
-         --         Session->nstate = 0;
---         FindStates (Session_lemp);
---         Session->sorted = State_arrayof();
-
-         --  Tie up loose ends on the propagation links
-         Builds.Find_Links (Session);
-         Put_Line ("### 2-6");
-         --  Compute the follow set of every reducible configuration
-         Builds.Find_Follow_Sets (Session);
-         Put_Line ("### 2-7");
-         --  Compute the action tables
-         Builds.Find_Actions (Session);
-         Put_Line ("### 2-8");
-         --  Compress the action tables
-         if not Options.Compress then
-            Reports.Compress_Tables (Session);
-         end if;
-         Put_Line ("### 2-9");
-         --  Reorder and renumber the states so that states with fewer choices
-         --  occur at the end.  This is an optimization that helps make the
-         --  generated parser tables smaller.
-         if not Options.No_Resort then
-            Reports.Resort_States (Session);
-         end if;
-         Put_Line ("### 2-10");
-         --   Generate a report of the parser generated.  (the "y.output" file)
-         if not Options.Be_Quiet then
-            Reports.Report_Output (Session);
-         end if;
-
-         --  Generate the source code for the parser
-         Reports.Report_Table
-           (Session,
-           User_Template_Name => Options.User_Template.all);
-
-         --  Produce a header file for use by the scanner.  (This step is
-         --  omitted if the "-m" option is used because makeheaders will
-         --  generate the file for us.)
-         Report_Header
-           (Session,
-            Token_Prefix,
-            Base_Name, -- File_Makename (Session, ""),
-            "MODULE XXX",
-            Terminal_Last);
---      end if;
-   end Reprint_Of_Grammar;
 
 
    procedure Render_Constants
@@ -2149,7 +2065,7 @@ package body Reports is
 
    --  lemon.c:4414
    procedure Output_YY_Shift_Offsets
-     (Session          : in Sessions.Session_Type;
+     (Session       : in Sessions.Session_Type;
       N             : in Integer;
       MnTknOfst     : in Integer;
       MxTknOfst     : in Integer;
@@ -2174,12 +2090,12 @@ package body Reports is
          declare
             use Symbols;
             use Extras;
+            use Sessions;
 
             State : access States.State_Record;  --  States.State_Access;
          begin
             --  stp := lemp->sorted[i];
-            State := Sorted_At (Session.Extra,
-                                Symbol_Index (I));
+            State := Session.Sorted (State_Index (I));
             --  ofst := stp->iTknOfst;
             --  Ofst := Get_Token_Offset (I);
             Ofst := State.Token_Offset;
@@ -2229,7 +2145,7 @@ package body Reports is
 
             State : access States.State_Record;
          begin
-            State := Sorted_At (Session.Extra, Symbol_Index (I));
+            State := Session.Sorted (Sessions.State_Index (I));
             Ofst := State.iNtOfst;
          end;
          if Ofst = NO_OFFSET then
@@ -2269,7 +2185,7 @@ package body Reports is
             use Extras;
 
             State : constant access States.State_Record :=
-              Sorted_At (Session.Extra, Symbol_Index (I));
+              Session.Sorted (Sessions.State_Index (I));
          begin
 --         IDfltReduce := Get_Default_Reduce (I);
 --         stp := lemp->sorted[i];

@@ -15,7 +15,6 @@ with Ada.Directories;
 with Setup;
 with Auxiliary;
 with Symbols;
-with Extras;
 
 package body Generate_C is
 
@@ -116,13 +115,13 @@ package body Generate_C is
       First     : in     Integer;
       Last      : in     Integer)
    is
-      pragma Unreferenced (Context, Module);
+      pragma Unreferenced (Session, Context, Module);
 
       package Integer_IO is
          new Ada.Text_IO.Integer_IO (Num => Integer);
 
       use Ada.Text_IO, Auxiliary;
-      use Symbols, Extras;
+      use Symbols;
       File : File_Type;
    begin
 
@@ -133,8 +132,7 @@ package body Generate_C is
       for I in First .. Last - 1 loop
          declare
             Symbol : constant String :=
-              Prefix & Name_Of (Element_At (Session.Extra,
-                                            Symbol_Index (I)));
+              Prefix & Name_Of (Element_At (Symbol_Index (I)));
          begin
             Put (File, "#define ");
             Put (File, Symbol);

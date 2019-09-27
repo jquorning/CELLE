@@ -42,12 +42,14 @@ package Reports is
 
    procedure Dummy;
 
+   procedure Report_Header
+     (Session       : in Sessions.Session_Type;
+      Token_Prefix  : in String;
+      Base_Name     : in String;
+      Module_Name   : in String;
+      Terminal_Last : in Natural);
+   --  Generate a header file for the Parser.
 
-   procedure Reprint_Of_Grammar
-     (Session       : in out Sessions.Session_Type;
-      Base_Name     : in     String;
-      Token_Prefix  : in     String;
-      Terminal_Last : in     Natural);
 
 private
 

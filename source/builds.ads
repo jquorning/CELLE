@@ -32,9 +32,6 @@ package Builds is
    --  between some states so that the LR(1) follow sets can be
    --  computed later.
 
-   procedure Find_Links (Session : in Session_Type);
-   --  Construct the propagation Links
-
    procedure Find_Follow_Sets (Session : in Session_Type);
    --  Compute all followsets.
    --  A followset is the set of all symbols which can come immediately
@@ -57,10 +54,19 @@ package Builds is
    --  Construct all successor states to the given state.  A "successor"
    --  state is any state which can be reached by a shift action.
 
+   procedure Find_Links (Session : in out Session_Type);
+   --  Construct the propagation links
+
+   procedure Reprint_Of_Grammar
+     (Session       : in out Sessions.Session_Type;
+      Base_Name     : in     String;
+      Token_Prefix  : in     String;
+      Terminal_Last : in     Natural);
+
+
 private
 
    pragma Export (C, Find_States,      "cherry_find_states");
-   pragma Import (C, Find_Links,       "lemon_find_links");
    pragma Import (C, Find_Follow_Sets, "lemon_find_follow_sets");
 
 end Builds;

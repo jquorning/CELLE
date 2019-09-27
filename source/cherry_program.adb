@@ -23,6 +23,8 @@ with Parsers;
 with Exceptions;
 with Reports;
 with Extras;
+with States;
+with Builds;
 
 with Debugs;
 
@@ -93,7 +95,7 @@ procedure Cherry_Program is
       Stats_Line ("non-terminal symbols", Integer (Session.N_Symbol - Session.N_Terminal));
       Stats_Line ("total symbols", Integer (Session.N_Symbol));
       Stats_Line ("rules", Session.N_Rule);
-      Stats_Line ("states", Session.Nx_State);
+      Stats_Line ("states", Integer (Session.Nx_State));
       Stats_Line ("conflicts", Session.N_Conflict);
       Stats_Line ("action table entries", Session.N_Action_Tab);
       Stats_Line ("lookahead table entries", Session.N_Lookahead_Tab);
@@ -143,7 +145,7 @@ begin
       --  Initialize the machine
       Sessions.Strsafe_Init;
       Symbols.Symbol_Init;
-      Sessions.State_Init;
+      States.Initialize;
 
       Session.Argv0           := To_Unbounded_String (Options.Program_Name.all);
       Session.File_Name       := To_Unbounded_String (Options.Input_File.all);
@@ -185,14 +187,14 @@ begin
 
       Ada.Text_IO.Put_Line ("jq_dump_symbols before sort");
 --      Extras.JQ_Dump_Symbols;
-      Symbols.JQ_Dump_Symbols;
+      Symbols.JQ_Dump_Symbols (Mode => 1);
 
 --      Extras.Fill_And_Sort;
       Symbols.Sort;
 
       Ada.Text_IO.Put_Line ("jq_dump_symbols after sort");
 --      Extras.JQ_Dump_Symbols;
-      Symbols.JQ_Dump_Symbols;
+      Symbols.JQ_Dump_Symbols (0);
 
       declare
          Symbol_Count   : Natural;
@@ -212,26 +214,26 @@ begin
       --  statement that selects reduction actions will have a smaller jump table.
 
       Ada.Text_IO.Put_Line ("jq_dump_rules first");
-      Debugs.JQ_Dump_Rules (Session);
+      Debugs.JQ_Dump_Rules (Session, 0);
 
       Rules.Assing_Sequential_Rule_Numbers
         (Session.Rule,
          Session.Start_Rule);
 
       Ada.Text_IO.Put_Line ("jq_dump_rules second");
-      Debugs.JQ_Dump_Rules (Session);
+      Debugs.JQ_Dump_Rules (Session, 0);
 
       Session.Start_Rule := Session.Rule;
       Session.Rule       := Rule_Sort (Session.Rule);
 
       Ada.Text_IO.Put_Line ("jq_dump_rules third");
-      Debugs.JQ_Dump_Rules (Session);
+      Debugs.JQ_Dump_Rules (Session, 0);
 
       --  Generate a reprint of the grammar, if requested on the command line
       if Options.RP_Flag then
          Reports.Reprint (Session);
       else
-         Reports.Reprint_Of_Grammar
+         Builds.Reprint_Of_Grammar
            (Session,
             Base_Name     => "XXX",
             Token_Prefix  => "YYY",

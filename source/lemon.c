@@ -596,6 +596,7 @@ PRIVATE void buildshifts(struct lemon *lemp, struct state *stp)
 }
 #endif
 
+#if 0
 /*
 ** Construct the propagation links
 */
@@ -628,6 +629,7 @@ void lemon_find_links (struct lemon *lemp)
     }
   }
 }
+#endif
 
 /* Compute all followsets.
 **
@@ -2081,13 +2083,14 @@ void lemon_resort_states (struct lemon *lemp)
 /*
 **
 */
+#if 0
 void lemon_compute_LR_states (struct lemon *lemp)
 {
   lemp->nstate = 0;
   cherry_find_states (lemp);
   lemp->sorted = State_arrayof();
 }
-  
+#endif  
 
 /* /\* Add a new element to the set.  Return TRUE if the element was added */
 /* ** and FALSE if it was already there. *\/ */

@@ -5,10 +5,12 @@
 with Ada.Text_IO;
 
 with Rules;
+with Symbols;
 
 package body Debugs is
 
-   procedure JQ_Dump_Rules (Session : in Sessions.Session_Type)
+   procedure JQ_Dump_Rules (Session : in Sessions.Session_Type;
+                            Mode    : in Integer)
    is
       use Ada.Text_IO;
       use Rules;
@@ -24,6 +26,16 @@ package body Debugs is
          Put (Natural'Image (Rule.Line));
          Put (" RULELINE");
          Put (Natural'Image (Rule.Rule_Line));
+
+         if Mode = 1 then
+            Put (" PREC");
+            if Rule.Prec_Symbol /= null then
+               Put (Symbols.Symbol_Index'Image (Rule.Prec_Symbol.Index));
+            else
+               Put (" <null>");
+            end if;
+         end if;
+
          New_Line;
          Rule := Rule.Next;
       end loop;

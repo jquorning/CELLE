@@ -8,7 +8,6 @@
 --
 
 with Symbols;
-with States;
 
 package Extras is
 
@@ -19,9 +18,9 @@ package Extras is
 
    function Get_Extra return Extra_Access;
 
-   function Element_At (Extra : in Extra_Access;
-                        Index : in Symbols.Symbol_Index)
-                       return Symbols.Symbol_Access;
+--   function Element_At (Extra : in Extra_Access;
+--                        Index : in Symbols.Symbol_Index)
+--                       return Symbols.Symbol_Access;
    --  Get access to the symbol in Extra at position Index.
 
    function Get_Wildcard (Extra : in Extra_Access)
@@ -30,9 +29,9 @@ package Extras is
    procedure Set_Wildcard (Extra    : in Extra_Access;
                            Wildcard : in Symbols.Symbol_Access);
 
-   function Sorted_At (Extra : in Extra_Access;
-                       Index : in Symbols.Symbol_Index)
-                      return States.State_Access;
+--   function Sorted_At (Extra : in Extra_Access;
+--                       Index : in Symbols.Symbol_Index)
+--                      return States.State_Access;
 
 --   function Create (Name : in String) return Symbol_Cursor;
    --  Create a new symbol with Name

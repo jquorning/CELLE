@@ -258,11 +258,11 @@ package body Parser_FSM is
       elsif Scanner.Prev_Rule = null then
          Parser_Error (E005, Scanner.Token_Lineno, Token);
 
-      elsif Scanner.Prev_Rule.Prec_Sym /= null then
+      elsif Scanner.Prev_Rule.Prec_Symbol /= null then
          Parser_Error (E006, Scanner.Token_Lineno);
 
       else
-         Scanner.Prev_Rule.Prec_Sym :=
+         Scanner.Prev_Rule.Prec_Symbol :=
            Rule_Symbol_Access (Symbols.Create_New (Token));
       end if;
 
@@ -615,11 +615,11 @@ package body Parser_FSM is
             else
                Rule.LHS_Alias := Scanner.LHS_Alias.First_Element;
             end if;
-            Rule.Code       := Null_Code; --  New Unbounded_String'(Null_Unbounded_String);
-            Rule.No_Code    := True;
-            Rule.Prec_Sym   := null;
+            Rule.Code        := Null_Code; --  New Unbounded_String'(Null_Unbounded_String);
+            Rule.No_Code     := True;
+            Rule.Prec_Symbol := null;
 
-            Rule.Index   := Session.N_Rule;
+            Rule.Index     := Session.N_Rule;
             Session.N_Rule := Session.N_Rule + 1;
 
 --            Rule.Next_LHS   := Rule.LHS.Rule;

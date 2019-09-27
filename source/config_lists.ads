@@ -4,19 +4,16 @@ with Rules;
 
 package Config_Lists is
 
-   use Sessions;
-   use Configs;
-
    procedure Init;
    function Add_Basis
      (Rule : in Rules.Rule_Access;
       I    : in Integer) return Configs.Config_Access;
-   procedure Closure (Session : in Session_Type);
+   procedure Closure (Session : in Sessions.Session_Type);
    procedure Sort;
    procedure Sort_Basis;
-   function Xreturn return Config_Access;
-   function Basis return Config_Access;
-   procedure Eat (Config : in Config_Access);
+   function Xreturn return Configs.Config_Access;
+   function Basis return Configs.Config_Access;
+   procedure Eat (Config : in Configs.Config_Access);
    procedure Reset;
 
 private

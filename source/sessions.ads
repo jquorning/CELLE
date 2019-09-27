@@ -14,11 +14,13 @@
 --
 
 with Ada.Strings.Unbounded;
+with Ada.Containers.Vectors;
 
 with Rules;
 with Symbols;
 with Report_Parsers;
 with Extras;
+with States;
 
 package Sessions is
 
@@ -83,22 +85,28 @@ package Sessions is
 
    Parser_Names : aliased Parser_Names_Record;
 
+   subtype State_Index is Symbols.Symbol_Index;
+   package State_Vectors is
+      new Ada.Containers.Vectors (Index_Type   => State_Index,
+                                  Element_Type => States.State_Access,
+                                  "="          => States."=");
+
    type Session_Type is
       record
-         Sorted           : Rule_Access;        --  Table of states sorted by state number
-         Rule             : Rule_Access;        --  List of all rules
-         Start_Rule       : Rule_Access;        --  First rule
-         N_State          : Integer;            --  Number of states
-         Nx_State         : Integer;            --  nstate with tail degenerate states removed
-         N_Rule           : Integer;            --  Number of rules
-         N_Symbol         : Symbol_Index;       --  Number of terminal and nonterminal symbols
-         N_Terminal       : Symbol_Index;       --  Number of terminal symbols
-         Min_Shift_Reduce : Integer;            --  Minimum shift-reduce action value
-         Err_Action       : Integer;            --  Error action value
-         Acc_Action       : Integer;            --  Accept action value
-         No_Action        : Integer;            --  No-op action value
-         Min_Reduce       : Integer;            --  Minimum reduce action
-         Max_Action       : Integer;            --  Maximum action value of any kind
+         Sorted           : State_Vectors.Vector; --  Table of states sorted by state number
+         Rule             : Rule_Access;          --  List of all rules
+         Start_Rule       : Rule_Access;          --  First rule
+         N_State          : State_Index;          --  Number of states
+         Nx_State         : State_Index;          --  nstate with tail degenerate states removed
+         N_Rule           : Integer;              --  Number of rules
+         N_Symbol         : Symbol_Index;         --  Number of terminal and nonterminal symbols
+         N_Terminal       : Symbol_Index;         --  Number of terminal symbols
+         Min_Shift_Reduce : Integer;              --  Minimum shift-reduce action value
+         Err_Action       : Integer;              --  Error action value
+         Acc_Action       : Integer;              --  Accept action value
+         No_Action        : Integer;              --  No-op action value
+         Min_Reduce       : Integer;              --  Minimum reduce action
+         Max_Action       : Integer;              --  Maximum action value of any kind
          Symbols2         : Integer; -- XXX delme --  Sorted array of pointers to symbols
          Error_Cnt        : Integer;            --  Number of errors
          Err_Sym2         : Integer; --  Symbol_Access;      --  The error symbol
@@ -122,7 +130,8 @@ package Sessions is
       end record;
 
    Clean_Session : constant Session_Type :=
-     Session_Type'(Sorted       => null,       Rule         => null,      Start_Rule       => null,
+     Session_Type'(Sorted       => State_Vectors.Empty_Vector,
+                   Rule         => null,      Start_Rule       => null,
                    N_State      => 0,          Nx_State     => 0,         N_Rule           => 0,
                    N_Symbol     => 0,          N_Terminal   => 0,         Min_Shift_Reduce => 0,
                    Err_Action   => 0,          Acc_Action   => 0,         No_Action        => 0,
@@ -149,23 +158,27 @@ package Sessions is
 --   procedure Set_Size (Size : in Natural);
 --   procedure Find_Rule_Precedences (Session : in Session_Type);
 --   procedure Find_First_Sets (Session : in Session_Type);
-   procedure Compute_LR_States (Session : in Session_Type);
+--   procedure Compute_LR_States (Session : in Session_Type);
 
    procedure Strsafe_Init;
-   procedure State_Init;
 
 --   function Rule_Sort (Rule : in Rules.Rule_Access)
 --                      return Rules.Rule_Access;
+
+--   function Sorted_At (Session : in Session_Type;
+--                       Index   : in State_Index) return States.State_Access;
+
+   function Create_Sorted_States return State_Vectors.Vector;
+   --
 
 private
 
 --   pragma Import (C, Set_Size,              "lemon_set_size");
 --   pragma Import (C, Find_Rule_Precedences, "lemon_find_rule_precedences");
 --   pragma Import (C, Find_First_Sets,       "lemon_find_first_sets");
-   pragma Import (C, Compute_LR_States,     "lemon_compute_LR_states");
+--   pragma Import (C, Compute_LR_States,     "lemon_compute_LR_states");
 
    pragma Import (C, Strsafe_Init, "Strsafe_init");
-   pragma Import (C, State_Init,   "State_init");
 
 --   pragma Import (C, Rule_Sort, "lime_rule_sort");
 

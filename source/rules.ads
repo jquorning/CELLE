@@ -75,7 +75,7 @@ package Rules is
          Code_Emitted : Boolean := False;
          --  True if the code has been emitted already
 
-         Prec_Sym     : Rule_Symbol_Access := null;
+         Prec_Symbol  : Rule_Symbol_Access := null;
          --  Precedence symbol for this rule
 
          Index        : Integer := 0;

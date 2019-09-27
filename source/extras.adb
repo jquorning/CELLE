@@ -10,7 +10,6 @@
 with Ada.Strings.Unbounded;
 with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Containers.Ordered_Maps;
-with Ada.Text_IO;
 
 package body Extras is
 
@@ -60,21 +59,21 @@ package body Extras is
    end Get_Extra;
 
 
-   function Sorted_At (Extra : in Extra_Access;
-                       Index : in Symbols.Symbol_Index)
-                      return States.State_Access
-   is
-   begin
-      return null; --  XXX
-   end Sorted_At;
+--     function Sorted_At (Extra : in Extra_Access;
+--                         Index : in Symbols.Symbol_Index)
+--                        return States.State_Access
+--     is
+--     begin
+--        return null; --  XXX
+--     end Sorted_At;
 
-   function Element_At (Extra : in Extra_Access;
-                        Index : in Symbols.Symbol_Index)
-                       return Symbols.Symbol_Access
-   is
-   begin
-      return null;  --  XXX
-   end Element_At;
+--     function Element_At (Extra : in Extra_Access;
+--                          Index : in Symbols.Symbol_Index)
+--                         return Symbols.Symbol_Access
+--     is
+--     begin
+--        return null;  --  XXX
+--     end Element_At;
 
 
    function Get_Wildcard (Extra : in Extra_Access)
