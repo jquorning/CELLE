@@ -40,7 +40,7 @@ package body Extras is
          Symbol_List : Symbol_Lists.List;  --  The Symbol_Record list
          Symbol_Map  : Symbol_Maps.Map;    --  Lookup from Symbol_Name
          Error       : Symbol_Cursor;
-         Wildcard    : Symbol_Cursor;
+--         Wildcard    : Symbol_Cursor;
       end record;
 
    type Cursor_Type is
@@ -74,22 +74,6 @@ package body Extras is
 --     begin
 --        return null;  --  XXX
 --     end Element_At;
-
-
-   function Get_Wildcard (Extra : in Extra_Access)
-                         return Symbols.Symbol_Access
-   is
-   begin
-      return null;
-   end Get_Wildcard;
-
-
-   procedure Set_Wildcard (Extra    : in Extra_Access;
-                           Wildcard : in Symbols.Symbol_Access)
-   is
-   begin
-      null;
-   end Set_Wildcard;
 
 
 --     function Create (Name : in String)

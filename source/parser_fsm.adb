@@ -12,7 +12,6 @@ with Ada.Strings.Unbounded;
 with Symbols;
 with Errors;
 with Rules;
-with Extras;
 
 package body Parser_FSM is
 
@@ -959,12 +958,12 @@ package body Parser_FSM is
          Parser_Error (E211, Scanner.Token_Lineno, Token);
       else
          declare
-            use Symbols, Extras;
+            use Symbols;
 
-            Symbol : constant Symbol_Access := Create (Token);
+            Symbol : constant Symbol_Access := Create_New (Token);
          begin
-            if Get_Wildcard (Session.Extra) = null then
-               Set_Wildcard (Session.Extra, Symbol);
+            if Session.Wildcard = null then
+               Session.Wildcard := Symbol;
             else
                Parser_Error (E212, Scanner.Token_Lineno, Token);
             end if;

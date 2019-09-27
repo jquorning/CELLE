@@ -23,12 +23,6 @@ package Extras is
 --                       return Symbols.Symbol_Access;
    --  Get access to the symbol in Extra at position Index.
 
-   function Get_Wildcard (Extra : in Extra_Access)
-                         return Symbols.Symbol_Access;
-
-   procedure Set_Wildcard (Extra    : in Extra_Access;
-                           Wildcard : in Symbols.Symbol_Access);
-
 --   function Sorted_At (Extra : in Extra_Access;
 --                       Index : in Symbols.Symbol_Index)
 --                      return States.State_Access;

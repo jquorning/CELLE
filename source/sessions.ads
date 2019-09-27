@@ -110,7 +110,7 @@ package Sessions is
          Symbols2         : Integer; -- XXX delme --  Sorted array of pointers to symbols
          Error_Cnt        : Integer;            --  Number of errors
          Err_Sym2         : Integer; --  Symbol_Access;      --  The error symbol
-         Wildcard2        : Integer; --  Symbol_Access;      --  Token that matches anything
+         Wildcard         : Symbol_Access;      --  Token that matches anything
          Names            : access Parser_Names_Record;
          File_Name        : Unbounded_String;   --  Name of the input file
          Out_Name         : Unbounded_String;   --  Name of the current output file
@@ -137,7 +137,7 @@ package Sessions is
                    Err_Action   => 0,          Acc_Action   => 0,         No_Action        => 0,
                    Min_Reduce   => 0,          Max_Action   => 0,         Symbols2         => 999,
                    Error_Cnt    => 0,          Err_Sym2     => 999,
-                   Wildcard2    => 999,
+                   Wildcard     => null,
                    Names        => Parser_Names'Access,
                    File_Name    => Null_Unbounded_String,
                    Out_Name     => Null_Unbounded_String,

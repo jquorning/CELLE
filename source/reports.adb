@@ -632,7 +632,7 @@ package body Reports is
                                                           Size_Of_Code_Type);
          Action   : constant String := Minimum_Size_Type (0, Session.Max_Action,
                                                           Size_Of_Action_Type);
-         Wildcard    : constant Symbol_Access := Get_Wildcard (Session.Extra);
+         Wildcard    : constant Symbol_Access := Session.Wildcard;
          Is_Wildcard : constant Boolean       := (Wildcard /= null);
       begin
          if Is_Wildcard then
