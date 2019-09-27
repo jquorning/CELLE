@@ -217,7 +217,7 @@ package body Parser_FSM is
 
       elsif Cur in 'a' .. 'z' then
          Scanner.LHS.Clear;
-         Scanner.LHS.Append (Symbols.Create_New (Token));
+         Scanner.LHS.Append (Symbols.Create (Token));
          Scanner.RHS.Clear;
          Scanner.LHS_Alias.Clear;
          Scanner.State := WAITING_FOR_ARROW;
@@ -262,7 +262,7 @@ package body Parser_FSM is
 
       else
          Scanner.Prev_Rule.Prec_Symbol :=
-           Rule_Symbol_Access (Symbols.Create_New (Token));
+           Rule_Symbol_Access (Symbols.Create (Token));
       end if;
 
       Scanner.State := PRECEDENCE_MARK_2;
@@ -420,7 +420,7 @@ package body Parser_FSM is
          declare
             use Symbols;
 
-            Symbol : Symbol_Access := Create_New (Token);
+            Symbol : Symbol_Access := Create (Token);
          begin
             Scanner.Decl_Arg_Slot     := new Unbounded_String'(Symbol.Destructor);
             Scanner.Decl_Lineno_Slot  := Symbol.Dest_Lineno'Access;
@@ -640,7 +640,7 @@ package body Parser_FSM is
         Cur in 'a' .. 'z' or
         Cur in 'A' .. 'Z'
       then
-         Scanner.RHS  .Append (Symbols.Create_New (Token));
+         Scanner.RHS  .Append (Symbols.Create (Token));
          Scanner.Alias.Append (Null_Unbounded_String);
 
       elsif
@@ -667,7 +667,7 @@ package body Parser_FSM is
             end if;
 
             Symbol.Sub_Symbol.Append
-              (Symbols.Create_New (Token (Token'First + 1 .. Token'Last)));
+              (Symbols.Create (Token (Token'First + 1 .. Token'Last)));
 
             if
               Token (Token'First + 1) in 'a' .. 'z' or
@@ -842,7 +842,7 @@ package body Parser_FSM is
                Scanner.State := RESYNC_AFTER_DECL_ERROR;
             else
                if Symbol = null then
-                  Symbol := Create_New (Token);
+                  Symbol := Create (Token);
                end if;
                Scanner.Decl_Arg_Slot
                  := Symbol.Data_Type'Access;
@@ -869,7 +869,7 @@ package body Parser_FSM is
          declare
             use Symbols;
 
-            Symbol : constant Symbol_Access := Create_New (Token);
+            Symbol : constant Symbol_Access := Create (Token);
          begin
             if Symbol.Prec >= 0 then
                Parser_Error (E217, Scanner.Token_Lineno, Token);
@@ -898,7 +898,7 @@ package body Parser_FSM is
       else
          declare
             use Symbols;
-            Symbol : constant Symbol_Access := Create_New (Token);
+            Symbol : constant Symbol_Access := Create (Token);
          begin
 
             if Scanner.Fallback = null then
@@ -938,7 +938,7 @@ package body Parser_FSM is
             use Symbols;
             Dummy_Symbol : Symbol_Access;
          begin
-            Dummy_Symbol := Create_New (Token);
+            Dummy_Symbol := Create (Token);
          end;
       end if;
    end Do_State_Waiting_For_Token_Name;
@@ -960,7 +960,7 @@ package body Parser_FSM is
          declare
             use Symbols;
 
-            Symbol : constant Symbol_Access := Create_New (Token);
+            Symbol : constant Symbol_Access := Create (Token);
          begin
             if Session.Wildcard = null then
                Session.Wildcard := Symbol;
@@ -989,7 +989,7 @@ package body Parser_FSM is
          Scanner.State := RESYNC_AFTER_DECL_ERROR;
 
       else
-         Scanner.Token_Class      := Create_New (Token);
+         Scanner.Token_Class      := Create (Token);
          Scanner.Token_Class.Kind := Multi_Terminal;
          Scanner.State       := WAITING_FOR_CLASS_TOKEN;
 
@@ -1020,7 +1020,7 @@ package body Parser_FSM is
             if C not in 'A' .. 'Z' then
                First := Token'First + 1;
             end if;
-            Symbol.Sub_Symbol.Append (Create_New (Token (First .. Token'Last)));
+            Symbol.Sub_Symbol.Append (Create (Token (First .. Token'Last)));
          end;
       else
          Parser_Error (E208, Scanner.Token_Lineno, Token);

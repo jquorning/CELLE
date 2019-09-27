@@ -244,17 +244,6 @@ package body Symbols is
    function Create (Name : in String)
                    return Symbol_Access
    is
-      Ptr : constant Symbol_Access := new Symbol_Record;
-   begin
-      Ptr.Name := To_Unbounded_String (Name);
-      Symbol_Bases.Append (Base, Ptr);
-      return Ptr;
-   end Create;
-
-
-   function Create_New (Name : in String)
-                       return Symbol_Access
-   is
       Symbol : Symbol_Access := Find (Name);
    begin
       if Symbol = null then
@@ -281,7 +270,7 @@ package body Symbols is
       end if;
       Symbol.Use_Count := Symbol.Use_Count + 1;
       return Symbol;
-   end Create_New;
+   end Create;
 
 --     is--     function Lime_Symbol_New
 --       (Name : in Interfaces.C.Strings.chars_ptr)

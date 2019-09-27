@@ -154,7 +154,7 @@ begin
 
       --  Extras.Symbol_Append (Key => "$");
       declare
-         Dummy : constant Symbol_Access := Create_New ("$");
+         Dummy : constant Symbol_Access := Create ("$");
       begin
          null;
       end;
@@ -178,7 +178,7 @@ begin
       --  Count and index the symbols of the grammar
 --      Extras.Symbol_Append (Key => "{default}");
       declare
-         Dummy : constant Symbol_Access := Create_New ("{default}");
+         Dummy : constant Symbol_Access := Create ("{default}");
       begin
          null;
       end;

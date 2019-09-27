@@ -128,8 +128,8 @@ package Symbols is
    --  Allocate a new associative array.
 
    function Create (Name : in String) return Symbol_Access;
-   --  Return a pointer to the (terminal or nonterminal) symbol "x".
-   --  Create a new symbol if this is the first time "x" has been seen.
+   --  Return a pointer to the (terminal or nonterminal) symbol "Name".
+   --  Create a new symbol if this is the first time "Name" has been seen.
 
    --  function Symbol_Find (Key : in Key_Type) return Symbol_Access;
 
@@ -161,12 +161,6 @@ package Symbols is
    --  We find experimentally that leaving the symbols in their original
    --  order (the order they appeared in the grammar file) gives the
    --  smallest parser tables in SQLite.
-
-   function Create_New (Name : in String)
-                       return Symbol_Access;
---   function Lime_Symbol_New
---     (Name : in Interfaces.C.Strings.chars_ptr)
---     return Symbol_Access;
 
 --   function Lime_Symbol_Find
 --     (Name : in Interfaces.C.Strings.chars_ptr)
