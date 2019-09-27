@@ -19,7 +19,6 @@ with Ada.Containers.Vectors;
 with Rules;
 with Symbols;
 with Report_Parsers;
-with Extras;
 with States;
 
 package Sessions is
@@ -108,9 +107,9 @@ package Sessions is
          Min_Reduce       : Integer;              --  Minimum reduce action
          Max_Action       : Integer;              --  Maximum action value of any kind
          Symbols2         : Integer; -- XXX delme --  Sorted array of pointers to symbols
-         Error_Cnt        : Integer;            --  Number of errors
-         Err_Sym2         : Integer; --  Symbol_Access;      --  The error symbol
-         Wildcard         : Symbol_Access;      --  Token that matches anything
+         Error_Cnt        : Integer;              --  Number of errors
+         Error_Symbol     : Symbol_Access;        --  The error symbol
+         Wildcard         : Symbol_Access;        --  Token that matches anything
          Names            : access Parser_Names_Record;
          File_Name        : Unbounded_String;   --  Name of the input file
          Out_Name         : Unbounded_String;   --  Name of the current output file
@@ -123,29 +122,23 @@ package Sessions is
          Has_Fallback     : Boolean;            --  True if any %fallback is seen in the grammar
          No_Linenos_Flag  : Boolean;            --  True if #line statements should not be printed
          Argv0            : Unbounded_String;   --  Name of the program
-
-         --  Extra            : Symbols.Extra_Access;
-         Extra            : Extras.Extra_Access;
          Parser           : Report_Parsers.Context_Access;
       end record;
 
    Clean_Session : constant Session_Type :=
      Session_Type'(Sorted       => State_Vectors.Empty_Vector,
-                   Rule         => null,      Start_Rule       => null,
+                   Rule         => null,       Start_Rule   => null,
                    N_State      => 0,          Nx_State     => 0,         N_Rule           => 0,
                    N_Symbol     => 0,          N_Terminal   => 0,         Min_Shift_Reduce => 0,
                    Err_Action   => 0,          Acc_Action   => 0,         No_Action        => 0,
                    Min_Reduce   => 0,          Max_Action   => 0,         Symbols2         => 999,
-                   Error_Cnt    => 0,          Err_Sym2     => 999,
-                   Wildcard     => null,
+                   Error_Cnt    => 0,          Error_Symbol => null,      Wildcard         => null,
                    Names        => Parser_Names'Access,
                    File_Name    => Null_Unbounded_String,
                    Out_Name     => Null_Unbounded_String,
                    N_Conflict   => 0,        N_Action_Tab => 0,         N_Lookahead_Tab  => 0,
                    Table_Size   => 0,        Basis_Flag   => False,     Has_Fallback     => False,
                    No_Linenos_Flag => False, Argv0        => Null_Unbounded_String,
-                   --      Extra           => Symbols.Get_Extra,
-                   Extra           => Extras.Get_Extra,
                    Parser          => Report_Parsers.Get_Context);
 
    No_Offset : aliased constant Integer := Integer'First;

@@ -22,7 +22,6 @@ with Symbols;
 with Parsers;
 with Exceptions;
 with Reports;
-with Extras;
 with States;
 with Builds;
 
@@ -173,7 +172,7 @@ begin
          return;
       end if;
 
-      Extras.Set_Error;
+      Session.Error_Symbol := Find ("error");
 
       --  Count and index the symbols of the grammar
 --      Extras.Symbol_Append (Key => "{default}");
