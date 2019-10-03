@@ -563,7 +563,7 @@ package body Reports is
       Template_Open_Success : Integer;
       Error_Count           : Natural := 0;
    begin
-      Session.Min_Shift_Reduce := Natural (Session.N_State);
+      Session.Min_Shift_Reduce := Natural (Session.Sorted.Length);
       Session.Err_Action       := Session.Min_Shift_Reduce + Session.N_Rule;
       Session.Acc_Action       := Session.Err_Action + 1;
       Session.No_Action        := Session.Acc_Action + 1;

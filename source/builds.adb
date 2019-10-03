@@ -229,9 +229,7 @@ package body Builds is
       use Rules;
       use Actions;
 
---      I, J : Integer;
       Config : Config_Access;
-      State  : State_Access;
       Symbol : Symbol_Access;
       Rule   : Rule_Access;
    begin
@@ -239,8 +237,8 @@ package body Builds is
       --  A reduce action is added for each element of the followset of
       --  a configuration which has its dot at the extreme right.
 
-      for I in 0 .. Session.N_State - 1 loop   --  Loop over all states
-         State  := Session.Sorted (I);
+      --  Loop over all states
+      for State of Session.Sorted loop
          Config := State.Config;
          while Config /= null loop  --  Loop over all configurations
             if Config.Rule.RHS'Length = Config.Dot then          --  Is dot at extreme right?
@@ -272,7 +270,7 @@ package body Builds is
                            Rule  => null);
 
       --  Resolve conflicts
-      for I in 0 .. Session.N_State - 1 loop
+      for State of Session.Sorted loop
          declare
             use Action_Lists.Action_DLLs;
 --            Action      : Action_Access;
@@ -280,9 +278,7 @@ package body Builds is
             First_Action : Cursor;
             Next_Action  : Cursor;
          begin
-            State := Session.Sorted (I);
             --  assert( stp->ap );
---            State.Action := State_Action_Access (Action_Sort (Action_Access (State.Action)));
             Action_Lists.Sort (State.Action);
 --            Action       := Action_Access (State.Action);
             First_Action := State.Action.First;
@@ -321,8 +317,8 @@ package body Builds is
          Rule := Rule.Next;
       end loop;
 
-      for I in 0 .. Session.N_State - 1 loop
-         for Action of Session.Sorted (I).Action loop
+      for State of Session.Sorted loop
+         for Action of State.Action loop
 --         declare
 --            Action : Action_Access;
 --         begin
@@ -394,8 +390,11 @@ package body Builds is
                                           --  MemoryCheck(stp);
          State.Basis  := Basis;               -- Remember the configuration basis
          State.Config := Config;              -- Remember the configuration closure
-         State.State_Num := Natural (Session.N_State);  -- Every state gets a sequence number
-         Session.N_State := Session.N_State + 1;
+         --  XXX
+         --  State.State_Num := Natural (Session.N_State);  -- Every state gets a sequence number
+         State.State_Num := Natural (Session.Sorted.Length);  -- Every state gets a sequence number
+
+         --  Session.N_State := Session.N_State + 1;
          State.Action.Clear;                  -- No actions, yet.
          Debugs.Debug (True, "States.Insert");
          States.Insert (State, State.Basis);  -- Add to the state table
@@ -536,15 +535,12 @@ package body Builds is
 
       Config : Config_Access;
       Other  : Config_Access;
-      State  : State_Access;
---      struct plink *plp;
    begin
       --  Housekeeping detail:
       --  Add to every propagate link a pointer back to the state to
       --  which the link is attached.
-      for I in 0 .. Session.N_State - 1 loop
+      for State of Session.Sorted loop
          Debugs.Debug (True, "Sessions.Sorted'Length: " & Session.Sorted.Length'Image);
-         State  := Session.Sorted (I);
          Config := State.Config;
          while Config /= null loop
             Config.State := State;
@@ -554,8 +550,7 @@ package body Builds is
 
       --  Convert all backlinks into forward links.  Only the forward
       --  links are used in the follow-set computation.
-      for I in 0 .. Session.N_State - 1 loop
-         State  := Session.Sorted (I);
+      for State of Session.Sorted loop
          Config := State.Config;
          while Config /= null loop
             for Link of Config.Backward_PL loop
@@ -579,8 +574,8 @@ package body Builds is
    begin
 
 
-      for I in 0 .. Session.N_State - 1 loop
-         Config := Session.Sorted (I).Config;
+      for State of Session.Sorted loop
+         Config := State.Config;
          loop
             exit when Config = null;
             Config.Status := Incomplete;
@@ -590,8 +585,8 @@ package body Builds is
 
       loop
          Progress := False;
-         for I in 0 .. Session.N_State - 1 loop
-            Config := Session.Sorted (I).Config;
+         for State of Session.Sorted loop
+            Config := State.Config;
             loop
                exit when Config = null;
 
@@ -653,7 +648,8 @@ package body Builds is
          --  links so that the follow-set can be computed later
 --         Compute_LR_States (Session);
          Put_Line ("### 2-5");
-         Session.N_State := 0;
+         --  XXX
+         --  Session.N_State := 0;
          Builds.Find_States (Session);
          Put_Line ("### 2-5-2");
          Session.Sorted := Sessions.Create_Sorted_States; --  State_Arrayof;

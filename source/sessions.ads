@@ -95,7 +95,8 @@ package Sessions is
          Sorted           : State_Vectors.Vector; --  Table of states sorted by state number
          Rule             : Rule_Access;          --  List of all rules
          Start_Rule       : Rule_Access;          --  First rule
-         N_State          : State_Index;          --  Number of states
+
+         --  Number of states in Sorted
          Nx_State         : State_Index;          --  nstate with tail degenerate states removed
          N_Rule           : Integer;              --  Number of rules
          N_Symbol         : Symbol_Index;         --  Number of terminal and nonterminal symbols
@@ -128,7 +129,7 @@ package Sessions is
    Clean_Session : constant Session_Type :=
      Session_Type'(Sorted       => State_Vectors.Empty_Vector,
                    Rule         => null,       Start_Rule   => null,
-                   N_State      => 0,          Nx_State     => 0,         N_Rule           => 0,
+                   Nx_State     => 0,          N_Rule       => 0,
                    N_Symbol     => 0,          N_Terminal   => 0,         Min_Shift_Reduce => 0,
                    Err_Action   => 0,          Acc_Action   => 0,         No_Action        => 0,
                    Min_Reduce   => 0,          Max_Action   => 0,         Symbols2         => 999,
