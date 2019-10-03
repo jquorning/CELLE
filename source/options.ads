@@ -42,16 +42,4 @@ package Options is
 
    procedure Set_Language;
 
-private
-
-      --  Option integers
-   pragma Export (C, Show_Conflict, "lemon_show_conflict");
-   pragma Export (C, Show_Version,  "lemon_show_version");
-   pragma Export (C, Basis_Flag,    "lemon_basis_flag");
-   pragma Export (C, Compress,      "lemon_compress");
-   pragma Export (C, Be_Quiet,      "lemon_be_quiet");
-   pragma Export (C, Statistics,    "lemon_statistics");
-   pragma Export (C, No_Line_Nos,   "lemon_no_line_nos");
-   pragma Export (C, No_Resort,     "lemon_no_resort");
-
 end Options;

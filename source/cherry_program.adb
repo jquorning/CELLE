@@ -16,7 +16,6 @@ with Setup;
 with Options;
 with Command_Line;
 with Sessions;
-with Cherry;
 with Rules;
 with Symbols;
 with Symbols.IO;
@@ -52,8 +51,7 @@ procedure Cherry_Program is
 
    procedure Put_Help is
    begin
-      Cherry.Dummy;  -- XXX
-      Reports.Dummy;
+      raise Program_Error with "Not implemented";
    end Put_Help;
 
 
@@ -143,7 +141,6 @@ begin
       Session.Error_Cnt := 0;
 
       --  Initialize the machine
-      Sessions.Strsafe_Init;
       Symbols.Symbol_Init;
       States.Initialize;
 

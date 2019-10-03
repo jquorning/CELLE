@@ -15,8 +15,4 @@ package Command_Line is
      (Success : out Boolean);
    --  Parse command line setting variables.
 
-   procedure Lemon_Entry_Function;
-   pragma Import (C, Lemon_Entry_Function, "lemon_main");
-   --  Lemon entry function.
-
 end Command_Line;

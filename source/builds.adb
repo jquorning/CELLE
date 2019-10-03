@@ -568,6 +568,57 @@ package body Builds is
    end Find_Links;
 
 
+   procedure Find_Follow_Sets (Session : in out Sessions.Session_Type)
+   is
+      use Configs;
+      use type Sessions.State_Index;
+
+      Config   : Config_Access;
+      Progress : Boolean;
+      Change   : Boolean;
+   begin
+
+
+      for I in 0 .. Session.N_State - 1 loop
+         Config := Session.Sorted (I).Config;
+         loop
+            exit when Config = null;
+            Config.Status := Incomplete;
+            Config := Config.Next;
+         end loop;
+      end loop;
+
+      loop
+         Progress := False;
+         for I in 0 .. Session.N_State - 1 loop
+            Config := Session.Sorted (I).Config;
+            loop
+               exit when Config = null;
+
+               if Config.Status = Complete then
+                  goto Continue;
+               end if;
+
+               for Link of Config.Forward_PL loop
+--        for(plp=cfp->fplp; plp; plp=plp->next){ loop
+                  Change := Sets.Set_Union (Link.Follow_Set,
+                                            Config.Follow_Set);
+                  if Change then
+                     Link.Status := Incomplete;
+                     Progress := True;
+                  end if;
+               end loop;
+               Config.Status := Complete;
+
+               <<Continue>>
+               Config := Config.Next;
+            end loop;
+         end loop;
+         exit when not Progress;
+      end loop;
+   end Find_Follow_Sets;
+
+
    procedure Reprint_Of_Grammar
      (Session       : in out Sessions.Session_Type;
       Base_Name     : in     String;

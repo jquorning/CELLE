@@ -31,32 +31,6 @@ with Sets;
 
 package body Reports is
 
-   procedure Reprint_C (Session : access Sessions.Session_Type) is
-   begin
-      Reprint (Session.all);
-   end Reprint_C;
-
-   procedure Report_Output_C (Session : access Sessions.Session_Type) is
-   begin
-      Reprint (Session.all);
-   end Report_Output_C;
-
-   procedure Report_Table_C (Session : access Sessions.Session_Type) is
-   begin
-      Report_Table
-        (Session.all,
-        User_Template_Name => Options.User_Template.all);
-   end Report_Table_C;
-
-   procedure Compress_Tables_C (Session : access Sessions.Session_Type) is
-   begin
-      Compress_Tables (Session.all);
-   end Compress_Tables_C;
-
-   procedure Resort_States_C (Session : access Sessions.Session_Type) is
-   begin
-      Resort_States (Session.all);
-   end Resort_States_C;
 
    procedure Rule_Print (File : in Ada.Text_IO.File_Type;
                          Rule : in Rules.Rule_Access);
@@ -1385,12 +1359,6 @@ package body Reports is
 --    }
 --  }
    end Resort_States;
-
-
-   procedure Dummy is
-   begin
-      null;
-   end Dummy;
 
 
    procedure Rule_Print (File : in Ada.Text_IO.File_Type;

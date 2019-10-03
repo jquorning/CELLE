@@ -32,7 +32,7 @@ package Builds is
    --  between some states so that the LR(1) follow sets can be
    --  computed later.
 
-   procedure Find_Follow_Sets (Session : in Session_Type);
+   procedure Find_Follow_Sets (Session : in out Session_Type);
    --  Compute all followsets.
    --  A followset is the set of all symbols which can come immediately
    --  after a configuration.
@@ -62,11 +62,5 @@ package Builds is
       Base_Name     : in     String;
       Token_Prefix  : in     String;
       Terminal_Last : in     Natural);
-
-
-private
-
-   pragma Export (C, Find_States,      "cherry_find_states");
-   pragma Import (C, Find_Follow_Sets, "lemon_find_follow_sets");
 
 end Builds;

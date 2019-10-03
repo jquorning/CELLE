@@ -5,7 +5,6 @@
 1. Cleanup symbol sorting
 1. Complete scanner package
 1. Move Auxiliary to DK8543
-1. Get rid of lemon.c
 1. type lemon to type global
 1. hierachy Cherry
 1. library/application split

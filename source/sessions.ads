@@ -144,35 +144,7 @@ package Sessions is
    No_Offset : aliased constant Integer := Integer'First;
 
 
-   --
-   --  Other way round specs
-   --
---   procedure Reprint (Session : in out Session_Type);
---   procedure Set_Size (Size : in Natural);
---   procedure Find_Rule_Precedences (Session : in Session_Type);
---   procedure Find_First_Sets (Session : in Session_Type);
---   procedure Compute_LR_States (Session : in Session_Type);
-
-   procedure Strsafe_Init;
-
---   function Rule_Sort (Rule : in Rules.Rule_Access)
---                      return Rules.Rule_Access;
-
---   function Sorted_At (Session : in Session_Type;
---                       Index   : in State_Index) return States.State_Access;
-
    function Create_Sorted_States return State_Vectors.Vector;
    --
-
-private
-
---   pragma Import (C, Set_Size,              "lemon_set_size");
---   pragma Import (C, Find_Rule_Precedences, "lemon_find_rule_precedences");
---   pragma Import (C, Find_First_Sets,       "lemon_find_first_sets");
---   pragma Import (C, Compute_LR_States,     "lemon_compute_LR_states");
-
-   pragma Import (C, Strsafe_Init, "Strsafe_init");
-
---   pragma Import (C, Rule_Sort, "lime_rule_sort");
 
 end Sessions;

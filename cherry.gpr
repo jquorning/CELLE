@@ -14,7 +14,7 @@ with "../DK8543/dk8543_core.gpr";
 
 project Cherry is
 
-  for Languages    use ("Ada", "C");
+  for Languages    use ("Ada");
   for Source_Dirs  use ("source/");
   for Object_Dir   use "object/";
   for Exec_Dir     use "binary/";
