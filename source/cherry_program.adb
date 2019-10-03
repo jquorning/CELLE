@@ -186,7 +186,7 @@ begin
 
       Ada.Text_IO.Put_Line ("jq_dump_symbols before sort");
 --      Extras.JQ_Dump_Symbols;
-      Symbols.JQ_Dump_Symbols (Mode => 1);
+      Symbols.JQ_Dump_Symbols (Mode => 0);
 
 --      Extras.Fill_And_Sort;
       Symbols.Sort;
