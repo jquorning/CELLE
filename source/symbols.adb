@@ -256,8 +256,8 @@ package body Symbols is
 
          Symbol.Rule        := null;
          Symbol.Fallback    := null;
-         Symbol.Prec        := -1;
-         Symbol.Assoc       := Unk;
+         Symbol.Precedence  := -1;
+         Symbol.Association := Unknown_Association;
          Symbol.First_Set   := Sets.Null_Set;
          Symbol.Lambda      := False;
          Symbol.Destructor  := Null_Unbounded_String;

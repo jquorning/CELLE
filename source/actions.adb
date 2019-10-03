@@ -308,34 +308,45 @@ package body Actions is
       if Apx.Kind = Shift and Apy.Kind = Reduce then
          Spx := Symbol_Access (Apx.Symbol);
          Spy := Symbol_Access (Apy.X.Rule.Prec_Symbol);
-         if Spy = null or Spx.Prec < 0 or Spy.Prec < 0 then
+         if Spy = null or Spx.Precedence < 0 or Spy.Precedence < 0 then
             --  Not enough precedence information
             Apy.Kind := SR_Conflict;
             Error_Count := Error_Count + 1;
-         elsif Spx.Prec > Spy.Prec then    -- higher precedence wins
+         elsif Spx.Precedence > Spy.Precedence then    -- higher precedence wins
             Apy.Kind := RD_Resolved;
-         elsif Spx.Prec < Spy.Prec then
+         elsif Spx.Precedence < Spy.Precedence then
             Apx.Kind := SH_Resolved;
-         elsif Spx.Prec = Spy.Prec and Spx.Assoc = Right_Assoc then -- Use operator
+
+         elsif
+           Spx.Precedence = Spy.Precedence and
+           Spx.Association = Right_Association
+         then -- Use operator
             Apy.Kind := RD_Resolved;                             -- associativity
-         elsif Spx.Prec = Spy.Prec and Spx.Assoc = Left_Assoc then  -- to break tie
+
+         elsif
+           Spx.Precedence = Spy.Precedence and
+           Spx.Association = Left_Association
+         then  -- to break tie
             Apx.Kind := SH_Resolved;
          else
-            pragma Assert (Spx.Prec = Spy.Prec and Spx.Assoc = None);
+            pragma Assert (Spx.Precedence = Spy.Precedence and
+                           Spx.Association = No_Association);
             Apx.Kind := Error;
          end if;
       elsif Apx.Kind = Reduce and Apy.Kind = Reduce then
          Spx := Symbol_Access (Apx.X.Rule.Prec_Symbol);
          Spy := Symbol_Access (Apy.X.Rule.Prec_Symbol);
          if
-           Spx = null or Spy = null or Spx.Prec < 0 or
-           Spy.Prec < 0 or Spx.Prec = Spy.Prec
+           Spx = null or Spy = null or Spx.Precedence < 0 or
+           Spy.Precedence < 0 or Spx.Precedence = Spy.Precedence
          then
             Apy.Kind := RR_Conflict;
             Error_Count := Error_Count + 1;
-         elsif Spx.Prec > Spy.Prec then
+
+         elsif Spx.Precedence > Spy.Precedence then
             Apy.Kind := RD_Resolved;
-         elsif Spx.Prec < Spy.Prec then
+
+         elsif Spx.Precedence < Spy.Precedence then
             Apx.Kind := RD_Resolved;
          end if;
       else

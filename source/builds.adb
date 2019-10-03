@@ -42,13 +42,13 @@ package body Builds is
                   if Symbol.Kind = Multi_Terminal then
 
                      for J in Symbol.Sub_Symbol.First_Index .. Symbol.Sub_Symbol.Last_Index loop
-                        if Symbol.Sub_Symbol (J).Prec >= 0 then
+                        if Symbol.Sub_Symbol (J).Precedence >= 0 then
                            Rule.Prec_Symbol := Rule_Symbol_Access (Symbol.Sub_Symbol.Element (J));
                            exit;
                         end if;
                      end loop;
 
-                  elsif Symbol.Prec >= 0 then
+                  elsif Symbol.Precedence >= 0 then
                      Rule.Prec_Symbol := Rule.RHS (I);
                   end if;
                end;

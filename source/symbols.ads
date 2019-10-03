@@ -21,11 +21,11 @@ package Symbols is
       Non_Terminal,
       Multi_Terminal);
 
-   type E_Assoc is
-     (Left_Assoc,
-      Right_Assoc,
-      None,
-      Unk);
+   type Association_Type is
+     (Left_Association,
+      Right_Association,
+      No_Association,
+      Unknown_Association);
 
    type Symbol_Record;
    type Symbol_Access is access all Symbol_Record;
@@ -58,10 +58,10 @@ package Symbols is
          Fallback  : access Symbol_Record     := null;
          --  fallback token in case this token doesn't parse
 
-         Prec      : Integer          := 0;
+         Precedence : Integer          := 0;
          --  Precedence if defined (-1 otherwise)
 
-         Assoc     : E_Assoc          := Left_Assoc;
+         Association : Association_Type := Left_Association;
          --  Associativity if precedence is defined
 
          First_Set : Sets.Set_Type := Sets.Null_Set;

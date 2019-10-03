@@ -466,9 +466,9 @@ package body Reports is
                   end if;
                end loop;
             end if;
-            if Symbol.Prec >= 0 then
+            if Symbol.Precedence >= 0 then
                Put (File, " (precedence=");
-               Put (File, Symbol.Prec'Img);
+               Put (File, Symbol.Precedence'Img);
                Put (File, ")");
             end if;
          end;
@@ -519,7 +519,7 @@ package body Reports is
             Put (File, " [");
             Put (File, Name_Of (Symbol_Access (Rule.Prec_Symbol)));
             Put (File, " precedence=");
-            Put (File, Rule.Prec_Symbol.Prec'Img);
+            Put (File, Rule.Prec_Symbol.Precedence'Img);
             Put (File, "]");
          end if;
          New_Line (File);

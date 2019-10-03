@@ -94,10 +94,10 @@ package Parser_Data is
          --    char **declargslot;                --  Where the declaration argument should be put
          Insert_Line_Macro : Boolean;             --  Add #line before declaration insert
 
-         Decl_Lineno_Slot  : not null access Integer := new Integer'(0);
+         Decl_Lineno_Slot : not null access Integer := new Integer'(0);
          --  Where to write declaration line number
 
-         Decl_Assoc   : E_Assoc;                  --  Assign this association to decl arguments
+         Decl_Association : Association_Type;     --  Assign this association to decl arguments
          Prec_Counter : Integer;                  --  Assign this precedence to decl arguments
          First_Rule   : access Rules.Rule_Record; --  Pointer to first rule in the grammar
          Last_Rule    : access Rules.Rule_Record; --  Pointer to the most recently parsed rule

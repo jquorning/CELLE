@@ -357,18 +357,18 @@ package body Parser_FSM is
             Scanner.Insert_Line_Macro := False;
 
          elsif Token = "left" then
-            Scanner.Prec_Counter := Scanner.Prec_Counter + 1;
-            Scanner.Decl_Assoc   := Symbols.Left_Assoc;
+            Scanner.Prec_Counter     := Scanner.Prec_Counter + 1;
+            Scanner.Decl_Association := Symbols.Left_Association;
             Scanner.State   := WAITING_FOR_PRECEDENCE_SYMBOL;
 
          elsif Token = "right" then
-            Scanner.Prec_Counter := Scanner.Prec_Counter + 1;
-            Scanner.Decl_Assoc   := Symbols.Right_Assoc;
+            Scanner.Prec_Counter     := Scanner.Prec_Counter + 1;
+            Scanner.Decl_Association := Symbols.Right_Association;
             Scanner.State   := WAITING_FOR_PRECEDENCE_SYMBOL;
 
          elsif Token = "nonassoc" then
-            Scanner.Prec_Counter := Scanner.Prec_Counter + 1;
-            Scanner.Decl_Assoc   := Symbols.None;
+            Scanner.Prec_Counter     := Scanner.Prec_Counter + 1;
+            Scanner.Decl_Association := Symbols.No_Association;
             Scanner.State   := WAITING_FOR_PRECEDENCE_SYMBOL;
 
          elsif Token = "destructor" then
@@ -871,11 +871,11 @@ package body Parser_FSM is
 
             Symbol : constant Symbol_Access := Create (Token);
          begin
-            if Symbol.Prec >= 0 then
+            if Symbol.Precedence >= 0 then
                Parser_Error (E217, Scanner.Token_Lineno, Token);
             else
-               Symbol.Prec  := Scanner.Prec_Counter;
-               Symbol.Assoc := Scanner.Decl_Assoc;
+               Symbol.Precedence  := Scanner.Prec_Counter;
+               Symbol.Association := Scanner.Decl_Association;
             end if;
          end;
       else

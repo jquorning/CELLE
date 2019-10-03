@@ -30,15 +30,15 @@ package body Symbols.IO is
                if Symbol.Kind = Multi_Terminal then
                   Put (" (");
                   for J in Symbol.Sub_Symbol.First_Index .. Symbol.Sub_Symbol.Last_Index loop
-                     Put (Natural'Image (Symbol.Sub_Symbol.Element (J).Prec));
+                     Put (Natural'Image (Symbol.Sub_Symbol.Element (J).Precedence));
                      Put (" ");
                   end loop;
                   Put (")");
                else
-                  if Symbol.Prec = -1 then
+                  if Symbol.Precedence = -1 then
                      Put (" -1"); -- Hack
                   else
-                     Put (Natural'Image (Symbol.Prec));
+                     Put (Natural'Image (Symbol.Precedence));
                   end if;
                end if;
 
