@@ -37,4 +37,7 @@ package Configs is
       Basis       : Config_Access;              --  The next basis configuration
    end record;
 
+   function "<" (Left, Right : in Config_Record) return Boolean;
+   function "<" (Left, Right : in Config_Access) return Boolean;
+
 end Configs;

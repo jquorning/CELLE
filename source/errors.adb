@@ -67,7 +67,9 @@ package body Errors is
       E217 => -"Symbol $1 has already be given a precedence.",
       E218 => -"Can't assign a precedence to $1.",
 
-      E301 => -"This rule can not be reduced."
+      E301 => -"This rule can not be reduced.",
+
+      E401 => -"Nonterminal ""$1"" has no rules."
      );
 
 

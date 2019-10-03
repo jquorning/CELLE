@@ -178,17 +178,6 @@ struct action;
 static struct action *Action_new(void);
 //static struct action *Action_sort(struct action *);
 
-/********* From the file "configlist.h" *********************************/
-void lemon_configlist_init(void);
-struct config *Configlist_add(struct rule *, int);
-struct config *lemon_configlist_add_basis(struct rule *, int);
-void Configlist_closure(struct lemon *);
-void Configlist_sort(void);
-void Configlist_sortbasis(void);
-struct config *Configlist_return(void);
-struct config *Configlist_basis(void);
-void Configlist_eat(struct config *);
-void lemon_configlist_reset(void);
 
 /********* From the file "error.h" ***************************************/
 void ErrorMsg(const char *, int,const char *, ...);
@@ -245,13 +234,6 @@ int State_insert(struct state *, struct config *);
 struct state *State_find(struct config *);
 struct state **State_arrayof(void);
 
-/* Routines used for efficiency in Configlist_add */
-
-void Configtable_init(void);
-int Configtable_insert(struct config *);
-struct config *Configtable_find(struct config *);
-void Configtable_clear(int(*)(struct config *));
-
 /****************** Common data structure used as global **********************/
 
 //struct lemon lem;
@@ -282,13 +264,6 @@ lime_partial_database_dump (struct lemon *lemp)
   printf ("lemon_input_file : %s\n", lemon_input_file);
 }
 
-#if 0
-void
-lime_partial_database_dump_c (void)
-{
-  lime_partial_database_dump (&lem);
-}
-#endif
 
 /****************** From the file "action.c" *******************************/
 /*
@@ -316,60 +291,7 @@ static struct action *Action_new(void){
   return newaction;
 }
 
-#if 0
-/* Compare two actions for sorting purposes.  Return negative, zero, or
-** positive if the first action is less than, equal to, or greater than
-** the first
-*/
-static int actioncmp(
-  struct action *ap1,
-  struct action *ap2
-){
-  int rc;
-  rc = ap1->sp->index - ap2->sp->index;
-  if( rc==0 ){
-    rc = (int)ap1->type - (int)ap2->type;
-  }
-  if( rc==0 && (ap1->type==REDUCE || ap1->type==SHIFTREDUCE) ){
-    rc = ap1->x.rp->index - ap2->x.rp->index;
-  }
-  if( rc==0 ){
-    rc = (int) (ap2 - ap1);
-  }
-  return rc;
-}
-#endif
 
-/* Sort parser actions */
-#if 0
-static struct action *Action_sort(
-  struct action *ap
-){
-  ap = (struct action *)msort((char *)ap,(char **)&ap->next,
-                              (int(*)(const char*,const char*))actioncmp);
-  return ap;
-}
-
-void Action_add(
-  struct action **app,
-  enum e_action type,
-  struct symbol *sp,
-  char *arg
-){
-  struct action *newaction;
-  newaction = Action_new();
-  newaction->next = *app;
-  *app = newaction;
-  newaction->type = type;
-  newaction->sp = sp;
-  newaction->spOpt = 0;
-  if( type==SHIFT ){
-    newaction->x.stp = (struct state *)arg;
-  }else{
-    newaction->x.rp = (struct rule *)arg;
-  }
-}
-#endif
 
 /********************** From the file "build.c" *****************************/
 /*
@@ -811,213 +733,7 @@ static int resolve_conflict(
   }
   return errcnt;
 }
-/********************* From the file "configlist.c" *************************/
-/*
-** Routines to processing a configuration list and building a state
-** in the LEMON parser generator.
-*/
 
-static struct config *freelist = 0;      /* List of free configurations */
-static struct config *current = 0;       /* Top of list of configurations */
-static struct config **currentend = 0;   /* Last on list of configs */
-static struct config *basis = 0;         /* Top of list of basis configs */
-static struct config **basisend = 0;     /* End of list of basis configs */
-
-/* Return a pointer to a new configuration */
-PRIVATE struct config *newconfig(void){
-  struct config *newcfg;
-  if( freelist==0 ){
-    int i;
-    int amt = 3;
-    freelist = (struct config *)calloc( amt, sizeof(struct config) );
-    if( freelist==0 ){
-      fprintf(stderr,"Unable to allocate memory for a new configuration.");
-      exit(1);
-    }
-    for(i=0; i<amt-1; i++) freelist[i].next = &freelist[i+1];
-    freelist[amt-1].next = 0;
-  }
-  newcfg = freelist;
-  freelist = freelist->next;
-  return newcfg;
-}
-
-/* The configuration "old" is no longer used */
-PRIVATE void deleteconfig(struct config *old)
-{
-  old->next = freelist;
-  freelist = old;
-}
-
-/* Initialized the configuration list builder */
-void lemon_configlist_init(void){
-  current = 0;
-  currentend = &current;
-  basis = 0;
-  basisend = &basis;
-  Configtable_init();
-  return;
-}
-
-/* Initialized the configuration list builder */
-void lemon_configlist_reset(void){
-  current = 0;
-  currentend = &current;
-  basis = 0;
-  basisend = &basis;
-  Configtable_clear(0);
-  return;
-}
-
-/* Add another configuration to the configuration list */
-struct config *Configlist_add(
-  struct rule *rp,    /* The rule */
-  int dot             /* Index into the RHS of the rule where the dot goes */
-){
-  struct config *cfp, model;
-
-  assert( currentend!=0 );
-  model.rp = rp;
-  model.dot = dot;
-  cfp = Configtable_find(&model);
-  if( cfp==0 ){
-    cfp = newconfig();
-    cfp->rp = rp;
-    cfp->dot = dot;
-    cfp->fws = lemon_set_new();
-    cfp->stp = 0;
-    cfp->fplp = cfp->bplp = 0;
-    cfp->next = 0;
-    cfp->bp = 0;
-    *currentend = cfp;
-    currentend = &cfp->next;
-    Configtable_insert(cfp);
-  }
-  return cfp;
-}
-
-/* Add a basis configuration to the configuration list */
-struct config *lemon_configlist_add_basis(struct rule *rp, int dot)
-{
-  struct config *cfp, model;
-
-  assert( basisend!=0 );
-  assert( currentend!=0 );
-  model.rp = rp;
-  model.dot = dot;
-  cfp = Configtable_find(&model);
-  if( cfp==0 ){
-    cfp = newconfig();
-    cfp->rp = rp;
-    cfp->dot = dot;
-    cfp->fws = lemon_set_new();
-    cfp->stp = 0;
-    cfp->fplp = cfp->bplp = 0;
-    cfp->next = 0;
-    cfp->bp = 0;
-    *currentend = cfp;
-    currentend = &cfp->next;
-    *basisend = cfp;
-    basisend = &cfp->bp;
-    Configtable_insert(cfp);
-  }
-  return cfp;
-}
-
-/* Compute the closure of the configuration list */
-void Configlist_closure(struct lemon *lemp)
-{
-  struct config *cfp, *newcfp;
-  struct rule *rp, *newrp;
-  struct symbol *sp, *xsp;
-  int i, dot;
-
-  assert( currentend!=0 );
-  for(cfp=current; cfp; cfp=cfp->next){
-    rp = cfp->rp;
-    dot = cfp->dot;
-    if( dot>=rp->nrhs ) continue;
-    sp = rp->rhs[dot];
-    if( sp->type==NONTERMINAL ){
-      if( sp->rule==0 && sp!=lemp->errsym ){
-        ErrorMsg(lemp->filename,rp->line,"Nonterminal \"%s\" has no rules.",
-          sp->name);
-        lemp->errorcnt++;
-      }
-      for(newrp=sp->rule; newrp; newrp=newrp->nextlhs){
-        newcfp = Configlist_add(newrp,0);
-        for(i=dot+1; i<rp->nrhs; i++){
-          xsp = rp->rhs[i];
-          if( xsp->type==TERMINAL ){
-            lemon_set_add(newcfp->fws,xsp->index);
-            break;
-          }else if( xsp->type==MULTITERMINAL ){
-            int k;
-            for(k=0; k<xsp->nsubsym; k++){
-              lemon_set_add(newcfp->fws, xsp->subsym[k]->index);
-            }
-            break;
-          }else{
-            lemon_set_union(newcfp->fws,xsp->firstset);
-            if( xsp->lambda==LEMON_FALSE ) break;
-          }
-        }
-        if( i==rp->nrhs ) lemon_plink_add(&cfp->fplp,newcfp);
-      }
-    }
-  }
-  return;
-}
-
-/* Sort the configuration list */
-void Configlist_sort(void){
-  current = (struct config*)msort((char*)current,(char**)&(current->next),
-                                  Configcmp);
-  currentend = 0;
-  return;
-}
-
-/* Sort the basis configuration list */
-void Configlist_sortbasis(void){
-  basis = (struct config*)msort((char*)current,(char**)&(current->bp),
-                                Configcmp);
-  basisend = 0;
-  return;
-}
-
-/* Return a pointer to the head of the configuration list and
-** reset the list */
-struct config *Configlist_return(void){
-  struct config *old;
-  old = current;
-  current = 0;
-  currentend = 0;
-  return old;
-}
-
-/* Return a pointer to the head of the configuration list and
-** reset the list */
-struct config *Configlist_basis(void){
-  struct config *old;
-  old = basis;
-  basis = 0;
-  basisend = 0;
-  return old;
-}
-
-/* Free all elements of the given configuration list */
-void Configlist_eat(struct config *cfp)
-{
-  struct config *nextcfp;
-  for(; cfp; cfp=nextcfp){
-    nextcfp = cfp->next;
-    assert( cfp->fplp==0 );
-    assert( cfp->bplp==0 );
-    if( cfp->fws ) lemon_set_free(cfp->fws);
-    deleteconfig(cfp);
-  }
-  return;
-}
 /***************** From the file "error.c" *********************************/
 /*
 ** Code for printing error message.
@@ -2083,14 +1799,8 @@ void lemon_resort_states (struct lemon *lemp)
 /*
 **
 */
-#if 0
-void lemon_compute_LR_states (struct lemon *lemp)
-{
-  lemp->nstate = 0;
-  cherry_find_states (lemp);
-  lemp->sorted = State_arrayof();
-}
-#endif  
+
+
 
 /* /\* Add a new element to the set.  Return TRUE if the element was added */
 /* ** and FALSE if it was already there. *\/ */
@@ -2451,136 +2161,3 @@ struct state **State_arrayof(void)
   return array;
 }
 
-/* Hash a configuration */
-PRIVATE unsigned confighash(struct config *a)
-{
-  unsigned h=0;
-  h = h*571 + a->rp->index*37 + a->dot;
-  return h;
-}
-
-/* There is one instance of the following structure for each
-** associative array of type "x4".
-*/
-struct s_x4 {
-  int size;               /* The number of available slots. */
-                          /*   Must be a power of 2 greater than or */
-                          /*   equal to 1 */
-  int count;              /* Number of currently slots filled */
-  struct s_x4node *tbl;  /* The data stored here */
-  struct s_x4node **ht;  /* Hash table for lookups */
-};
-
-/* There is one instance of this structure for every data element
-** in an associative array of type "x4".
-*/
-typedef struct s_x4node {
-  struct config *data;                  /* The data */
-  struct s_x4node *next;   /* Next entry with the same hash */
-  struct s_x4node **from;  /* Previous link */
-} x4node;
-
-/* There is only one instance of the array, which is the following */
-static struct s_x4 *x4a;
-
-/* Allocate a new associative array */
-void Configtable_init(void){
-  if( x4a ) return;
-  x4a = (struct s_x4*)malloc( sizeof(struct s_x4) );
-  if( x4a ){
-    x4a->size = 64;
-    x4a->count = 0;
-    x4a->tbl = (x4node*)calloc(64, sizeof(x4node) + sizeof(x4node*));
-    if( x4a->tbl==0 ){
-      free(x4a);
-      x4a = 0;
-    }else{
-      int i;
-      x4a->ht = (x4node**)&(x4a->tbl[64]);
-      for(i=0; i<64; i++) x4a->ht[i] = 0;
-    }
-  }
-}
-/* Insert a new record into the array.  Return TRUE if successful.
-** Prior data with the same key is NOT overwritten */
-int Configtable_insert(struct config *data)
-{
-  x4node *np;
-  unsigned h;
-  unsigned ph;
-
-  if( x4a==0 ) return 0;
-  ph = confighash(data);
-  h = ph & (x4a->size-1);
-  np = x4a->ht[h];
-  while( np ){
-    if( Configcmp((const char *) np->data,(const char *) data)==0 ){
-      /* An existing entry with the same key is found. */
-      /* Fail because overwrite is not allows. */
-      return 0;
-    }
-    np = np->next;
-  }
-  if( x4a->count>=x4a->size ){
-    /* Need to make the hash table bigger */
-    int i,arrSize;
-    struct s_x4 array;
-    array.size = arrSize = x4a->size*2;
-    array.count = x4a->count;
-    array.tbl = (x4node*)calloc(arrSize, sizeof(x4node) + sizeof(x4node*));
-    if( array.tbl==0 ) return 0;  /* Fail due to malloc failure */
-    array.ht = (x4node**)&(array.tbl[arrSize]);
-    for(i=0; i<arrSize; i++) array.ht[i] = 0;
-    for(i=0; i<x4a->count; i++){
-      x4node *oldnp, *newnp;
-      oldnp = &(x4a->tbl[i]);
-      h = confighash(oldnp->data) & (arrSize-1);
-      newnp = &(array.tbl[i]);
-      if( array.ht[h] ) array.ht[h]->from = &(newnp->next);
-      newnp->next = array.ht[h];
-      newnp->data = oldnp->data;
-      newnp->from = &(array.ht[h]);
-      array.ht[h] = newnp;
-    }
-    free(x4a->tbl);
-    *x4a = array;
-  }
-  /* Insert the new data */
-  h = ph & (x4a->size-1);
-  np = &(x4a->tbl[x4a->count++]);
-  np->data = data;
-  if( x4a->ht[h] ) x4a->ht[h]->from = &(np->next);
-  np->next = x4a->ht[h];
-  x4a->ht[h] = np;
-  np->from = &(x4a->ht[h]);
-  return 1;
-}
-
-/* Return a pointer to data assigned to the given key.  Return NULL
-** if no such key. */
-struct config *Configtable_find(struct config *key)
-{
-  int h;
-  x4node *np;
-
-  if( x4a==0 ) return 0;
-  h = confighash(key) & (x4a->size-1);
-  np = x4a->ht[h];
-  while( np ){
-    if( Configcmp((const char *) np->data,(const char *) key)==0 ) break;
-    np = np->next;
-  }
-  return np ? np->data : 0;
-}
-
-/* Remove all data from the table.  Pass each data to the function "f"
-** as it is removed.  ("f" may be null to avoid this step.) */
-void Configtable_clear(int(*f)(struct config *))
-{
-  int i;
-  if( x4a==0 || x4a->count==0 ) return;
-  if( f ) for(i=0; i<x4a->count; i++) (*f)(x4a->tbl[i].data);
-  for(i=0; i<x4a->size; i++) x4a->ht[i] = 0;
-  x4a->count = 0;
-  return;
-}
