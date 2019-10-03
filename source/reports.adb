@@ -252,10 +252,8 @@ package body Reports is
       Index     : Integer;
       DT_Num    : Integer;
    end record;
-   pragma Convention (C, Mystruct_Record);
 
    type Struct_Access is access all Mystruct_Record;
-   pragma Convention (C, Struct_Access);
 
    procedure Error_Fallback
      (Error_Sym    : in String;

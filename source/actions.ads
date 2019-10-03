@@ -49,7 +49,6 @@ package Actions is
       Not_Used,      --  Deleted by compression
       Shift_Reduce   --  Shift first, then reduce
      );
---   pragma Convention (C, E_Action);  -- lemon.h:141
 
    type Action_Record;
    type Action_Access is access all Action_Record;
@@ -64,7 +63,6 @@ package Actions is
       end case;
    end record;
 
---   pragma Convention (C_Pass_By_Copy, X_Union);
    pragma Unchecked_Union (X_Union);
 
    --  Every shift or reduce operation is stored as one of the following
@@ -77,7 +75,6 @@ package Actions is
 --         Next    : access Action_Record;        --  Next action for this state
          Collide : access Action_Record;        --  Next action with the same hash
       end record;
---   pragma Convention (C_Pass_By_Copy, Action_Record);
 
    type Lookahead_Action is
       record

@@ -20,14 +20,12 @@ package Symbols is
      (Terminal,
       Non_Terminal,
       Multi_Terminal);
-   pragma Convention (C, Symbol_Kind);
 
    type E_Assoc is
      (Left_Assoc,
       Right_Assoc,
       None,
       Unk);
-   pragma Convention (C, E_Assoc);
 
    type Symbol_Record;
    type Symbol_Access is access all Symbol_Record;
