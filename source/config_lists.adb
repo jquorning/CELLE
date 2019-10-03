@@ -44,7 +44,7 @@ package body Config_Lists is
 
    function Add
      (Rule : in Rules.Rule_Access;
-      Dot  : in Dot_Type) return Configs.Config_Access
+      Dot  : in Rules.Dot_Type) return Configs.Config_Access
    is
       use Configs;
 
@@ -70,9 +70,10 @@ package body Config_Lists is
       return Config;
    end Add;
 
+
    function Add_Basis
      (Rule : in Rules.Rule_Access;
-      Dot  : in Dot_Type) return Configs.Config_Access
+      Dot  : in Rules.Dot_Type) return Configs.Config_Access
    is
       use Configs;
 
@@ -125,7 +126,7 @@ package body Config_Lists is
             goto Continue;
          end if;
 
-         Symbol := Rule.RHS (Dot);
+         Symbol := Symbol_Access (Rule.RHS (Dot));
 
          if Symbol.Kind = Non_Terminal then
             if Symbol.Rule = null and Symbol /= Session.Error_Symbol then
@@ -144,7 +145,7 @@ package body Config_Lists is
                      Last_RHS := True;
                   end if;
 
-                  X_Symbol := Rule.RHS (I);
+                  X_Symbol := Symbol_Access (Rule.RHS (I));
                   if X_Symbol.Kind = Terminal then
                      Dummy := Set_Add (New_Config.Follow_Set, Integer (X_Symbol.Index));
                      exit;

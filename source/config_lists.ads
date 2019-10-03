@@ -13,19 +13,17 @@ with Rules;
 
 package Config_Lists is
 
-   subtype Dot_Type is Natural;
-
    procedure Init;
    --  Initialized the configuration list builder.
 
    function Add
      (Rule : in Rules.Rule_Access;
-      Dot  : in Dot_Type) return Configs.Config_Access;
+      Dot  : in Rules.Dot_Type) return Configs.Config_Access;
    --  Add another configuration to the configuration list.
 
    function Add_Basis
      (Rule : in Rules.Rule_Access;
-      Dot  : in Dot_Type) return Configs.Config_Access;
+      Dot  : in Rules.Dot_Type) return Configs.Config_Access;
    --  Add a basis configuration to the configuration List.
 
    procedure Closure (Session : in Sessions.Session_Type);

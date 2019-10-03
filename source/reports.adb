@@ -1387,7 +1387,7 @@ package body Reports is
       --  Print RHS
       for I in Rule.RHS.all'Range loop
          declare
-            Symbol : constant Symbols.Symbol_Access := Rule.RHS (I);
+            Symbol : constant Symbols.Symbol_Access := Symbol_Access (Rule.RHS (I));
             First  : Boolean := True;
          begin
             if Symbol.Kind = Symbols.Multi_Terminal then
@@ -1404,9 +1404,9 @@ package body Reports is
                Put (File, To_String (Symbol.Name));
             end if;
 
-            if Rule.RHS_Alias.Element (I) /= Null_Unbounded_String then
+            if Rule.RHS_Alias.Element (Integer (I)) /= Null_Unbounded_String then
                Put (File, "(");
-               Put (File, To_String (Rule.RHS_Alias.Element (I)));
+               Put (File, To_String (Rule.RHS_Alias.Element (Integer (I))));
                Put (File, ")");
             end if;
          end;
@@ -1559,7 +1559,7 @@ package body Reports is
       Put (" ::=");
       for J in 0 .. Rule.RHS'Length - 1 loop
 
-         Symbol := Rule.RHS (J);
+         Symbol := Symbol_Access (Rule.RHS (Rules.Dot_Type (J)));
 
          if Symbol.Kind /= Multi_Terminal then
             Put (" ");

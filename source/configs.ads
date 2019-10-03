@@ -27,7 +27,7 @@ package Configs is
 
    type Config_Record is record
       Rule        : Rules.Rule_Access;          --  The rule upon which the configuration is based
-      Dot         : Integer;                    --  The parse point
+      Dot         : Rules.Dot_Type;             --  The parse point
       Follow_Set  : Sets.Set_Type;              --  Follow-set for this configuration only
       Forward_PL  : Prop_Links.List;            --  Forward propagation links
       Backward_PL : Prop_Links.List;            --  Follow-set backwards propagation links

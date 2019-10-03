@@ -18,10 +18,11 @@ package Rules is
    type Rule_1_Access is access all Rule_Record;
 
    --  Left-hand side of the rule
-
-   type RHS_Array_Access   is access all Symbols.Symbol_Access_Array;
-   type Alias_Array_Access is access all Symbols.Symbol_Access_Array;
+   type Dot_Type is new Natural;
    type Rule_Symbol_Access is access all Symbols.Symbol_Record;
+   type Symbol_Access_Array is
+     array (Dot_Type range <>) of Rule_Symbol_Access;
+   type RHS_Array_Access   is access all Symbol_Access_Array;
 
    use Ada.Strings.Unbounded;
    package Alias_Vectors is

@@ -25,7 +25,7 @@ package body States is
       while RC = 0 and A /= null and B /= null loop
          RC := A.Rule.Index - B.Rule.Index;
          if RC = 0 then
-            RC := A.Dot - B.Dot;
+            RC := Integer (A.Dot) - Integer (B.Dot);
          end if;
          A := A.Basis;
          B := B.Basis;

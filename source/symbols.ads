@@ -106,10 +106,6 @@ package Symbols is
       end record;
 
 
-   type Symbol_Access_Array is
-     array (Natural range <>) of Symbols.Symbol_Access;
-
-
    subtype Symbol_Name is Ada.Strings.Unbounded.Unbounded_String;
 
    --

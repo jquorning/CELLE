@@ -37,7 +37,7 @@ package body Builds is
             for I in Rule.RHS.all'Range loop
                exit when Rule.Prec_Symbol /= null;
                declare
-                  Symbol : constant Symbol_Access := Rule.RHS (I);
+                  Symbol : constant Symbol_Access := Symbol_Access (Rule.RHS (I));
                begin
                   if Symbol.Kind = Multi_Terminal then
 
@@ -49,7 +49,7 @@ package body Builds is
                      end loop;
 
                   elsif Symbol.Prec >= 0 then
-                     Rule.Prec_Symbol := Rule_Symbol_Access (Rule.RHS (I));
+                     Rule.Prec_Symbol := Rule.RHS (I);
                   end if;
                end;
             end loop;
@@ -82,7 +82,7 @@ package body Builds is
 
             for I in Rule.RHS'Range loop
                declare
-                  Symbol : constant Symbol_Access := Rule.RHS (I);
+                  Symbol : constant Symbol_Access := Symbol_Access (Rule.RHS (I));
                begin
                   pragma Assert (Symbol.Kind = Non_Terminal or Symbol.Lambda = False);
                   goto Continue;
@@ -111,7 +111,7 @@ package body Builds is
                S1 := Rule.LHS;
 
                for I in Rule.RHS'Range loop
-                  S2 := Rule.RHS (I);
+                  S2 := Symbol_Access (Rule.RHS (I));
 
                   if S2.Kind = Terminal then
                      if Sets.Set_Add (S1.First_Set, Natural (S2.Index)) then
@@ -187,7 +187,8 @@ package body Builds is
       loop
          exit when Rule = null;
          for I in Rule.RHS'Range loop
-            if Rule.RHS (I) = Symbol then   --  FIX ME:  Deal with multiterminals XXX
+            --  FIX ME:  Deal with multiterminals XXX
+            if Symbol_Access (Rule.RHS (I)) = Symbol then
                Errors.Parser_Error (E015,
                                     Line_Number => 0,
                                     Argument_1  => Name_Of (Symbol));
@@ -450,6 +451,7 @@ package body Builds is
    procedure Build_Shifts (Session : in out Session_Type;
                            State   : in out States.State_Record)
    is
+      use type Rules.Dot_Type;
       use Configs;
       use Symbols;
       use States;
@@ -480,7 +482,7 @@ package body Builds is
          end if;
 
          Config_Lists.Reset;                       -- Reset the new config set
-         Symbol := Config.Rule.RHS (Config.Dot);   -- Symbol after the dot
+         Symbol := Symbol_Access (Config.Rule.RHS (Config.Dot)); -- Symbol after the dot
 
          --  For every configuration in the state "stp" which has the symbol "sp"
          --  following its dot, add the same configuration to the basis set under
@@ -493,9 +495,9 @@ package body Builds is
             if B_Config.Dot >= B_Config.Rule.RHS'Length then
                goto Continue_Config; --  Can't shift this one
             end if;
-            B_Symbol := B_Config.Rule.RHS (B_Config.Dot);  -- Get symbol after dot
+            B_Symbol := Symbol_Access (B_Config.Rule.RHS (B_Config.Dot)); -- Get symbol after dot
             if not Same_Symbol (B_Symbol, Symbol) then
-               goto Continue_Config;                       --  Must be same as for "cfp"
+               goto Continue_Config;                      --  Must be same as for "cfp"
             end if;
             B_Config.Status := Complete;                   --  Mark this config as used
             New_Config := Config_Lists.Add_Basis (B_Config.Rule, B_Config.Dot + 1);

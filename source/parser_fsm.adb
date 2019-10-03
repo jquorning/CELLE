@@ -563,7 +563,7 @@ package body Parser_FSM is
             Rule := new Rule_Record;
             Rule.RHS :=
               new Symbol_Access_Array'
-              (1 .. Natural (Scanner.RHS.Length)
+              (1 .. Dot_Type (Scanner.RHS.Length)
                  => new Symbol_Record);
 --               Rule.RHS_Alias.Count (Scanner.RHS.Length);
             --  Rp := (struct rule *)calloc( sizeof(struct rule) +
@@ -594,7 +594,7 @@ package body Parser_FSM is
                  Scanner.RHS.First_Index .. Scanner.RHS.Last_Index;
             begin
                for I in Index_Range loop
-                  Rule.RHS (I) := Scanner.RHS   (I);
+                  Rule.RHS (Dot_Type (I)) := Rule_Symbol_Access (Scanner.RHS.Element (I));
                   Append (Rule.RHS_Alias, Scanner.Alias.Element (I));
                   --  if Symbols."/=" (Rule.RHS_Alias (I), Null_Unbounded_String) then
                   --                        declare
@@ -602,7 +602,7 @@ package body Parser_FSM is
                   --                        begin
                   --  if Rule.RHS_Alias (I) /= Null_Unbounded_String then
                   if Length (Rule.RHS_Alias (I)) /= 0 then
-                     Rule.RHS (I).Content := True;
+                     Rule.RHS (Dot_Type (I)).all.Content := True;
                   end if;
                   --                        end;
                end loop;
