@@ -5,6 +5,10 @@ limited with Configs;
 
 package Prop_Links is
 
+   --  A followset propagation link indicates that the contents of one
+   --  configuration followset should be propagated to another whenever
+   --  the first changes.
+
    type Config_Access is access all Configs.Config_Record;
    package Propagation_Lists is
       new Ada.Containers.Doubly_Linked_Lists (Element_Type => Config_Access);

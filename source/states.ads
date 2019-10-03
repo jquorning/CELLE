@@ -15,18 +15,14 @@ package States is
 
    --  Each state of the generated parser's finite state machine
    --  is encoded as an instance of the following structure.
---   type State_Action_Access is access all Actions.Action_Record;
+
    type State_Record is record
-      Basis        : Configs.Config_Access;    --  The basis configurations for this state
-      Config       : Configs.Config_Access;    --  All configurations in this set
-      State_Num    : Integer;                  --  Sequential number for this state
-      Action       : Action_Lists.List; -- State_Action_Access; --  List of actions for this state
-      N_Tkn_Act    : Integer;
-      --  Number of actions on terminals and nonterminals
-
-      N_Nt_Act     : aliased Integer;
-      --  yy_action[] offset for terminals and nonterms
-
+      Basis        : Configs.Config_Access; --  The basis configurations for this state
+      Config       : Configs.Config_Access; --  All configurations in this set
+      State_Num    : Integer;               --  Sequential number for this state
+      Action       : Action_Lists.List;     --  List of actions for this state
+      N_Tkn_Act    : Integer;               --  Number of actions on terminals and nonterminals
+      N_Nt_Act     : aliased Integer;       --  yy_action[] offset for terminals and nonterms
       Token_Offset : Integer;               --  Default action is to REDUCE by this rule
       iNtOfst      : Integer;               --  The default REDUCE rule.
       iDfltReduce  : Boolean;               --  True if this is an auto-reduce state
@@ -39,7 +35,8 @@ package States is
    procedure Initialize;
    --  Initialize states
 
-   function Find (Config : in not null Configs.Config_Access) return State_Access;
+   function Find (Config : in not null Configs.Config_Access)
+                 return State_Access;
    --  Find state from Config
 
    function Create return State_Access;
@@ -51,12 +48,5 @@ package States is
 
    type Process_Access is access procedure (State : in State_Access);
    procedure Iterate (Process : in Process_Access);
-
---  private
-
---   pragma Import (C, Initialize, "State_init");
---   pragma Import (C, Find,       "State_find");
---   pragma Import (C, Create,     "State_new");
---   pragma Import (C, Insert,     "State_insert");
 
 end States;
