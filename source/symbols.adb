@@ -7,8 +7,6 @@
 --    May you share freely, not taking more than you give.
 --
 
-with Ada.Text_IO;
-
 package body Symbols is
 
 
@@ -387,43 +385,6 @@ package body Symbols is
       return Base.Element (Index);
    end Element_At;
 
-
-
-   --  Debug
-   procedure JQ_Dump_Symbols (Mode : in Integer) is
-      use Ada.Text_IO;
-   begin
-      for Symbol of Base loop
-         Put ("SYM ");
-         Put (To_String (Symbol.Name));
-         Put (" INDEX");
-         Put (Symbol_Index'Image (Symbol.Index));
-         Put (" NSUB");
-         Put (Symbol.Sub_Symbol.Length'Img);
-         Put (" KIND");
-         Put (Symbol_Kind'Pos (Symbol.Kind)'Img);
-
-         if Mode = 1 then
-            Put (" PREC");
-            if Symbol.Kind = Multi_Terminal then
-               Put (" (");
-               for J in Symbol.Sub_Symbol.First_Index .. Symbol.Sub_Symbol.Last_Index loop
-                  Put (Natural'Image (Symbol.Sub_Symbol.Element (J).Prec));
-                  Put (" ");
-               end loop;
-               Put (")");
-            else
-               if Symbol.Prec = -1 then
-                  Put (" -1"); -- Hack
-               else
-                  Put (Natural'Image (Symbol.Prec));
-               end if;
-            end if;
-         end if;
-
-         New_Line;
-      end loop;
-   end JQ_Dump_Symbols;
 
 
 end Symbols;

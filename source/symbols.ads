@@ -67,7 +67,6 @@ package Symbols is
          --  Associativity if precedence is defined
 
          First_Set : Sets.Set_Type := Sets.Null_Set;
-         --  Unbounded_String := Null_Unbounded_String;
          --  First-set for all rules of this symbol
 
          Lambda    : Boolean          := False;
@@ -183,10 +182,6 @@ package Symbols is
    --  Helper procedure split out of Builds.Find_First_Sets.
    --  Set all symbol lambda to False.
    --  New_Set to symbol in range First to Last.
-
-
-   --  Debug
-   procedure JQ_Dump_Symbols (Mode : in Integer);
 
 end Symbols;
 

@@ -19,6 +19,7 @@ with Sessions;
 with Cherry;
 with Rules;
 with Symbols;
+with Symbols.IO;
 with Parsers;
 with Exceptions;
 with Reports;
@@ -182,12 +183,12 @@ begin
       end;
 
       Ada.Text_IO.Put_Line ("jq_dump_symbols before sort");
-      Symbols.JQ_Dump_Symbols (Mode => 0);
+      Symbols.IO.JQ_Dump_Symbols (Session, Mode => 0);
 
       Symbols.Sort;
 
       Ada.Text_IO.Put_Line ("jq_dump_symbols after sort");
-      Symbols.JQ_Dump_Symbols (0);
+      Symbols.IO.JQ_Dump_Symbols (Session, 0);
 
       declare
          Symbol_Count   : Natural;

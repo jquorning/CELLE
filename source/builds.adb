@@ -10,6 +10,7 @@ with Reports;
 with Options;
 with Rules;
 with Symbols;
+with Symbols.IO;
 with Sets;
 with Errors;
 with Configs;
@@ -63,7 +64,6 @@ package body Builds is
       use Rules;
       use Symbols;
 
-      I_Copy   : Integer;
       Rule     : Rule_Access;
       Progress : Boolean;
    begin
@@ -81,19 +81,16 @@ package body Builds is
             end if;
 
             for I in Rule.RHS'Range loop
-               I_Copy := I;
                declare
                   Symbol : constant Symbol_Access := Rule.RHS (I);
                begin
                   pragma Assert (Symbol.Kind = Non_Terminal or Symbol.Lambda = False);
-                  exit when Symbol.Lambda = False;
+                  goto Continue;
                end;
             end loop;
 
-            if I_Copy = Rule.RHS'Last then
-               Rule.LHS.Lambda := True;
-               Progress := True;
-            end if;
+            Rule.LHS.Lambda := True;
+            Progress := True;
 
             <<Continue>>
             Rule := Rule.Next;
@@ -589,14 +586,14 @@ package body Builds is
          --  Find the precedence for every production rule (that has one)
          Builds.Find_Rule_Precedences (Session);
          Ada.Text_IO.Put_Line ("16 dump_symbols");
-         Symbols.JQ_Dump_Symbols (Mode => 1);
+         Symbols.IO.JQ_Dump_Symbols (Session, Mode => 1);
 
          --  Compute the lambda-nonterminals and the first-sets for every
          --  nonterminal
          Builds.Find_First_Sets (Session);
 
          Ada.Text_IO.Put_Line ("17 dump_symbols");
-         Symbols.JQ_Dump_Symbols (Mode => 1);
+         Symbols.IO.JQ_Dump_Symbols (Session, Mode => 1);
 
          Ada.Text_IO.Put_Line ("17 dump_rules");
          Debugs.JQ_Dump_Rules (Session, Mode => 1);
