@@ -1550,18 +1550,14 @@ package body Reports is
    is
       use Text_Out;
       use Symbols;
-
-      Symbol : Symbol_Access;
    begin
       Put (Name_Of (Symbol_Access (Rule.LHS)));
       Put (" ::=");
-      for J in 0 .. Rule.RHS'Length - 1 loop
-
-         Symbol := Symbol_Access (Rule.RHS (Rules.Dot_Type (J)));
+      for Symbol of Rule.RHS.all loop
 
          if Symbol.Kind /= Multi_Terminal then
             Put (" ");
-            Put (Name_Of (Symbol));
+            Put (Name_Of (Symbol_Access (Symbol)));
 
          else
             Put (" ");

@@ -34,24 +34,20 @@ package body Builds is
       Rule := Session.Rule;
       while Rule /= null loop
          if Rule.Prec_Symbol = null then
-            for I in Rule.RHS.all'Range loop
+            for Symbol of Rule.RHS.all loop
                exit when Rule.Prec_Symbol /= null;
-               declare
-                  Symbol : constant Symbol_Access := Symbol_Access (Rule.RHS (I));
-               begin
-                  if Symbol.Kind = Multi_Terminal then
+               if Symbol.Kind = Multi_Terminal then
 
-                     for J in Symbol.Sub_Symbol.First_Index .. Symbol.Sub_Symbol.Last_Index loop
-                        if Symbol.Sub_Symbol (J).Precedence >= 0 then
-                           Rule.Prec_Symbol := Rule_Symbol_Access (Symbol.Sub_Symbol.Element (J));
-                           exit;
-                        end if;
-                     end loop;
+                  for J in Symbol.Sub_Symbol.First_Index .. Symbol.Sub_Symbol.Last_Index loop
+                     if Symbol.Sub_Symbol (J).Precedence >= 0 then
+                        Rule.Prec_Symbol := Rule_Symbol_Access (Symbol.Sub_Symbol.Element (J));
+                        exit;
+                     end if;
+                  end loop;
 
-                  elsif Symbol.Precedence >= 0 then
-                     Rule.Prec_Symbol := Rule.RHS (I);
-                  end if;
-               end;
+               elsif Symbol.Precedence >= 0 then
+                  Rule.Prec_Symbol := Symbol;
+               end if;
             end loop;
          end if;
          Rule := Rule.Next;
@@ -80,13 +76,9 @@ package body Builds is
                goto Continue;
             end if;
 
-            for I in Rule.RHS'Range loop
-               declare
-                  Symbol : constant Symbol_Access := Symbol_Access (Rule.RHS (I));
-               begin
-                  pragma Assert (Symbol.Kind = Non_Terminal or Symbol.Lambda = False);
-                  goto Continue;
-               end;
+            for Symbol of Rule.RHS.all loop
+               pragma Assert (Symbol.Kind = Non_Terminal or Symbol.Lambda = False);
+               goto Continue;
             end loop;
 
             Rule.LHS.Lambda := True;
@@ -110,8 +102,8 @@ package body Builds is
                exit when Rule = null;
                S1 := Rule.LHS;
 
-               for I in Rule.RHS'Range loop
-                  S2 := Symbol_Access (Rule.RHS (I));
+               for Symbol of Rule.RHS.all loop
+                  S2 := Symbol_Access (Symbol);
 
                   if S2.Kind = Terminal then
                      if Sets.Set_Add (S1.First_Set, Natural (S2.Index)) then
@@ -186,9 +178,9 @@ package body Builds is
       Rule := Session.Rule;
       loop
          exit when Rule = null;
-         for I in Rule.RHS'Range loop
+         for RHS_Symbol of Rule.RHS.all loop
             --  FIX ME:  Deal with multiterminals XXX
-            if Symbol_Access (Rule.RHS (I)) = Symbol then
+            if Symbol_Access (RHS_Symbol) = Symbol then
                Errors.Parser_Error (E015,
                                     Line_Number => 0,
                                     Argument_1  => Name_Of (Symbol));
