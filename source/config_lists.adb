@@ -26,12 +26,12 @@ package body Config_Lists is
 
    use type Configs.Config_Access;
 
-   package Config_Lists is
+   package Configuration_Lists is
       new Ada.Containers.Doubly_Linked_Lists
      (Element_Type => Configs.Config_Access);
 
-   Config_List : Config_Lists.List;
-   Basis_List  : Config_Lists.List;
+   Config_List : Configuration_Lists.List;
+   Basis_List  : Configuration_Lists.List;
 
 
    procedure Init is
@@ -122,11 +122,11 @@ package body Config_Lists is
       for Config of Config_List loop  -- := current;
          Rule := Config.Rule;
          Dot  := Config.Dot;
-         if Dot >= Rule.RHS'Length then
+         if Dot >= Dot_Type (Rule.RHS.Length) then
             goto Continue;
          end if;
 
-         Symbol := Symbol_Access (Rule.RHS (Dot));
+         Symbol := Symbol_Access (Rule.RHS.Element (Dot));
 
          if Symbol.Kind = Non_Terminal then
             if Symbol.Rule = null and Symbol /= Session.Error_Symbol then
@@ -140,12 +140,12 @@ package body Config_Lists is
                exit when New_Rule = null;
                New_Config := Add (New_Rule, 0);
                Last_RHS := False;
-               for I in Dot + 1 .. Rule.RHS'Length loop
-                  if I = Rule.RHS'Length then
+               for I in Dot + 1 .. Dot_Type (Rule.RHS.Length) loop
+                  if I = Dot_Type (Rule.RHS.Length) then
                      Last_RHS := True;
                   end if;
 
-                  X_Symbol := Symbol_Access (Rule.RHS (I));
+                  X_Symbol := Symbol_Access (Rule.RHS.Element (I));
                   if X_Symbol.Kind = Terminal then
                      Dummy := Set_Add (New_Config.Follow_Set, Integer (X_Symbol.Index));
                      exit;
@@ -179,7 +179,7 @@ package body Config_Lists is
 
    procedure Sort is
       package Config_Sorts is
-         new Config_Lists.Generic_Sorting;
+         new Configuration_Lists.Generic_Sorting;
    begin
       Config_Sorts.Sort (Config_List);
    end Sort;
@@ -187,7 +187,7 @@ package body Config_Lists is
 
    procedure Sort_Basis is
       package Basis_Sorts is
-         new Config_Lists.Generic_Sorting;
+         new Configuration_Lists.Generic_Sorting;
    begin
       Basis_Sorts.Sort (Basis_List);
    end Sort_Basis;

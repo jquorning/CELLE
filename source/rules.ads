@@ -14,21 +14,17 @@ limited with Symbols;
 
 package Rules is
 
-   type Rule_Record;
-   type Rule_1_Access is access all Rule_Record;
-
-   --  Left-hand side of the rule
    type Dot_Type is new Natural;
    type Rule_Symbol_Access is access all Symbols.Symbol_Record;
-   type Symbol_Access_Array is
-     array (Dot_Type range <>) of Rule_Symbol_Access;
-   type RHS_Array_Access   is access all Symbol_Access_Array;
+
+   package RHS_Vectors is
+      new Ada.Containers.Vectors (Index_Type   => Dot_Type,
+                                  Element_Type => Rule_Symbol_Access);
 
    use Ada.Strings.Unbounded;
    package Alias_Vectors is
-      new Ada.Containers.Vectors (Index_Type   => Positive,
+      new Ada.Containers.Vectors (Index_Type   => Dot_Type,
                                   Element_Type => Unbounded_String);
-
 
    subtype T_Code is Unbounded_String;
 
@@ -45,21 +41,23 @@ package Rules is
 
    --  Each production rule in the grammar is stored in the following
    --  structure.
+
    type Rule_Record is
       record
          LHS          : Rule_Symbol_Access := null;
---         LHS          : access Symbols.Symbol_Record := null;
-         LHS_Alias    : Unbounded_String := Null_Unbounded_String;
+         LHS_Alias    : Unbounded_String   := Null_Unbounded_String;
          --  Alias for the LHS (NULL if none)
 
-         LHS_Start    : Boolean          := False; -- True if left-hand side is the start symbol
-         Rule_Line    : Integer          := 0;     -- Line number for the rule
-         RHS          : RHS_Array_Access := null;  -- The RHS symbols
+         LHS_Start    : Boolean            := False; -- True if left-hand side is the start symbol
+         Rule_Line    : Integer            := 0;     -- Line number for the rule
+         RHS          : RHS_Vectors.Vector := RHS_Vectors.Empty_Vector;
+         --  The RHS symbols
 
          RHS_Alias    : Alias_Vectors.Vector := Alias_Vectors.Empty_Vector;
          --  An alias for each RHS symbol (NULL if none)
 
-         Line         : Integer := 0;                      -- Line number at which code begins
+         Line         : Integer := 0;
+         --  Line number at which code begins
 
          Code         : T_Code  := Null_Unbounded_String;
          --  The code executed when this rule is reduced

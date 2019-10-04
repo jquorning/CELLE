@@ -34,7 +34,7 @@ package body Builds is
       Rule := Session.Rule;
       while Rule /= null loop
          if Rule.Prec_Symbol = null then
-            for Symbol of Rule.RHS.all loop
+            for Symbol of Rule.RHS loop
                exit when Rule.Prec_Symbol /= null;
                if Symbol.Kind = Multi_Terminal then
 
@@ -76,7 +76,7 @@ package body Builds is
                goto Continue;
             end if;
 
-            for Symbol of Rule.RHS.all loop
+            for Symbol of Rule.RHS loop
                pragma Assert (Symbol.Kind = Non_Terminal or Symbol.Lambda = False);
                goto Continue;
             end loop;
@@ -102,7 +102,7 @@ package body Builds is
                exit when Rule = null;
                S1 := Rule.LHS;
 
-               for Symbol of Rule.RHS.all loop
+               for Symbol of Rule.RHS loop
                   S2 := Symbol_Access (Symbol);
 
                   if S2.Kind = Terminal then
@@ -178,7 +178,7 @@ package body Builds is
       Rule := Session.Rule;
       loop
          exit when Rule = null;
-         for RHS_Symbol of Rule.RHS.all loop
+         for RHS_Symbol of Rule.RHS loop
             --  FIX ME:  Deal with multiterminals XXX
             if Symbol_Access (RHS_Symbol) = Symbol then
                Errors.Parser_Error (E015,
@@ -234,7 +234,7 @@ package body Builds is
       for State of Session.Sorted loop
          Config := State.Config;
          while Config /= null loop  --  Loop over all configurations
-            if Config.Rule.RHS'Length = Config.Dot then          --  Is dot at extreme right?
+            if Dot_Type (Config.Rule.RHS.Length) = Config.Dot then    --  Is dot at extreme right?
                for J in 0 .. Session.N_Terminal - 1 loop
                   if Sets.Set_Find (Config.Follow_Set, Integer (J)) then
                      --  Add a reduce action to the state "stp" which will reduce by the
@@ -469,12 +469,12 @@ package body Builds is
          if Config.Status = Complete then
             goto Continue;    -- Already used by inner loop
          end if;
-         if Config.Dot >= Config.Rule.RHS'Length then
+         if Config.Dot >= Rules.Dot_Type (Config.Rule.RHS.Length) then
             goto Continue;  -- Can't shift this config
          end if;
 
          Config_Lists.Reset;                       -- Reset the new config set
-         Symbol := Symbol_Access (Config.Rule.RHS (Config.Dot)); -- Symbol after the dot
+         Symbol := Symbol_Access (Config.Rule.RHS.Element (Config.Dot)); -- Symbol after the dot
 
          --  For every configuration in the state "stp" which has the symbol "sp"
          --  following its dot, add the same configuration to the basis set under
@@ -484,10 +484,11 @@ package body Builds is
             if B_Config.Status = Complete then
                goto Continue_Config;    --  Already used
             end if;
-            if B_Config.Dot >= B_Config.Rule.RHS'Length then
+            if B_Config.Dot >= Rules.Dot_Type (B_Config.Rule.RHS.Length) then
                goto Continue_Config; --  Can't shift this one
             end if;
-            B_Symbol := Symbol_Access (B_Config.Rule.RHS (B_Config.Dot)); -- Get symbol after dot
+            --  Get symbol after dot
+            B_Symbol := Symbol_Access (B_Config.Rule.RHS.Element (B_Config.Dot));
             if not Same_Symbol (B_Symbol, Symbol) then
                goto Continue_Config;                      --  Must be same as for "cfp"
             end if;

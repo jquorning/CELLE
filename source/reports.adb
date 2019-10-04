@@ -407,7 +407,7 @@ package body Reports is
          end if;
 
          while Config /= null loop
-            if Config.Dot = Config.Rule.RHS'Length then
+            if Config.Dot = Dot_Type (Config.Rule.RHS.Length) then
                Put (File, "    (");
                Put (File, Config.Rule.Rule'Img);
                Put (File, ") ");
@@ -1383,9 +1383,9 @@ package body Reports is
       Put (File, " ::=");
 
       --  Print RHS
-      for I in Rule.RHS.all'Range loop
+      for I in Rule.RHS.First_Index .. Rule.RHS.Last_Index loop
          declare
-            Symbol : constant Symbols.Symbol_Access := Symbol_Access (Rule.RHS (I));
+            Symbol : constant Symbols.Symbol_Access := Symbol_Access (Rule.RHS.Element (I));
             First  : Boolean := True;
          begin
             if Symbol.Kind = Symbols.Multi_Terminal then
@@ -1402,9 +1402,9 @@ package body Reports is
                Put (File, To_String (Symbol.Name));
             end if;
 
-            if Rule.RHS_Alias.Element (Integer (I)) /= Null_Unbounded_String then
+            if Rule.RHS_Alias.Element (I) /= Null_Unbounded_String then
                Put (File, "(");
-               Put (File, To_String (Rule.RHS_Alias.Element (Integer (I))));
+               Put (File, To_String (Rule.RHS_Alias.Element (I)));
                Put (File, ")");
             end if;
          end;
@@ -1553,7 +1553,7 @@ package body Reports is
    begin
       Put (Name_Of (Symbol_Access (Rule.LHS)));
       Put (" ::=");
-      for Symbol of Rule.RHS.all loop
+      for Symbol of Rule.RHS loop
 
          if Symbol.Kind /= Multi_Terminal then
             Put (" ");

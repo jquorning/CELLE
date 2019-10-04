@@ -31,13 +31,13 @@ package Symbols is
    type Symbol_Access is access all Symbol_Record;
 
    package Symbol_Vectors is
-      new Ada.Containers.Vectors (Index_Type   => Positive,
+      new Ada.Containers.Vectors (Index_Type   => Natural, --  Positive,
                                   Element_Type => Symbol_Access);
    use Symbol_Vectors;
 
    use Ada.Strings.Unbounded;
    package Alias_Vectors is
-      new Ada.Containers.Vectors (Index_Type   => Positive,
+      new Ada.Containers.Vectors (Index_Type   => Natural, -- Positive,
                                   Element_Type => Unbounded_String);
 
    type Symbol_Index is new Natural;

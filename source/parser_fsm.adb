@@ -558,63 +558,35 @@ package body Parser_FSM is
             use Rules;
             use Rules.Alias_Vectors;
 
-            Rule : access Rule_Record;
+            Rule : Rule_Access;
          begin
             Rule := new Rule_Record;
-            Rule.RHS :=
-              new Symbol_Access_Array'
-              (1 .. Dot_Type (Scanner.RHS.Length)
-                 => new Symbol_Record);
---               Rule.RHS_Alias.Count (Scanner.RHS.Length);
-            --  Rp := (struct rule *)calloc( sizeof(struct rule) +
-            --                               sizeof(struct symbol*)*psp->nrhs +
-            --                               sizeof(char*)*psp->nrhs, 1);
---            exception
---               when Storage_Error =>
---                  raise;
---                  ErrorMsg(psp->filename,psp->tokenlineno,
---                           "Can't allocate enough memory for this rule.");
---                  psp->errorcnt++;
---                  Psp.Prev_Rule := 0;
-
             Rule.Rule_Line := Scanner.Token_Lineno;
-            --  Rp.rhs      := (struct symbol**)&rp[1];
-            --  Rp.rhsalias := (const char**)&(rp->rhs[psp->nrhs]);
 
-            --                    for I in 0 .. PSP.N_RHS - 1 loop
-            --                       Rule.RHS       (I) := PSP.RHS   (I);
-            --                       Rule.RHS_Alias (I) := PSP.Alias (I);
-            --                       if Rule.RHS_Alias (I) /= null then
-            --                          Rule.RHS (I).Content := True;
-            --                       end if;
-            --                    end loop;
+            for I in Scanner.RHS.First_Index .. Scanner.RHS.Last_Index loop
+               Rule.RHS.Append (Rule_Symbol_Access (Scanner.RHS.Element (Integer (I))));
+               if I in Scanner.Alias.First_Index .. Scanner.Alias.Last_Index then
+                  Rule.RHS_Alias.Append (Scanner.Alias.Element (Integer (I)));
+               else
+                  Rule.RHS_Alias.Append (Null_Unbounded_String);
+               end if;
 
-            declare
-               subtype Index_Range is Positive range
-                 Scanner.RHS.First_Index .. Scanner.RHS.Last_Index;
-            begin
-               for I in Index_Range loop
-                  Rule.RHS (Dot_Type (I)) := Rule_Symbol_Access (Scanner.RHS.Element (I));
-                  Append (Rule.RHS_Alias, Scanner.Alias.Element (I));
-                  --  if Symbols."/=" (Rule.RHS_Alias (I), Null_Unbounded_String) then
-                  --                        declare
-                  --                           use
-                  --                        begin
-                  --  if Rule.RHS_Alias (I) /= Null_Unbounded_String then
-                  if Length (Rule.RHS_Alias (I)) /= 0 then
-                     Rule.RHS (Dot_Type (I)).all.Content := True;
-                  end if;
-                  --                        end;
-               end loop;
-            end;
+               if Length (Rule.RHS_Alias.Element (Dot_Type (I))) /= 0 then
+                  declare
+                     Symbol : constant Rule_Symbol_Access := Rule.RHS (Dot_Type (I));
+                  begin
+                     Symbol.Content := True;
+                  end;
+               end if;
+            end loop;
 
-            Rule.LHS        := Rule_Symbol_Access (Scanner.LHS.First_Element);
+            Rule.LHS := Rule_Symbol_Access (Scanner.LHS.First_Element);
             if Scanner.LHS_Alias.Is_Empty then
                Rule.LHS_Alias := Null_Unbounded_String;
             else
                Rule.LHS_Alias := Scanner.LHS_Alias.First_Element;
             end if;
-            Rule.Code        := Null_Code; --  New Unbounded_String'(Null_Unbounded_String);
+            Rule.Code        := Null_Code;
             Rule.No_Code     := True;
             Rule.Prec_Symbol := null;
 
@@ -632,7 +604,6 @@ package body Parser_FSM is
                Scanner.Last_Rule      := Rule;
             end if;
             Scanner.Prev_Rule := Rule;
-            --  end if;
          end;
          Scanner.State := WAITING_FOR_DECL_OR_RULE;
 
