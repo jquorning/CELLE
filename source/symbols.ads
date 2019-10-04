@@ -31,13 +31,13 @@ package Symbols is
    type Symbol_Access is access all Symbol_Record;
 
    package Symbol_Vectors is
-      new Ada.Containers.Vectors (Index_Type   => Natural, --  Positive,
+      new Ada.Containers.Vectors (Index_Type   => Natural,
                                   Element_Type => Symbol_Access);
    use Symbol_Vectors;
 
    use Ada.Strings.Unbounded;
    package Alias_Vectors is
-      new Ada.Containers.Vectors (Index_Type   => Natural, -- Positive,
+      new Ada.Containers.Vectors (Index_Type   => Natural,
                                   Element_Type => Unbounded_String);
 
    type Symbol_Index is new Natural;
@@ -103,9 +103,6 @@ package Symbols is
 
       end record;
 
-
-   subtype Symbol_Name is Ada.Strings.Unbounded.Unbounded_String;
-
    --
    --  Routines for handling symbols of the grammar
    --
@@ -124,15 +121,9 @@ package Symbols is
    --  Return a pointer to the (terminal or nonterminal) symbol "Name".
    --  Create a new symbol if this is the first time "Name" has been seen.
 
-   --  function Symbol_Find (Key : in Key_Type) return Symbol_Access;
-
    function Find (Name : in String) return Symbol_Access;
    --  Return a pointer to data assigned to the given key.  Return NULL
    --  if no such key.
-
---   function Symbol_Nth (Index : in Symbol_Index)
---                       return Symbol_Cursor; -- Symbol_Access;
-   --  Return the n-th data.  Return NULL if n is out of range.
 
    procedure Symbol_Allocate (Count : in Ada.Containers.Count_Type);
    --  Return an array of pointers to all data in the table.
@@ -155,10 +146,6 @@ package Symbols is
    --  order (the order they appeared in the grammar file) gives the
    --  smallest parser tables in SQLite.
 
---   function Lime_Symbol_Find
---     (Name : in Interfaces.C.Strings.chars_ptr)
---     return Symbol_Access;
-
    function Last_Index return Symbol_Index;
    --  Get symbol last index.
 
@@ -166,10 +153,8 @@ package Symbols is
                        return Symbol_Access;
    --  Get symbol at Index position.
 
-
    procedure Sort;
    --  Sort the symbol table
-
 
    procedure Set_Lambda_False_And_Set_Firstset (First : in Natural;
                                                 Last  : in Natural);

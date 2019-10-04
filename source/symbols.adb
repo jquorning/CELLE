@@ -9,97 +9,6 @@
 
 package body Symbols is
 
-
---   subtype Cursor is Symbol_Lists.Cursor;
-
-
---     function "<" (Left, Right : in Symbol_Name) return Boolean;
-
---     function From_Key (Key : Key_Type) return Unbounded_String;
-
-
---     function "<" (Left, Right : in Symbol_Name) return Boolean
---     is
---        Length_Min   : constant Natural := Natural'Min (Length (Left),
---                                                        Length (Right));
-
---        String_Left  : constant String := To_String (Left);
---        String_Right : constant String := To_String (Right);
---        S_Left       : constant String :=
---          String_Left  (String_Left'First  .. String_Left'First  + Length_Min);
---        S_Right      : constant String :=
---          String_Right (String_Right'First .. String_Right'First + Length_Min);
---     begin
---        return (S_Left < S_Right);
---     end "<";
-
-
---     function From_Key (Key : Key_Type) return Unbounded_String
---     is
---     begin
---        return Null_Unbounded_String;
---     end From_Key;
-
-
-
-
-
-
---     function From_Key (Key : in Key_Type) return String
---     is
---     begin
---        return To_String (Key);
---     end From_Key;
---    function Name (Symbol : in Symbol_Access) return String
---     is
---     begin
---        return To_String (Symbol.Name);
---     end Name;
-
-
-
-
-
-
---   procedure Sort is
---      new Ada.Containers.Generic_Array_Sort
---     (Index_Type   => Symbol_Index,
---      Element_Type => Symbol_Access,
---      Array_Type   => Symbol_Access_Array);
-
---      "<"          => Symbol_Compare);
---   procedure Do_Sort (Container : in out Symbol_Access_Array) is
---   begin
---      null;  --  Sort (Container);
---   end Do_Sort;
-
-
---     function "<" (Left, Right : in Symbol_Access)
---                  return Boolean
---     is
---        function Value_Of (Item : in Symbol_Access) return Integer;
-
---        function Value_Of (Item : in Symbol_Access) return Integer is
---           use Interfaces.C.Strings;
---           Kind : constant Symbol_Kind := Item.Kind;
---           Name : constant String      := Value (Item.Name);
---           Char : constant Character   := Name (Name'First);
---        begin
---           if Kind = MULTITERMINAL then return 3;
---           elsif Char > 'Z'        then return 2;
---           else                         return 1;
---           end if;
---        end Value_Of;
-
---        I_Left  : constant Integer := Value_Of (Left);
---        I_Right : constant Integer := Value_Of (Right);
---     begin
---        if I_Left = I_Right then
---           return (Left.Index - Right.Index) > 0;
---        else
---           return (I_Left - I_Right) > 0;
---        end if;
---     end "<";
    function "<" (Left  : in Symbol_Record;
                  Right : in Symbol_Record)
                 return Boolean
@@ -137,40 +46,6 @@ package body Symbols is
    begin
       null;
    end Symbol_Init;
-
-
---     procedure Symbol_Insert (Symbol : in Symbol_Record;
---                              Name   : in Symbol_Name)
---     is
---        Position : Symbol_Maps.Cursor;
---        Inserted : Boolean;
---     begin
---        Symbol_Maps.Insert
---          (Container => Extra.Symbol_Map,
---           Key       => Name, --  To_Unbounded_String (Name),
---           New_Item  => Symbol,
---           Position  => Position,
---           Inserted  => Inserted);
---     end Symbol_Insert;
-
-
-
---     function Symbol_Nth (Index : in Symbol_Index)
---                         return Symbol_Cursor
---     is
---        use Symbol_Maps;
---        Element : Symbol_Name;
---        Position : Symbol_Maps.Cursor := First (Extra.Symbol_Map);
---        Count    : Symbol_Index := 0;
---     begin
---        for Count in 0 .. Index loop
---           Position := Next (Position);
---        end loop;
---        return null;  --   To_Cursor (Position);
---  --      Element := Symbol_Maps.Element (Index); --  Extra.Symbol_Map);
---  --      return Element;
---     end Symbol_Nth;
-
 
 
 
@@ -270,18 +145,6 @@ package body Symbols is
       return Symbol;
    end Create;
 
---     is--     function Lime_Symbol_New
---       (Name : in Interfaces.C.Strings.chars_ptr)
---       return Symbol_Access
---     is
---        use Interfaces.C.Strings;
---        Cursor : Symbol_Cursor;
---        Symbol : Symbol_Access;
---     begin
---        Cursor := Symbol_New (Value (Name));
---        return Symbol;
---     end Lime_Symbol_New;
-
 
    function Find (Name : in String)
                  return Symbol_Access
@@ -289,24 +152,12 @@ package body Symbols is
    begin
       for Symbol of Base loop
          if Symbol.all.Name = Name then
---            Ada.Text_IO.Put_Line ("Found Symbol Name: " & Name);
             return Symbol;
          end if;
       end loop;
       return null;
    end Find;
 
---     function Lime_Symbol_Find
---       (Name : in Interfaces.C.Strings.chars_ptr)
---       return Symbol_Access
---     is
---        use Interfaces.C.Strings;
---        Cursor : Symbol_Cursor;
---        Symbol : Symbol_Access;
---     begin
---        Cursor := Symbol_Find (Value (Name));
---        return Symbol;
---     end Lime_Symbol_Find;
 
    function Symbol_Compare (Left  : in Symbol_Access;
                             Right : in Symbol_Access)
