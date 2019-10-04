@@ -28,10 +28,10 @@ project Cherry is
        ("-g",
         "-O2",
         "-gnatf",
+        "-gnata",
         "-gnatwa",
         "-gnatwj",
         "-gnat2012",
---        "-gnat2005",
         "-gnaty",
         "-gnatyM99");
 

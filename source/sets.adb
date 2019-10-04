@@ -43,7 +43,7 @@ package body Sets is
    is
       RV : Boolean;
    begin
-      pragma Assert (Item >= 0 and Item < Size);
+      pragma Assert (Item < Size);
       RV := Set (Item);
       Set (Item) := True;
       return not RV;
