@@ -1,5 +1,10 @@
 --
+--  The author disclaims copyright to this source code.  In place of
+--  a legal notice, here is a blessing:
 --
+--    May you do good and not evil.
+--    May you find forgiveness for yourself and forgive others.
+--    May you share freely, not taking more than you give.
 --
 
 with Ada.Text_IO;
@@ -9,14 +14,12 @@ with Ada.Containers;
 with Reports;
 with Options;
 with Rules;
-with Symbols;
 with Symbols.IO;
 with Sets;
 with Errors;
 with Configs;
 with Actions;
 with Action_Lists;
-with Cherry;
 with Config_Lists;
 with Prop_Links;
 with Debugs;
@@ -214,7 +217,7 @@ package body Builds is
    end Find_States;
 
 
-   procedure Find_Actions (Session : in out Session_Type)
+   procedure Find_Actions (Session : in out Sessions.Session_Type)
    is
       use Configs;
       use States;
@@ -251,7 +254,7 @@ package body Builds is
       end loop;
 
       --  Add the accepting token
-      Cherry.Add_The_Accepting_Token (Session, Symbol);
+      Add_The_Accepting_Token (Session, Symbol);
 
       --  Add to the first state (which is always the starting state of the
       --  finite state machine) an action to ACCEPT if the lookahead is the
@@ -440,7 +443,7 @@ package body Builds is
    end Same_Symbol;
 
 
-   procedure Build_Shifts (Session : in out Session_Type;
+   procedure Build_Shifts (Session : in out Sessions.Session_Type;
                            State   : in out States.State_Record)
    is
       use type Rules.Dot_Type;
@@ -522,7 +525,7 @@ package body Builds is
    end Build_Shifts;
 
 
-   procedure Find_Links (Session : in out Session_Type)
+   procedure Find_Links (Session : in out Sessions.Session_Type)
    is
       use Configs;
       use States;
@@ -691,6 +694,24 @@ package body Builds is
             Terminal_Last);
 --      end if;
    end Reprint_Of_Grammar;
+
+
+   procedure Add_The_Accepting_Token
+     (Session : in out Sessions.Session_Type;
+      Symbol  : in out Symbols.Symbol_Access)
+   is
+      use Ada.Strings.Unbounded;
+      use Symbols;
+   begin
+      if Session.Names.Start = "" then
+         Symbol := Symbol_Access (Session.Start_Rule.LHS);
+      else
+         Symbol := Find (To_String (Session.Names.Start));
+         if Symbol = null then
+            Symbol := Symbol_Access (Session.Start_Rule.LHS);
+         end if;
+      end if;
+   end Add_The_Accepting_Token;
 
 
 end Builds;
