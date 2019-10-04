@@ -13,8 +13,6 @@ with Ada.Strings.Unbounded;
 with Ada.Directories;
 with Ada.IO_Exceptions;
 
-with DK8543.Auxiliary;
-with DK8543.Interfaces.C.Strings;
 with Rules;
 with Symbols;
 with Report_Parsers;
@@ -28,6 +26,8 @@ with Generate_C;
 with Backend;
 with Setup;
 with Sets;
+
+with Auxiliary;
 
 package body Reports is
 
@@ -1939,7 +1939,7 @@ package body Reports is
       No_Action    : in Integer)
    is
       use Text_Out;
-      use DK8543.Auxiliary;
+      use Auxiliary;
       J : Integer;
       Action : Integer;
    begin
@@ -1977,7 +1977,7 @@ package body Reports is
       Nsymbol      : in Integer)
    is
       use Text_Out;
-      use DK8543.Auxiliary;
+      use Auxiliary;
       LA : Integer;
       J  : Integer := 0;
    begin
@@ -2014,7 +2014,7 @@ package body Reports is
       NO_OFFSET     : in Integer)
    is
       use Text_Out;
-      use DK8543.Auxiliary;
+      use Auxiliary;
       Ofst : Integer;
       J    : Integer := 0;
    begin
@@ -2067,7 +2067,7 @@ package body Reports is
       NO_OFFSET     : in Integer)
    is
       use Text_Out;
-      use DK8543.Auxiliary;
+      use Auxiliary;
       J : Integer := 0;
       Ofst : Integer;
    begin
@@ -2112,7 +2112,7 @@ package body Reports is
       Min_Reduce   : in Integer)
    is
       use Text_Out;
-      use DK8543.Auxiliary;
+      use Auxiliary;
       J : Integer := 0;
 --      IDfltReduce : Integer;
    begin
@@ -2408,7 +2408,7 @@ package body Reports is
       loop
          declare
             use Ada.Text_IO;
-            use DK8543.Interfaces.C.Strings;
+
             Line  : constant String := Get_Line (Context.File_Template);
             Index : Natural;
          begin
@@ -2422,7 +2422,7 @@ package body Reports is
                if
                  Line (Index) = 'P'              and then
                  Line (Index .. Index + Parse'Length - 1) = Parse and then
-                 (Index = Line'First or else not Is_Alpha (Line (Index - 1)))
+                 (Index = Line'First or else not Auxiliary.Is_Alpha (Line (Index - 1)))
                then
                   if Index > Start then
                      Put (Line (Start .. Index));

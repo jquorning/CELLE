@@ -8,6 +8,7 @@
 --
 
 with Ada.Strings.Unbounded;
+with Ada.Text_IO;
 
 package Errors is
 
@@ -69,5 +70,10 @@ package Errors is
       Line_Number : in Natural;
       Argument_1  : in String := "";
       Argument_2  : in String := "");
+
+   procedure Emit_Error (File        : in Ada.Text_IO.File_Type;
+                         File_Name   : in String;
+                         Line_Number : in Natural;
+                         Message     : in String);
 
 end Errors;

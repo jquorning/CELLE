@@ -9,8 +9,6 @@
 
 with Ada.Text_IO;
 
-with DK8543.Text_IO;
-
 with Auxiliary;
 
 package body Text_Out is
@@ -21,7 +19,7 @@ package body Text_Out is
 
    procedure Implementation_Open (File_Name : in String) is
    begin
-      DK8543.Text_IO.Recreate (File_Out, Ada.Text_IO.Out_File, File_Name);
+      Auxiliary.Recreate (File_Out, Ada.Text_IO.Out_File, File_Name);
    end Implementation_Open;
 
 

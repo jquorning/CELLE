@@ -10,8 +10,6 @@
 --  Cherry GPR project
 --
 
-with "../DK8543/dk8543_core.gpr";
-
 project Cherry is
 
   for Languages    use ("Ada");

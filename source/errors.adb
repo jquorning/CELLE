@@ -7,9 +7,7 @@
 --    May you share freely, not taking more than you give.
 --
 
-with Ada.Text_IO;
-
-with DK8543.Errors;
+with Ada.Strings.Fixed;
 
 package body Errors is
 
@@ -107,10 +105,10 @@ package body Errors is
                            Argument_2);
       end if;
 
-      DK8543.Errors.Error (File        => Ada.Text_IO.Standard_Output,
-                           File_Name   => File_Name,
-                           Line_Number => Line_Number,
-                           Message     => Kind_Image & To_String (Message));
+      Emit_Error (File        => Ada.Text_IO.Standard_Output,
+                  File_Name   => File_Name,
+                  Line_Number => Line_Number,
+                  Message     => Kind_Image & To_String (Message));
       Error_Count := Error_Count + 1;
    end Parser_Error;
 
@@ -121,6 +119,25 @@ package body Errors is
    begin
       Errors.Default_File_Name := File_Name;
    end Set_File_Name;
+
+
+   procedure Emit_Error (File        : in Ada.Text_IO.File_Type;
+                         File_Name   : in String;
+                         Line_Number : in Natural;
+                         Message     : in String)
+   is
+      use Ada.Text_IO;
+      use Ada.Strings;
+
+      Line_Number_Image : constant String := Fixed.Trim (Natural'Image (Line_Number), Left);
+   begin
+      Put (File, File_Name);
+      Put (File, ":");
+      Put (File, Line_Number_Image);
+      Put (File, ": ");
+      Put (File, Message);
+      New_Line (File);
+   end Emit_Error;
 
 
 end Errors;

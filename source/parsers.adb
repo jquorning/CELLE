@@ -12,8 +12,6 @@ with Ada.Strings.Unbounded;
 with Ada.Characters.Latin_1;
 with Ada.Strings.Fixed;
 
-with DK8543.Errors;
-
 with Parser_Data;
 with Parser_FSM;
 
@@ -347,19 +345,19 @@ package body Parsers is
       if False then
          declare
             use Ada.Text_IO;
-            use DK8543.Errors;
+            use Errors;
             use Ada.Strings.Unbounded;
             use Ada.Strings;
 
             State_Num : constant String
               := Fixed.Trim (State_Scanner'Pos (Scanner.State)'Img, Left);
          begin
-            Error (Standard_Output,
-                   To_String (Session.File_Name),
-                   Scanner.Token_Lineno,
-                   "Token=[" & Token &
-                     "] "
-                     & "state=" & State_Num);
+            Emit_Error (Standard_Output,
+                        To_String (Session.File_Name),
+                        Scanner.Token_Lineno,
+                        "Token=[" & Token &
+                          "] "
+                          & "state=" & State_Num);
          end;
       end if;
 
