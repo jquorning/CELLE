@@ -77,12 +77,17 @@ procedure Cherry_Program is
       is
          use Ada.Text_IO;
 
+         package Value_IO is
+            new Ada.Text_IO.Integer_IO (Integer);
+
          Line : String (1 .. 35) := (others => '.');
       begin
+         Value_IO.Default_Width := 5;
          Line (Line'First .. Text'Last) := Text;
-         Line (Text'Last + 1) := ' ';
+         Put ("  ");
          Put (Line);
-         Put (Integer'Image (Value));
+         Put (" ");
+         Value_IO.Put (Value);
          New_Line;
       end Stats_Line;
 
@@ -207,15 +212,13 @@ begin
       Ada.Text_IO.Put_Line ("jq_dump_rules first");
       Debugs.JQ_Dump_Rules (Session, 0);
 
-      Rules.Assing_Sequential_Rule_Numbers
-        (Session.Rule,
-         Session.Start_Rule);
+      Rules.Assing_Sequential_Rule_Numbers (Rule_List => Session.Rule);
 
       Ada.Text_IO.Put_Line ("jq_dump_rules second");
       Debugs.JQ_Dump_Rules (Session, 0);
 
       Session.Start_Rule := Session.Rule.First;
-      Session.Rule       := Rule_Sort (Session.Rule);
+      Rule_Sort (Session.Rule);
 
       Ada.Text_IO.Put_Line ("jq_dump_rules third");
       Debugs.JQ_Dump_Rules (Session, 0);

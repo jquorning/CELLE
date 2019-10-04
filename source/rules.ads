@@ -94,13 +94,9 @@ package Rules is
    package Rule_Lists is
       new Ada.Containers.Doubly_Linked_Lists (Element_Type => Rule_Access);
 
-
-   function Rule_Sort (Rule : in Rule_Lists.List) return Rule_Lists.List;
+   procedure Rule_Sort (Rule_List : in out Rule_Lists.List);
    --  Sort a list of rules in order of increasing iRule Value
 
-
-   procedure Assing_Sequential_Rule_Numbers
-     (Lemon_Rule : in     Rule_Lists.List;
-      Start_Rule :    out Rule_Lists.Cursor);
+   procedure Assing_Sequential_Rule_Numbers (Rule_List : in out Rule_Lists.List);
 
 end Rules;

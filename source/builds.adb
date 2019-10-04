@@ -148,24 +148,24 @@ package body Builds is
       use Rules;
       use Rules.Rule_Lists;
 
-      Symbol : Symbol_Access;
+      Start_Symbol : Symbol_Access;
       Rule   : Rule_Access;
    begin
       Config_Lists.Init;
 
       --  Find the start symbol
 
-      if Session.Names.Start /= "" then
-         Symbol := Find (To_String (Session.Names.Start));
-         if Symbol = null then
+      if Session.Names.Start = "" then
+         Start_Symbol := Symbol_Access (Element (Session.Start_Rule).LHS);
+      else
+         Start_Symbol := Find (To_String (Session.Names.Start));
+         if Start_Symbol = null then
             Errors.Parser_Error
               (E014, Line_Number => 0,
                Argument_1 => To_String (Session.Names.Start),
                Argument_2 => Name_Of (Symbol_Access (Element (Session.Start_Rule).LHS)));
-            Symbol := Symbol_Access (Element (Session.Start_Rule).LHS);
+            Start_Symbol := Symbol_Access (Element (Session.Start_Rule).LHS);
          end if;
-      else
-         Symbol := Symbol_Access (Element (Session.Start_Rule).LHS);
       end if;
 
       --  Make sure the start symbol doesn't occur on the right-hand side of
@@ -175,10 +175,10 @@ package body Builds is
       for Rule of Session.Rule loop
          for RHS_Symbol of Rule.RHS loop
             --  FIX ME:  Deal with multiterminals XXX
-            if Symbol_Access (RHS_Symbol) = Symbol then
+            if Symbol_Access (RHS_Symbol) = Start_Symbol then
                Errors.Parser_Error (E015,
                                     Line_Number => 0,
-                                    Argument_1  => Name_Of (Symbol));
+                                    Argument_1  => Name_Of (Start_Symbol));
             end if;
          end loop;
       end loop;
@@ -187,7 +187,7 @@ package body Builds is
       --  is all rules which have the start symbol as their
       --  left-hand side
 
-      Rule := Rule_Access (Symbol.Rule);
+      Rule := Rule_Access (Start_Symbol.Rule);
       loop
          exit when Rule = null;
          declare
