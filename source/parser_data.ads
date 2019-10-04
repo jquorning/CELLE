@@ -62,7 +62,6 @@ package Parser_Data is
    use Symbols;
    type Scanner_Record is
       record
---         Token_Start   : Natural;                      --  Text of current token
          Line_Number   : Natural;                      --  Upcounting line number
          Token_Lineno  : Natural;                      --  Linenumber at which current token starts
          Error_Count   : Natural;                      --  Number of errors so far
@@ -70,29 +69,16 @@ package Parser_Data is
          State         : State_Scanner;                --  The state of the parser
          Fallback      : access Symbols.Symbol_Record; --  The fallback token
          Token_Class   : access Symbols.Symbol_Record; --  Token class symbol
---         LHS       : Symbols.Symbol_Access;          --  Left-hand side of current rule
-         LHS : Symbol_Vectors.Vector;
---         LHS_Alias : Interfaces.C.Strings.chars_ptr;  --  Alias for the LHS
-         LHS_Alias : Alias_Vectors.Vector;
-         --  Interfaces.C.Strings.chars_ptr;  --  Alias for the LHS
-         --  N_RHS     : Natural;
-         --  Number of right-hand side symbols seen
+         LHS           : Symbol_Vectors.Vector;        --  Left-hand side of current rule
+         LHS_Alias     : Alias_Vectors.Vector;         --  Alias for the LHS
 
-         --    struct symbol *rhs[MAXRHS];  --  RHS symbols
-         --  RHS       : RHS_Array;
-         RHS       : Symbol_Vectors.Vector;
-         --  Alias     : Alias_Array;
-         Alias     : Alias_Vectors.Vector;
-         --    const char *alias[MAXRHS];
-         --  Aliases for each RHS symbol (or NULL)
-         Prev_Rule     : access Rules.Rule_Record;     --  Previous rule parsed
-         Decl_Keyword  : Unbounded_String;   --  Keyword of a declaration
-
-         Decl_Arg_Slot : A_Declaration;
-         --  Decl_Arg_Slot : access Unbounded_String; -- Access Interfaces.C.Strings.chars_ptr;
-         --  Decl_Arg_Slot : access Interfaces.C.Strings.chars_ptr;
-         --    char **declargslot;                --  Where the declaration argument should be put
-         Insert_Line_Macro : Boolean;             --  Add #line before declaration insert
+         RHS           : Symbol_Vectors.Vector;    --  RHS symbols
+                                                   --  Number of right-hand side symbols seen
+         Alias         : Alias_Vectors.Vector;     --  Aliases for each RHS symbol (or NULL)
+         Previous_Rule : access Rules.Rule_Record; --  Previous rule parsed
+         Decl_Keyword  : Unbounded_String;         --  Keyword of a declaration
+         Decl_Arg_Slot : A_Declaration;            --  Where the declaration argument should be put
+         Insert_Line_Macro : Boolean;              --  Add #line before declaration insert
 
          Decl_Lineno_Slot : not null access Integer := new Integer'(0);
          --  Where to write declaration line number

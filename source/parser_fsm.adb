@@ -192,10 +192,10 @@ package body Parser_FSM is
                              Scanner : in out Scanner_Record)
    is
    begin
-      Scanner.Prev_Rule    := null;
-      Scanner.Prec_Counter := 0;
-      Scanner.First_Rule   := null;
-      Scanner.Last_Rule    := null;
+      Scanner.Previous_Rule := null;
+      Scanner.Prec_Counter  := 0;
+      Scanner.First_Rule    := null;
+      Scanner.Last_Rule     := null;
 
       Session.N_Rule  := 0;
       Scanner.State := WAITING_FOR_DECL_OR_RULE;
@@ -224,17 +224,17 @@ package body Parser_FSM is
 
       elsif Cur = '{' then
 
-         if Scanner.Prev_Rule = null then
+         if Scanner.Previous_Rule = null then
             Parser_Error (E001, Scanner.Token_Lineno);
 
-         elsif Rules."/=" (Scanner.Prev_Rule.Code, Null_Code) then
+         elsif Rules."/=" (Scanner.Previous_Rule.Code, Null_Code) then
             Parser_Error (E002, Scanner.Token_Lineno);
 
          else
-            Scanner.Prev_Rule.Line := Scanner.Token_Lineno;
-            Scanner.Prev_Rule.Code :=
+            Scanner.Previous_Rule.Line := Scanner.Token_Lineno;
+            Scanner.Previous_Rule.Code :=
               Unbounded_String'(To_Unbounded_String (Token (Token'First + 1 .. Token'Last)));
-            Scanner.Prev_Rule.No_Code := False;
+            Scanner.Previous_Rule.No_Code := False;
          end if;
 
       elsif Cur = '[' then
@@ -254,14 +254,14 @@ package body Parser_FSM is
       if Token (Token'First) not in 'A' .. 'Z' then
          Parser_Error (E004, Scanner.Token_Lineno);
 
-      elsif Scanner.Prev_Rule = null then
+      elsif Scanner.Previous_Rule = null then
          Parser_Error (E005, Scanner.Token_Lineno, Token);
 
-      elsif Scanner.Prev_Rule.Prec_Symbol /= null then
+      elsif Scanner.Previous_Rule.Prec_Symbol /= null then
          Parser_Error (E006, Scanner.Token_Lineno);
 
       else
-         Scanner.Prev_Rule.Prec_Symbol :=
+         Scanner.Previous_Rule.Prec_Symbol :=
            Rule_Symbol_Access (Symbols.Create (Token));
       end if;
 
@@ -603,7 +603,7 @@ package body Parser_FSM is
                Scanner.Last_Rule.Next := Rule;
                Scanner.Last_Rule      := Rule;
             end if;
-            Scanner.Prev_Rule := Rule;
+            Scanner.Previous_Rule := Rule;
          end;
          Scanner.State := WAITING_FOR_DECL_OR_RULE;
 

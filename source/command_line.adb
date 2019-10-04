@@ -99,14 +99,12 @@ package body Command_Line is
       Define_Switch (Config, Options.Statistics'Access, "-s",
                      Help => "Print parser stats to standard output.");
       Define_Switch (Config, Options.Show_Version'Access, "-x",
-                     Help => "Show program name and version.");
+                     Help => "Show program name and version.",
+                     Long_Switch => Long_Switch_Show_Version);
       Define_Switch (Config, Options.User_Template'Access, "-T=",
                      Help => "Specify a template file.",
                      Long_Switch => Long_Switch_Template_File & '=',
                      Argument    => "FILE");
-      Define_Switch (Config, Options.Show_Version'Access,
-                     Help        => "Show program name and version.",
-                     Long_Switch => Long_Switch_Show_Version);
       Define_Switch (Config, Options.Placeholder_Dummy'Access, "-W=",
                      Help     => "Placeholder for '-W' compiler options. Ignored.",
                      Argument => "IGNORE");
@@ -114,7 +112,13 @@ package body Command_Line is
 
       --  Do the whole parsing business.
       --  Actually just the -D= option and file name.
-      Getopt (Config, Getopt_Callback'Access);
+      begin
+         Getopt (Config, Getopt_Callback'Access);
+      exception
+         when Exit_From_Command_Line =>
+            Options.Show_Help := True;
+            Success           := True;
+      end;
 
       if
         Options.Show_Help    or

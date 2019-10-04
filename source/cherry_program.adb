@@ -51,7 +51,7 @@ procedure Cherry_Program is
 
    procedure Put_Help is
    begin
-      raise Program_Error with "Not implemented";
+      null;  --  Handled by GNAT.Command_Line
    end Put_Help;
 
 
