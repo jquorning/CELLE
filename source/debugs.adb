@@ -13,7 +13,7 @@ package body Debugs is
                             Mode    : in Integer)
    is
       use Ada.Text_IO;
-      use Rules;
+      use type Rules.Rule_Symbol_Access;
    begin
       for Rule of Session.Rule loop
          Put ("RULE INDEX");

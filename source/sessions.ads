@@ -53,7 +53,6 @@ package Sessions is
    --  True if this symbol ever carries content - if
    --                           ** it is ever more than just syntax
 
-   use Rules;
    use Symbols;
 
    --  The state vector for the entire parser generator is recorded as

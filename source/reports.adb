@@ -407,7 +407,7 @@ package body Reports is
          while Config /= null loop
             if Config.Dot = Dot_Type (Config.Rule.RHS.Length) then
                Put (File, "    (");
-               Put (File, Config.Rule.Rule'Img);
+               Put (File, Config.Rule.Rule'Image);
                Put (File, ") ");
             else
                Put (File, "          ");
@@ -448,7 +448,7 @@ package body Reports is
             Symbol : Symbol_Access;
          begin
             Symbol := Element_At (I);
-            Put (File, "  " & I'Img & ": " & Name_Of (Symbol));
+            Put (File, "  " & I'Image & ": " & Name_Of (Symbol));
             if Symbol.Kind = Non_Terminal then
                Put (File, ":");
                if Symbol.Lambda then
@@ -466,7 +466,7 @@ package body Reports is
             end if;
             if Symbol.Precedence >= 0 then
                Put (File, " (precedence=");
-               Put (File, Symbol.Precedence'Img);
+               Put (File, Symbol.Precedence'Image);
                Put (File, ")");
             end if;
          end;
@@ -507,7 +507,7 @@ package body Reports is
       Put_Line (File, "Rules:");
 
       for Rule of Session.Rule loop
-         Put (File, Rule.Rule'Img); -- XXX "%4d: ", rp->iRule);
+         Put (File, Rule.Rule'Image); -- XXX "%4d: ", rp->iRule);
          Put (File, ": ");
          Rule_Print (File, Rule);
          Put (File, ".");
@@ -515,7 +515,7 @@ package body Reports is
             Put (File, " [");
             Put (File, Name_Of (Symbol_Access (Rule.Prec_Symbol)));
             Put (File, " precedence=");
-            Put (File, Rule.Prec_Symbol.Precedence'Img);
+            Put (File, Rule.Prec_Symbol.Precedence'Image);
             Put (File, "]");
          end if;
          New_Line (File);
@@ -598,7 +598,7 @@ package body Reports is
          Action   : constant String := Minimum_Size_Type (0, Session.Max_Action,
                                                           Size_Of_Action_Type);
          Wildcard    : constant Symbol_Access := Session.Wildcard;
-         Is_Wildcard : constant Boolean       := (Wildcard /= null);
+         Is_Wildcard : constant Boolean       := Wildcard /= null;
       begin
          if Is_Wildcard then
             Generate_The_Defines_1
@@ -632,10 +632,10 @@ package body Reports is
 
          function Get_Name return String is
          begin
-            if Session.Names.Name /= "" then
-               return To_String (Session.Names.Name);
-            else
+            if Session.Names.Name = "" then
                return "Parse";
+            else
+               return To_String (Session.Names.Name);
             end if;
          end Get_Name;
 
@@ -649,17 +649,17 @@ package body Reports is
          CTX_I : Natural;
       begin
          Trim_Right_Symbol (ARG, ARG_I);
-         if ARG /= "" then
-            Write_Arg_Defines (Name, "ARG", True, ARG, ARG (ARG_I .. ARG'Last));
-         else
+         if ARG = "" then
             Write_Arg_Defines (Name, "ARG", False, "", "");
+         else
+            Write_Arg_Defines (Name, "ARG", True, ARG, ARG (ARG_I .. ARG'Last));
          end if;
 
          Trim_Right_Symbol (CTX, CTX_I);
-         if CTX /= "" then
-            Write_Arg_Defines (Name, "CTX", True, CTX, CTX (CTX_I .. CTX'Last));
-         else
+         if CTX = "" then
             Write_Arg_Defines (Name, "CTX", False, "", "");
+         else
+            Write_Arg_Defines (Name, "CTX", True, CTX, CTX (CTX_I .. CTX'Last));
          end if;
       end;
 
@@ -689,7 +689,7 @@ package body Reports is
       declare
          use Symbols;
       begin
-         AX := new AX_Set_Array (0 .. Symbol_Index (Session.Nx_State) - 1);
+         AX := new AX_Set_Array (0 .. Session.Nx_State - 1);
 
       --  if( ax==0 ){
       --    fprintf(stderr,"malloc failed\n");
@@ -800,25 +800,21 @@ package body Reports is
       --                     shifting non-terminals after a reduce.
       --  yy_default[]       Default action for each state.
 
-      declare
-      begin
+      --
+      --  Output the yy_action table
+      --
+      Session.N_Action_Tab := Acttab.Action_Size (Act_Tab.all);
+      N := Session.N_Action_Tab;
+      Session.Table_Size := Session.Table_Size + N * Size_Of_Action_Type;
 
-         --
-         --  Output the yy_action table
-         --
-         Session.N_Action_Tab := Acttab.Action_Size (Act_Tab.all);
-         N := Session.N_Action_Tab;
-         Session.Table_Size := Session.Table_Size + N * Size_Of_Action_Type;
+      Output_Action_Table (Act_Tab, N, Session.No_Action);
 
-         Output_Action_Table (Act_Tab, N, Session.No_Action);
-
-         --
-         --  Output the yy_lookahead table
-         --
-         Session.N_Lookahead_Tab := Acttab.Lookahead_Size (Act_Tab.all);
-         N := Session.N_Lookahead_Tab;
-         Session.Table_Size := Session.Table_Size + N * Size_Of_Code_Type;
-      end;
+      --
+      --  Output the yy_lookahead table
+      --
+      Session.N_Lookahead_Tab := Acttab.Lookahead_Size (Act_Tab.all);
+      N := Session.N_Lookahead_Tab;
+      Session.Table_Size := Session.Table_Size + N * Size_Of_Code_Type;
 
       Output_YY_Lookahead (Act_Tab, N, Integer (Symbols.Last_Index));
 
@@ -1545,19 +1541,16 @@ package body Reports is
       Put (Name_Of (Symbol_Access (Rule.LHS)));
       Put (" ::=");
       for Symbol of Rule.RHS loop
+         Put (" ");
 
-         if Symbol.Kind /= Multi_Terminal then
-            Put (" ");
-            Put (Name_Of (Symbol_Access (Symbol)));
-
-         else
-            Put (" ");
+         if Symbol.Kind = Multi_Terminal then
             Put (Name_Of (Symbol.Sub_Symbol.First_Element));
-
             for K in 1 .. Symbol.Sub_Symbol.Last_Index loop
                Put ("|");
                Put (Name_Of (Symbol.Sub_Symbol.Element (K)));
             end loop;
+         else
+            Put (Name_Of (Symbol_Access (Symbol)));
          end if;
 
       end loop;
