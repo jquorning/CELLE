@@ -13,121 +13,54 @@ package body Rules is
 
 
    procedure Assing_Sequential_Rule_Numbers
-     (Lemon_Rule : in     Rule_Access;
-      Start_Rule :    out Rule_Access)
+     (Lemon_Rule : in     Rule_Lists.List;
+      Start_Rule :    out Rule_Lists.Cursor)
    is
       use type Symbols.Symbol_Index;
 
-      I    : Symbols.Symbol_Index;
-      Rule : Rules.Rule_Access;
+      I : Symbols.Symbol_Index;
    begin
+
       --  Assing .Rule
-      I    := 0;
-      Rule := Lemon_Rule;
-      while Rule /= null loop
+
+      I := 0;
+      for Rule of Lemon_Rule loop
          if Rule.Code = Null_Code then
             Rule.Rule := -1;
          else
             Rule.Rule := Integer (I);
             I := I + 1;
          end if;
-         Rule := Rule.Next;
       end loop;
 
       --  Assign Rule numbers when Rule < 0 stop when Rule = 0.
-      Rule := Lemon_Rule;
-      while Rule /= null loop
+
+      for Rule of Lemon_Rule loop
          if Rule.Rule < 0 then
             Rule.Rule := Integer (I);
             I := I + 1;
          end if;
-         Rule := Rule.Next;
       end loop;
 
-      Start_Rule := Lemon_Rule;
+      Start_Rule := Lemon_Rule.First;
    end Assing_Sequential_Rule_Numbers;
 
 
-   function Merge (Pa : in Rule_Access;
-                   Pb : in Rule_Access)
-                  return Rule_Access
+   function Less_Than (Left, Right : in Rule_Access) return Boolean;
+
+   function Less_Than (Left, Right : in Rule_Access) return Boolean is
+      (Left.Rule < Right.Rule);
+
+
+   function Rule_Sort (Rule : in Rule_Lists.List) return Rule_Lists.List
    is
-      Pac   : Rule_Access := Pa;
-      Pbc   : Rule_Access := Pb;
-      Dummy : aliased Rule_Record;
-      Tail  : Rule_Access := Dummy'Unchecked_Access;
+      package Rule_List_Sorting is
+         new Rule_Lists.Generic_Sorting ("<" => Less_Than);
+
+      Copy : Rule_Lists.List := Rule;
    begin
-
-      Dummy.Next := null;
-
-      while
-        Pac /= null and
-        Pbc /= null
-      loop
-
-         if Pac.Rule < Pbc.Rule then
-            --  Put first element of pac to tail
-            declare
-               Node : Rule_Access;
-            begin
-               Node      := Pac;       --  Node is the one to move
-               Pac       := Pac.Next;  --  Advance pac to next in line
-               Node.Next := null; --  Tail.Next; --  null??
-               Tail.Next := Node;
-               Tail      := Tail.Next;
-            end;
-         else
-            --  Put first element of pbc to tail
-            declare
-               Node : Rule_Access;
-            begin
-               Node := Pbc;
-               Pbc  := Pbc.Next;
-               Node.Next := null;  --  Tail.Next;
-               Tail.Next := Node;
-               Tail      := Tail.Next;
-            end;
-         end if;
-
-      end loop;
-
-      if Pac = null then
-         Tail.Next := Pbc;
-      end if;
-
-      if Pbc = null then
-         Tail.Next := Pac;
-      end if;
-
-      return Dummy.Next;
-
-   end Merge;
-
-
-   function Rule_Sort (Rule : in Rule_Access) return Rule_Access
-   is
-      I_Copy : Integer;
-      Next : Rule_Access;
-      X    : array (0 .. 31) of Rule_Access := (others => null);
-      Rule2 : Rule_Access := Rule;
-   begin
-      while Rule2 /= null loop
-         Next := Rule2.Next;
-         Rule2.Next := null;
-         for I in X'Range loop
-            I_Copy := I;
-            exit when X (0) /= null;
-            Rule2 := Merge (X (I), Rule2);
-            X (I) := null;
-         end loop;
-         X (I_Copy) := Rule2;
-         Rule2 := Next;
-      end loop;
-      Rule2 := null;
-      for I in X'Range loop
-         Rule2 := Merge (X (I), Rule2);
-      end loop;
-      return Rule2;
+      Rule_List_Sorting.Sort (Copy);
+      return Copy;
    end Rule_Sort;
 
 

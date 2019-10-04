@@ -31,11 +31,8 @@ package body Builds is
    is
       use Rules;
       use Symbols;
-
-      Rule : Rule_Access;
    begin
-      Rule := Session.Rule;
-      while Rule /= null loop
+      for Rule of Session.Rule loop
          if Rule.Prec_Symbol = null then
             for Symbol of Rule.RHS loop
                exit when Rule.Prec_Symbol /= null;
@@ -53,7 +50,6 @@ package body Builds is
                end if;
             end loop;
          end if;
-         Rule := Rule.Next;
       end loop;
    end Find_Rule_Precedences;
 
@@ -63,17 +59,17 @@ package body Builds is
       use Rules;
       use Symbols;
 
-      Rule     : Rule_Access;
+--      Rule     : Rule_Access;
       Progress : Boolean;
    begin
       Symbols.Set_Lambda_False_And_Set_Firstset (First => Natural (Session.N_Terminal),
                                                  Last  => Natural (Session.N_Symbol - 1));
+
       --  First compute all lambdas
+
       loop
          Progress := False;
-         Rule := Session.Rule;
-         loop
-            exit when Rule = null;
+         for Rule of Session.Rule loop
 
             if Rule.LHS.Lambda then
                goto Continue;
@@ -88,21 +84,20 @@ package body Builds is
             Progress := True;
 
             <<Continue>>
-            Rule := Rule.Next;
+            null;
          end loop;
          exit when not Progress;
       end loop;
 
       --  Now compute all first sets
+
       loop
          declare
             S1 : Rule_Symbol_Access;
             S2 : Symbol_Access;
          begin
             Progress := False;
-            Rule := Session.Rule;
-            loop
-               exit when Rule = null;
+            for Rule of Session.Rule loop
                S1 := Rule.LHS;
 
                for Symbol of Rule.RHS loop
@@ -136,7 +131,6 @@ package body Builds is
 
                   end if;
                end loop;
-               Rule := Rule.Next;
             end loop;
          end;
          exit when not Progress;
@@ -152,6 +146,7 @@ package body Builds is
       use Errors;
       use Symbols;
       use Rules;
+      use Rules.Rule_Lists;
 
       Symbol : Symbol_Access;
       Rule   : Rule_Access;
@@ -159,8 +154,6 @@ package body Builds is
       Config_Lists.Init;
 
       --  Find the start symbol
-      --  lime_partial_database_dump_c ();
-      --  lime_partial_database_dump_ada ();
 
       if Session.Names.Start /= "" then
          Symbol := Find (To_String (Session.Names.Start));
@@ -168,19 +161,18 @@ package body Builds is
             Errors.Parser_Error
               (E014, Line_Number => 0,
                Argument_1 => To_String (Session.Names.Start),
-               Argument_2 => Name_Of (Symbol_Access (Session.Start_Rule.LHS)));
-            Symbol := Symbol_Access (Session.Start_Rule.LHS);
+               Argument_2 => Name_Of (Symbol_Access (Element (Session.Start_Rule).LHS)));
+            Symbol := Symbol_Access (Element (Session.Start_Rule).LHS);
          end if;
       else
-         Symbol := Symbol_Access (Session.Start_Rule.LHS);
+         Symbol := Symbol_Access (Element (Session.Start_Rule).LHS);
       end if;
 
       --  Make sure the start symbol doesn't occur on the right-hand side of
       --  any rule.  Report an error if it does.  (YACC would generate a new
       --  start symbol in this case.)
-      Rule := Session.Rule;
-      loop
-         exit when Rule = null;
+
+      for Rule of Session.Rule loop
          for RHS_Symbol of Rule.RHS loop
             --  FIX ME:  Deal with multiterminals XXX
             if Symbol_Access (RHS_Symbol) = Symbol then
@@ -189,12 +181,12 @@ package body Builds is
                                     Argument_1  => Name_Of (Symbol));
             end if;
          end loop;
-         Rule := Rule.Next;
       end loop;
 
       --  The basis configuration set for the first state
       --  is all rules which have the start symbol as their
       --  left-hand side
+
       Rule := Rule_Access (Symbol.Rule);
       loop
          exit when Rule = null;
@@ -227,17 +219,22 @@ package body Builds is
 
       Config : Config_Access;
       Symbol : Symbol_Access;
-      Rule   : Rule_Access;
    begin
+
       --  Add all of the reduce actions
       --  A reduce action is added for each element of the followset of
       --  a configuration which has its dot at the extreme right.
 
       --  Loop over all states
+
       for State of Session.Sorted loop
+
+         --  Loop over all configurations
          Config := State.Config;
-         while Config /= null loop  --  Loop over all configurations
-            if Dot_Type (Config.Rule.RHS.Length) = Config.Dot then    --  Is dot at extreme right?
+         while Config /= null loop
+
+            --  Is dot at extreme right?
+            if Dot_Type (Config.Rule.RHS.Length) = Config.Dot then
                for J in 0 .. Session.N_Terminal - 1 loop
                   if Sets.Set_Find (Config.Follow_Set, Integer (J)) then
                      --  Add a reduce action to the state "stp" which will reduce by the
@@ -307,10 +304,9 @@ package body Builds is
       end loop;
 
       --  Report an error for each rule that can never be reduced.
-      Rule := Session.Rule;
-      while Rule /= null loop
+
+      for Rule of Session.Rule loop
          Rule.Can_Reduce := False;
-         Rule := Rule.Next;
       end loop;
 
       for State of Session.Sorted loop
@@ -325,17 +321,16 @@ package body Builds is
                   Action.X.Rule.Can_Reduce := True;
                end if;
 --               Action := Action.Next;
-         end loop;
          --  end;
+         end loop;
       end loop;
 
-      Rule := Session.Rule;
-      while Rule /= null loop
+      for Rule of Session.Rule loop
          if not Rule.Can_Reduce then
             Errors.Parser_Error (Errors.E301, Line_Number => Rule.Rule_Line);
          end if;
-         Rule := Rule.Next;
       end loop;
+
    end Find_Actions;
 
 
@@ -350,8 +345,10 @@ package body Builds is
       Basis  : Config_Access;
       State  : State_Access;
    begin
+
       --  Extract the sorted basis of the new state.  The basis was constructed
       --  by prior calls to "Configlist_addbasis()".
+
       Config_Lists.Sort_Basis;
       Basis := Config_Lists.Basis;
 
@@ -458,8 +455,10 @@ package body Builds is
       B_Symbol   : Symbol_Access;  --  Symbol following the dot in configuration "bcfp"
       New_State  : State_Access;   --  A pointer to a successor state
    begin
+
       --  Each configuration becomes complete after it contibutes to a successor
       --  state.  Initially, all configurations are incomplete
+
       Config := State.Config;
       while Config /= null loop
          Config.Status := Incomplete;
@@ -467,6 +466,7 @@ package body Builds is
       end loop;
 
       --  Loop through all configurations of the state "stp"
+
       Config := State.Config;
       while Config /= null loop
          if Config.Status = Complete then
@@ -534,9 +534,11 @@ package body Builds is
       Config : Config_Access;
       Other  : Config_Access;
    begin
+
       --  Housekeeping detail:
       --  Add to every propagate link a pointer back to the state to
       --  which the link is attached.
+
       for State of Session.Sorted loop
          Debugs.Debug (True, "Sessions.Sorted'Length: " & Session.Sorted.Length'Image);
          Config := State.Config;
@@ -548,6 +550,7 @@ package body Builds is
 
       --  Convert all backlinks into forward links.  Only the forward
       --  links are used in the follow-set computation.
+
       for State of Session.Sorted loop
          Config := State.Config;
          while Config /= null loop
@@ -558,6 +561,7 @@ package body Builds is
             Config := Config.Next;
          end loop;
       end loop;
+
    end Find_Links;
 
 
@@ -570,7 +574,6 @@ package body Builds is
       Progress : Boolean;
       Change   : Boolean;
    begin
-
 
       for State of Session.Sorted loop
          Config := State.Config;
@@ -593,7 +596,6 @@ package body Builds is
                end if;
 
                for Link of Config.Forward_PL loop
---        for(plp=cfp->fplp; plp; plp=plp->next){ loop
                   Change := Sets.Set_Union (Link.Follow_Set,
                                             Config.Follow_Set);
                   if Change then
@@ -702,13 +704,14 @@ package body Builds is
    is
       use Ada.Strings.Unbounded;
       use Symbols;
+      use Rules.Rule_Lists;
    begin
       if Session.Names.Start = "" then
-         Symbol := Symbol_Access (Session.Start_Rule.LHS);
+         Symbol := Symbol_Access (Element (Session.Start_Rule).LHS);
       else
          Symbol := Find (To_String (Session.Names.Start));
          if Symbol = null then
-            Symbol := Symbol_Access (Session.Start_Rule.LHS);
+            Symbol := Symbol_Access (Element (Session.Start_Rule).LHS);
          end if;
       end if;
    end Add_The_Accepting_Token;

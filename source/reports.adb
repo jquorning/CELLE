@@ -305,7 +305,7 @@ package body Reports is
       package Symbol_Index_IO is
          new Ada.Text_IO.Integer_IO (Num => Symbol_Index);
 
-      Rule     : Rules.Rule_Access;
+--      Rule     : Rules.Rule_Access;
       Symbol : Symbol_Access;
       J      : Symbol_Index;
       Max_Len, Len, N_Columns, Skip : Integer;
@@ -359,8 +359,7 @@ package body Reports is
       end loop;
 
       --  Print rules
-      Rule := Session.Rule;
-      while Rule /= null loop
+      for Rule of Session.Rule loop
          Rule_Print (Standard_Output, Rule);
          Put (".");
          if Rule.Prec_Symbol /= null then
@@ -368,7 +367,6 @@ package body Reports is
          end if;
          --  /* if( rp->code ) printf("\n    %s",rp->code); */
          New_Line;
-         Rule := Rule.Next;
       end loop;
    end Reprint;
 
@@ -388,7 +386,7 @@ package body Reports is
       N      : Integer;
       State  : States.State_Access;
       Config : Config_Access;
-      Rule   : Rule_Access;
+--      Rule   : Rule_Access;
    begin
 --  fp = file_open(lemp,".out","wb");
       Open (File, Out_File, "XXX.out");
@@ -508,9 +506,7 @@ package body Reports is
       Put_Line (File, "----------------------------------------------------");
       Put_Line (File, "Rules:");
 
-      Rule := Session.Rule;
-      loop
-         exit when Rule = null;
+      for Rule of Session.Rule loop
          Put (File, Rule.Rule'Img); -- XXX "%4d: ", rp->iRule);
          Put (File, ": ");
          Rule_Print (File, Rule);
@@ -523,7 +519,6 @@ package body Reports is
             Put (File, "]");
          end if;
          New_Line (File);
-         Rule := Rule.Next;
       end loop;
 
       Close (File);
@@ -562,12 +557,13 @@ package body Reports is
       Error_Count           : Natural := 0;
    begin
       Session.Min_Shift_Reduce := Natural (Session.Sorted.Length);
-      Session.Err_Action       := Session.Min_Shift_Reduce + Session.N_Rule;
+--      Session.Err_Action       := Session.Min_Shift_Reduce + Session.N_Rule;
+      Session.Err_Action       := Session.Min_Shift_Reduce + Integer (Session.Rule.Length);
       Session.Acc_Action       := Session.Err_Action + 1;
       Session.No_Action        := Session.Acc_Action + 1;
       Session.Min_Reduce       := Session.No_Action + 1;
-      Session.Max_Action       := Session.Min_Reduce + Session.N_Rule;
-
+--      Session.Max_Action       := Session.Min_Reduce + Session.N_Rule;
+      Session.Max_Action       := Session.Min_Reduce + Integer (Session.Rule.Length);
       Template_Open (User_Template_Name, Error_Count, Template_Open_Success);
       Implementation_Open (File_Makename (Session, ".c"));
 
@@ -781,7 +777,7 @@ package body Reports is
       Render_Constants
         (Render =>
            (Nx_State         => Natural (Session.Nx_State),
-            N_Rule           => Session.N_Rule,
+            N_Rule           => Integer (Session.Rule.Length),
             N_Terminal       => Integer (Session.N_Terminal),
             Min_Shift_Reduce => Session.Min_Shift_Reduce,
             Err_Action       => Session.Err_Action,
@@ -923,7 +919,7 @@ package body Reports is
          use Symbols;
 
          J : Integer;
-         Rule : Rules.Rule_Access;
+--         Rule : Rules.Rule_Access;
       begin
          for I in Symbol_Index range 0 .. Symbols.Last_Index - 1 loop
             declare
@@ -948,9 +944,8 @@ package body Reports is
          --  rule in the rule set of the grammar.  This information is used
          --  when tracing REDUCE actions.
          J  := 0;
-         Rule := Session.Rule;
 
-         while Rule /= null loop
+         for Rule of Session.Rule loop
             pragma Assert (Rule.Rule = J);
             --  fprintf(out," /* %3d */ \"", i);
             Put (" /* ");
@@ -959,7 +954,6 @@ package body Reports is
             Write_Rule_Text (Rule);
             --  fprintf(out,"\",\n"); lineno++;
             Put_Line (""",");
-            Rule := Rule.Next;
          end loop;
       end;
 
@@ -1096,10 +1090,9 @@ package body Reports is
 
       --  Generate code which execution during each REDUCE action
       I  := 0;
-      Rule := Session.Rule;
-      while Rule /= null loop
-         --  I  := I + Translate_Code (Session, Rule);
-         Rule := Rule.Next;
+      for Rule of Session.Rule loop
+      --  I  := I + Translate_Code (Session, Rule);
+         null;
       end loop;
 
       if I /= 0 then
@@ -1107,8 +1100,7 @@ package body Reports is
       end if;
 
       --  First output rules other than the default: rule
-      Rule := Session.Rule;
-      while Rule /= null loop
+      for Rule of Session.Rule loop
       --      struct rule *rp2;               /* Other rules with the same action */
 --      if( rp->codeEmitted ) continue;
 --      if( rp->noCode ){
@@ -1138,7 +1130,6 @@ package body Reports is
          Emit_Code (Rule, Session);
 --      lime_put_line ("        break;");
 --      rp->codeEmitted = 1;
-         Rule := Rule.Next;
       end loop;
 --
 --    /* Finally, output the default: rule.  We choose as the default: all

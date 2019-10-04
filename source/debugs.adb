@@ -14,10 +14,8 @@ package body Debugs is
    is
       use Ada.Text_IO;
       use Rules;
-
-      Rule : Rule_Access := Session.Rule;
    begin
-      while Rule /= null loop
+      for Rule of Session.Rule loop
          Put ("RULE INDEX");
          Put (Natural'Image (Rule.Index));
          Put (" RULE");
@@ -37,7 +35,6 @@ package body Debugs is
          end if;
 
          New_Line;
-         Rule := Rule.Next;
       end loop;
    end JQ_Dump_Rules;
 

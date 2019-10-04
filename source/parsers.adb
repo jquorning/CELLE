@@ -19,7 +19,6 @@ with Parser_FSM;
 
 with Macros;
 with Errors;
-with Rules;
 
 package body Parsers is
 
@@ -328,7 +327,7 @@ package body Parsers is
          end loop;
       end;
 
-      Session.Rule      := Rules.Rule_Access (Scanner.First_Rule);
+      Session.Rule      := Scanner.Rule;
       Session.Error_Cnt := Scanner.Error_Count;
    end Parse;
 

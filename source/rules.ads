@@ -9,6 +9,7 @@
 
 with Ada.Strings.Unbounded;
 with Ada.Containers.Vectors;
+with Ada.Containers.Doubly_Linked_Lists;
 
 limited with Symbols;
 
@@ -86,25 +87,20 @@ package Rules is
          Can_Reduce   : Boolean := False;             -- True if this rule is ever reduced
          Does_Reduce  : Boolean := False;             -- Reduce actions occur after optimization
          Next_LHS     : access Rule_Record := null;   -- Next rule with the same LHS
-         Next         : access Rule_Record := null;   -- Next rule in the global list
       end record;
 
    type Rule_Access is access all Rule_Record;
 
-
-   function Merge (Pa : in Rule_Access;
-                   Pb : in Rule_Access)
-                  return Rule_Access;
-   --  Merge together to lists of rules ordered by rule.iRule
+   package Rule_Lists is
+      new Ada.Containers.Doubly_Linked_Lists (Element_Type => Rule_Access);
 
 
-   function Rule_Sort (Rule : in Rule_Access) return Rule_Access;
+   function Rule_Sort (Rule : in Rule_Lists.List) return Rule_Lists.List;
    --  Sort a list of rules in order of increasing iRule Value
 
 
    procedure Assing_Sequential_Rule_Numbers
-     (Lemon_Rule : in     Rule_Access;
-      Start_Rule :    out Rule_Access);
+     (Lemon_Rule : in     Rule_Lists.List;
+      Start_Rule :    out Rule_Lists.Cursor);
 
 end Rules;
-

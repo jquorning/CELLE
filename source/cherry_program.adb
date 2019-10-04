@@ -92,7 +92,7 @@ procedure Cherry_Program is
       Stats_Line ("terminal symbols", Integer (Session.N_Terminal));
       Stats_Line ("non-terminal symbols", Integer (Session.N_Symbol - Session.N_Terminal));
       Stats_Line ("total symbols", Integer (Session.N_Symbol));
-      Stats_Line ("rules", Session.N_Rule);
+      Stats_Line ("rules", Integer (Session.Rule.Length));
       Stats_Line ("states", Integer (Session.Nx_State));
       Stats_Line ("conflicts", Session.N_Conflict);
       Stats_Line ("action table entries", Session.N_Action_Tab);
@@ -164,7 +164,7 @@ begin
          return;
       end if;
 
-      if Session.N_Rule = 0 then
+      if Session.Rule.Is_Empty then
          Put_Line (Standard_Error, "Empty grammar.");
          Ada.Command_Line.Set_Exit_Status (Failure);
          return;
@@ -214,13 +214,14 @@ begin
       Ada.Text_IO.Put_Line ("jq_dump_rules second");
       Debugs.JQ_Dump_Rules (Session, 0);
 
-      Session.Start_Rule := Session.Rule;
+      Session.Start_Rule := Session.Rule.First;
       Session.Rule       := Rule_Sort (Session.Rule);
 
       Ada.Text_IO.Put_Line ("jq_dump_rules third");
       Debugs.JQ_Dump_Rules (Session, 0);
 
       --  Generate a reprint of the grammar, if requested on the command line
+
       if Options.RP_Flag then
          Reports.Reprint (Session);
       else

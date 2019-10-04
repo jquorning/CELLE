@@ -75,7 +75,7 @@ package Parser_Data is
          RHS           : Symbol_Vectors.Vector;    --  RHS symbols
                                                    --  Number of right-hand side symbols seen
          Alias         : Alias_Vectors.Vector;     --  Aliases for each RHS symbol (or NULL)
-         Previous_Rule : access Rules.Rule_Record; --  Previous rule parsed
+         Previous_Rule : Rules.Rule_Lists.Cursor;  --  Previous rule parsed
          Decl_Keyword  : Unbounded_String;         --  Keyword of a declaration
          Decl_Arg_Slot : A_Declaration;            --  Where the declaration argument should be put
          Insert_Line_Macro : Boolean;              --  Add #line before declaration insert
@@ -85,8 +85,7 @@ package Parser_Data is
 
          Decl_Association : Association_Type;     --  Assign this association to decl arguments
          Prec_Counter : Integer;                  --  Assign this precedence to decl arguments
-         First_Rule   : access Rules.Rule_Record; --  Pointer to first rule in the grammar
-         Last_Rule    : access Rules.Rule_Record; --  Pointer to the most recently parsed rule
+         Rule         : Rules.Rule_Lists.List;
          File_Name    : Unbounded_String;         --  Name of the input file
 
          Token_First : Positive := Positive'First;  --  First position in filebuf

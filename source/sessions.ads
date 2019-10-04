@@ -92,13 +92,12 @@ package Sessions is
 
    type Session_Type is
       record
-         Sorted           : State_Vectors.Vector; --  Table of states sorted by state number
-         Rule             : Rule_Access;          --  List of all rules
-         Start_Rule       : Rule_Access;          --  First rule
+         Sorted           : State_Vectors.Vector;    --  Table of states sorted by state number
+         Rule             : Rules.Rule_Lists.List;   --  List of all rules
+         Start_Rule       : Rules.Rule_Lists.Cursor; --  First rule
 
          --  Number of states in Sorted
          Nx_State         : State_Index;          --  nstate with tail degenerate states removed
-         N_Rule           : Integer;              --  Number of rules
          N_Symbol         : Symbol_Index;         --  Number of terminal and nonterminal symbols
          N_Terminal       : Symbol_Index;         --  Number of terminal symbols
          Min_Shift_Reduce : Integer;              --  Minimum shift-reduce action value
@@ -128,8 +127,9 @@ package Sessions is
 
    Clean_Session : constant Session_Type :=
      Session_Type'(Sorted       => State_Vectors.Empty_Vector,
-                   Rule         => null,       Start_Rule   => null,
-                   Nx_State     => 0,          N_Rule       => 0,
+                   Rule         => Rules.Rule_Lists.Empty_List,
+                   Start_Rule   => Rules.Rule_Lists.No_Element,
+                   Nx_State     => 0,
                    N_Symbol     => 0,          N_Terminal   => 0,         Min_Shift_Reduce => 0,
                    Err_Action   => 0,          Acc_Action   => 0,         No_Action        => 0,
                    Min_Reduce   => 0,          Max_Action   => 0,         Symbols2         => 999,

@@ -191,14 +191,13 @@ package body Parser_FSM is
    procedure Initialize_FSM (Session : in out Session_Type;
                              Scanner : in out Scanner_Record)
    is
+      pragma Unreferenced (Session);
+      use Rules.Rule_Lists;
    begin
-      Scanner.Previous_Rule := null;
+      Scanner.Previous_Rule := No_Element;
       Scanner.Prec_Counter  := 0;
-      Scanner.First_Rule    := null;
-      Scanner.Last_Rule     := null;
-
-      Session.N_Rule  := 0;
-      Scanner.State := WAITING_FOR_DECL_OR_RULE;
+      Scanner.Rule          := Empty_List;
+      Scanner.State         := WAITING_FOR_DECL_OR_RULE;
    end Initialize_FSM;
 
 
@@ -208,6 +207,7 @@ package body Parser_FSM is
    is
       pragma Unreferenced (Session);
       use Rules;
+      use Rules.Rule_Lists;
 
       Cur : Character renames Token (Token'First);
    begin
@@ -224,17 +224,17 @@ package body Parser_FSM is
 
       elsif Cur = '{' then
 
-         if Scanner.Previous_Rule = null then
+         if Scanner.Previous_Rule = No_Element then
             Parser_Error (E001, Scanner.Token_Lineno);
 
-         elsif Rules."/=" (Scanner.Previous_Rule.Code, Null_Code) then
+         elsif Rules."/=" (Element (Scanner.Previous_Rule).Code, Null_Code) then
             Parser_Error (E002, Scanner.Token_Lineno);
 
          else
-            Scanner.Previous_Rule.Line := Scanner.Token_Lineno;
-            Scanner.Previous_Rule.Code :=
+            Element (Scanner.Previous_Rule).Line := Scanner.Token_Lineno;
+            Element (Scanner.Previous_Rule).Code :=
               Unbounded_String'(To_Unbounded_String (Token (Token'First + 1 .. Token'Last)));
-            Scanner.Previous_Rule.No_Code := False;
+            Element (Scanner.Previous_Rule).No_Code := False;
          end if;
 
       elsif Cur = '[' then
@@ -250,18 +250,19 @@ package body Parser_FSM is
                                          Token   : in     String)
    is
       use Rules;
+      use Rules.Rule_Lists;
    begin
       if Token (Token'First) not in 'A' .. 'Z' then
          Parser_Error (E004, Scanner.Token_Lineno);
 
-      elsif Scanner.Previous_Rule = null then
+      elsif Scanner.Previous_Rule = No_Element then
          Parser_Error (E005, Scanner.Token_Lineno, Token);
 
-      elsif Scanner.Previous_Rule.Prec_Symbol /= null then
+      elsif Element (Scanner.Previous_Rule).Prec_Symbol /= null then
          Parser_Error (E006, Scanner.Token_Lineno);
 
       else
-         Scanner.Previous_Rule.Prec_Symbol :=
+         Element (Scanner.Previous_Rule).Prec_Symbol :=
            Rule_Symbol_Access (Symbols.Create (Token));
       end if;
 
@@ -550,11 +551,11 @@ package body Parser_FSM is
                               Scanner : in out Scanner_Record;
                               Token   : in     String)
    is
+      pragma Unreferenced (Session);
       Cur : Character renames Token (Token'First);
    begin
       if Cur = '.' then
          declare
---            use Symbols;
             use Rules;
             use Rules.Alias_Vectors;
 
@@ -589,21 +590,13 @@ package body Parser_FSM is
             Rule.Code        := Null_Code;
             Rule.No_Code     := True;
             Rule.Prec_Symbol := null;
-
-            Rule.Index     := Session.N_Rule;
-            Session.N_Rule := Session.N_Rule + 1;
+            Rule.Index       := Integer (Scanner.Rule.Length);
 
 --            Rule.Next_LHS   := Rule.LHS.Rule;
 --            Rule.LHS.Rule   := Rule;
-            Rule.Next       := null;
-            if Scanner.First_Rule = null then
-               Scanner.First_Rule := Rule;
-               Scanner.Last_Rule  := Rule;
-            else
-               Scanner.Last_Rule.Next := Rule;
-               Scanner.Last_Rule      := Rule;
-            end if;
-            Scanner.Previous_Rule := Rule;
+
+            Scanner.Rule.Append (Rule);
+            Scanner.Previous_Rule := Scanner.Rule.Last;
          end;
          Scanner.State := WAITING_FOR_DECL_OR_RULE;
 
@@ -691,7 +684,7 @@ package body Parser_FSM is
                New_First := New_First + 1;
             end if;
 
-            if Scanner.Decl_Arg_Slot = null then  --  A_Declaration (Null_Unbounded_String) then
+            if Scanner.Decl_Arg_Slot = null then
                Old_String := To_Unbounded_String ("");
             else
                Old_String := Scanner.Decl_Arg_Slot.all;
