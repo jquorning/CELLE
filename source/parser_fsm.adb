@@ -554,7 +554,7 @@ package body Parser_FSM is
    begin
       if Cur = '.' then
          declare
-            use Symbols;
+--            use Symbols;
             use Rules;
             use Rules.Alias_Vectors;
 
@@ -564,9 +564,9 @@ package body Parser_FSM is
             Rule.Rule_Line := Scanner.Token_Lineno;
 
             for I in Scanner.RHS.First_Index .. Scanner.RHS.Last_Index loop
-               Rule.RHS.Append (Rule_Symbol_Access (Scanner.RHS.Element (Integer (I))));
+               Rule.RHS.Append (Rule_Symbol_Access (Scanner.RHS.Element (I)));
                if I in Scanner.Alias.First_Index .. Scanner.Alias.Last_Index then
-                  Rule.RHS_Alias.Append (Scanner.Alias.Element (Integer (I)));
+                  Rule.RHS_Alias.Append (Scanner.Alias.Element (I));
                else
                   Rule.RHS_Alias.Append (Null_Unbounded_String);
                end if;

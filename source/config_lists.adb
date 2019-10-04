@@ -119,7 +119,7 @@ package body Config_Lists is
    begin
       pragma Assert (not Config_List.Is_Empty);
 
-      for Config of Config_List loop  -- := current;
+      for Config of Config_List loop
          Rule := Config.Rule;
          Dot  := Config.Dot;
          if Dot >= Dot_Type (Rule.RHS.Length) then
@@ -136,34 +136,37 @@ package body Config_Lists is
             end if;
 
             New_Rule := Rule_Access (Symbol.Rule);
-            loop
-               exit when New_Rule = null;
+            while New_Rule /= null loop
                New_Config := Add (New_Rule, 0);
                Last_RHS := False;
+
                for I in Dot + 1 .. Dot_Type (Rule.RHS.Length) loop
                   if I = Dot_Type (Rule.RHS.Length) then
                      Last_RHS := True;
                   end if;
 
                   X_Symbol := Symbol_Access (Rule.RHS.Element (I));
-                  if X_Symbol.Kind = Terminal then
-                     Dummy := Set_Add (New_Config.Follow_Set, Integer (X_Symbol.Index));
-                     exit;
 
-                  elsif X_Symbol.Kind = Multi_Terminal then
-                     for K in Integer range 0 .. Integer (X_Symbol.Sub_Symbol.Length) - 1 loop
-                        Dummy := Set_Add (New_Config.Follow_Set,
-                                          Integer (X_Symbol.Sub_Symbol.Element (K).Index));
-                     end loop;
-                     exit;
+                  case X_Symbol.Kind is
 
-                  else
-                     Dummy := Set_Union (New_Config.Follow_Set, X_Symbol.First_Set);
-                     if X_Symbol.Lambda = False then
+                     when Terminal =>
+                        Dummy := Set_Add (New_Config.Follow_Set, Integer (X_Symbol.Index));
                         exit;
-                     end if;
-                  end if;
+
+                     when Multi_Terminal =>
+                        for K in Integer range 0 .. Integer (X_Symbol.Sub_Symbol.Length) - 1 loop
+                           Dummy := Set_Add (New_Config.Follow_Set,
+                                             Integer (X_Symbol.Sub_Symbol.Element (K).Index));
+                        end loop;
+                        exit;
+
+                     when others =>
+                        Dummy := Set_Union (New_Config.Follow_Set, X_Symbol.First_Set);
+                        exit when not X_Symbol.Lambda;
+
+                  end case;
                end loop;
+
                if Last_RHS then
                   Config.Forward_PL.Append (Prop_Links.Config_Access (New_Config));
                end if;
@@ -218,8 +221,7 @@ package body Config_Lists is
 
       Next_Config : Config_Access;
    begin
-      loop
-         exit when Config = null;
+      while Config /= null loop
          Next_Config := Config.Next;
          pragma Assert (Config.Forward_PL.Is_Empty);
          pragma Assert (Config.Backward_PL.Is_Empty);

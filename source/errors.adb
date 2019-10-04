@@ -79,7 +79,7 @@ package body Errors is
       Argument_1  : in String := "";
       Argument_2  : in String := "")
    is
-      use Ada.Strings;
+--      use Ada.Strings;
 
       File_Name  : constant String  := To_String (Default_File_Name);
       Kind_Image : constant String  := Id'Image & " ";

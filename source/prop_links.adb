@@ -24,7 +24,7 @@ package body Prop_Links is
       use Propagation_Lists;
    begin
       for Element of From loop
-         Append (To, Config_Access (Element));
+         Append (To, Element);
       end loop;
    end Copy;
 

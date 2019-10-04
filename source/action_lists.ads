@@ -21,7 +21,7 @@ package Action_Lists is
                      Kind        : in     Actions.Action_Kind;
                      Symbol      : in     Symbols.Symbol_Access;
                      State       : in     States.State_Access;
-                     Rule        : in     Rules.Rule_access);
+                     Rule        : in     Rules.Rule_Access);
    --  Action_Add
    --  Append symbol to Action_List
 

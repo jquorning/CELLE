@@ -2425,7 +2425,7 @@ package body Reports is
          declare
             use Ada.Text_IO;
             use DK8543.Interfaces.C.Strings;
-            Line : constant String := Get_Line (Context.File_Template);
+            Line  : constant String := Get_Line (Context.File_Template);
             Index : Natural;
          begin
             exit when

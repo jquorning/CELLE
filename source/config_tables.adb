@@ -11,11 +11,13 @@ with Ada.Containers.Ordered_Maps;
 
 package body Config_Tables is
 
-   use Configs;
+--   use Configs;
 
    package Config_Maps is
       new Ada.Containers.Ordered_Maps
-     (Key_Type     => Configs.Config_Access,
+     ("<"          => Configs."<",
+      "="          => Configs."=",
+      Key_Type     => Configs.Config_Access,
       Element_Type => Configs.Config_Access);
 
 

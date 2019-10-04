@@ -29,10 +29,10 @@ package body Debugs is
 
          if Mode = 1 then
             Put (" PREC");
-            if Rule.Prec_Symbol /= null then
-               Put (Symbols.Symbol_Index'Image (Rule.Prec_Symbol.Index));
-            else
+            if Rule.Prec_Symbol = null then
                Put (" <null>");
+            else
+               Put (Symbols.Symbol_Index'Image (Rule.Prec_Symbol.Index));
             end if;
          end if;
 
