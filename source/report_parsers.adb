@@ -18,7 +18,8 @@ package body Report_Parsers is
          CTX : Unbounded_String;
       end record;
 
-   Global_Parser_Context : aliased Context_Record;
+   Global_Parser_Context : aliased Context_Record := (ARG => Null_Unbounded_String,
+                                                      CTX => Null_Unbounded_String);
 
    function Is_Alnum (C : in Character) return Boolean;
    --

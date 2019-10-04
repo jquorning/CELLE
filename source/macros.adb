@@ -22,7 +22,7 @@ package body Macros is
       new Ada.Containers.Vectors (Index_Type   => Positive,
                                   Element_Type => Unbounded_String);
 
-   Macro_List : Macro_Vectors.Vector;
+   Macro_List : Macro_Vectors.Vector := Macro_Vectors.Empty_Vector;
 
    procedure Append (Name : in String)
    is

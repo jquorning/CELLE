@@ -54,6 +54,7 @@ package body Command_Line is
 
    procedure Parse (Success : out Boolean) is
    begin
+      Success := False;
       Options.Program_Name := new String'(Ada.Command_Line.Command_Name);
 
       Define_Switch (Config, Options.Basis_Flag'Access, "-b",

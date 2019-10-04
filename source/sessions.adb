@@ -5,7 +5,7 @@
 package body Sessions is
 
    procedure Append_State_To_Sorted (State : in States.State_Access);
-   Sorted_Vector : State_Vectors.Vector;
+   Sorted_Vector : State_Vectors.Vector := State_Vectors.Empty_Vector;
 
    procedure Append_State_To_Sorted (State : in States.State_Access)
    is

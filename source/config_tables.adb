@@ -21,7 +21,7 @@ package body Config_Tables is
       Element_Type => Configs.Config_Access);
 
 
-   Table : Config_Maps.Map;
+   Table : Config_Maps.Map := Config_Maps.Empty_Map;
 
 
    procedure Init is

@@ -30,8 +30,8 @@ package body Config_Lists is
       new Ada.Containers.Doubly_Linked_Lists
      (Element_Type => Configs.Config_Access);
 
-   Config_List : Configuration_Lists.List;
-   Basis_List  : Configuration_Lists.List;
+   Config_List : Configuration_Lists.List := Configuration_Lists.Empty_List;
+   Basis_List  : Configuration_Lists.List := Configuration_Lists.Empty_List;
 
 
    procedure Init is
@@ -253,8 +253,8 @@ package body Config_Lists is
    is
       use Configs;
       procedure Free is
-         new Ada.Unchecked_Deallocation (Config_Record,
-                                         Config_Access);
+         new Ada.Unchecked_Deallocation (Object => Config_Record,
+                                         Name   => Config_Access);
    begin
       Free (Config);
       Config := null;

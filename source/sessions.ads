@@ -81,7 +81,7 @@ package Sessions is
       --  A prefix added to token names in the .h file
    end record;
 
-   Parser_Names : aliased Parser_Names_Record;
+   Parser_Names : aliased Parser_Names_Record := (others => Null_Unbounded_String);
 
    subtype State_Index is Symbols.Symbol_Index;
    package State_Vectors is
