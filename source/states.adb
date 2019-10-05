@@ -55,8 +55,11 @@ package body States is
 
    function Find (Config : in not null Configs.Config_Access) return State_Access
    is
+      use State_Maps;
+
+      Pos : constant Cursor := State_Map.Find (Config);
    begin
-      return State_Map.Element (Config);
+      return (if Pos = No_Element then null else Element (Pos));
    end Find;
 
 

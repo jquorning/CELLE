@@ -56,14 +56,15 @@ package body Config_Lists is
       Config := Config_Tables.Find (Model'Unchecked_Access);
       if Config = null then
          Config := Config_New;
-         Config.Rule := Rule;
-         Config.Dot  := Dot;
-         Config.Follow_Set  := Symbol_Sets.Set_New;
-         Config.State       := null;
-         Config.Forward_PL  := Prop_Links.Propagation_Lists.Empty_List;
-         Config.Backward_PL := Prop_Links.Propagation_Lists.Empty_List;
-         Config.Next  := null;
-         Config.Basis := null;
+         Config.all := (Rule        => Rule,
+                        Dot         => Dot,
+                        Follow_Set  => Symbol_Sets.Set_New,
+                        State       => null,
+                        Forward_PL  => Prop_Links.Propagation_Lists.Empty_List,
+                        Backward_PL => Prop_Links.Propagation_Lists.Empty_List,
+                        Status      => Incomplete, -- XXX Do not know
+                        Next        => null,
+                        Basis       => null);
          Config_List.Append (Config);
          Config_Tables.Insert (Config);
       end if;

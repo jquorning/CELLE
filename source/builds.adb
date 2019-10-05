@@ -149,8 +149,9 @@ package body Builds is
       use Rules;
       use Rules.Rule_Lists;
 
-      Start_Symbol : Symbol_Access;
-      Rule   : Rule_Access;
+      Start_Symbol      : Symbol_Access;
+      Rule              : Rule_Access;
+      Dummy_First_State : States.State_Access;
    begin
       Config_Lists.Init;
 
@@ -189,15 +190,14 @@ package body Builds is
       --  left-hand side
 
       Rule := Rule_Access (Start_Symbol.Rule);
-      loop
-         exit when Rule = null;
+      while Rule /= null loop
          declare
-            Dummy   : Boolean;
-            New_CFP : Configs.Config_Access;
+            Dummy  : Boolean;
+            Config : Configs.Config_Access;
          begin
             Rule.LHS_Start := True;
-            New_CFP := Config_Lists.Add_Basis (Rule, 0);
-            Dummy := Symbol_Sets.Set_Add (New_CFP.Follow_Set, 0);
+            Config := Config_Lists.Add_Basis (Rule, 0);
+            Dummy  := Symbol_Sets.Set_Add (Config.Follow_Set, 0);
          end;
          Rule := Rule.Next_LHS;
       end loop;
@@ -205,7 +205,8 @@ package body Builds is
       --  Compute the first state.  All other states will be
       --  computed automatically during the computation of the first one.
       --  The returned pointer to the first state is not used.
-      Get_First_State (Session);
+
+      Dummy_First_State := Get_State (Session);
 
    end Find_States;
 
@@ -349,7 +350,7 @@ package body Builds is
    begin
 
       --  Extract the sorted basis of the new state.  The basis was constructed
-      --  by prior calls to "Configlist_addbasis()".
+      --  by prior calls to "Config_lists.Add_Basis".
 
       Config_Lists.Sort_Basis;
       Basis := Config_Lists.Basis;
@@ -397,15 +398,6 @@ package body Builds is
       end if;
       return State;
    end Get_State;
-
-
-   procedure Get_First_State (Session : in out Sessions.Session_Type)
-   is
-      Dummy : States.State_Access;
-      pragma Unreferenced (Dummy);
-   begin
-      Dummy := Get_State (Session);
-   end Get_First_State;
 
 
    function Same_Symbol (Left, Right : in Symbols.Symbol_Access) return Boolean;

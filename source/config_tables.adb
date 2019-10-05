@@ -40,8 +40,11 @@ package body Config_Tables is
    function Find (Config : in Configs.Config_Access)
                  return Configs.Config_Access
    is
+      use Config_Maps;
+
+      Pos : constant Cursor := Table.Find (Config);
    begin
-      return Table.Element (Config);
+      return (if Pos = No_Element then null else Element (Pos));
    end Find;
 
 

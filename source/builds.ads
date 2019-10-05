@@ -47,7 +47,6 @@ package Builds is
 
    function Get_State (Session : in out Sessions.Session_Type)
                       return States.State_Access;
-   procedure Get_First_State (Session : in out Sessions.Session_Type);
    --  Compute all LR(0) states for the grammar.  Links
    --  are added to between some states so that the LR(1) follow sets
    --  can be computed later.

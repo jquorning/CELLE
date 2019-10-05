@@ -29,7 +29,8 @@ package Symbols is
       Unknown_Association);
 
    type Symbol_Record;
-   type Symbol_Access is access all Symbol_Record;
+   type Symbol_Access      is access all Symbol_Record;
+   type Symbol_Rule_Access is access all Rules.Rule_Record;
 
    package Symbol_Vectors is
       new Ada.Containers.Vectors (Index_Type   => Natural,
@@ -51,7 +52,7 @@ package Symbols is
          Kind      : Symbol_Kind    := Terminal;
          --  Symbols are all either TERMINALS or NTs
 
-         Rule      : access Rules.Rule_Record := null;
+         Rule      : Symbol_Rule_Access := null;
          --  Linked list of rules of this (if an NT)
 
          Fallback  : access Symbol_Record     := null;
