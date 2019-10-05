@@ -15,6 +15,7 @@ with Ada.Directories;
 with Setup;
 with Auxiliary;
 with Symbols;
+with Types;
 
 package body Generate_C is
 
@@ -132,7 +133,7 @@ package body Generate_C is
       for I in First .. Last - 1 loop
          declare
             Symbol : constant String :=
-              Prefix & Name_Of (Element_At (Symbol_Index (I)));
+              Prefix & Name_Of (Element_At (Types.Symbol_Index (I)));
          begin
             Put (File, "#define ");
             Put (File, Symbol);

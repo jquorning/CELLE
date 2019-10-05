@@ -12,7 +12,7 @@ with Ada.Unchecked_Deallocation;
 
 with Config_Tables;
 with Prop_Links;
-with Sets;
+with Symbol_Sets;
 with Errors;
 with Symbols;
 
@@ -58,7 +58,7 @@ package body Config_Lists is
          Config := Config_New;
          Config.Rule := Rule;
          Config.Dot  := Dot;
-         Config.Follow_Set  := Sets.Set_New;
+         Config.Follow_Set  := Symbol_Sets.Set_New;
          Config.State       := null;
          Config.Forward_PL  := Prop_Links.Propagation_Lists.Empty_List;
          Config.Backward_PL := Prop_Links.Propagation_Lists.Empty_List;
@@ -87,7 +87,7 @@ package body Config_Lists is
          Config := Config_New;
          Config.Rule := Rule;
          Config.Dot  := Dot;
-         Config.Follow_Set  := Sets.Set_New;
+         Config.Follow_Set  := Symbol_Sets.Set_New;
          Config.State       := null;
          Config.Forward_PL  := Prop_Links.Propagation_Lists.Empty_List;
          Config.Backward_PL := Prop_Links.Propagation_Lists.Empty_List;
@@ -106,7 +106,7 @@ package body Config_Lists is
       use Configs;
       use Rules;
       use Symbols;
-      use Sets;
+      use Symbol_Sets;
 
       New_Config : Config_Access;
       Rule     : Rule_Access;
@@ -150,13 +150,13 @@ package body Config_Lists is
                   case X_Symbol.Kind is
 
                      when Terminal =>
-                        Dummy := Set_Add (New_Config.Follow_Set, Integer (X_Symbol.Index));
+                        Dummy := Set_Add (New_Config.Follow_Set, X_Symbol.Index);
                         exit;
 
                      when Multi_Terminal =>
                         for K in Integer range 0 .. Integer (X_Symbol.Sub_Symbol.Length) - 1 loop
                            Dummy := Set_Add (New_Config.Follow_Set,
-                                             Integer (X_Symbol.Sub_Symbol.Element (K).Index));
+                                             X_Symbol.Sub_Symbol.Element (K).Index);
                         end loop;
                         exit;
 
@@ -216,7 +216,7 @@ package body Config_Lists is
 
    procedure Eat (Config : in out Configs.Config_Access)
    is
-      use Sets;
+      use Symbol_Sets;
       use Configs;
 
       Next_Config : Config_Access;
@@ -226,7 +226,7 @@ package body Config_Lists is
          pragma Assert (Config.Forward_PL.Is_Empty);
          pragma Assert (Config.Backward_PL.Is_Empty);
          if Config.Follow_Set /= Null_Set then
-            Sets.Set_Free (Config.Follow_Set);
+            Symbol_Sets.Set_Free (Config.Follow_Set);
          end if;
          Config_Delete (Config);
          Config := Next_Config;

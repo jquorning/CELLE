@@ -7,25 +7,22 @@ with Ada.Unchecked_Deallocation;
 package body Sets is
 
 
-   Size : Natural := 0;
+   Index_First : Index_Type := Index_Type'First;
+   Index_Last  : Index_Type := Index_Type'First;
 
 
-   procedure Set_Size (N : in Natural) is
+   procedure Set_Range (First : in Index_Type;
+                        Last  : in Index_Type)
+   is
    begin
-      Size := N + 1;
-   end Set_Size;
+      Index_First := First;
+      Index_Last  := Last;
+   end Set_Range;
 
 
    function Set_New return Set_Type is
    begin
-      return new Set_Array'(0 .. Size => False);
---        char *s;
---    s = (char*)calloc( size, 1);
---    if( s==0 ){
---      extern void memory_error();
---      memory_error();
---    return s;
-
+      return new Set_Array'(Index_First .. Index_Last => False);
    end Set_New;
 
 
@@ -39,11 +36,12 @@ package body Sets is
 
 
    function Set_Add (Set  : in out Set_Type;
-                     Item : in     Natural) return Boolean
+                     Item : in     Index_Type) return Boolean
    is
       RV : Boolean;
    begin
-      pragma Assert (Item < Size);
+      pragma Assert (Item >= Index_First);
+      pragma Assert (Item <= Index_Last);
       RV := Set (Item);
       Set (Item) := True;
       return not RV;
@@ -56,7 +54,7 @@ package body Sets is
       Progress : Boolean;
    begin
       Progress := False;
-      for I in 0 .. Size - 1 loop
+      for I in Index_First .. Index_Last loop
          if Set_2 (I) then
             if not Set_1 (I) then
                Progress := True;
@@ -69,11 +67,13 @@ package body Sets is
 
 
    function Set_Find (Set  : in Set_Type;
-                      Item : in Natural) return Boolean
+                      Item : in Index_Type) return Boolean
    is
    begin
       return Set (Item);
    end Set_Find;
 
+   function First_Index return Index_Type is (Index_First);
+   function Last_Index  return Index_Type is (Index_Last);
 
 end Sets;

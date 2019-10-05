@@ -11,7 +11,8 @@ with Ada.Containers;
 with Ada.Strings.Unbounded;
 with Ada.Containers.Vectors;
 
-with Sets;
+with Types;
+with Symbol_Sets;
 limited with Rules;
 
 package Symbols is
@@ -40,13 +41,11 @@ package Symbols is
       new Ada.Containers.Vectors (Index_Type   => Natural,
                                   Element_Type => Unbounded_String);
 
-   type Symbol_Index is new Natural;
-
    type Symbol_Record is
       record
          Name      : Unbounded_String := Null_Unbounded_String;
 
-         Index     : Symbol_Index   := 0;
+         Index     : Types.Symbol_Index := 0;
          --  Index number for this symbol
 
          Kind      : Symbol_Kind    := Terminal;
@@ -64,7 +63,7 @@ package Symbols is
          Association : Association_Type := Left_Association;
          --  Associativity if precedence is defined
 
-         First_Set : Sets.Set_Type := Sets.Null_Set;
+         First_Set : Symbol_Sets.Set_Type := Symbol_Sets.Null_Set;
          --  First-set for all rules of this symbol
 
          Lambda    : Boolean          := False;
@@ -146,10 +145,10 @@ package Symbols is
    --  order (the order they appeared in the grammar file) gives the
    --  smallest parser tables in SQLite.
 
-   function Last_Index return Symbol_Index;
+   function Last_Index return Types.Symbol_Index;
    --  Get symbol last index.
 
-   function Element_At (Index : in Symbol_Index)
+   function Element_At (Index : in Types.Symbol_Index)
                        return Symbol_Access;
    --  Get symbol at Index position.
 

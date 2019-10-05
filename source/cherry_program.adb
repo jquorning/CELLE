@@ -12,6 +12,7 @@ with Ada.Strings.Unbounded;
 with Ada.Command_Line;
 with Ada.Exceptions;
 
+with Types;
 with Setup;
 with Options;
 with Command_Line;
@@ -91,7 +92,7 @@ procedure Cherry_Program is
          New_Line;
       end Stats_Line;
 
-      use type Symbols.Symbol_Index;
+      use type Types.Symbol_Index;
    begin
       Ada.Text_IO.Put_Line ("Parser statistics:");
       Stats_Line ("terminal symbols", Integer (Session.N_Terminal));
@@ -140,7 +141,7 @@ begin
 
       Failure : Ada.Command_Line.Exit_Status renames Ada.Command_Line.Failure;
 
-      Dummy_Symbol_Count : Symbol_Index;
+      Dummy_Symbol_Count : Types.Symbol_Index;
    begin
       Session := Sessions.Clean_Session;
       Session.Error_Cnt := 0;
@@ -198,8 +199,8 @@ begin
       begin
          Symbols.Count_Symbols_And_Terminals (Symbol_Count   => Symbol_Count,
                                               Terminal_Count => Terminal_Count);
-         Session.N_Symbol   := Symbol_Index (Symbol_Count);
-         Session.N_Terminal := Symbol_Index (Terminal_Count);
+         Session.N_Symbol   := Types.Symbol_Index (Symbol_Count);
+         Session.N_Terminal := Types.Symbol_Index (Terminal_Count);
          Ada.Text_IO.Put ("nsymbol:" & Natural'Image (Symbol_Count));
          Ada.Text_IO.Put ("  nterminal:" & Natural'Image (Terminal_Count));
          Ada.Text_IO.Put_Line (" ");

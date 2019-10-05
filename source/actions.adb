@@ -350,6 +350,7 @@ package body Actions is
             Apx.Kind := RD_Resolved;
          end if;
       else
+         null;
          pragma Assert
            (Apx.Kind = SH_Resolved or
             Apx.Kind = RD_Resolved or

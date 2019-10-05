@@ -20,6 +20,7 @@ with Rules;
 with Symbols;
 with Report_Parsers;
 with States;
+with Types;
 
 package Sessions is
 
@@ -83,7 +84,7 @@ package Sessions is
 
    Parser_Names : aliased Parser_Names_Record := (others => Null_Unbounded_String);
 
-   subtype State_Index is Symbols.Symbol_Index;
+   subtype State_Index is Types.Symbol_Index;
    package State_Vectors is
       new Ada.Containers.Vectors (Index_Type   => State_Index,
                                   Element_Type => States.State_Access,
@@ -97,8 +98,8 @@ package Sessions is
 
          --  Number of states in Sorted
          Nx_State         : State_Index;          --  nstate with tail degenerate states removed
-         N_Symbol         : Symbol_Index;         --  Number of terminal and nonterminal symbols
-         N_Terminal       : Symbol_Index;         --  Number of terminal symbols
+         N_Symbol         : Types.Symbol_Index;   --  Number of terminal and nonterminal symbols
+         N_Terminal       : Types.Symbol_Index;   --  Number of terminal symbols
          Min_Shift_Reduce : Integer;              --  Minimum shift-reduce action value
          Err_Action       : Integer;              --  Error action value
          Acc_Action       : Integer;              --  Accept action value

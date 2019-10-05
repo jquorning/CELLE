@@ -7,9 +7,9 @@
 --    May you share freely, not taking more than you give.
 --
 
-generic
-package Sets.IO is
+package Types is
 
-   procedure Put (Set : in Set_Type);
+   type Symbol_Index is new Natural;
 
-end Sets.IO;
+end Types;
+

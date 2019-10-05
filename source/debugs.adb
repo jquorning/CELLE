@@ -5,7 +5,7 @@
 with Ada.Text_IO;
 
 with Rules;
-with Symbols;
+with Types;
 
 package body Debugs is
 
@@ -30,7 +30,7 @@ package body Debugs is
             if Rule.Prec_Symbol = null then
                Put (" <null>");
             else
-               Put (Symbols.Symbol_Index'Image (Rule.Prec_Symbol.Index));
+               Put (Types.Symbol_Index'Image (Rule.Prec_Symbol.Index));
             end if;
          end if;
 

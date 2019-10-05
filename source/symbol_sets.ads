@@ -7,9 +7,8 @@
 --    May you share freely, not taking more than you give.
 --
 
-generic
-package Sets.IO is
+with Types;
+with Sets;
 
-   procedure Put (Set : in Set_Type);
-
-end Sets.IO;
+package Symbol_Sets is
+   new Sets (Index_Type => Types.Symbol_Index);
