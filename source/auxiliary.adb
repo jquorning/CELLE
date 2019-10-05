@@ -90,6 +90,16 @@ package body Auxiliary is
    end Is_Alpha;
 
 
+   function Is_Alnum (C : in Character) return Boolean
+   is
+   begin
+      return
+        C in 'a' .. 'z' or
+        C in 'A' .. 'Z' or
+        C in '0' .. '9';
+   end Is_Alnum;
+
+
    function Image (Value : in Integer) return String is
       use Ada.Strings;
    begin
