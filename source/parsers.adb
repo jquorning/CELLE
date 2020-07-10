@@ -96,14 +96,14 @@ package body Parsers is
          --  Make an initial pass through the file to handle %ifdef and %ifndef.
          Macros.Preprocess (Filebuf, Success);
 
-         Scanner.Line_Number := 1;
+         Scanner.Line := 1;
          loop
             C := Filebuf (Index);
             exit when C = Latin_1.NUL;
 
             --  Keep track of line number
             if C = Latin_1.LF then
-               Scanner.Line_Number := Scanner.Line_Number + 1;
+               Scanner.Line := Scanner.Line + 1;
             end if;
 
             --  Skip all white space
@@ -133,7 +133,7 @@ package body Parsers is
                   exit when C = Latin_1.NUL;
                   exit when C = '/' and Filebuf (Index - 1) = '*';
                   if C = Latin_1.LF then
-                     Scanner.Line_Number := Scanner.Line_Number + 1;
+                     Scanner.Line := Scanner.Line + 1;
                   end if;
                   Index := Index + 1;
                end loop;
@@ -144,7 +144,7 @@ package body Parsers is
             end if;
 
             Scanner.Token_First  := Index;
-            Scanner.Token_Lineno := Scanner.Line_Number;
+            Scanner.Token_Lineno := Scanner.Line;
 
             Debug (On_True, "Token_First: " & Natural'Image (Scanner.Token_First));
 
@@ -158,7 +158,7 @@ package body Parsers is
                      exit when C = Latin_1.NUL;
                      exit when C = '"';
                      if C = Latin_1.LF then
-                        Scanner.Line_Number := Scanner.Line_Number + 1;
+                        Scanner.Line := Scanner.Line + 1;
                      end if;
                      Index := Index + 1;
                   end loop;
@@ -183,7 +183,7 @@ package body Parsers is
                         exit when Level = 1 and C = '}';
 
                         if C = Latin_1.LF then
-                           Scanner.Line_Number := Scanner.Line_Number + 1;
+                           Scanner.Line := Scanner.Line + 1;
 
                         elsif C = '{' then
                            Level := Level + 1;
@@ -202,7 +202,7 @@ package body Parsers is
                                  exit when C = Latin_1.NUL;
                                  exit when C = '/' and Prev_C = '*';
                                  if C = Latin_1.LF then
-                                    Scanner.Line_Number := Scanner.Line_Number + 1;
+                                    Scanner.Line := Scanner.Line + 1;
                                  end if;
                                  Prev_C := C;
                                  Index  := Index + 1;
@@ -219,7 +219,7 @@ package body Parsers is
                               Index := Index + 1;
                            end loop;
                            if C /= Latin_1.NUL then
-                              Scanner.Line_Number := Scanner.Line_Number + 1;
+                              Scanner.Line := Scanner.Line + 1;
                            end if;
 
                            --  String is a character literals
@@ -235,7 +235,7 @@ package body Parsers is
                                  exit when C = Latin_1.NUL;
                                  exit when C = Start_Char and Prev_C /= '\';
                                  if C = Latin_1.LF then
-                                    Scanner.Line_Number := Scanner.Line_Number + 1;
+                                    Scanner.Line := Scanner.Line + 1;
                                  end if;
                                  if Prev_C = '\' then
                                     Prev_C := Latin_1.NUL;

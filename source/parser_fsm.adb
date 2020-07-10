@@ -806,7 +806,7 @@ package body Parser_FSM is
               Symbol /= null and then
               Symbol.Data_Type /= Null_Unbounded_String
             then
-               Parser_Error (E207, Scanner.Line_Number, Token);
+               Parser_Error (E207, Scanner.Line, Token);
                Scanner.State := RESYNC_AFTER_DECL_ERROR;
             else
                if Symbol = null then

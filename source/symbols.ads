@@ -77,7 +77,7 @@ package Symbols is
          --  Code which executes whenever this symbol is
          --  popped from the stack during error processing
 
-         Dest_Lineno : aliased Integer := 0;
+         Dest_Lineno : aliased Natural := 0;
          --  Line number for start of destructor.  Set to
          --  -1 for duplicate destructors.
 
