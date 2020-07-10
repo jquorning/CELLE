@@ -690,7 +690,6 @@ package body Reports is
       --      AX := (struct axset *) calloc(lemp->nxstate*2, sizeof(ax[0]));
       --  AX := new AX_Set_Record;  --  (struct axset *) calloc(lemp->nxstate*2, sizeof(ax[0]));
       declare
-         use Symbols;
          use type Types.Symbol_Index;
       begin
          AX := new AX_Set_Array (0 .. Session.Nx_State - 1);
@@ -2034,7 +2033,6 @@ package body Reports is
 --  lemp->tablesize += n*sz;
       for I in 0 .. N - 1 loop
          declare
-            use Symbols;
             use Sessions;
 
             State : access States.State_Record;  --  States.State_Access;
@@ -2085,8 +2083,6 @@ package body Reports is
 --  lemp->tablesize += n*sz;
       for I in 0 .. N - 1 loop
          declare
-            use Symbols;
-
             State : access States.State_Record;
          begin
             State := Session.Sorted (Sessions.State_Index (I));
@@ -2125,8 +2121,6 @@ package body Reports is
       Put_Line ("static const YYACTIONTYPE yy_default[] = {");
       for I in 0 .. N - 1 loop
          declare
-            use Symbols;
-
             State : constant access States.State_Record :=
               Session.Sorted (Sessions.State_Index (I));
          begin
