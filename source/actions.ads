@@ -87,34 +87,58 @@ package Actions is
    type LA_Action_Array is array (Natural range <>) of Lookahead_Action;
    type A_LA_Actions is access all LA_Action_Array;
 
-   type Action_Table is
-      record
-         N_Action           : Integer;       --  Number of used slots in aAction[]
-         N_Action_Alloc     : Integer;       --  Slots allocated for aAction[]
-         Action             : A_LA_Actions;  --  The yy_action[] table under construction
-         Lookahead          : A_LA_Actions;  --  A single new transaction set
-         Mn_Lookahead       : Integer;       --  Minimum aLookahead[].lookahead
-         Mn_Action          : Integer;       --  Action associated with mnLookahead
-         Mx_Lookahead       : Integer;       --  Maximum aLookahead[].lookahead
-         N_Lookahead        : Integer;       --  Used slots in aLookahead[]
-         N_Looskahead_Alloc : Integer;       --  Slots allocated in aLookahead[]
-         N_Terminal         : Integer;       --  Number of terminal symbols
-         N_Symbol           : Integer;       --  total number of symbols
-      end record;
+   package Tables is
 
-   type A_Action_Table is access all Action_Table;
+      type Table_Type is
+         record
+            N_Action : Integer;
+            --  Number of used slots in aAction[]
 
+            N_Action_Alloc : Integer;
+            --  Slots allocated for aAction[]
 
-   function Lookahead_Size (P : in Action_Table) return Integer;
-   --  Return the number of entries in the yy_action table
+            Action : A_LA_Actions;
+            --  The yy_action[] table under construction
 
-   function Alloc (N_Symbol   : in Integer;
-                   N_Terminal : in Integer) return A_Action_Table;
-   --  Allocate a new acttab structure
+            Lookahead : A_LA_Actions;
+            --  A single new transaction set
 
-   function Action_Size (P : in Action_Table) return Integer;
-   --  Return the size of the action table without the trailing syntax error
-   --  entries.
+            Mn_Lookahead : Integer;
+            --  Minimum aLookahead[].lookahead
+
+            Mn_Action : Integer;
+            --  Action associated with mnLookahead
+
+            Mx_Lookahead : Integer;
+            --  Maximum aLookahead[].lookahead
+
+            N_Lookahead : Integer;
+            --  Used slots in aLookahead[]
+
+            N_Looskahead_Alloc : Integer;
+            --  Slots allocated in aLookahead[]
+
+            N_Terminal : Integer;
+            --  Number of terminal symbols
+
+            N_Symbol : Integer;
+            --  Total number of symbols
+         end record;
+
+      type Table_Access is access all Table_Type;
+
+      function Lookahead_Size (P : in Table_Type) return Integer;
+      --  Return the number of entries in the yy_action table
+
+      function Alloc (N_Symbol   : in Integer;
+                      N_Terminal : in Integer) return Table_Access;
+      --  Allocate a new acttab structure
+
+      function Action_Size (P : in Table_Type) return Integer;
+      --  Return the size of the action table without the trailing syntax error
+      --  entries.
+
+   end Tables;
 
    function Action_Cmp (Left, Right : in Action_Record)
                        return Boolean;

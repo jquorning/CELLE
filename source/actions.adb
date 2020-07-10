@@ -37,12 +37,14 @@ package body Actions is
    package Action_Lists is
       new Ada.Containers.Doubly_Linked_Lists (Element_Type => Action_Record);
 
+   package body Tables is
+
 --  /* Return the number of entries in the yy_action table */
 --  #define acttab_lookahead_size(X) ((X)->nAction)
-   function Lookahead_Size (P : in Action_Table) return Integer is
-   begin
-      return P.N_Action;
-   end Lookahead_Size;
+      function Lookahead_Size (P : in Tables.Table_Type) return Integer is
+      begin
+         return P.N_Action;
+      end Lookahead_Size;
 
 --  /* The value for the N-th entry in yy_action */
 --  #define acttab_yyaction(X,N)  ((X)->aAction[N].action)
@@ -58,15 +60,15 @@ package body Actions is
 --  }
 
 
-   function Alloc (N_Symbol   : in Integer;
-                   N_Terminal : in Integer) return A_Action_Table
-   is
-      P : constant A_Action_Table := new Action_Table;
-   begin
-      P.N_Symbol   := N_Symbol;
-      P.N_Terminal := N_Terminal;
-      return P;
-   end Alloc;
+      function Alloc (N_Symbol   : in Integer;
+                      N_Terminal : in Integer) return Table_Access
+      is
+         P : constant Table_Access := new Table_Type;
+      begin
+         P.N_Symbol   := N_Symbol;
+         P.N_Terminal := N_Terminal;
+         return P;
+      end Alloc;
 
 --  /* Add a new action to the current transaction set.
 --  **
@@ -220,16 +222,17 @@ package body Actions is
 --  }
 
 
-   function Action_Size (P : in Action_Table) return Integer
-   is
-      N : Integer := P.N_Action;
-   begin
-      while N > 0 and P.Action (N - 1).Lookahead < 0 loop
-         N := N - 1;
-      end loop;
-      return N;
-   end Action_Size;
+      function Action_Size (P : in Table_Type) return Integer
+      is
+         N : Integer := P.N_Action;
+      begin
+         while N > 0 and P.Action (N - 1).Lookahead < 0 loop
+            N := N - 1;
+         end loop;
+         return N;
+      end Action_Size;
 
+   end Tables;
 
    function Action_Cmp (Left, Right : in Action_Record)
                        return Boolean

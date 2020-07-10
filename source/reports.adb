@@ -117,14 +117,14 @@ package body Reports is
    --
 
    procedure Output_Action_Table
-     (Action_Table : in Actions.A_Action_Table;
+     (Action_Table : in Actions.Tables.Table_Type;
       N            : in Integer;
       No_Action    : in Integer);
    --
    --
 
    procedure Output_YY_Lookahead
-     (Action_Table : in Actions.A_Action_Table;
+     (Action_Table : in Actions.Tables.Table_Type; -- A_Action_Table;
       N            : in Integer;
       Nsymbol      : in Integer);
    --
@@ -380,7 +380,6 @@ package body Reports is
       use Symbols;
       use Rules;
       use Configs;
-      use Actions;
       use type Types.Symbol_Index;
 
       File : File_Type;
@@ -535,15 +534,14 @@ package body Reports is
       use Ada.Strings.Unbounded;
       use Sessions;
       use Rules;
-      package Acttab renames Actions;
 
       Session_Name : constant String := To_String (Session.Names.Name);
 --    char line[LINESIZE];
       State : States.State_Access;
 --    struct action *ap;
-      Rule  : Rules.Rule_Access;
+--      Rule  : Rules.Rule_Access;
 
-      Act_Tab : Actions.A_Action_Table;
+      Act_Tab : Actions.Tables.Table_Access;
 --    int i, j, n, sz;
       I  : Integer;
       N  : Integer;
@@ -722,7 +720,7 @@ package body Reports is
       --  of placing the largest action sets first
 --    for(i=0; i<lemp->nxstate*2; i++) ax[i].iOrder = i;
 --    qsort(ax, lemp->nxstate*2, sizeof(ax[0]), axset_compare);
-      Act_Tab := Acttab.Alloc (Integer (Symbols.Last_Index), Integer (Session.N_Terminal));
+      Act_Tab := Actions.Tables.Alloc (Integer (Symbols.Last_Index), Integer (Session.N_Terminal));
 --    for(i=0; i<lemp->nxstate*2 && ax[i].nAction>0; i++){
 --      stp = ax[i].stp;
 --      if( ax[i].isTkn ){
@@ -806,20 +804,20 @@ package body Reports is
       --
       --  Output the yy_action table
       --
-      Session.N_Action_Tab := Acttab.Action_Size (Act_Tab.all);
+      Session.N_Action_Tab := Actions.Tables.Action_Size (Act_Tab.all);
       N := Session.N_Action_Tab;
       Session.Table_Size := Session.Table_Size + N * Size_Of_Action_Type;
 
-      Output_Action_Table (Act_Tab, N, Session.No_Action);
+      Output_Action_Table (Act_Tab.all, N, Session.No_Action);
 
       --
       --  Output the yy_lookahead table
       --
-      Session.N_Lookahead_Tab := Acttab.Lookahead_Size (Act_Tab.all);
+      Session.N_Lookahead_Tab := Actions.Tables.Lookahead_Size (Act_Tab.all);
       N := Session.N_Lookahead_Tab;
       Session.Table_Size := Session.Table_Size + N * Size_Of_Code_Type;
 
-      Output_YY_Lookahead (Act_Tab, N, Integer (Symbols.Last_Index));
+      Output_YY_Lookahead (Act_Tab.all, N, Integer (Symbols.Last_Index));
 
       --
       --  Output the yy_shift_ofst[] table
@@ -1063,17 +1061,23 @@ package body Reports is
       --
       --  Note: This code depends on the fact that rules are number
       --  sequentually beginning with 0.
+      declare
+         use Ada.Text_IO;
+         Index : Natural := 0;
+      begin
+         for Rule of Session.Rule loop
+            Put ("  ");
+            Put (Symbol_Index'Image (Rule.LHS.Index));
+            Put (", /* (");
+            Put (Natural'Image (I));
+            Put (" ");
+            Rule_Print (Ada.Text_IO.Standard_Output, Rule);
+            Put (" */");
+            New_Line;
+            Index := Index + 1;
+         end loop;
+      end;
 
---    for(i=0, rp=lemp->rule; rp; rp=rp->next, i++){
---      lime_put ("  ");
---      lime_put_int (rp->lhs->index);
---      lime_put (", /* (");
---      lime_put_int (i);
---      lime_put (" ");
-      Rule_Print (Ada.Text_IO.Standard_Output, Rule);
---      lime_put_line (" */");
---    }
---
       Template_Transfer (Session_Name);
 --
 --    for(i=0, rp=lemp->rule; rp; rp=rp->next, i++){
@@ -1939,7 +1943,7 @@ package body Reports is
 
    --  lemon.c:4377
    procedure Output_Action_Table
-     (Action_Table : in Actions.A_Action_Table;
+     (Action_Table : in Actions.Tables.Table_Type; -- A_Action_Table;
       N            : in Integer;
       No_Action    : in Integer)
    is
@@ -1977,7 +1981,7 @@ package body Reports is
 
 
    procedure Output_YY_Lookahead
-     (Action_Table : in Actions.A_Action_Table;
+     (Action_Table : in Actions.Tables.Table_Type; -- A_Action_Table;
       N            : in Integer;
       Nsymbol      : in Integer)
    is
