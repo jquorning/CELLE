@@ -9,6 +9,8 @@
 
 with Ada.Strings.Unbounded;
 
+with Auxiliary;
+
 package body Report_Parsers is
 
    use Ada.Strings.Unbounded;
@@ -21,7 +23,6 @@ package body Report_Parsers is
    Global_Parser_Context : aliased Context_Record := (ARG => Null_Unbounded_String,
                                                       CTX => Null_Unbounded_String);
 
-   function Is_Alnum (C : in Character) return Boolean;
    --
 
 
@@ -58,21 +59,13 @@ package body Report_Parsers is
          Pos := Pos - 1;
       end loop;
 
-      while Pos >= 1 and (Is_Alnum (S (Pos - 1)) or S (Pos - 1) = '_') loop
+      while Pos >= 1 and (Auxiliary.Is_Alnum (S (Pos - 1)) or S (Pos - 1) = '_') loop
          Pos := Pos - 1;
       end loop;
 
    end Trim_Right_Symbol;
 
 
-   function Is_Alnum (C : in Character) return Boolean
-   is
-   begin
-      return
-        C in 'a' .. 'z' or
-        C in 'A' .. 'Z' or
-        C in '0' .. '9';
-   end Is_Alnum;
 
 
 end Report_Parsers;

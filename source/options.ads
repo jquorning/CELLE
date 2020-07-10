@@ -30,7 +30,7 @@ package Options is
    Output_Dir    : aliased String_Access := new String'(".");
 
 
-   Placeholder_Dummy : aliased GNAT.Strings.String_Access;
+   Placeholder_Dummy : aliased GNAT.Strings.String_Access := null;
    Language_String   : aliased GNAT.Strings.String_Access :=
      new String'("C");
    --  C is the default language like in Lemon.

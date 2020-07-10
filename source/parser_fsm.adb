@@ -592,8 +592,12 @@ package body Parser_FSM is
             Rule.Prec_Symbol := null;
             Rule.Index       := Integer (Scanner.Rule.Length);
 
---            Rule.Next_LHS   := Rule.LHS.Rule;
---            Rule.LHS.Rule   := Rule;
+            declare
+               use Symbols;
+            begin
+               Rule.Next_LHS := Rule_Access (Symbol_Access (Rule.LHS).Rule);
+               Symbol_Access (Rule.LHS).Rule := Symbol_Rule_Access (Rule);
+            end;
 
             Scanner.Rule.Append (Rule);
             Scanner.Previous_Rule := Scanner.Rule.Last;
@@ -802,7 +806,7 @@ package body Parser_FSM is
               Symbol /= null and then
               Symbol.Data_Type /= Null_Unbounded_String
             then
-               Parser_Error (E207, Scanner.Line_Number, Token);
+               Parser_Error (E207, Scanner.Line, Token);
                Scanner.State := RESYNC_AFTER_DECL_ERROR;
             else
                if Symbol = null then

@@ -13,6 +13,8 @@ package body Symbols is
                  Right : in Symbol_Record)
                 return Boolean
    is
+      use type Types.Symbol_Index;
+
       function Value_Of (Item : in Symbol_Record) return Integer;
 
       function Value_Of (Item : in Symbol_Record) return Integer
@@ -47,12 +49,9 @@ package body Symbols is
       null;
    end Symbol_Init;
 
-
-
---     function Symbol_Array_Of return Symbol_Access_Array_Access;
---     --  Return an array of pointers to all data in the table.
---     --  The array is obtained from malloc.  Return NULL if memory allocation
---     --  problems, or if the array is empty.
+   --  Return an array of pointers to all data in the table.
+   --  The array is obtained from malloc.  Return NULL if memory allocation
+   --  problems, or if the array is empty.
    procedure Symbol_Allocate (Count : in Ada.Containers.Count_Type) is
    begin
       --  Symbol_Lists (Ada.Containers.Doubly_Linked_Lists) does not nave
@@ -77,7 +76,7 @@ package body Symbols is
    --  2019-09-06 JQ
    --  Simply try to make a vector for symbols
    package Symbol_Bases is
-      new Ada.Containers.Vectors (Index_Type   => Symbol_Index,
+      new Ada.Containers.Vectors (Index_Type   => Types.Symbol_Index,
                                   Element_Type => Symbol_Access);
    Base : Symbol_Bases.Vector;
 
@@ -85,6 +84,8 @@ package body Symbols is
    procedure Count_Symbols_And_Terminals (Symbol_Count   : out Natural;
                                           Terminal_Count : out Natural)
    is
+      use Types;
+
       Index : Symbol_Index;
    begin
       Symbol_Count   := Natural'First;
@@ -133,7 +134,7 @@ package body Symbols is
          Symbol.Fallback    := null;
          Symbol.Precedence  := -1;
          Symbol.Association := Unknown_Association;
-         Symbol.First_Set   := Sets.Null_Set;
+         Symbol.First_Set   := Symbol_Sets.Null_Set;
          Symbol.Lambda      := False;
          Symbol.Destructor  := Null_Unbounded_String;
          Symbol.Dest_Lineno := 0;
@@ -167,6 +168,8 @@ package body Symbols is
                             Right : in Symbol_Access)
                            return Boolean
    is
+      use Types;
+
       L : Symbol_Record renames Left.all;
       R : Symbol_Record renames Right.all;
 
@@ -190,7 +193,10 @@ package body Symbols is
       new Symbol_Bases.Generic_Sorting (Symbol_Compare);
 
 
-   procedure Sort is
+   procedure Sort
+   is
+      use Types;
+
       Index : Symbol_Index;
    begin
       --  Set index field in symbols in symbol table
@@ -207,6 +213,7 @@ package body Symbols is
    procedure Set_Lambda_False_And_Set_Firstset (First : in Natural;
                                                 Last  : in Natural)
    is
+      use Types;
    begin
       for Symbol of Base loop
          Symbol.Lambda := False;
@@ -216,7 +223,7 @@ package body Symbols is
          declare
             Symbol : constant Symbol_Access := Base.Element (Symbol_Index (I));
          begin
-            Symbol.all.First_Set := Sets.Set_New;
+            Symbol.all.First_Set := Symbol_Sets.Set_New;
             Base (Symbol_Index (I)) := Symbol;
          end;
       end loop;
@@ -224,13 +231,13 @@ package body Symbols is
    end Set_Lambda_False_And_Set_Firstset;
 
 
-   function Last_Index return Symbol_Index is
+   function Last_Index return Types.Symbol_Index is
    begin
       return Base.Last_Index;
    end Last_Index;
 
 
-   function Element_At (Index : in Symbol_Index) return Symbol_Access
+   function Element_At (Index : in Types.Symbol_Index) return Symbol_Access
    is
    begin
       return Base.Element (Index);

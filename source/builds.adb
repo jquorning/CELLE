@@ -11,11 +11,12 @@ with Ada.Text_IO;
 with Ada.Strings.Unbounded;
 with Ada.Containers;
 
+with Types;
 with Reports;
 with Options;
 with Rules;
 with Symbols.IO;
-with Sets;
+with Symbol_Sets;
 with Errors;
 with Configs;
 with Actions;
@@ -58,8 +59,8 @@ package body Builds is
    is
       use Rules;
       use Symbols;
+      use Types;
 
---      Rule     : Rule_Access;
       Progress : Boolean;
    begin
       Symbols.Set_Lambda_False_And_Set_Firstset (First => Natural (Session.N_Terminal),
@@ -104,7 +105,7 @@ package body Builds is
                   S2 := Symbol_Access (Symbol);
 
                   if S2.Kind = Terminal then
-                     if Sets.Set_Add (S1.First_Set, Natural (S2.Index)) then
+                     if Symbol_Sets.Set_Add (S1.First_Set, S2.Index) then
                         Progress := True;
                      end if;
                      exit;
@@ -112,8 +113,8 @@ package body Builds is
                   elsif S2.Kind = Multi_Terminal then
                      for J in S2.Sub_Symbol.First_Index .. S2.Sub_Symbol.Last_Index loop
                         if
-                          Sets.Set_Add (S1.First_Set,
-                                        Natural (S2.Sub_Symbol (J).Index))
+                          Symbol_Sets.Set_Add (S1.First_Set,
+                                               S2.Sub_Symbol (J).Index)
                         then
                            Progress := True;
                         end if;
@@ -124,7 +125,7 @@ package body Builds is
                      exit when S1.Lambda = False;
 
                   else
-                     if Sets.Set_Union (S1.First_Set, S2.First_Set) then
+                     if Symbol_Sets.Set_Union (S1.First_Set, S2.First_Set) then
                         Progress := True;
                      end if;
                      exit when S2.Lambda = False;
@@ -148,8 +149,9 @@ package body Builds is
       use Rules;
       use Rules.Rule_Lists;
 
-      Start_Symbol : Symbol_Access;
-      Rule   : Rule_Access;
+      Start_Symbol      : Symbol_Access;
+      Rule              : Rule_Access;
+      Dummy_First_State : States.State_Access;
    begin
       Config_Lists.Init;
 
@@ -188,15 +190,14 @@ package body Builds is
       --  left-hand side
 
       Rule := Rule_Access (Start_Symbol.Rule);
-      loop
-         exit when Rule = null;
+      while Rule /= null loop
          declare
-            Dummy   : Boolean;
-            New_CFP : Configs.Config_Access;
+            Dummy  : Boolean;
+            Config : Configs.Config_Access;
          begin
             Rule.LHS_Start := True;
-            New_CFP := Config_Lists.Add_Basis (Rule, 0);
-            Dummy := Sets.Set_Add (New_CFP.Follow_Set, 0);
+            Config := Config_Lists.Add_Basis (Rule, Dot => 0);
+            Dummy  := Symbol_Sets.Set_Add (Config.Follow_Set, 0);
          end;
          Rule := Rule.Next_LHS;
       end loop;
@@ -204,8 +205,9 @@ package body Builds is
       --  Compute the first state.  All other states will be
       --  computed automatically during the computation of the first one.
       --  The returned pointer to the first state is not used.
-      Get_First_State (Session);
 
+      Dummy_First_State := Get_State (Session);
+      Debugs.Debug (True, "Get_State first");
    end Find_States;
 
 
@@ -216,6 +218,7 @@ package body Builds is
       use Symbols;
       use Rules;
       use Actions;
+      use type Types.Symbol_Index;
 
       Config : Config_Access;
       Symbol : Symbol_Access;
@@ -236,7 +239,7 @@ package body Builds is
             --  Is dot at extreme right?
             if Dot_Type (Config.Rule.RHS.Length) = Config.Dot then
                for J in 0 .. Session.N_Terminal - 1 loop
-                  if Sets.Set_Find (Config.Follow_Set, Integer (J)) then
+                  if Symbol_Sets.Set_Find (Config.Follow_Set, J) then
                      --  Add a reduce action to the state "stp" which will reduce by the
                      --  rule "cfp->rp" if the lookahead symbol is "lemp->symbols[j]"
                      Action_Lists.Append (State.Action, Reduce,
@@ -347,7 +350,7 @@ package body Builds is
    begin
 
       --  Extract the sorted basis of the new state.  The basis was constructed
-      --  by prior calls to "Configlist_addbasis()".
+      --  by prior calls to "Config_lists.Add_Basis".
 
       Config_Lists.Sort_Basis;
       Basis := Config_Lists.Basis;
@@ -355,6 +358,7 @@ package body Builds is
       --  Get a state with the same basis
       State := States.Find (Basis);
       if State /= null then
+         Debugs.Debug (True, "This is not a new state");
          --  A state with the same basis already exists!  Copy all the follow-set
          --  propagation links from the state under construction into the
          --  preexisting state, then return a pointer to the preexisting state
@@ -375,6 +379,7 @@ package body Builds is
          Config := Config_Lists.Xreturn;
          Config_Lists.Eat (Config);
       else
+         Debugs.Debug (True, "This is a new state");
          --  This really is a new state.  Construct all the details
          Config_Lists.Closure (Session);  -- Compute the configuration closure
          Config_Lists.Sort;               -- Sort the configuration closure
@@ -395,15 +400,6 @@ package body Builds is
       end if;
       return State;
    end Get_State;
-
-
-   procedure Get_First_State (Session : in out Sessions.Session_Type)
-   is
-      Dummy : States.State_Access;
-      pragma Unreferenced (Dummy);
-   begin
-      Dummy := Get_State (Session);
-   end Get_First_State;
 
 
    function Same_Symbol (Left, Right : in Symbols.Symbol_Access) return Boolean;
@@ -469,57 +465,62 @@ package body Builds is
 
       Config := State.Config;
       while Config /= null loop
-         if Config.Status = Complete then
-            goto Continue;    -- Already used by inner loop
-         end if;
-         if Config.Dot >= Rules.Dot_Type (Config.Rule.RHS.Length) then
-            goto Continue;  -- Can't shift this config
-         end if;
 
-         Config_Lists.Reset;                       -- Reset the new config set
-         Symbol := Symbol_Access (Config.Rule.RHS.Element (Config.Dot)); -- Symbol after the dot
+         --  Already used by inner loop
+         --  Can't shift this config
+         if
+           Config.Status = Incomplete and
+           Config.Dot    < Config.Rule.RHS.Last_Index
+         then
 
-         --  For every configuration in the state "stp" which has the symbol "sp"
-         --  following its dot, add the same configuration to the basis set under
-         --  construction but with the dot shifted one symbol to the right.
-         B_Config := Config;
-         while B_Config /= null loop
-            if B_Config.Status = Complete then
-               goto Continue_Config;    --  Already used
-            end if;
-            if B_Config.Dot >= Rules.Dot_Type (B_Config.Rule.RHS.Length) then
-               goto Continue_Config; --  Can't shift this one
-            end if;
-            --  Get symbol after dot
-            B_Symbol := Symbol_Access (B_Config.Rule.RHS.Element (B_Config.Dot));
-            if not Same_Symbol (B_Symbol, Symbol) then
-               goto Continue_Config;                      --  Must be same as for "cfp"
-            end if;
-            B_Config.Status := Complete;                   --  Mark this config as used
-            New_Config := Config_Lists.Add_Basis (B_Config.Rule, B_Config.Dot + 1);
-            Prop_Links.Append (New_Config.Backward_PL, B_Config);
+            Config_Lists.Reset;  -- Reset the new config set
+            Symbol := Symbol_Access (Config.Rule.RHS.Element (Config.Dot)); -- Symbol after the dot
 
-            <<Continue_Config>>
-            B_Config := B_Config.Next;
-         end loop;
+            --  For every configuration in the state "stp" which has the symbol "sp"
+            --  following its dot, add the same configuration to the basis set under
+            --  construction but with the dot shifted one symbol to the right.
 
-         --  Get a pointer to the state described by the basis configuration set
-         --  constructed in the preceding loop
-         New_State := Get_State (Session);
+            B_Config := Config;
+            while B_Config /= null loop
 
-         --  The state "newstp" is reached from the state "stp" by a shift action
-         --  on the symbol "sp"
-         if Symbol.Kind = Multi_Terminal then
-            for Sub_Symbol of Symbol.Sub_Symbol loop
-               Action_Lists.Append (State.Action, Actions.Shift, Sub_Symbol,
-                                    State => New_State, Rule => null);
+               if
+                 B_Config.Status = Incomplete and
+                 B_Config.Dot    < B_Config.Rule.RHS.Last_Index
+               then
+                  --  Get symbol after dot
+                  --  Must be same as for "cfp"
+                  B_Symbol := Symbol_Access (B_Config.Rule.RHS.Element (B_Config.Dot));
+                  if Same_Symbol (B_Symbol, Symbol) then
+
+                     B_Config.Status := Complete;  --  Mark this config as used
+                     New_Config := Config_Lists.Add_Basis (B_Config.Rule, B_Config.Dot + 1);
+                     Prop_Links.Append (New_Config.Backward_PL, B_Config);
+                  end if;
+               end if;
+
+               B_Config := B_Config.Next;
             end loop;
-         else
-            Action_Lists.Append (State.Action, Actions.Shift, Symbol,
-                                 State => New_State, Rule => null);
+
+            --  Get a pointer to the state described by the basis configuration set
+            --  constructed in the preceding loop
+
+            New_State := Get_State (Session);
+
+            --  The state "newstp" is reached from the state "stp" by a shift action
+            --  on the symbol "sp"
+
+            if Symbol.Kind = Multi_Terminal then
+               for Sub_Symbol of Symbol.Sub_Symbol loop
+                  Action_Lists.Append (State.Action, Actions.Shift, Sub_Symbol,
+                                       State => New_State, Rule => null);
+               end loop;
+            else
+               Action_Lists.Append (State.Action, Actions.Shift, Symbol,
+                                    State => New_State, Rule => null);
+            end if;
+
          end if;
 
-         <<Continue>>
          Config := Config.Next;
       end loop;
    end Build_Shifts;
@@ -596,7 +597,7 @@ package body Builds is
                end if;
 
                for Link of Config.Forward_PL loop
-                  Change := Sets.Set_Union (Link.Follow_Set,
+                  Change := Symbol_Sets.Set_Union (Link.Follow_Set,
                                             Config.Follow_Set);
                   if Change then
                      Link.Status := Incomplete;
@@ -626,75 +627,107 @@ package body Builds is
 --         Reports.Reprint (Session);
 --      else
 
-         --  Initialize the size for all follow and first sets
-         Sets.Set_Size (Terminal_Last + 1);
+      --  Initialize the size for all follow and first sets
+      Symbol_Sets.Set_Range (First => Types.Symbol_Index'First,
+                             Last  => Types.Symbol_Index (Terminal_Last + 1));
 
-         --  Find the precedence for every production rule (that has one)
-         Builds.Find_Rule_Precedences (Session);
-         Ada.Text_IO.Put_Line ("16 dump_symbols");
-         Symbols.IO.JQ_Dump_Symbols (Session, Mode => 1);
+      --  Find the precedence for every production rule (that has one)
+      Builds.Find_Rule_Precedences (Session);
+      Ada.Text_IO.Put_Line ("16 dump_symbols");
+      Symbols.IO.JQ_Dump_Symbols (Session, Mode => 1);
 
-         --  Compute the lambda-nonterminals and the first-sets for every
-         --  nonterminal
-         Builds.Find_First_Sets (Session);
+      --  Compute the lambda-nonterminals and the first-sets for every
+      --  nonterminal
+      Builds.Find_First_Sets (Session);
 
-         Ada.Text_IO.Put_Line ("17 dump_symbols");
-         Symbols.IO.JQ_Dump_Symbols (Session, Mode => 1);
-
-         Ada.Text_IO.Put_Line ("17 dump_rules");
-         Debugs.JQ_Dump_Rules (Session, Mode => 1);
+      Ada.Text_IO.Put_Line ("17 dump_symbols");
+      Symbols.IO.JQ_Dump_Symbols (Session, Mode => 1);
+--        Ada.Text_IO.Put_Line ("17 dump_rules");
+--        Debugs.JQ_Dump_Rules (Session, Mode => 1);
+      Ada.Text_IO.Put_Line ("17 dump_states");
+      Debugs.Put_States (Session, Mode => 1);
 
          --  Compute all LR(0) states.  Also record follow-set propagation
          --  links so that the follow-set can be computed later
---         Compute_LR_States (Session);
-         Put_Line ("### 2-5");
-         --  XXX
-         --  Session.N_State := 0;
-         Builds.Find_States (Session);
-         Put_Line ("### 2-5-2");
-         Session.Sorted := Sessions.Create_Sorted_States; --  State_Arrayof;
 
-         --  Tie up loose ends on the propagation links
-         Builds.Find_Links (Session);
-         Put_Line ("### 2-6");
-         --  Compute the follow set of every reducible configuration
-         Builds.Find_Follow_Sets (Session);
-         Put_Line ("### 2-7");
-         --  Compute the action tables
-         Builds.Find_Actions (Session);
-         Put_Line ("### 2-8");
-         --  Compress the action tables
-         if not Options.Compress then
-            Reports.Compress_Tables (Session);
-         end if;
-         Put_Line ("### 2-9");
-         --  Reorder and renumber the states so that states with fewer choices
-         --  occur at the end.  This is an optimization that helps make the
-         --  generated parser tables smaller.
-         if not Options.No_Resort then
-            Reports.Resort_States (Session);
-         end if;
-         Put_Line ("### 2-10");
-         --   Generate a report of the parser generated.  (the "y.output" file)
-         if not Options.Be_Quiet then
-            Reports.Report_Output (Session);
-         end if;
+      Put_Line ("### 2-5");
+      --  XXX
+      --  Session.N_State := 0;
+      Builds.Find_States (Session);
+      Put_Line ("### 2-5-2");
+--      Debugs.Put_States (Session, Mode => 1);
+      Sessions.Create_Sorted_States (Session);
+      Put_Line ("2-5-2 dump_states");
+      Debugs.Put_States (Session, Mode => 1);
 
-         --  Generate the source code for the parser
-         Reports.Report_Table
-           (Session,
-           User_Template_Name => Options.User_Template.all);
+      --
+      --  Tie up loose ends on the propagation links
+      --
 
-         --  Produce a header file for use by the scanner.  (This step is
-         --  omitted if the "-m" option is used because makeheaders will
-         --  generate the file for us.)
-         Reports.Report_Header
-           (Session,
-            Token_Prefix,
-            Base_Name, -- File_Makename (Session, ""),
-            "MODULE XXX",
-            Terminal_Last);
---      end if;
+      Builds.Find_Links (Session);
+      Put_Line ("### 2-6");
+
+      --
+      --  Compute the follow set of every reducible configuration
+      --
+
+      Builds.Find_Follow_Sets (Session);
+      Put_Line ("### 2-7");
+
+--        Put_Line ("2-7 dump_symbols");
+--        Symbols.IO.JQ_Dump_Symbols (Session, Mode => 2);
+--        Put_Line ("2-7 dump_rules");
+--        Debugs.JQ_Dump_Rules (Session, Mode => 1);
+      Put_Line ("2-7 dump_states");
+      Debugs.Put_States (Session, Mode => 1);
+
+      --
+      --  Compute the action tables
+      --
+      Builds.Find_Actions (Session);
+      Put_Line ("### 2-8");
+
+      --
+      --  Compress the action tables
+      --
+
+      if not Options.Compress then
+         Reports.Compress_Tables (Session);
+      end if;
+      Put_Line ("### 2-9");
+
+      --  Reorder and renumber the states so that states with fewer choices
+      --  occur at the end.  This is an optimization that helps make the
+      --  generated parser tables smaller.
+
+      if not Options.No_Resort then
+         Reports.Resort_States (Session);
+      end if;
+      Put_Line ("### 2-10");
+
+      --   Generate a report of the parser generated.  (the "y.output" file)
+
+      if not Options.Be_Quiet then
+         Reports.Report_Output (Session);
+      end if;
+
+      --  Generate the source code for the parser
+
+      Reports.Report_Table
+        (Session,
+         User_Template_Name => Options.User_Template.all);
+
+      --  Produce a header file for use by the scanner.  (This step is
+      --  omitted if the "-m" option is used because makeheaders will
+      --  generate the file for us.)
+
+      Reports.Report_Header
+        (Session,
+         Token_Prefix,
+         Base_Name, -- File_Makename (Session, ""),
+         "MODULE XXX",
+         Terminal_Last);
+      --      end if;
    end Reprint_Of_Grammar;
 
 

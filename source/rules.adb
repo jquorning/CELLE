@@ -7,16 +7,16 @@
 --    May you share freely, not taking more than you give.
 --
 
-with Symbols;
+with Types;
 
 package body Rules is
 
 
    procedure Assing_Sequential_Rule_Numbers (Rule_List : in out Rule_Lists.List)
    is
-      use type Symbols.Symbol_Index;
+      use Types;
 
-      Index : Symbols.Symbol_Index;
+      Index : Symbol_Index;
    begin
 
       --  Assing .Rule

@@ -25,7 +25,8 @@ with Generate_Ada;
 with Generate_C;
 with Backend;
 with Setup;
-with Sets;
+with Symbol_Sets;
+with Types;
 
 with Auxiliary;
 
@@ -35,6 +36,7 @@ package body Reports is
    procedure Rule_Print (File : in Ada.Text_IO.File_Type;
                          Rule : in Rules.Rule_Access);
    --  Print the text of a rule.
+
 
    procedure Print_Action
      (Action : in     Actions.Action_Record;
@@ -239,10 +241,10 @@ package body Reports is
 
    procedure Generate_The_Defines_1
      (YY_Code_Type   : in String;
-      Symbol_Count   : in Symbols.Symbol_Index;
+      Symbol_Count   : in Types.Symbol_Index;
       YY_Action_Type : in String;
       Is_Wildcard    : in Boolean;
-      Wildcard_Index : in Symbols.Symbol_Index);
+      Wildcard_Index : in Types.Symbol_Index);
 
    procedure Generate_The_Defines_2
      (Stack_Size : in String);
@@ -275,7 +277,7 @@ package body Reports is
          Non_Terminal : AX_Record;
       end record;
 
-   type AX_Set_Array is array (Symbols.Symbol_Index range <>) of AX_Set_Record;
+   type AX_Set_Array is array (Types.Symbol_Index range <>) of AX_Set_Record;
    type A_AX_Set_Array is access all AX_Set_Array;
 
 
@@ -301,11 +303,11 @@ package body Reports is
       use Symbols;
       use type Rules.Rule_Access;
       use type Rules.Rule_Symbol_Access;
+      use Types;
 
       package Symbol_Index_IO is
-         new Ada.Text_IO.Integer_IO (Num => Symbol_Index);
+         new Ada.Text_IO.Integer_IO (Num => Types.Symbol_Index);
 
---      Rule     : Rules.Rule_Access;
       Symbol : Symbol_Access;
       J      : Symbol_Index;
       Max_Len, Len, N_Columns, Skip : Integer;
@@ -336,7 +338,7 @@ package body Reports is
       Skip := (Integer (Session.N_Symbol) + N_Columns - 1) / N_Columns;
       for I in 0 .. Skip - 1 loop
          Put ("//");
-         J := Symbols.Symbol_Index (I);
+         J := Types.Symbol_Index (I);
          Column := 0;
          while J < Session.N_Symbol loop
             Symbol := Symbols.Element_At (J);
@@ -378,6 +380,7 @@ package body Reports is
       use Rules;
       use Configs;
       use Actions;
+      use type Types.Symbol_Index;
 
       File : File_Type;
 
@@ -386,7 +389,6 @@ package body Reports is
       N      : Integer;
       State  : States.State_Access;
       Config : Config_Access;
---      Rule   : Rule_Access;
    begin
 --  fp = file_open(lemp,".out","wb");
       Open (File, Out_File, "XXX.out");
@@ -443,7 +445,7 @@ package body Reports is
 
       for I in 0 .. Symbols.Last_Index - 1 loop
          declare
-            use type Sets.Set_Type;
+            use type Symbol_Sets.Set_Type;
 
             Symbol : Symbol_Access;
          begin
@@ -456,8 +458,8 @@ package body Reports is
                end if;
                for J in 0 .. Session.N_Terminal - 1 loop
                   if
-                    Symbol.First_Set /= Sets.Null_Set and then
-                    Sets.Set_Find (Symbol.First_Set, Natural (J))
+                    Symbol.First_Set /= Symbol_Sets.Null_Set and then
+                    Symbol_Sets.Set_Find (Symbol.First_Set, J)
                   then
                      Put (File, " ");
                      Put (File, Name_Of (Element_At (J)));
@@ -688,6 +690,7 @@ package body Reports is
       --  AX := new AX_Set_Record;  --  (struct axset *) calloc(lemp->nxstate*2, sizeof(ax[0]));
       declare
          use Symbols;
+         use type Types.Symbol_Index;
       begin
          AX := new AX_Set_Array (0 .. Session.Nx_State - 1);
 
@@ -868,8 +871,8 @@ package body Reports is
       --
       if Session.Has_Fallback then
          declare
---            use Ada.Strings.Unbounded;
             use Symbols;
+            use Types;
 
             MX : Symbol_Index := Session.N_Terminal - 1;
          begin
@@ -913,9 +916,9 @@ package body Reports is
       declare
          use Text_Out;
          use Symbols;
+         use Types;
 
          J : Integer;
---         Rule : Rules.Rule_Access;
       begin
          for I in Symbol_Index range 0 .. Symbols.Last_Index - 1 loop
             declare
@@ -977,6 +980,7 @@ package body Reports is
 --      for(i=0; i<lemp->nsymbol && lemp->symbols[i]->type!=TERMINAL; i++);
       declare
          use Symbols;
+         use Types;
       begin
          I := 0;
          loop
@@ -1866,6 +1870,7 @@ package body Reports is
 
       use Text_Out;
       use Symbols;
+      use Types;
 
       Prefix : constant String := Get_Prefix;
    begin
@@ -2495,10 +2500,10 @@ package body Reports is
 
    procedure Generate_The_Defines_1
      (YY_Code_Type   : in String;
-      Symbol_Count   : in Symbols.Symbol_Index;
+      Symbol_Count   : in Types.Symbol_Index;
       YY_Action_Type : in String;
       Is_Wildcard    : in Boolean;
-      Wildcard_Index : in Symbols.Symbol_Index)
+      Wildcard_Index : in Types.Symbol_Index)
    is
       use Text_Out;
    begin
