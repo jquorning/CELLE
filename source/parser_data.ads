@@ -57,15 +57,15 @@ package Parser_Data is
       new Ada.Containers.Vectors (Index_Type   => Positive,
                                   Element_Type => S_Alias);
 
-   type A_Declaration       is access all Unbounded_String;
-   subtype Line_Number_Type is Natural;
-   type Line_Number_Access  is not null access all Line_Number_Type;
+   type A_Declaration      is access all Unbounded_String;
+   subtype Line_Number     is Natural;
+   type Line_Number_Access is not null access all Line_Number;
 
    use Symbols;
    type Scanner_Record is
       record
-         Line          : Line_Number_Type;             --  Upcounting line number
-         Token_Lineno  : Line_Number_Type;             --  Linenumber at which current token starts
+         Line          : Line_Number;                  --  Upcounting line number
+         Token_Lineno  : Line_Number;                  --  Line at which current token starts
          Error_Count   : Natural;                      --  Number of errors so far
 --         Preproc_State : State_Preproc;
          State         : State_Scanner;                --  The state of the parser
@@ -82,7 +82,7 @@ package Parser_Data is
          Decl_Arg_Slot : A_Declaration;            --  Where the declaration argument should be put
          Insert_Line_Macro : Boolean;              --  Add #line before declaration insert
 
-         Decl_Lineno_Slot : Line_Number_Access := new Line_Number_Type'(0);
+         Decl_Lineno_Slot : Line_Number_Access := new Line_Number'(0);
          --  Where to write declaration line number
 
          Decl_Association : Association_Type;     --  Assign this association to decl arguments
