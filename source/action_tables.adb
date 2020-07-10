@@ -121,7 +121,7 @@ package body Action_Tables is
                             Make_It_Safe :        Boolean;
                             Offset       :    out Integer)
    is
-      use type Actions.Action_Value;
+--      use type Actions.Action_Value;
 
       P : Table_Type renames Table;
       I, J, K, N, Endd : Integer;

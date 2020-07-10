@@ -76,8 +76,6 @@ package Actions is
          Collide : access Action_Record;        --  Next action with the same hash
       end record;
 
-   type Action_Value   is new Integer;
-
    function Action_Cmp (Left, Right : in Action_Record)
                        return Boolean;
    --  Compare two actions for sorting purposes.  Return negative, zero, or

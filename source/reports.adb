@@ -34,7 +34,7 @@ with Auxiliary;
 package body Reports is
 
    subtype Symbol_Index is Types.Symbol_Index;
-   subtype Action_Value is Actions.Action_Value;
+   subtype Action_Value is Action_Tables.Action_Value;
 
    procedure Rule_Print (File : in Ada.Text_IO.File_Type;
                          Rule : in Rules.Rule_Access);
@@ -535,7 +535,7 @@ package body Reports is
    is
       use Ada.Strings.Unbounded;
       use Sessions;
-      use type Actions.Action_Value;
+      use type Action_Tables.Action_Value;
 
       Session_Name : constant String := To_String (Session.Names.Name);
 --    char line[LINESIZE];
@@ -1963,10 +1963,10 @@ package body Reports is
       No_Action    : in Action_Value)
    is
       use Text_Out;
-      use type Actions.Action_Value;
+      use type Action_Tables.Action_Value;
 
       J      : Integer;
-      Action : Actions.Action_Value;
+      Action : Action_Tables.Action_Value;
    begin
       Put_Line ("#define YY_ACTTAB_COUNT (" & Image (N) & ")");
       Put_Line ("static const YYACTIONTYPE yy_action[] = {");
@@ -2002,7 +2002,7 @@ package body Reports is
       Nsymbol      : in Integer)
    is
       use Text_Out;
-      use type Actions.Action_Value;
+      use type Action_Tables.Action_Value;
 
       LA : Action_Value;
       J  : Integer := 0;

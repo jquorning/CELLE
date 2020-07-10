@@ -29,13 +29,10 @@
 --  also resets the aLookahead[] array in preparation for the next
 --  state number.
 
-with Actions;
-
 package Action_Tables is
 
---   subtype Lookahead_Type is Actions.Lookahead_Type;
-   type Lookahead_Type  is new Integer;
-   subtype Action_Value is Actions.Action_Value;
+   type Lookahead_Type is new Integer;
+   type Action_Value   is new Integer;
 
    type Lookahead_Action is
       record
@@ -57,9 +54,6 @@ package Action_Tables is
          Num_Action : Natural;
          --  Number of used slots in aAction[]
 
---            Num_Action_Alloc : Natural;
-         --  Slots allocated for aAction[]
-
          Action : Action_Array_Access;
          --  The yy_action[] table under construction
 
@@ -77,9 +71,6 @@ package Action_Tables is
 
          Num_Lookahead : Natural;
          --  Used slots in aLookahead[]
-
---            Num_Lookahead_Alloc : Natural;
-         --  Slots allocated in aLookahead[]
 
          Num_Terminal : Natural;
          --  Number of terminal symbols

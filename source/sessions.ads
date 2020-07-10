@@ -21,11 +21,11 @@ with Symbols;
 with Report_Parsers;
 with States;
 with Types;
-with Actions;
+with Action_Tables;
 
 package Sessions is
 
-   subtype Action_Value is Actions.Action_Value;
+   subtype Action_Value is Action_Tables.Action_Value;
 
    --  Symbols (terminals and nonterminals) of the grammar are stored
    --  in the following:
