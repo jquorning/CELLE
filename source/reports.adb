@@ -33,6 +33,7 @@ with Auxiliary;
 package body Reports is
 
    subtype Symbol_Index is Types.Symbol_Index;
+   subtype Action_Value is Actions.Action_Value;
 
    procedure Rule_Print (File : in Ada.Text_IO.File_Type;
                          Rule : in Rules.Rule_Access);
@@ -105,11 +106,11 @@ package body Reports is
          Nx_State         : Integer;
          N_Rule           : Integer;
          N_Terminal       : Integer;
-         Min_Shift_Reduce : Integer;
-         Err_Action       : Integer;
-         Acc_Action       : Integer;
-         No_Action        : Integer;
-         Min_Reduce       : Integer;
+         Min_Shift_Reduce : Action_Value;
+         Err_Action       : Action_Value;
+         Acc_Action       : Action_Value;
+         No_Action        : Action_Value;
+         Min_Reduce       : Action_Value;
       end record;
 
    procedure Render_Constants (Render : in Render_Record);
@@ -119,7 +120,7 @@ package body Reports is
    procedure Output_Action_Table
      (Action_Table : in Actions.Tables.Table_Type;
       N            : in Integer;
-      No_Action    : in Integer);
+      No_Action    : in Action_Value);
    --
    --
 
@@ -155,8 +156,8 @@ package body Reports is
    procedure Output_Default_Action_Table
      (Session      : in Sessions.Session_Type;
       N            : in Integer;
-      Error_Action : in Integer;
-      Min_Reduce   : in Integer);
+      Error_Action : in Action_Value;
+      Min_Reduce   : in Action_Value);
 
 --     procedure Template_Print_2
 --       (Line        : in String;
@@ -533,7 +534,7 @@ package body Reports is
    is
       use Ada.Strings.Unbounded;
       use Sessions;
-      use Rules;
+      use type Actions.Action_Value;
 
       Session_Name : constant String := To_String (Session.Names.Name);
 --    char line[LINESIZE];
@@ -557,14 +558,14 @@ package body Reports is
       Template_Open_Success : Integer;
       Error_Count           : Natural := 0;
    begin
-      Session.Min_Shift_Reduce := Natural (Session.Sorted.Length);
+      Session.Min_Shift_Reduce := Action_Value (Session.Sorted.Length);
 --      Session.Err_Action       := Session.Min_Shift_Reduce + Session.N_Rule;
-      Session.Err_Action       := Session.Min_Shift_Reduce + Integer (Session.Rule.Length);
+      Session.Err_Action       := Session.Min_Shift_Reduce + Action_Value (Session.Rule.Length);
       Session.Acc_Action       := Session.Err_Action + 1;
       Session.No_Action        := Session.Acc_Action + 1;
       Session.Min_Reduce       := Session.No_Action + 1;
 --      Session.Max_Action       := Session.Min_Reduce + Session.N_Rule;
-      Session.Max_Action       := Session.Min_Reduce + Integer (Session.Rule.Length);
+      Session.Max_Action       := Session.Min_Reduce + Action_Value (Session.Rule.Length);
       Template_Open (User_Template_Name, Error_Count, Template_Open_Success);
       Implementation_Open (File_Makename (Session, ".c"));
 
@@ -593,11 +594,16 @@ package body Reports is
       declare
          use Symbols;
 
-         Code     : constant String := Minimum_Size_Type (0,
-                                                          Integer (Symbols.Last_Index),
-                                                          Size_Of_Code_Type);
-         Action   : constant String := Minimum_Size_Type (0, Session.Max_Action,
-                                                          Size_Of_Action_Type);
+         Code     : constant String :=
+           Minimum_Size_Type (0,
+                              Integer (Symbols.Last_Index),
+                              Size_Of_Code_Type);
+
+         Action   : constant String :=
+           Minimum_Size_Type (0,
+                              Integer (Session.Max_Action),
+                              Size_Of_Action_Type);
+
          Wildcard    : constant Symbol_Access := Session.Wildcard;
          Is_Wildcard : constant Boolean       := Wildcard /= null;
       begin
@@ -1909,8 +1915,8 @@ package body Reports is
    procedure Render_Constants
      (Render : in Render_Record)
    is
-      procedure Put (Item  : in String;
-                     Value : in Integer);
+      procedure Put (Item  : in String; Value : in Integer);
+      procedure Put (Item  : in String; Value : in Action_Value);
 
       procedure Put (Item  : in String;
                      Value : in Integer)
@@ -1922,13 +1928,19 @@ package body Reports is
          New_Line;
       end Put;
 
+      procedure Put (Item  : in String;
+                     Value : in Action_Value) is
+      begin
+         Put (Item, Integer (Value));
+      end Put;
+
       I : Integer;
    begin
       Put ("#define YYNSTATE             ", Render.Nx_State);
       Put ("#define YYNRULE              ", Render.N_Rule);
       Put ("#define YYNTOKEN             ", Render.N_Terminal);
       Put ("#define YY_MAX_SHIFT         ", Render.Nx_State - 1);
-      I := Render.Min_Shift_Reduce;
+      I := Integer (Render.Min_Shift_Reduce);
       Put ("#define YY_MIN_SHIFTREDUCE   ", I);
       I := I + Render.N_Rule;
       Put ("#define YY_MAX_SHIFTREDUCE   ", I - 1);
@@ -1936,21 +1948,24 @@ package body Reports is
       Put ("#define YY_ACCEPT_ACTION     ", Render.Acc_Action);
       Put ("#define YY_NO_ACTION         ", Render.No_Action);
       Put ("#define YY_MIN_REDUCE        ", Render.Min_Reduce);
-      I := Render.Min_Reduce + Render.N_Rule;
+      I := Integer (Render.Min_Reduce) + Render.N_Rule;
       Put ("#define YY_MAX_REDUCE        ", I - 1);
    end Render_Constants;
+
+   function Image is new Auxiliary.Trim_Image (Integer);
 
 
    --  lemon.c:4377
    procedure Output_Action_Table
-     (Action_Table : in Actions.Tables.Table_Type; -- A_Action_Table;
+     (Action_Table : in Actions.Tables.Table_Type;
       N            : in Integer;
-      No_Action    : in Integer)
+      No_Action    : in Action_Value)
    is
       use Text_Out;
-      use Auxiliary;
-      J : Integer;
-      Action : Integer;
+      use type Actions.Action_Value;
+
+      J      : Integer;
+      Action : Actions.Action_Value;
    begin
       Put_Line ("#define YY_ACTTAB_COUNT (" & Image (N) & ")");
       Put_Line ("static const YYACTIONTYPE yy_action[] = {");
@@ -1967,7 +1982,7 @@ package body Reports is
          if J = 0 then
             Put (" /* " & Image (I) & " */ ");
          end if;
-         Put (" " & Image (Action) & ",");
+         Put (" " & Image (Integer (Action)) & ",");
          if J = 9 or I = N - 1 then
             Put_Line ("");
             J := 0;
@@ -1986,8 +2001,9 @@ package body Reports is
       Nsymbol      : in Integer)
    is
       use Text_Out;
-      use Auxiliary;
-      LA : Integer;
+      use type Actions.Action_Value;
+
+      LA : Action_Value;
       J  : Integer := 0;
    begin
       Put_Line ("static const YYCODETYPE yy_lookahead[] = {");
@@ -1995,12 +2011,12 @@ package body Reports is
          --  LA := Get_Acttab_YY_Lookahead (I);
          LA := Action_Table.Lookahead (I).Action;
          if LA < 0 then
-            LA := Nsymbol;
+            LA := Action_Value (Nsymbol);
          end if;
          if J = 0 then
             Put (" /* " & Image (I) & " */ ");
          end if;
-         Put (" " & Image (LA) & ",");
+         Put (" " & Image (Integer (LA)) & ",");
          if J = 9 or I = N - 1 then
             Put_Line ("");
             J := 0;
@@ -2023,7 +2039,6 @@ package body Reports is
       NO_OFFSET     : in Integer)
    is
       use Text_Out;
-      use Auxiliary;
       Ofst : Integer;
       J    : Integer := 0;
    begin
@@ -2075,7 +2090,6 @@ package body Reports is
       NO_OFFSET     : in Integer)
    is
       use Text_Out;
-      use Auxiliary;
       J : Integer := 0;
       Ofst : Integer;
    begin
@@ -2114,11 +2128,10 @@ package body Reports is
    procedure Output_Default_Action_Table
      (Session         : in Sessions.Session_Type;
       N            : in Integer;
-      Error_Action : in Integer;
-      Min_Reduce   : in Integer)
+      Error_Action : in Action_Value;
+      Min_Reduce   : in Action_Value)
    is
       use Text_Out;
-      use Auxiliary;
       J : Integer := 0;
 --      IDfltReduce : Integer;
    begin
@@ -2134,9 +2147,10 @@ package body Reports is
                Put (" /* " & Image (I) & " */ ");
             end if;
             if State.iDfltReduce then
-               Put (" " & Image (Error_Action) & ",");
+               Put (" " & Image (Integer (Error_Action)) & ",");
             else
-               Put (" " & Image (Boolean'Pos (State.iDfltReduce) + Min_Reduce) & ",");
+               Put (" " & Image (Boolean'Pos (State.iDfltReduce)
+                                   + Integer (Min_Reduce)) & ",");
             end if;
          end;
          if J = 9 or I = N - 1 then

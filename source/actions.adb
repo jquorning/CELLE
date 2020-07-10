@@ -43,7 +43,7 @@ package body Actions is
 --  #define acttab_lookahead_size(X) ((X)->nAction)
       function Lookahead_Size (P : in Tables.Table_Type) return Integer is
       begin
-         return P.N_Action;
+         return P.Num_Action;
       end Lookahead_Size;
 
 --  /* The value for the N-th entry in yy_action */
@@ -65,41 +65,54 @@ package body Actions is
       is
          P : constant Table_Access := new Table_Type;
       begin
-         P.N_Symbol   := N_Symbol;
-         P.N_Terminal := N_Terminal;
+         P.Num_Symbol   := N_Symbol;
+         P.Num_Terminal := N_Terminal;
          return P;
       end Alloc;
 
---  /* Add a new action to the current transaction set.
---  **
---  ** This routine is called once for each lookahead for a particular
---  ** state.
---  */
---  void acttab_action(acttab *p, int lookahead, int action){
---    if( p->nLookahead>=p->nLookaheadAlloc ){
---      p->nLookaheadAlloc += 25;
---      p->aLookahead = (struct lookahead_action *) realloc( p->aLookahead,
---                               sizeof(p->aLookahead[0])*p->nLookaheadAlloc );
---      if( p->aLookahead==0 ){
---        fprintf(stderr,"malloc failed\n");
---        exit(1);
---      }
---    }
---    if( p->nLookahead==0 ){
---      p->mxLookahead = lookahead;
---      p->mnLookahead = lookahead;
---      p->mnAction = action;
---    }else{
---      if( p->mxLookahead<lookahead ) p->mxLookahead = lookahead;
---      if( p->mnLookahead>lookahead ){
---        p->mnLookahead = lookahead;
---        p->mnAction = action;
---      }
---    }
---    p->aLookahead[p->nLookahead].lookahead = lookahead;
---    p->aLookahead[p->nLookahead].action = action;
---    p->nLookahead++;
---  }
+      -------------------
+      -- Acttab_Action --
+      -------------------
+
+      procedure Acttab_Action (Table     : in out Table_Type;
+                               Lookahead :        Lookahead_Type;
+                               Action    :        Action_Value)
+      is
+         Additional : constant := 25;
+      begin
+         if Table.Num_Lookahead > Table.Lookahead'Last then
+            declare
+               New_Lookahead : constant Action_Array_Access :=
+                 new Action_Array'(0 .. Table.Lookahead'Last + Additional
+                                     => Lookahead_Action'(0, 0));
+            begin
+               --  Copy
+               New_Lookahead.all (0 .. Table.Num_Lookahead - 1) :=
+                 Table.Lookahead.all;
+               --  Fill last part
+               New_Lookahead.all (Table.Num_Lookahead ..
+                                    New_Lookahead'Last) :=
+                 (others => Lookahead_Action'(0, 0));
+               --  Assing
+               Table.Lookahead := New_Lookahead;
+            end;
+         end if;
+         if Table.Num_Lookahead = 0 then
+            Table.Max_Lookahead := Lookahead;
+            Table.Min_Lookahead := Lookahead;
+            Table.Min_Action    := Action;
+         else
+            if Table.Max_Lookahead < Lookahead then
+               Table.Max_Lookahead := Lookahead;
+            end if;
+            if Table.Min_Lookahead > Lookahead then
+               Table.Min_Lookahead := Lookahead;
+               Table.Min_Action    := Action;
+            end if;
+         end if;
+         Table.Lookahead (Table.Num_Lookahead) := (Lookahead, Action);
+         Table.Num_Lookahead := Table.Num_Lookahead + 1;
+      end Acttab_Action;
 
 --  /*
 --  ** Add the transaction set built up with prior calls to acttab_action()
@@ -224,7 +237,7 @@ package body Actions is
 
       function Action_Size (P : in Table_Type) return Integer
       is
-         N : Integer := P.N_Action;
+         N : Integer := P.Num_Action;
       begin
          while N > 0 and P.Action (N - 1).Lookahead < 0 loop
             N := N - 1;

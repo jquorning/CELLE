@@ -76,53 +76,61 @@ package Actions is
          Collide : access Action_Record;        --  Next action with the same hash
       end record;
 
+   type Lookahead_Type is new Integer;
+   type Action_Value   is new Integer;
+
    type Lookahead_Action is
       record
-         Lookahead : Integer;        --  Value of the lookahead token
-         Action    : Integer;        --  Action to take on the given lookahead
+         Lookahead : Lookahead_Type;
+         --  Value of the lookahead token
+
+         Action : Action_Value;
+         --  Action to take on the given lookahead
       end record;
-
-   type A_Lookahead_Action is access all Lookahead_Action;
-
-   type LA_Action_Array is array (Natural range <>) of Lookahead_Action;
-   type A_LA_Actions is access all LA_Action_Array;
 
    package Tables is
 
+      type Action_Array
+         is array (Natural range <>) of Lookahead_Action;
+
+      type Action_Array_Access
+         is access all Action_Array;
+
       type Table_Type is
          record
-            N_Action : Integer;
+            Num_Action : Natural;
             --  Number of used slots in aAction[]
 
-            N_Action_Alloc : Integer;
+--            Num_Action_Alloc : Natural;
             --  Slots allocated for aAction[]
 
-            Action : A_LA_Actions;
+            Action : Action_Array_Access;
             --  The yy_action[] table under construction
 
-            Lookahead : A_LA_Actions;
+            Lookahead : Action_Array_Access;
             --  A single new transaction set
 
-            Mn_Lookahead : Integer;
+            Min_Lookahead : Lookahead_Type;
             --  Minimum aLookahead[].lookahead
 
-            Mn_Action : Integer;
+            Min_Action : Action_Value;
             --  Action associated with mnLookahead
 
-            Mx_Lookahead : Integer;
+            Max_Lookahead : Lookahead_Type;
             --  Maximum aLookahead[].lookahead
 
-            N_Lookahead : Integer;
+            Num_Lookahead : Natural;
             --  Used slots in aLookahead[]
 
-            N_Looskahead_Alloc : Integer;
+--            Num_Lookahead_Alloc : Natural;
             --  Slots allocated in aLookahead[]
 
-            N_Terminal : Integer;
+            Num_Terminal : Natural;
             --  Number of terminal symbols
 
-            N_Symbol : Integer;
+            Num_Symbol : Natural;
             --  Total number of symbols
+
          end record;
 
       type Table_Access is access all Table_Type;
@@ -135,8 +143,16 @@ package Actions is
       --  Allocate a new acttab structure
 
       function Action_Size (P : in Table_Type) return Integer;
-      --  Return the size of the action table without the trailing syntax error
-      --  entries.
+      --  Return the size of the action table without the trailing
+      --  syntax error entries.
+
+      procedure Acttab_Action (Table     : in out Table_Type;
+                               Lookahead :        Lookahead_Type;
+                               Action    :        Action_Value);
+      --  Add a new action to the current transaction set.
+      --
+      --  This routine is called once for each lookahead for a particular
+      --  state.
 
    end Tables;
 

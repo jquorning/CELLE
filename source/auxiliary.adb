@@ -99,12 +99,15 @@ package body Auxiliary is
         C in '0' .. '9';
    end Is_Alnum;
 
+   ----------------
+   -- Trim_Image --
+   ----------------
 
-   function Image (Value : in Integer) return String is
+   function Trim_Image (Value : in Num) return String is
       use Ada.Strings;
    begin
-      return Fixed.Trim (Integer'Image (Value), Left);
-   end Image;
+      return Fixed.Trim (Num'Image (Value), Left);
+   end Trim_Image;
 
 
 end Auxiliary;

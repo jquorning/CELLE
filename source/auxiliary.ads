@@ -27,8 +27,10 @@ package Auxiliary is
    function Is_Alpha (C : in Character) return Boolean;
    function Is_Alnum (C : in Character) return Boolean;
 
-   function Image (Value : in Integer)
-                  return String;
+   generic
+      type Num is range <>;
+   function Trim_Image (Value : in Num)
+                       return String;
    --  Trimmed image of Value.
 
 end Auxiliary;

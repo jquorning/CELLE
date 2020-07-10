@@ -31,7 +31,7 @@ package body Text_Out is
 
    procedure Put_Int (Item : in Integer)
    is
-      use Auxiliary;
+      function Image is new Auxiliary.Trim_Image (Integer);
    begin
       Put (Image (Item));
    end Put_Int;

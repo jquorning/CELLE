@@ -21,8 +21,11 @@ with Symbols;
 with Report_Parsers;
 with States;
 with Types;
+with Actions;
 
 package Sessions is
+
+   subtype Action_Value is Actions.Action_Value;
 
    --  Symbols (terminals and nonterminals) of the grammar are stored
    --  in the following:
@@ -100,12 +103,12 @@ package Sessions is
          Nx_State         : State_Index;          --  nstate with tail degenerate states removed
          N_Symbol         : Types.Symbol_Index;   --  Number of terminal and nonterminal symbols
          N_Terminal       : Types.Symbol_Index;   --  Number of terminal symbols
-         Min_Shift_Reduce : Integer;              --  Minimum shift-reduce action value
-         Err_Action       : Integer;              --  Error action value
-         Acc_Action       : Integer;              --  Accept action value
-         No_Action        : Integer;              --  No-op action value
-         Min_Reduce       : Integer;              --  Minimum reduce action
-         Max_Action       : Integer;              --  Maximum action value of any kind
+         Min_Shift_Reduce : Action_Value;         --  Minimum shift-reduce action value
+         Err_Action       : Action_Value;         --  Error action value
+         Acc_Action       : Action_Value;         --  Accept action value
+         No_Action        : Action_Value;         --  No-op action value
+         Min_Reduce       : Action_Value;         --  Minimum reduce action
+         Max_Action       : Action_Value;         --  Maximum action value of any kind
          Symbols2         : Integer; -- XXX delme --  Sorted array of pointers to symbols
          Error_Cnt        : Integer;              --  Number of errors
          Error_Symbol     : Symbol_Access;        --  The error symbol
