@@ -9,8 +9,6 @@
 
 with Ada.Text_IO;
 
-with Configs;
-
 package body Symbols.IO is
 
    procedure Put_Named (Session : in Sessions.Session_Type;
@@ -18,7 +16,6 @@ package body Symbols.IO is
    is
       pragma Unreferenced (Session);
       use Ada.Text_IO;
-      use Symbols;
 
       First : Boolean := True;
    begin
@@ -43,7 +40,6 @@ package body Symbols.IO is
                               Mode    : in Integer)
    is
       use Ada.Text_IO;
-      use Types;
       use Symbol_Sets;
    begin
       for Index in 0 .. Last_Index loop

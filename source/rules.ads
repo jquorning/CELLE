@@ -11,12 +11,14 @@ with Ada.Strings.Unbounded;
 with Ada.Containers.Vectors;
 with Ada.Containers.Doubly_Linked_Lists;
 
+with Types;
 limited with Symbols;
 
 package Rules is
 
    type Dot_Type is new Natural;
    type Rule_Symbol_Access is access all Symbols.Symbol_Record;
+   subtype Line_Number is Types.Line_Number;
 
    package RHS_Vectors is
       new Ada.Containers.Vectors (Index_Type   => Dot_Type,
@@ -52,14 +54,14 @@ package Rules is
          --  Alias for the LHS (NULL if none)
 
          LHS_Start    : Boolean            := False; -- True if left-hand side is the start symbol
-         Rule_Line    : Integer            := 0;     -- Line number for the rule
+         Rule_Line    : Line_Number        := 0;     -- Line number for the rule
          RHS          : RHS_Vectors.Vector := RHS_Vectors.Empty_Vector;
          --  The RHS symbols
 
          RHS_Alias    : Alias_Vectors.Vector := Alias_Vectors.Empty_Vector;
          --  An alias for each RHS symbol (NULL if none)
 
-         Line         : Integer := 0;
+         Line         : Line_Number := 0;
          --  Line number at which code begins
 
          Code         : T_Code  := Null_Unbounded_String;

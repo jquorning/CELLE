@@ -9,6 +9,7 @@
 
 with Ada.Strings.Unbounded;
 
+with Types;
 with Symbols;
 with Errors;
 with Rules;
@@ -596,7 +597,7 @@ package body Parser_FSM is
                use Symbols;
             begin
                Rule.Next_LHS := Rule_Access (Symbol_Access (Rule.LHS).Rule);
-               Symbol_Access (Rule.LHS).Rule := Symbol_Rule_Access (Rule);
+               Symbol_Access (Rule.LHS).Rule := Rule;
             end;
 
             Scanner.Rule.Append (Rule);
@@ -669,6 +670,8 @@ package body Parser_FSM is
         Cur in '0' .. '9'
       then
          declare
+            use type Types.Line_Number;
+
             N    : Integer;
             Back : Integer;
             New_String     : constant String := Token;
@@ -717,7 +720,7 @@ package body Parser_FSM is
                   Z_Pos := Z_Pos + 1;
                end loop;
                Line := To_Unbounded_String ("#line ");
-               Append (Line, Positive'Image (Scanner.Token_Lineno));
+               Append (Line, Types.Line_Number'Image (Scanner.Token_Lineno));
                Append (Line, " ");
                N := N + Length (Line) + Length (Scanner.File_Name) + Back;
             end if;

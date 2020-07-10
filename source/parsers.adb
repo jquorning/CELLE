@@ -15,6 +15,7 @@ with Ada.Strings.Fixed;
 with Parser_Data;
 with Parser_FSM;
 
+with Types;
 with Macros;
 with Errors;
 
@@ -74,6 +75,7 @@ package body Parsers is
    is
       use Ada.Strings.Unbounded;
       use Ada.Characters;
+      use type Types.Line_Number;
 
       Success : Boolean;
       Scanner : Scanner_Record;

@@ -29,8 +29,8 @@ package Symbols is
       Unknown_Association);
 
    type Symbol_Record;
-   type Symbol_Access      is access all Symbol_Record;
-   type Symbol_Rule_Access is access all Rules.Rule_Record;
+   type Symbol_Access is access all Symbol_Record;
+   subtype Line_Number is Types.Line_Number;
 
    package Symbol_Vectors is
       new Ada.Containers.Vectors (Index_Type   => Natural,
@@ -42,17 +42,19 @@ package Symbols is
       new Ada.Containers.Vectors (Index_Type   => Natural,
                                   Element_Type => Unbounded_String);
 
+   subtype Symbol_Index is Types.Symbol_Index;
+
    type Symbol_Record is
       record
          Name      : Unbounded_String := Null_Unbounded_String;
 
-         Index     : Types.Symbol_Index := 0;
+         Index     : Symbol_Index   := 0;
          --  Index number for this symbol
 
          Kind      : Symbol_Kind    := Terminal;
          --  Symbols are all either TERMINALS or NTs
 
-         Rule      : Symbol_Rule_Access := null;
+         Rule      : access Rules.Rule_Record := null;
          --  Linked list of rules of this (if an NT)
 
          Fallback  : access Symbol_Record     := null;
@@ -64,6 +66,7 @@ package Symbols is
          Association : Association_Type := Left_Association;
          --  Associativity if precedence is defined
 
+         --  First_Set : Sets.Set_Type := Sets.Null_Set;
          First_Set : Symbol_Sets.Set_Type := Symbol_Sets.Null_Set;
          --  First-set for all rules of this symbol
 
@@ -77,7 +80,7 @@ package Symbols is
          --  Code which executes whenever this symbol is
          --  popped from the stack during error processing
 
-         Dest_Lineno : aliased Natural := 0;
+         Dest_Lineno : aliased Line_Number := 0;
          --  Line number for start of destructor.  Set to
          --  -1 for duplicate destructors.
 
@@ -146,10 +149,10 @@ package Symbols is
    --  order (the order they appeared in the grammar file) gives the
    --  smallest parser tables in SQLite.
 
-   function Last_Index return Types.Symbol_Index;
+   function Last_Index return Symbol_Index;
    --  Get symbol last index.
 
-   function Element_At (Index : in Types.Symbol_Index)
+   function Element_At (Index : in Symbol_Index)
                        return Symbol_Access;
    --  Get symbol at Index position.
 

@@ -213,7 +213,6 @@ package body Symbols is
    procedure Set_Lambda_False_And_Set_Firstset (First : in Natural;
                                                 Last  : in Natural)
    is
-      use Types;
    begin
       for Symbol of Base loop
          Symbol.Lambda := False;

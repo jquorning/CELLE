@@ -10,9 +10,13 @@
 with Ada.Strings.Unbounded;
 with Ada.Text_IO;
 
+with Types;
+
 package Errors is
 
    use Ada.Strings.Unbounded;
+   subtype Line_Number is Types.Line_Number;
+
    Default_File_Name : Unbounded_String := To_Unbounded_String ("<null>");
    Error_Count       : Natural          := 0;
 
@@ -66,14 +70,14 @@ package Errors is
      (File_Name : in Ada.Strings.Unbounded.Unbounded_String);
 
    procedure Parser_Error
-     (Id          : in Error_Id;
-      Line_Number : in Natural;
-      Argument_1  : in String := "";
-      Argument_2  : in String := "");
+     (Id         : in Error_Id;
+      Line       : in Line_Number;
+      Argument_1 : in String := "";
+      Argument_2 : in String := "");
 
-   procedure Emit_Error (File        : in Ada.Text_IO.File_Type;
-                         File_Name   : in String;
-                         Line_Number : in Natural;
-                         Message     : in String);
+   procedure Emit_Error (File      : in Ada.Text_IO.File_Type;
+                         File_Name : in String;
+                         Line      : in Line_Number;
+                         Message   : in String);
 
 end Errors;

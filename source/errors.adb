@@ -76,10 +76,10 @@ package body Errors is
 
 
    procedure Parser_Error
-     (Id          : in Error_Id;
-      Line_Number : in Natural;
-      Argument_1  : in String := "";
-      Argument_2  : in String := "")
+     (Id         : in Error_Id;
+      Line       : in Line_Number;
+      Argument_1 : in String := "";
+      Argument_2 : in String := "")
    is
 --      use Ada.Strings;
 
@@ -105,10 +105,10 @@ package body Errors is
                            Argument_2);
       end if;
 
-      Emit_Error (File        => Ada.Text_IO.Standard_Output,
-                  File_Name   => File_Name,
-                  Line_Number => Line_Number,
-                  Message     => Kind_Image & To_String (Message));
+      Emit_Error (File      => Ada.Text_IO.Standard_Output,
+                  File_Name => File_Name,
+                  Line      => Line,
+                  Message   => Kind_Image & To_String (Message));
       Error_Count := Error_Count + 1;
    end Parser_Error;
 
@@ -121,15 +121,15 @@ package body Errors is
    end Set_File_Name;
 
 
-   procedure Emit_Error (File        : in Ada.Text_IO.File_Type;
-                         File_Name   : in String;
-                         Line_Number : in Natural;
-                         Message     : in String)
+   procedure Emit_Error (File      : in Ada.Text_IO.File_Type;
+                         File_Name : in String;
+                         Line      : in Line_Number;
+                         Message   : in String)
    is
       use Ada.Text_IO;
       use Ada.Strings;
 
-      Line_Number_Image : constant String := Fixed.Trim (Natural'Image (Line_Number), Left);
+      Line_Number_Image : constant String := Fixed.Trim (Line_Number'Image (Line), Left);
    begin
       Put (File, File_Name);
       Put (File, ":");

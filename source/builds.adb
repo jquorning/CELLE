@@ -163,7 +163,7 @@ package body Builds is
          Start_Symbol := Find (To_String (Session.Names.Start));
          if Start_Symbol = null then
             Errors.Parser_Error
-              (E014, Line_Number => 0,
+              (E014, Line => 0,
                Argument_1 => To_String (Session.Names.Start),
                Argument_2 => Name_Of (Symbol_Access (Element (Session.Start_Rule).LHS)));
             Start_Symbol := Symbol_Access (Element (Session.Start_Rule).LHS);
@@ -178,9 +178,8 @@ package body Builds is
          for RHS_Symbol of Rule.RHS loop
             --  FIX ME:  Deal with multiterminals XXX
             if Symbol_Access (RHS_Symbol) = Start_Symbol then
-               Errors.Parser_Error (E015,
-                                    Line_Number => 0,
-                                    Argument_1  => Name_Of (Start_Symbol));
+               Errors.Parser_Error (E015, Line => 0,
+                                    Argument_1 => Name_Of (Start_Symbol));
             end if;
          end loop;
       end loop;
@@ -330,7 +329,7 @@ package body Builds is
 
       for Rule of Session.Rule loop
          if not Rule.Can_Reduce then
-            Errors.Parser_Error (Errors.E301, Line_Number => Rule.Rule_Line);
+            Errors.Parser_Error (Errors.E301, Line => Rule.Rule_Line);
          end if;
       end loop;
 

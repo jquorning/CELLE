@@ -143,8 +143,8 @@ package body Config_Lists is
                if Symbol.Kind = Non_Terminal then
                   if Symbol.Rule = null and Symbol /= Session.Error_Symbol then
                      Errors.Parser_Error (Errors.E401,
-                                          Line_Number => Rule.Line,
-                                          Argument_1  => Name_Of (Symbol));
+                                          Line       => Rule.Line,
+                                          Argument_1 => Name_Of (Symbol));
                   end if;
 
                   New_Rule := Rule_Access (Symbol.Rule);

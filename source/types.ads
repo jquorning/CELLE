@@ -10,6 +10,7 @@
 package Types is
 
    type Symbol_Index is new Natural;
+   type Line_Number  is new Natural;
 
 end Types;
 

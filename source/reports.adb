@@ -32,6 +32,7 @@ with Auxiliary;
 
 package body Reports is
 
+   subtype Symbol_Index is Types.Symbol_Index;
 
    procedure Rule_Print (File : in Ada.Text_IO.File_Type;
                          Rule : in Rules.Rule_Access);

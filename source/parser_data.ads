@@ -10,6 +10,7 @@
 with Ada.Strings.Unbounded;
 with Ada.Containers.Vectors;
 
+with Types;
 with Symbols;
 with Rules;
 
@@ -58,7 +59,7 @@ package Parser_Data is
                                   Element_Type => S_Alias);
 
    type A_Declaration      is access all Unbounded_String;
-   subtype Line_Number     is Natural;
+   subtype Line_Number     is Types.Line_Number;
    type Line_Number_Access is not null access all Line_Number;
 
    use Symbols;

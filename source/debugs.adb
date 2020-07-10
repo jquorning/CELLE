@@ -22,9 +22,9 @@ package body Debugs is
          Put (" RULE");
          Put (Natural'Image (Rule.Rule));
          Put (" LINE");
-         Put (Natural'Image (Rule.Line));
+         Put (Types.Line_Number'Image (Rule.Line));
          Put (" RULELINE");
-         Put (Natural'Image (Rule.Rule_Line));
+         Put (Types.Line_Number'Image (Rule.Rule_Line));
 
          if Mode = 1 then
             Put (" PREC");

@@ -7,8 +7,6 @@
 --    May you share freely, not taking more than you give.
 --
 
-with Types;
-
 package body Rules is
 
 
