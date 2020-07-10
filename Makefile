@@ -13,7 +13,7 @@ setup:
 	tools/create-setup-adb.sh
 
 build:
-	gprbuild -k cherry.gpr
+	gprbuild -k -j0 cherry.gpr
 
 clean:
 	gprclean -q cherry.gpr
