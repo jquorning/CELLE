@@ -18,6 +18,7 @@ with Symbols;
 with Report_Parsers;
 with Text_Out;
 with Actions;
+with Action_Tables;
 with Configs;
 with States;
 with Options;
@@ -118,14 +119,14 @@ package body Reports is
    --
 
    procedure Output_Action_Table
-     (Action_Table : in Actions.Tables.Table_Type;
+     (Action_Table : in Action_Tables.Table_Type;
       N            : in Integer;
       No_Action    : in Action_Value);
    --
    --
 
    procedure Output_YY_Lookahead
-     (Action_Table : in Actions.Tables.Table_Type; -- A_Action_Table;
+     (Action_Table : in Action_Tables.Table_Type; -- A_Action_Table;
       N            : in Integer;
       Nsymbol      : in Integer);
    --
@@ -542,7 +543,7 @@ package body Reports is
 --    struct action *ap;
 --      Rule  : Rules.Rule_Access;
 
-      Act_Tab : Actions.Tables.Table_Access;
+      Act_Tab : Action_Tables.Table_Access;
 --    int i, j, n, sz;
       I  : Integer;
       N  : Integer;
@@ -726,7 +727,7 @@ package body Reports is
       --  of placing the largest action sets first
 --    for(i=0; i<lemp->nxstate*2; i++) ax[i].iOrder = i;
 --    qsort(ax, lemp->nxstate*2, sizeof(ax[0]), axset_compare);
-      Act_Tab := Actions.Tables.Alloc (Integer (Symbols.Last_Index), Integer (Session.N_Terminal));
+      Act_Tab := Action_Tables.Alloc (Integer (Symbols.Last_Index), Integer (Session.N_Terminal));
 --    for(i=0; i<lemp->nxstate*2 && ax[i].nAction>0; i++){
 --      stp = ax[i].stp;
 --      if( ax[i].isTkn ){
@@ -810,7 +811,7 @@ package body Reports is
       --
       --  Output the yy_action table
       --
-      Session.N_Action_Tab := Actions.Tables.Action_Size (Act_Tab.all);
+      Session.N_Action_Tab := Action_Tables.Action_Size (Act_Tab.all);
       N := Session.N_Action_Tab;
       Session.Table_Size := Session.Table_Size + N * Size_Of_Action_Type;
 
@@ -819,7 +820,7 @@ package body Reports is
       --
       --  Output the yy_lookahead table
       --
-      Session.N_Lookahead_Tab := Actions.Tables.Lookahead_Size (Act_Tab.all);
+      Session.N_Lookahead_Tab := Action_Tables.Lookahead_Size (Act_Tab.all);
       N := Session.N_Lookahead_Tab;
       Session.Table_Size := Session.Table_Size + N * Size_Of_Code_Type;
 
@@ -1957,7 +1958,7 @@ package body Reports is
 
    --  lemon.c:4377
    procedure Output_Action_Table
-     (Action_Table : in Actions.Tables.Table_Type;
+     (Action_Table : in Action_Tables.Table_Type;
       N            : in Integer;
       No_Action    : in Action_Value)
    is
@@ -1996,7 +1997,7 @@ package body Reports is
 
 
    procedure Output_YY_Lookahead
-     (Action_Table : in Actions.Tables.Table_Type; -- A_Action_Table;
+     (Action_Table : in Action_Tables.Table_Type;
       N            : in Integer;
       Nsymbol      : in Integer)
    is
