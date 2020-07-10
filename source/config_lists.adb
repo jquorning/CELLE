@@ -10,6 +10,7 @@
 with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Unchecked_Deallocation;
 
+with Debugs;
 with Config_Tables;
 with Prop_Links;
 with Symbol_Sets;
@@ -27,8 +28,7 @@ package body Config_Lists is
    use type Configs.Config_Access;
 
    package Configuration_Lists is
-      new Ada.Containers.Doubly_Linked_Lists
-     (Element_Type => Configs.Config_Access);
+      new Ada.Containers.Doubly_Linked_Lists (Element_Type => Configs.Config_Access);
 
    Config_List : Configuration_Lists.List := Configuration_Lists.Empty_List;
    Basis_List  : Configuration_Lists.List := Configuration_Lists.Empty_List;
@@ -56,15 +56,16 @@ package body Config_Lists is
       Config := Config_Tables.Find (Model'Unchecked_Access);
       if Config = null then
          Config := Config_New;
-         Config.all := (Rule        => Rule,
-                        Dot         => Dot,
-                        Follow_Set  => Symbol_Sets.Set_New,
-                        State       => null,
-                        Forward_PL  => Prop_Links.Propagation_Lists.Empty_List,
-                        Backward_PL => Prop_Links.Propagation_Lists.Empty_List,
-                        Status      => Incomplete, -- XXX Do not know
-                        Next        => null,
-                        Basis       => null);
+         Config.all :=
+           Config_Record'(Rule        => Rule,
+                          Dot         => Dot,
+                          Follow_Set  => Symbol_Sets.Set_New,
+                          State       => null,
+                          Forward_PL  => Prop_Links.Propagation_Lists.Empty_List,
+                          Backward_PL => Prop_Links.Propagation_Lists.Empty_List,
+                          Status      => Incomplete, -- XXX Do not know
+                          Next        => null,
+                          Basis       => null);
          Config_List.Append (Config);
          Config_Tables.Insert (Config);
       end if;
@@ -86,14 +87,16 @@ package body Config_Lists is
       Config := Config_Tables.Find (Model'Unchecked_Access);
       if Config = null then
          Config := Config_New;
-         Config.Rule := Rule;
-         Config.Dot  := Dot;
-         Config.Follow_Set  := Symbol_Sets.Set_New;
-         Config.State       := null;
-         Config.Forward_PL  := Prop_Links.Propagation_Lists.Empty_List;
-         Config.Backward_PL := Prop_Links.Propagation_Lists.Empty_List;
-         Config.Next  := null;
-         Config.Basis := null;
+         Config.all :=
+           Config_Record'(Rule        => Rule,
+                          Dot         => Dot,
+                          Follow_Set  => Symbol_Sets.Set_New,
+                          State       => null,
+                          Forward_PL  => Prop_Links.Propagation_Lists.Empty_List,
+                          Backward_PL => Prop_Links.Propagation_Lists.Empty_List,
+                          Status      => Incomplete, -- XXX Do not know
+                          Next        => null,
+                          Basis       => null);
          Config_List.Append (Config);
          Basis_List.Append (Config);
          Config_Tables.Insert (Config);
@@ -108,75 +111,87 @@ package body Config_Lists is
       use Rules;
       use Symbols;
       use Symbol_Sets;
+      use type Configuration_Lists.Cursor;
 
       New_Config : Config_Access;
-      Rule     : Rule_Access;
-      New_Rule : Rule_Access;
-      Symbol   : Symbol_Access;
-      X_Symbol : Symbol_Access;
-      Dot      : Dot_Type;
-      Dummy    : Boolean;
-      Last_RHS : Boolean;
+      Rule       : Rule_Access;
+      New_Rule   : Rule_Access;
+      Symbol     : Symbol_Access;
+      RHS_Symbol : Symbol_Access;
+      Dot        : Dot_Type;
+      Dummy      : Boolean;
+      Last_RHS   : Boolean;
+      Config_Pos : Configuration_Lists.Cursor;
    begin
       pragma Assert (not Config_List.Is_Empty);
 
-      for Config of Config_List loop
-         Rule := Config.Rule;
-         Dot  := Config.Dot;
-         if Dot >= Dot_Type (Rule.RHS.Length) then
-            goto Continue;
-         end if;
+      --  Use cursor for looping because there will be appended element in loop.
 
-         Symbol := Symbol_Access (Rule.RHS.Element (Dot));
+      Config_Pos := Config_List.First;
+      while Config_Pos /= Configuration_Lists.No_Element loop
+         declare
+            Config : constant Config_Access := Configuration_Lists.Element (Config_Pos);
+         begin
+            Rule := Config.Rule;
+            Dot  := Config.Dot;
 
-         if Symbol.Kind = Non_Terminal then
-            if Symbol.Rule = null and Symbol /= Session.Error_Symbol then
-               Errors.Parser_Error (Errors.E401,
-                                    Line_Number => Rule.Line,
-                                    Argument_1  => Name_Of (Symbol));
-            end if;
+            Debugs.Debug (True, "Dot: " & Dot'Image);
+            if Dot < Rule.RHS.Last_Index then
 
-            New_Rule := Rule_Access (Symbol.Rule);
-            while New_Rule /= null loop
-               New_Config := Add (New_Rule, 0);
-               Last_RHS := False;
+               Symbol := Symbol_Access (Rule.RHS.Element (Dot));
 
-               for I in Dot + 1 .. Dot_Type (Rule.RHS.Length) loop
-                  if I = Dot_Type (Rule.RHS.Length) then
-                     Last_RHS := True;
+               if Symbol.Kind = Non_Terminal then
+                  if Symbol.Rule = null and Symbol /= Session.Error_Symbol then
+                     Errors.Parser_Error (Errors.E401,
+                                          Line_Number => Rule.Line,
+                                          Argument_1  => Name_Of (Symbol));
                   end if;
 
-                  X_Symbol := Symbol_Access (Rule.RHS.Element (I));
+                  New_Rule := Rule_Access (Symbol.Rule);
+                  while New_Rule /= null loop
+                     New_Config := Add (New_Rule, Dot => 0);
+                     Last_RHS := False;
 
-                  case X_Symbol.Kind is
+                     Debugs.Debug (True, "Rule.RHS.Length: " & Rule.RHS.Length'Image);
+                     for I in Dot + 1 .. Rule.RHS.Last_Index loop
+                        if I = Rule.RHS.Last_Index then
+                           Last_RHS := True;
+                        end if;
 
-                     when Terminal =>
-                        Dummy := Set_Add (New_Config.Follow_Set, X_Symbol.Index);
-                        exit;
+                        RHS_Symbol := Symbol_Access (Rule.RHS.Element (I));
 
-                     when Multi_Terminal =>
-                        for K in Integer range 0 .. Integer (X_Symbol.Sub_Symbol.Length) - 1 loop
-                           Dummy := Set_Add (New_Config.Follow_Set,
-                                             X_Symbol.Sub_Symbol.Element (K).Index);
-                        end loop;
-                        exit;
+                        case RHS_Symbol.Kind is
 
-                     when others =>
-                        Dummy := Set_Union (New_Config.Follow_Set, X_Symbol.First_Set);
-                        exit when not X_Symbol.Lambda;
+                           when Terminal =>
+                              Dummy := Set_Add (New_Config.Follow_Set, RHS_Symbol.Index);
+                              exit;
 
-                  end case;
-               end loop;
+                           when Multi_Terminal =>
+                              for K in
+                                Integer range 0 .. Integer (RHS_Symbol.Sub_Symbol.Length) - 1
+                              loop
+                                 Dummy := Set_Add (New_Config.Follow_Set,
+                                                   RHS_Symbol.Sub_Symbol.Element (K).Index);
+                              end loop;
+                              exit;
 
-               if Last_RHS then
-                  Config.Forward_PL.Append (Prop_Links.Config_Access (New_Config));
+                           when others =>
+                              Dummy := Set_Union (New_Config.Follow_Set, RHS_Symbol.First_Set);
+                              exit when not RHS_Symbol.Lambda;
+
+                        end case;
+                     end loop;
+
+                     if Last_RHS then
+                        Config.Forward_PL.Append (Prop_Links.Config_Access (New_Config));
+                     end if;
+                     New_Rule := New_Rule.Next_LHS;
+                  end loop;
                end if;
-               New_Rule := New_Rule.Next_LHS;
-            end loop;
-         end if;
 
-         <<Continue>>
-         Config := Config.Next;
+            end if;
+         end;
+         Configuration_Lists.Next (Config_Pos);
       end loop;
    end Closure;
 

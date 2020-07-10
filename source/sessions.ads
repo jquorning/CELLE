@@ -145,7 +145,7 @@ package Sessions is
    No_Offset : aliased constant Integer := Integer'First;
 
 
-   function Create_Sorted_States return State_Vectors.Vector;
+   procedure Create_Sorted_States (Session : in out Session_Type);
    --
 
 end Sessions;

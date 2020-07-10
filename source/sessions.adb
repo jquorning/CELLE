@@ -14,12 +14,14 @@ package body Sessions is
    end Append_State_To_Sorted;
 
 
-   function Create_Sorted_States return State_Vectors.Vector
+   procedure Create_Sorted_States (Session : in out Session_Type)
    is
+
    begin
       Sorted_Vector.Clear;
       States.Iterate (Append_State_To_Sorted'Access);
-      return Sorted_Vector;
+      Session.Sorted := Sorted_Vector;
+      Sorted_Vector.Clear;
    end Create_Sorted_States;
 
 

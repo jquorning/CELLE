@@ -196,7 +196,7 @@ package body Builds is
             Config : Configs.Config_Access;
          begin
             Rule.LHS_Start := True;
-            Config := Config_Lists.Add_Basis (Rule, 0);
+            Config := Config_Lists.Add_Basis (Rule, Dot => 0);
             Dummy  := Symbol_Sets.Set_Add (Config.Follow_Set, 0);
          end;
          Rule := Rule.Next_LHS;
@@ -207,7 +207,7 @@ package body Builds is
       --  The returned pointer to the first state is not used.
 
       Dummy_First_State := Get_State (Session);
-
+      Debugs.Debug (True, "Get_State first");
    end Find_States;
 
 
@@ -358,6 +358,7 @@ package body Builds is
       --  Get a state with the same basis
       State := States.Find (Basis);
       if State /= null then
+         Debugs.Debug (True, "This is not a new state");
          --  A state with the same basis already exists!  Copy all the follow-set
          --  propagation links from the state under construction into the
          --  preexisting state, then return a pointer to the preexisting state
@@ -378,6 +379,7 @@ package body Builds is
          Config := Config_Lists.Xreturn;
          Config_Lists.Eat (Config);
       else
+         Debugs.Debug (True, "This is a new state");
          --  This really is a new state.  Construct all the details
          Config_Lists.Closure (Session);  -- Compute the configuration closure
          Config_Lists.Sort;               -- Sort the configuration closure
@@ -463,57 +465,62 @@ package body Builds is
 
       Config := State.Config;
       while Config /= null loop
-         if Config.Status = Complete then
-            goto Continue;    -- Already used by inner loop
-         end if;
-         if Config.Dot >= Rules.Dot_Type (Config.Rule.RHS.Length) then
-            goto Continue;  -- Can't shift this config
-         end if;
 
-         Config_Lists.Reset;                       -- Reset the new config set
-         Symbol := Symbol_Access (Config.Rule.RHS.Element (Config.Dot)); -- Symbol after the dot
+         --  Already used by inner loop
+         --  Can't shift this config
+         if
+           Config.Status = Incomplete and
+           Config.Dot    < Config.Rule.RHS.Last_Index
+         then
 
-         --  For every configuration in the state "stp" which has the symbol "sp"
-         --  following its dot, add the same configuration to the basis set under
-         --  construction but with the dot shifted one symbol to the right.
-         B_Config := Config;
-         while B_Config /= null loop
-            if B_Config.Status = Complete then
-               goto Continue_Config;    --  Already used
-            end if;
-            if B_Config.Dot >= Rules.Dot_Type (B_Config.Rule.RHS.Length) then
-               goto Continue_Config; --  Can't shift this one
-            end if;
-            --  Get symbol after dot
-            B_Symbol := Symbol_Access (B_Config.Rule.RHS.Element (B_Config.Dot));
-            if not Same_Symbol (B_Symbol, Symbol) then
-               goto Continue_Config;                      --  Must be same as for "cfp"
-            end if;
-            B_Config.Status := Complete;                   --  Mark this config as used
-            New_Config := Config_Lists.Add_Basis (B_Config.Rule, B_Config.Dot + 1);
-            Prop_Links.Append (New_Config.Backward_PL, B_Config);
+            Config_Lists.Reset;  -- Reset the new config set
+            Symbol := Symbol_Access (Config.Rule.RHS.Element (Config.Dot)); -- Symbol after the dot
 
-            <<Continue_Config>>
-            B_Config := B_Config.Next;
-         end loop;
+            --  For every configuration in the state "stp" which has the symbol "sp"
+            --  following its dot, add the same configuration to the basis set under
+            --  construction but with the dot shifted one symbol to the right.
 
-         --  Get a pointer to the state described by the basis configuration set
-         --  constructed in the preceding loop
-         New_State := Get_State (Session);
+            B_Config := Config;
+            while B_Config /= null loop
 
-         --  The state "newstp" is reached from the state "stp" by a shift action
-         --  on the symbol "sp"
-         if Symbol.Kind = Multi_Terminal then
-            for Sub_Symbol of Symbol.Sub_Symbol loop
-               Action_Lists.Append (State.Action, Actions.Shift, Sub_Symbol,
-                                    State => New_State, Rule => null);
+               if
+                 B_Config.Status = Incomplete and
+                 B_Config.Dot    < B_Config.Rule.RHS.Last_Index
+               then
+                  --  Get symbol after dot
+                  --  Must be same as for "cfp"
+                  B_Symbol := Symbol_Access (B_Config.Rule.RHS.Element (B_Config.Dot));
+                  if Same_Symbol (B_Symbol, Symbol) then
+
+                     B_Config.Status := Complete;  --  Mark this config as used
+                     New_Config := Config_Lists.Add_Basis (B_Config.Rule, B_Config.Dot + 1);
+                     Prop_Links.Append (New_Config.Backward_PL, B_Config);
+                  end if;
+               end if;
+
+               B_Config := B_Config.Next;
             end loop;
-         else
-            Action_Lists.Append (State.Action, Actions.Shift, Symbol,
-                                 State => New_State, Rule => null);
+
+            --  Get a pointer to the state described by the basis configuration set
+            --  constructed in the preceding loop
+
+            New_State := Get_State (Session);
+
+            --  The state "newstp" is reached from the state "stp" by a shift action
+            --  on the symbol "sp"
+
+            if Symbol.Kind = Multi_Terminal then
+               for Sub_Symbol of Symbol.Sub_Symbol loop
+                  Action_Lists.Append (State.Action, Actions.Shift, Sub_Symbol,
+                                       State => New_State, Rule => null);
+               end loop;
+            else
+               Action_Lists.Append (State.Action, Actions.Shift, Symbol,
+                                    State => New_State, Rule => null);
+            end if;
+
          end if;
 
-         <<Continue>>
          Config := Config.Next;
       end loop;
    end Build_Shifts;
@@ -635,30 +642,55 @@ package body Builds is
 
       Ada.Text_IO.Put_Line ("17 dump_symbols");
       Symbols.IO.JQ_Dump_Symbols (Session, Mode => 1);
-
-      Ada.Text_IO.Put_Line ("17 dump_rules");
-      Debugs.JQ_Dump_Rules (Session, Mode => 1);
+--        Ada.Text_IO.Put_Line ("17 dump_rules");
+--        Debugs.JQ_Dump_Rules (Session, Mode => 1);
+      Ada.Text_IO.Put_Line ("17 dump_states");
+      Debugs.Put_States (Session, Mode => 1);
 
          --  Compute all LR(0) states.  Also record follow-set propagation
          --  links so that the follow-set can be computed later
---         Compute_LR_States (Session);
+
       Put_Line ("### 2-5");
       --  XXX
       --  Session.N_State := 0;
       Builds.Find_States (Session);
       Put_Line ("### 2-5-2");
-      Session.Sorted := Sessions.Create_Sorted_States; --  State_Arrayof;
+--      Debugs.Put_States (Session, Mode => 1);
+      Sessions.Create_Sorted_States (Session);
+      Put_Line ("2-5-2 dump_states");
+      Debugs.Put_States (Session, Mode => 1);
 
+      --
       --  Tie up loose ends on the propagation links
+      --
+
       Builds.Find_Links (Session);
       Put_Line ("### 2-6");
+
+      --
       --  Compute the follow set of every reducible configuration
+      --
+
       Builds.Find_Follow_Sets (Session);
       Put_Line ("### 2-7");
+
+--        Put_Line ("2-7 dump_symbols");
+--        Symbols.IO.JQ_Dump_Symbols (Session, Mode => 2);
+--        Put_Line ("2-7 dump_rules");
+--        Debugs.JQ_Dump_Rules (Session, Mode => 1);
+      Put_Line ("2-7 dump_states");
+      Debugs.Put_States (Session, Mode => 1);
+
+      --
       --  Compute the action tables
+      --
       Builds.Find_Actions (Session);
       Put_Line ("### 2-8");
+
+      --
       --  Compress the action tables
+      --
+
       if not Options.Compress then
          Reports.Compress_Tables (Session);
       end if;

@@ -9,6 +9,8 @@
 
 with Ada.Text_IO;
 
+with Configs;
+
 package body Symbols.IO is
 
    procedure Put_Named (Session : in Sessions.Session_Type;
