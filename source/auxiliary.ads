@@ -33,4 +33,17 @@ package Auxiliary is
                        return String;
    --  Trimmed image of Value.
 
+   generic
+      type Index_Type is (<>);
+      type Element_Type is private;
+      type Array_Type is array (Index_Type range <>) of Element_Type;
+      type Array_Access is access Array_Type;
+   procedure Resize_Array (Item     : in out Array_Access;
+                           New_Last :        Index_Type;
+                           Default  :        Element_Type);
+   --  Resize item so that Item'Last is New_Last. Item'First is not changed.
+   --  If New_Last < Item'Last'Old then truncate.
+   --  If new_Last > Item'Last'Old then copy and leave junk in last part.
+   --  Behaviour like C realloc.
+
 end Auxiliary;

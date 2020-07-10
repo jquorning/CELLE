@@ -109,5 +109,41 @@ package body Auxiliary is
       return Fixed.Trim (Num'Image (Value), Left);
    end Trim_Image;
 
+   ------------------
+   -- Resize_Array --
+   ------------------
+
+   --  generic
+   --     type Index_Type is (<>);
+   --     type Element_Type is private;
+   --     type Array_Type is array (Index_Type range <>) of Element_Type;
+   --     type Array_Access is access Array_Type;
+   procedure Resize_Array (Item     : in out Array_Access;
+                           New_Last : in     Index_Type;
+                           Default  : in     Element_Type)
+   is
+   begin
+      if New_Last > Item'Last then
+         declare
+            subtype New_Range is Index_Type range Item'First .. New_Last;
+            New_Item : constant Array_Access :=
+              new Array_Type'(New_Range => Default);
+         begin
+            New_Item (New_Range'Range) := Item.all;
+            Item := New_Item;
+         end;
+      elsif New_Last < Item'Last then
+         declare
+            subtype New_Range is Index_Type range Item'First .. New_Last;
+            New_Item : constant Array_Access :=
+              new Array_Type'(New_Range => Default);
+         begin
+            New_Item.all := Item (New_Range'Range);
+            Item := New_Item;
+         end;
+      else
+         null; -- Keep item
+      end if;
+   end Resize_Array;
 
 end Auxiliary;

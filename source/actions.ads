@@ -142,7 +142,7 @@ package Actions is
                       N_Terminal : in Integer) return Table_Access;
       --  Allocate a new acttab structure
 
-      function Action_Size (P : in Table_Type) return Integer;
+      function Action_Size (Table : in Table_Type) return Integer;
       --  Return the size of the action table without the trailing
       --  syntax error entries.
 
@@ -153,6 +153,10 @@ package Actions is
       --
       --  This routine is called once for each lookahead for a particular
       --  state.
+
+      procedure Acttab_Insert (Table        : in out Table_Type;
+                               Make_It_Safe :        Boolean;
+                               Offset       :    out Integer);
 
    end Tables;
 

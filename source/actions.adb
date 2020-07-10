@@ -32,6 +32,8 @@
 
 with Ada.Containers.Doubly_Linked_Lists;
 
+with Auxiliary;
+
 package body Actions is
 
    package Action_Lists is
@@ -114,135 +116,165 @@ package body Actions is
          Table.Num_Lookahead := Table.Num_Lookahead + 1;
       end Acttab_Action;
 
---  /*
---  ** Add the transaction set built up with prior calls to acttab_action()
---  ** into the current action table.  Then reset the transaction set back
---  ** to an empty set in preparation for a new round of acttab_action() calls.
---  **
---  ** Return the offset into the action table of the new transaction.
---  **
---  ** If the makeItSafe parameter is true, then the offset is chosen so that
---  ** it is impossible to overread the yy_lookaside[] table regardless of
---  ** the lookaside token.  This is done for the terminal symbols, as they
---  ** come from external inputs and can contain syntax errors.  When makeItSafe
---  ** is false, there is more flexibility in selecting offsets, resulting in
---  ** a smaller table.  For non-terminal symbols, which are never syntax errors,
---  ** makeItSafe can be false.
---  */
---  int acttab_insert(acttab *p, int makeItSafe){
---    int i, j, k, n, end;
---    assert( p->nLookahead>0 );
+      --  Add the transaction set built up with prior calls to acttab_action()
+      --  into the current action table.  Then reset the transaction set back
+      --  to an empty set in preparation for a new round of acttab_action() calls.
+      --
+      --  Return the offset into the action table of the new transaction.
+      --
+      --  If the makeItSafe parameter is true, then the offset is chosen so that
+      --  it is impossible to overread the yy_lookaside[] table regardless of
+      --  the lookaside token.  This is done for the terminal symbols, as they
+      --  come from external inputs and can contain syntax errors.  When makeItSafe
+      --  is false, there is more flexibility in selecting offsets, resulting in
+      --  a smaller table.  For non-terminal symbols, which are never syntax errors,
+      --  makeItSafe can be false.
 
---    /* Make sure we have enough space to hold the expanded action table
---    ** in the worst case.  The worst case occurs if the transaction set
---    ** must be appended to the current action table
---    */
---    n = p->nsymbol + 1;
---    if( p->nAction + n >= p->nActionAlloc ){
---      int oldAlloc = p->nActionAlloc;
---      p->nActionAlloc = p->nAction + n + p->nActionAlloc + 20;
---      p->aAction = (struct lookahead_action *) realloc( p->aAction,
---                            sizeof(p->aAction[0])*p->nActionAlloc);
---      if( p->aAction==0 ){
---        fprintf(stderr,"malloc failed\n");
---        exit(1);
---      }
---      for(i=oldAlloc; i<p->nActionAlloc; i++){
---        p->aAction[i].lookahead = -1;
---        p->aAction[i].action = -1;
---      }
---    }
+      -------------------
+      -- Acttab_Insert --
+      -------------------
 
---    /* Scan the existing action table looking for an offset that is a
---    ** duplicate of the current transaction set.  Fall out of the loop
---    ** if and when the duplicate is found.
---    **
---    ** i is the index in p->aAction[] where p->mnLookahead is inserted.
---    */
---    end = makeItSafe ? p->mnLookahead : 0;
---    for(i=p->nAction-1; i>=end; i--){
---      if( p->aAction[i].lookahead==p->mnLookahead ){
---        /* All lookaheads and actions in the aLookahead[] transaction
---        ** must match against the candidate aAction[i] entry. */
---        if( p->aAction[i].action!=p->mnAction ) continue;
---        for(j=0; j<p->nLookahead; j++){
---          k = p->aLookahead[j].lookahead - p->mnLookahead + i;
---          if( k<0 || k>=p->nAction ) break;
---          if( p->aLookahead[j].lookahead!=p->aAction[k].lookahead ) break;
---          if( p->aLookahead[j].action!=p->aAction[k].action ) break;
---        }
---        if( j<p->nLookahead ) continue;
-
---        /* No possible lookahead value that is not in the aLookahead[]
---        ** transaction is allowed to match aAction[i] */
---        n = 0;
---        for(j=0; j<p->nAction; j++){
---          if( p->aAction[j].lookahead<0 ) continue;
---          if( p->aAction[j].lookahead==j+p->mnLookahead-i ) n++;
---        }
---        if( n==p->nLookahead ){
---          break;  /* An exact match is found at offset i */
---        }
---      }
---    }
-
---    /* If no existing offsets exactly match the current transaction, find an
---    ** an empty offset in the aAction[] table in which we can add the
---    ** aLookahead[] transaction.
---    */
---    if( i<end ){
---      /* Look for holes in the aAction[] table that fit the current
---      ** aLookahead[] transaction.  Leave i set to the offset of the hole.
---      ** If no holes are found, i is left at p->nAction, which means the
---      ** transaction will be appended. */
---      i = makeItSafe ? p->mnLookahead : 0;
---      for(; i<p->nActionAlloc - p->mxLookahead; i++){
---        if( p->aAction[i].lookahead<0 ){
---          for(j=0; j<p->nLookahead; j++){
---            k = p->aLookahead[j].lookahead - p->mnLookahead + i;
---            if( k<0 ) break;
---            if( p->aAction[k].lookahead>=0 ) break;
---          }
---          if( j<p->nLookahead ) continue;
---          for(j=0; j<p->nAction; j++){
---            if( p->aAction[j].lookahead==j+p->mnLookahead-i ) break;
---          }
---          if( j==p->nAction ){
---            break;  /* Fits in empty slots */
---          }
---        }
---      }
---    }
---    /* Insert transaction set at index i. */
---    for(j=0; j<p->nLookahead; j++){
---      k = p->aLookahead[j].lookahead - p->mnLookahead + i;
---      p->aAction[k] = p->aLookahead[j];
---      if( k>=p->nAction ) p->nAction = k+1;
---    }
---    if( makeItSafe && i+p->nterminal>=p->nAction ) p->nAction = i+p->nterminal+1;
---    p->nLookahead = 0;
-
---    /* Return the offset that is added to the lookahead in order to get the
---    ** index into yy_action of the action */
---    return i - p->mnLookahead;
---  }
-
-
---  int acttab_action_size(acttab *p){
---    int n = p->nAction;
---    while( n>0 && p->aAction[n-1].lookahead<0 ){ n--; }
---    return n;
---  }
-
-
-      function Action_Size (P : in Table_Type) return Integer
+      procedure Acttab_Insert (Table        : in out Table_Type;
+                               Make_It_Safe :        Boolean;
+                               Offset       :    out Integer)
       is
-         N : Integer := P.Num_Action;
+         P : Table_Type renames Table;
+         I, J, K, N, Endd : Integer;
       begin
-         while N > 0 and P.Action (N - 1).Lookahead < 0 loop
-            N := N - 1;
+         pragma Assert (P.Num_Lookahead > 0);
+
+         --  Make sure we have enough space to hold the expanded action table
+         --  in the worst case.  The worst case occurs if the transaction set
+         --  must be appended to the current action table
+         N := P.Num_Symbol + 1;
+         if P.Num_Action + N > P.Action'Last then
+            declare
+               Additional : constant := 20;
+               procedure Realloc is
+                  new Auxiliary.Resize_Array (Index_Type   => Natural,
+                                              Element_Type => Lookahead_Action,
+                                              Array_Type   => Action_Array,
+                                              Array_Access => Action_Array_Access);
+            begin
+               Realloc (Item     => P.Action,
+                        New_Last => P.Action'Last + Additional,
+                        Default  => (-1, -1));
+            end;
+         end if;
+
+         --  Scan the existing action table looking for an offset that is a
+         --  duplicate of the current transaction set.  Fall out of the loop
+         --  if and when the duplicate is found.
+         --
+         --  i is the index in p.aAction[] where p.mnLookahead is inserted.
+         Endd := (if Make_It_Safe then Integer (P.Min_Lookahead) else 0);
+         I    := P.Num_Action - 1;
+         while I >= Endd loop
+            if P.Action (I).Lookahead = P.Min_Lookahead then
+               --  All lookaheads and actions in the aLookahead[] transaction
+               --  must match against the candidate aAction[i] entry.
+               if P.Action (I).Action /= P.Min_Action then
+                  goto Continue_1;
+               end if;
+               J := 0;
+               while J < P.Num_Lookahead - 1 loop
+                  K := Integer (P.Lookahead (J).Lookahead - P.Min_Lookahead) + I;
+                  exit when K not in 0 .. P.Num_Action - 1;
+                  exit when P.Lookahead (J).Lookahead /= P.Action (K).Lookahead;
+                  exit when P.Lookahead (J).Action    /= P.Action (K).Action;
+                  J := J + 1;
+               end loop;
+               if J < P.Num_Lookahead then
+                  goto Continue_1;
+               end if;
+
+               --  No possible lookahead value that is not in the aLookahead[]
+               --  transaction is allowed to match aAction[i] */
+               N := 0;
+               for J in 0 .. P.Num_Action - 1 loop
+                  if P.Action (J).Lookahead < 0 then goto Continue_2; end if;
+                  if
+                    P.Action (J).Lookahead =
+                    Lookahead_Type (J + Integer (P.Min_Lookahead) - I)
+                  then
+                     N := N + 1;
+                  end if;
+                  <<Continue_2>>
+               end loop;
+               exit when N = P.Num_Lookahead;  -- An exact match is found at offset i
+            end if;
+
+            <<Continue_1>>
+            I := I - 1;
          end loop;
-         return N;
+
+         --  If no existing offsets exactly match the current transaction, find an
+         --  an empty offset in the aAction[] table in which we can add the
+         --  aLookahead[] transaction.
+         if I < Endd then
+            --  Look for holes in the aAction[] table that fit the current
+            --  aLookahead[] transaction.  Leave i set to the offset of the hole.
+            --  If no holes are found, i is left at p.nAction, which means the
+            --  transaction will be appended.
+            I := (if Make_It_Safe then Integer (P.Min_Lookahead) else 0);
+            while I < P.Action'Last + 1 - Integer (P.Max_Lookahead) loop   --  + 1 ?
+               if P.Action (I).Lookahead < 0 then
+                  for J in 0 .. P.Num_Lookahead - 1 loop
+                     K := Integer (P.Lookahead (J).Lookahead - P.Min_Lookahead) + I;
+                     exit when K < 0;
+                     exit when P.Action (K).Lookahead >= 0;
+                  end loop;
+                  if J < P.Num_Lookahead then
+                     goto Continue_3;
+                  end if;
+                  for J in 0 .. P.Num_Action - 1 loop
+                     exit when P.Action (J).Lookahead =
+                       Lookahead_Type (J + Integer (P.Min_Lookahead) - I);
+                  end loop;
+                  exit when J = P.Num_Action;  -- Fits in empty slots
+               end if;
+
+               <<Continue_3>>
+               I := I + 1;
+            end loop;
+         end if;
+
+         --  Insert transaction set at index i.
+         for J in 0 .. P.Num_Lookahead - 1 loop
+            K := Integer (P.Lookahead (J).Lookahead - P.Min_Lookahead) + I;
+            P.Action (K) := P.Lookahead (J);
+            if K >= P.Num_Action then
+               P.Num_Action := K + 1;
+            end if;
+         end loop;
+         if Make_It_Safe and I + P.Num_Terminal >= P.Num_Action then
+            P.Num_Action := I + P.Num_Terminal + 1;
+         end if;
+         P.Num_Lookahead := 0;
+
+         --  Return the offset that is added to the lookahead in order to get the
+         --  index into yy_action of the action
+         Offset := I - Integer (P.Min_Lookahead);
+      end Acttab_Insert;
+
+      -----------------
+      -- Action_Size --
+      -----------------
+
+      function Action_Size (Table : in Table_Type) return Integer
+      is
+--         N : Integer := Table.Num_Action;
+      begin
+         for N in reverse 1 .. Table.Num_Action loop
+            if Table.Action (N - 1).Lookahead < 0 then
+               return N;
+            end if;
+         end loop;
+         return 0;
+         --  while N > 0 and Table.Action (N - 1).Lookahead < 0 loop
+         --     N := N - 1;
+         --  end loop;
+         --  return N;
       end Action_Size;
 
    end Tables;
