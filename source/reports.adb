@@ -98,8 +98,10 @@ package body Reports is
    --  Write text on "out" that describes the rule "rp".
 
    procedure Emit_Destructor_Code
-     (Symbol  : Symbol_Access;
-      Session : Session_Type);
+     (File    :        File_Type;
+      Line    : in out Line_Number;
+      Symbol  :        Symbol_Access;
+      Session :        Session_Type);
    --  The following routine emits code for the destructor for the
    --  symbol sp
 
@@ -1064,7 +1066,7 @@ package body Reports is
 
          --  I : Symbols.Symbol_Index;
          --      if( i<lemp->nsymbol ){
-         Emit_Destructor_Code (Element_At (Symbol_Index (I)), Session);
+         Emit_Destructor_Code (File, Lineno, Element_At (Symbol_Index (I)), Session);
          --        lime_put_line ("      break;");
          --      }
       end;
@@ -1719,57 +1721,75 @@ package body Reports is
       end loop;
    end Write_Rule_Text;
 
+   --------------------------
+   -- Emit_Destructor_Code --
+   --------------------------
 
    procedure Emit_Destructor_Code
-     (Symbol  : Symbol_Access;
-      Session : Session_Type)
+     (File    :        File_Type;
+      Line    : in out Line_Number;
+      Symbol  :        Symbol_Access;
+      Session :        Session_Type)
    is
-      --  char *cp = 0;
+      use Ada.Strings.Unbounded;
+      use type Symbols.Symbol_Kind;
+
+      procedure Increment_Line is new Increment (Line);
+
+      Item : access Unbounded_String;
    begin
-      null;
---   if( sp->type==TERMINAL ){
---     cp = lemp->tokendest;
---     if( cp==0 ) return;
 
---     lime_put_line ("{");
---   }else if( sp->destructor ){
---     cp = sp->destructor;
---     lime_put_line ("{");
---     if( !lemp->nolinenosflag ){
---       //(*lineno)++;   // XXX
---       lime_write_line_directive (sp->destLineno, lemp->filename);
---     }
---   }else if( lemp->vardest ){
---     cp = lemp->vardest;
---     if( cp==0 ) return;
+      if Symbol.Kind = Symbols.Terminal then
+         Item := Session.Names.Token_Dest'Access;
+         if Item.all = Null_Unbounded_String then
+            return;
+         end if;
+         Put_Line (File, "{");  Increment_Line;
 
---     lime_put_line ("{");
---   }else{
---   assert( 0 );  // Cannot happen
---   }
---   for(; *cp; cp++){
---     if( *cp=='$' && cp[1]=='$' ){
---       lime_put ("(yypminor->yy");
---       lime_put_int (sp->dtnum);
---       lime_put (")");
---       cp++;
---       continue;
---     }
---     //   if( *cp=='\n' ) (*lineno)++;  //  XXX
---     //fputc(*cp,out);
---     char lime_string[2];
---     lime_string[0] = *cp;
---     lime_string[1] = 0;
---     lime_put (lime_string);
---     //lime_put ("" & *cp);  // XXX
---   }
---   lime_put_line ("");
---   if (!lemp->nolinenosflag) {
---     lime_write_line_directive (0, lemp->outname);
---     //lime_write_line_directive (0, lime_get_out_name ());
---   }
---   lime_put_line ("}");
---   return;
+      elsif Symbol.Destructor = Null_Unbounded_String then
+         Item := Symbol.Destructor'Access;
+         Put_Line (File, "{");  Increment_Line;
+         if not Session.No_Linenos_Flag then
+            Line := Line + 1;
+            Put_Line_Directive (File, Symbol.Dest_Lineno,
+                                To_String (Session.File_Name));
+         end if;
+
+      elsif Session.Names.Var_Dest = Null_Unbounded_String then
+         Item := Session.Names.Var_Dest'Access;
+         if Item.all = Null_Unbounded_String then
+            return;
+         end if;
+         Put_Line (File, "{");  Increment_Line;
+
+      else
+         pragma Assert (False);  --  Cannot happen
+      end if;
+
+      for Index in 1 .. Length (Item.all) loop
+         if
+           Element (Item.all, Index + 0) = '$' and then
+           Element (Item.all, Index + 1) = '$'
+         then
+            Put (File, "(yypminor->yy");
+            Put (File, Integer'Image (Symbol.Dt_Num));
+            Put (File, ")");
+         else
+            if Element (Item.all, Index) = ASCII.LF then
+               Increment_Line;
+            end if;
+            Put (File, "" & Element (Item.all, Index));
+         end if;
+      end loop;
+
+      Put_Line (File, "");  Increment_Line;
+
+      if not Session.No_Linenos_Flag then
+         Increment_Line;
+         Put_Line_Directive (File, Line, To_String (Session.Out_Name));
+      end if;
+
+      Put_Line (File, "}");  Increment_Line;
    end Emit_Destructor_Code;
 
    ---------------
