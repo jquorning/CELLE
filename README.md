@@ -1,36 +1,31 @@
-# ley/yacc parser generator
+# Cherry parser generator
 
-Rewrite of the *Lemon* parser from theh *SQLite* project in Ada
-
-The Lemon combined flex/yacc parser generator is rewritten in Ada 2005.
+The *Lemon* parser generator from the *SQLite* project translated to Ada.
 
 ## Status
-1. Partly rewritten from lemon.c
-1. Compiling
-1. Not working
+* Little C left
+* Can build
+* Do not work
 
 ## Roadmap
 1. Generate C parser code from parse.y
-1. Replace lemon.c with Ada program
-1. Generate C89 parser code with better structure (include yy.h)
-1. Generate Ada parser code from parse.y
-1. Split into library and application
+2. Generate Ada 83 parser code from translated parse.y
+3. Generate Ada 95 parser code from translated parse.y
 
 ## Configuring
 ```sh
-ed var/PROGRAM_NAME
-ed var/PROGRAM_VERSION
-make setup
+$ ed var/PROGRAM_NAME
+$ ed var/PROGRAM_VERSION
+$ make setup
 ```
 
 ## Building
 ```sh
-make
+$ gprbuild
 ```
 
 or
 
 ```sh
-gprbuild
+$ make
 ```
-
