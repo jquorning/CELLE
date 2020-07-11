@@ -15,7 +15,6 @@ with Ada.IO_Exceptions;
 with Rules;
 with Symbols;
 with Report_Parsers;
---  with Text_Out;
 with Actions;
 with Action_Tables;
 with Configs;
@@ -39,9 +38,14 @@ package body Reports is
    procedure Put_Line (File : File_Type; Item : String := "")
      renames Ada.Text_IO.Put_Line;
 
-   subtype Line_Number  is Types.Line_Number;
-   subtype Symbol_Index is Types.Symbol_Index;
-   subtype Action_Value is Action_Tables.Action_Value;
+   subtype Line_Number   is Types.Line_Number;
+   subtype Symbol_Index  is Types.Symbol_Index;
+   subtype Symbol_Access is Symbols.Symbol_Access;
+   subtype Action_Value  is Action_Tables.Action_Value;
+   subtype Rule_Access   is Rules.Rule_Access;
+   subtype Action_Record is Actions.Action_Record;
+   subtype Config_Access is Configs.Config_Access;
+   subtype Action_Table  is Action_Tables.Table_Type;
 
    generic
       Line : in out Line_Number;
@@ -58,26 +62,26 @@ package body Reports is
    --  Put line directive to File. Like '#line <Line> "<File_Name>"'.
 
    procedure Rule_Print (File   : File_Type;
-                         Rule   : Rules.Rule_Access;
+                         Rule   : Rule_Access;
                          Cursor : Integer := 0);
    --  Print the text of a rule.
 
 
    procedure Print_Action
-     (Action :     Actions.Action_Record;
-      File   :     Ada.Text_IO.File_Type;
+     (Action :     Action_Record;
+      File   :     File_Type;
       Indent :     Natural;
       Emit   : out Boolean);
    --  Print an Action to File with Indent indention. Return Falese if
    --  nothing was actually printed.
 
-   procedure Config_Print (File : in Ada.Text_IO.File_Type;
-                           CFP  : in Configs.Config_Access);
+   procedure Config_Print (File : File_Type;
+                           CFP  : Config_Access);
    --  Print the rule for a configuration.
 
-   function Minimum_Size_Type (LWS     : in     Integer;
-                               UPR     : in     Integer;
-                               PnBytes :    out Integer)
+   function Minimum_Size_Type (LWS     :     Integer;
+                               UPR     :     Integer;
+                               PnBytes : out Integer)
                               return String;
 
 
@@ -85,31 +89,31 @@ package body Reports is
    --  lwr and upr, inclusive.  If pnByte!=NULL then also write the sizeof
    --  for that type (1, 2, or 4) into *pnByte.
 
-   function File_Makename (Session   : in Sessions.Session_Type;
-                           Extension : in String) return String;
+   function File_Makename (Session   : Session_Type;
+                           Extension : String) return String;
 
 
    procedure Write_Rule_Text (File : File_Type;
-                              Rule : Rules.Rule_Access);
+                              Rule : Rule_Access);
    --  Write text on "out" that describes the rule "rp".
 
    procedure Emit_Destructor_Code
-     (Symbol  : in Symbols.Symbol_Access;
-      Session : in Sessions.Session_Type);
+     (Symbol  : Symbol_Access;
+      Session : Session_Type);
    --  The following routine emits code for the destructor for the
    --  symbol sp
 
    procedure Emit_Code
-     (File    :        Ada.Text_IO.File_Type;
-      Rule    :        Rules.Rule_Access;
-      Session :        Sessions.Session_Type;
-      Line    : in out Types.Line_Number);
+     (File    :        File_Type;
+      Rule    :        Rule_Access;
+      Session :        Session_Type;
+      Line    : in out Line_Number);
    --  Generate code which executes when the rule "rp" is reduced.  Write
    --  the code to "out".  Make sure lineno stays up-to-date.
 
 
    procedure Print_Stack_Union
-     (Session : in Sessions.Session_Type);  --  The main info structure for this parser
+     (Session : in Session_Type);  --  The main info structure for this parser
 
    --  struct lemon *lemp //,
    --  //  int mhflag                  /* True if generating makeheaders output */
@@ -122,7 +126,7 @@ package body Reports is
 
 
    procedure Generate_Tokens
-     (Session        : in Sessions.Session_Type;
+     (Session      : in Session_Type;
       Token_Prefix : in String;
       First        : in Integer;
       Last         : in Integer);
@@ -145,26 +149,26 @@ package body Reports is
    --
 
    procedure Output_Action_Table
-     (File         :        File_Type;
-      Action_Table :        Action_Tables.Table_Type;
-      N            :        Integer;
-      No_Action    :        Action_Value;
-      Line         : in out Line_Number);
+     (File      :        File_Type;
+      Table     :        Action_Table;
+      N         :        Integer;
+      No_Action :        Action_Value;
+      Line      : in out Line_Number);
    --
    --
 
    procedure Output_YY_Lookahead
-     (File         :        File_Type;
-      Action_Table :        Action_Tables.Table_Type;
-      N            :        Integer;
-      Nsymbol      :        Integer;
-      Line         : in out Line_Number);
+     (File    :        File_Type;
+      Table   :        Action_Table;
+      N       :        Integer;
+      Nsymbol :        Integer;
+      Line    : in out Line_Number);
    --
    --
 
    procedure Output_YY_Shift_Offsets
      (File          :        File_Type;
-      Session       :        Sessions.Session_Type;
+      Session       :        Session_Type;
       N             :        Integer;
       MnTknOfst     :        Integer;
       MxTknOfst     :        Integer;
@@ -179,7 +183,7 @@ package body Reports is
 
    procedure Output_YY_Reduce_Offsets
      (File          :        File_Type;
-      Session       :        Sessions.Session_Type;
+      Session       :        Session_Type;
       N             :        Integer;
       MnNtOfst      :        Integer;
       MxNtOfst      :        Integer;
@@ -189,7 +193,7 @@ package body Reports is
 
    procedure Output_Default_Action_Table
      (File         :        File_Type;
-      Session      :        Sessions.Session_Type;
+      Session      :        Session_Type;
       N            :        Integer;
       Error_Action :        Action_Value;
       Min_Reduce   :        Action_Value;
@@ -241,12 +245,12 @@ package body Reports is
 
 
    procedure Generate_Spec
-     (Session   : in Sessions.Session_Type;
-      Base_Name : in String;
-      Prefix    : in String;    --  Prefix of symbols in spec
-      Module    : in String;    --  Prefix of symbols in spec
-      First     : in Integer;   --  Index of first symbol
-      Last      : in Integer);  --  Index of last symbol
+     (Session   : Session_Type;
+      Base_Name : String;
+      Prefix    : String;    --  Prefix of symbols in spec
+      Module    : String;    --  Prefix of symbols in spec
+      First     : Integer;   --  Index of first symbol
+      Last      : Integer);  --  Index of last symbol
    --  Create spec file with name File_Name including symols found by
    --  iterating from First to Last calling callback prepended with
    --  Suffix.
@@ -260,13 +264,13 @@ package body Reports is
    --  Get token for token symbol creation.
 
    procedure Open_If_Possible
-     (File      : in out Ada.Text_IO.File_Type;
-      File_Name : in     String;
+     (File      : in out File_Type;
+      File_Name :        String;
       Success   :    out Boolean);
    --  Open File_Name to File. Success is True when success.
 
    procedure Template_Open
-     (User_Template : in     String;
+     (User_Template :        String;
       Error_Count   : in out Integer;
       Success       :    out Integer);
    --  Thisk function finds the template file and opens it. File handle
@@ -294,10 +298,10 @@ package body Reports is
      (File           :        File_Type;
       Line           : in out Line_Number;
       YY_Code_Type   :        String;
-      Symbol_Count   :        Types.Symbol_Index;
+      Symbol_Count   :        Symbol_Index;
       YY_Action_Type :        String;
       Is_Wildcard    :        Boolean;
-      Wildcard_Index :        Types.Symbol_Index);
+      Wildcard_Index :        Symbol_Index);
 
    procedure Generate_The_Defines_2
      (File       :        File_Type;
@@ -322,20 +326,13 @@ package body Reports is
    --
    --
 
---   procedure Close_Out;
-   --  Close out file
-
---   procedure Close_In;
-   --  Close in file
-
-
    type AX_Set_Record is
       record
          Token        : AX_Record;
          Non_Terminal : AX_Record;
       end record;
 
-   type AX_Set_Array is array (Types.Symbol_Index range <>) of AX_Set_Record;
+   type AX_Set_Array is array (Symbol_Index range <>) of AX_Set_Record;
    type A_AX_Set_Array is access all AX_Set_Array;
 
 
@@ -359,7 +356,7 @@ package body Reports is
    -------------
 
    procedure Reprint (File    : File_Type;
-                      Session : Sessions.Session_Type)
+                      Session : Session_Type)
    is
       use Ada.Strings.Unbounded;
       use Symbols;
@@ -435,7 +432,7 @@ package body Reports is
    end Reprint;
 
 
-   procedure Report_Output (Session : in Sessions.Session_Type)
+   procedure Report_Output (Session : Session_Type)
    is
       use Ada.Text_IO;
       use Symbols;
@@ -589,7 +586,7 @@ package body Reports is
 
 
    procedure Report_Table
-     (Session            : in out Sessions.Session_Type;
+     (Session            : in out Session_Type;
       User_Template_Name : in     String)
    is
       use Ada.Strings.Unbounded;
@@ -1271,7 +1268,7 @@ package body Reports is
    end Report_Table;
 
 
-   procedure Compress_Tables (Session : in Sessions.Session_Type)
+   procedure Compress_Tables (Session : Session_Type)
    is
    begin
       null;
@@ -1391,7 +1388,7 @@ package body Reports is
    end  Compress_Tables;
 
 
-   procedure Resort_States (Session : in Sessions.Session_Type)
+   procedure Resort_States (Session : Session_Type)
    is
    begin
       null;
@@ -1436,7 +1433,7 @@ package body Reports is
 
 
    procedure Rule_Print (File   : File_Type;
-                         Rule   : Rules.Rule_Access;
+                         Rule   : Rule_Access;
                          Cursor : Integer := 0)
    is
       pragma Unreferenced (Cursor);
@@ -1490,7 +1487,7 @@ package body Reports is
 
 
    procedure Print_Action
-     (Action :     Actions.Action_Record;
+     (Action :     Action_Record;
       File   :     File_Type;
       Indent :     Natural;
       Emit   : out Boolean)
@@ -1622,8 +1619,8 @@ package body Reports is
    end Print_Action;
 
 
-   procedure Config_Print (File : in Ada.Text_IO.File_Type;
-                           CFP  : in Configs.Config_Access)
+   procedure Config_Print (File : File_Type;
+                           CFP  : Config_Access)
    is
    begin
       null;
@@ -1687,7 +1684,7 @@ package body Reports is
    ---------------------
 
    procedure Write_Rule_Text (File : File_Type;
-                              Rule : Rules.Rule_Access)
+                              Rule : Rule_Access)
    is
       use Symbols;
    begin
@@ -1711,8 +1708,8 @@ package body Reports is
 
 
    procedure Emit_Destructor_Code
-     (Symbol  : in Symbols.Symbol_Access;
-      Session : in Sessions.Session_Type)
+     (Symbol  : Symbol_Access;
+      Session : Session_Type)
    is
       --  char *cp = 0;
    begin
@@ -1767,10 +1764,10 @@ package body Reports is
    ---------------
 
    procedure Emit_Code
-     (File    :        Ada.Text_IO.File_Type;
-      Rule    :        Rules.Rule_Access;
-      Session :        Sessions.Session_Type;
-      Line    : in out Types.Line_Number)
+     (File    :        File_Type;
+      Rule    :        Rule_Access;
+      Session :        Session_Type;
+      Line    : in out Line_Number)
    is
       use Ada.Strings.Unbounded;
 --      use Text_Out;
@@ -1829,7 +1826,7 @@ package body Reports is
 
 
    procedure Print_Stack_Union
-     (Session : Sessions.Session_Type)  --  The main info structure for this parser
+     (Session : Session_Type)  --  The main info structure for this parser
    is
 --    char **types;             /* A hash table of datatypes */
 --    int arraysize;            /* Size of the "types" array */
@@ -2012,7 +2009,7 @@ package body Reports is
 --  }
 
    procedure Generate_Tokens
-     (Session      : in Sessions.Session_Type;
+     (Session      : in Session_Type;
       Token_Prefix : in String;
       First        : in Integer;
       Last         : in Integer)
@@ -2118,11 +2115,11 @@ package body Reports is
    -------------------------
 
    procedure Output_Action_Table
-     (File         :        File_Type;
-      Action_Table :        Action_Tables.Table_Type;
-      N            :        Integer;
-      No_Action    :        Action_Value;
-      Line         : in out Line_Number)
+     (File      :        File_Type;
+      Table     :        Action_Table;
+      N         :        Integer;
+      No_Action :        Action_Value;
+      Line      : in out Line_Number)
    is
       use type Action_Tables.Action_Value;
 
@@ -2139,7 +2136,7 @@ package body Reports is
          --  return acttab_yyaction (lime_pActtab, i);
          --  struct acttab *lime_pActtab;
          --  Action := Get_Acttab_YY_Action (I);
-         Action := Action_Table.Action (I).Action;
+         Action := Table.Action (I).Action;
          if Action < 0 then
             Action := No_Action;
          end if;
@@ -2167,11 +2164,11 @@ package body Reports is
    -------------------------
 
    procedure Output_YY_Lookahead
-     (File         :        File_Type;
-      Action_Table :        Action_Tables.Table_Type;
-      N            :        Integer;
-      Nsymbol      :        Integer;
-      Line         : in out Line_Number)
+     (File    :        File_Type;
+      Table   :        Action_Table;
+      N       :        Integer;
+      Nsymbol :        Integer;
+      Line    : in out Line_Number)
    is
       use type Action_Tables.Action_Value;
 
@@ -2183,7 +2180,7 @@ package body Reports is
       Put_Line (File, "static const YYCODETYPE yy_lookahead[] = {");  Increment_Line;
       for I in 0 .. N - 1 loop
          --  LA := Get_Acttab_YY_Lookahead (I);
-         LA := Action_Table.Lookahead (I).Action;
+         LA := Table.Lookahead (I).Action;
          if LA < 0 then
             LA := Action_Value (Nsymbol);
          end if;
@@ -2213,7 +2210,7 @@ package body Reports is
 
    procedure Output_YY_Shift_Offsets
      (File          :        File_Type;
-      Session       :        Sessions.Session_Type;
+      Session       :        Session_Type;
       N             :        Integer;
       MnTknOfst     :        Integer;
       MxTknOfst     :        Integer;
@@ -2277,7 +2274,7 @@ package body Reports is
 
    procedure Output_YY_Reduce_Offsets
      (File          :        File_Type;
-      Session       :        Sessions.Session_Type;
+      Session       :        Session_Type;
       N             :        Integer;
       MnNtOfst      :        Integer;
       MxNtOfst      :        Integer;
@@ -2335,7 +2332,7 @@ package body Reports is
 
    procedure Output_Default_Action_Table
      (File         :        File_Type;
-      Session      :        Sessions.Session_Type;
+      Session      :        Session_Type;
       N            :        Integer;
       Error_Action :        Action_Value;
       Min_Reduce   :        Action_Value;
@@ -2506,11 +2503,11 @@ package body Reports is
 
 
    procedure Report_Header
-     (Session          : in Sessions.Session_Type;
-      Token_Prefix  : in String;
-      Base_Name     : in String;
-      Module_Name   : in String;
-      Terminal_Last : in Natural)
+     (Session       : Session_Type;
+      Token_Prefix  : String;
+      Base_Name     : String;
+      Module_Name   : String;
+      Terminal_Last : Natural)
    is
       Prefix : constant String := Token_Prefix;
    begin
@@ -2532,12 +2529,12 @@ package body Reports is
 
 
    procedure Generate_Spec
-     (Session      : in Sessions.Session_Type;
-      Base_Name : in String;
-      Prefix    : in String;
-      Module    : in String;
-      First     : in Integer;
-      Last      : in Integer)
+     (Session   : Session_Type;
+      Base_Name : String;
+      Prefix    : String;
+      Module    : String;
+      First     : Integer;
+      Last      : Integer)
    is
       use Backend;
    begin
@@ -2578,8 +2575,8 @@ package body Reports is
 
 
    procedure Open_If_Possible
-     (File      : in out Ada.Text_IO.File_Type;
-      File_Name : in     String;
+     (File      : in out File_Type;
+      File_Name :        String;
       Success   :    out Boolean)
    is
       use Ada.Directories;
@@ -2615,7 +2612,7 @@ package body Reports is
 
 
    procedure Template_Open
-     (User_Template : in     String;
+     (User_Template :        String;
       Error_Count   : in out Integer;
       Success       :    out Integer)
    is
@@ -2766,10 +2763,10 @@ package body Reports is
      (File           :        File_Type;
       Line           : in out Line_Number;
       YY_Code_Type   :        String;
-      Symbol_Count   :        Types.Symbol_Index;
+      Symbol_Count   :        Symbol_Index;
       YY_Action_Type :        String;
       Is_Wildcard    :        Boolean;
-      Wildcard_Index :        Types.Symbol_Index)
+      Wildcard_Index :        Symbol_Index)
    is
       --      use Text_Out;
       procedure Increment_Line is new Increment (Line);
@@ -2846,18 +2843,6 @@ package body Reports is
       end if;
 
    end Error_Fallback;
-
-
---   procedure Close_Out is
---   begin
---      Text_Out.Close_Out;
---   end Close_Out;
-
-
---   procedure Close_In is
---   begin
---      Ada.Text_IO.Close (Backend.Context.File_Template);
---   end Close_In;
 
    ------------------------
    -- Put_Line_Directive --

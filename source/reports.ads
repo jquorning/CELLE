@@ -21,14 +21,14 @@ package Reports is
    --  Duplicate the input file without comments and without actions
    --  on rules
 
-   procedure Report_Output (Session : in Sessions.Session_Type);
+   procedure Report_Output (Session : Session_Type);
    --  Generate the "*.out" log file
 
-   procedure Report_Table (Session            : in out Sessions.Session_Type;
+   procedure Report_Table (Session            : in out Session_Type;
                            User_Template_Name : in     String);
    --  Generate C source code for the parser
 
-   procedure Compress_Tables (Session : in Sessions.Session_Type);
+   procedure Compress_Tables (Session : Session_Type);
    --  Reduce the size of the action tables, if possible, by making use
    --  of defaults.
    --
@@ -37,16 +37,16 @@ package Reports is
    --  is a possible look-ahead.
 
 
-   procedure Resort_States (Session : in Sessions.Session_Type);
+   procedure Resort_States (Session : Session_Type);
    --  Renumber and resort states so that states with fewer choices
    --  occur at the end.  Except, keep state 0 as the first state.
 
    procedure Report_Header
-     (Session       : in Sessions.Session_Type;
-      Token_Prefix  : in String;
-      Base_Name     : in String;
-      Module_Name   : in String;
-      Terminal_Last : in Natural);
+     (Session       : Session_Type;
+      Token_Prefix  : String;
+      Base_Name     : String;
+      Module_Name   : String;
+      Terminal_Last : Natural);
    --  Generate a header file for the Parser.
 
 
