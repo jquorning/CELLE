@@ -44,7 +44,7 @@ package body Reports is
    procedure Print_Action
      (Action : in     Actions.Action_Record;
       File   : in     Ada.Text_IO.File_Type;
-      Indent : in     Integer;
+      Indent : in     Natural;
       Result :    out Boolean);
    --  Print an action to the given file descriptor.  Return FALSE if
    --  nothing was actually printed.
@@ -235,9 +235,9 @@ package body Reports is
 
 
    procedure Template_Print
-     (Out_Name    : in String;
-      No_Line_Nos : in Integer;
-      Include     : in String);
+     (Out_Name        : in String;
+      No_Line_Numbers : in Boolean;
+      Include         : in String);
 
    procedure Write_Include
      (Include_Name : in String);
@@ -263,7 +263,7 @@ package body Reports is
    procedure Error_Fallback
      (Error_Sym    : in String;
       Struct       : in Struct_Access;
-      Has_Fallback : in Integer);
+      Has_Fallback : in Boolean);
    --
    --
 
@@ -575,7 +575,7 @@ package body Reports is
       --  Generate the include code, if any
       --  Sessions_Print (Session.Outname, Session.No_Linenos_Flag, Session.Include);
       Template_Print (Ada.Strings.Unbounded.To_String (Session.Out_Name),
-                      Boolean'Pos (Session.No_Linenos_Flag),
+                      Session.No_Linenos_Flag,
                       To_String (Session.Names.Include));
       --  lime_print (lime_get_ouüt_name (), lemp->nolinenosflag, lemap->include);
       --  lime_write_include (lime_get_mh_flag(), file_makename(lemp, ".h"));
@@ -1417,7 +1417,7 @@ package body Reports is
    procedure Print_Action
      (Action : in     Actions.Action_Record;
       File   : in     Ada.Text_IO.File_Type;
-      Indent : in     Integer;
+      Indent : in     Natural;
       Result :    out Boolean)
    is
    begin
@@ -1573,8 +1573,8 @@ package body Reports is
 
 
    procedure Emit_Destructor_Code
-     (Symbol : in Symbols.Symbol_Access;
-      Session   : in Sessions.Session_Type)
+     (Symbol  : in Symbols.Symbol_Access;
+      Session : in Sessions.Session_Type)
    is
       --  char *cp = 0;
    begin
@@ -2465,9 +2465,9 @@ package body Reports is
 
 
    procedure Template_Print
-     (Out_Name    : in String;
-      No_Line_Nos : in Integer;
-      Include     : in String)
+     (Out_Name        : in String;
+      No_Line_Numbers : in Boolean;
+      Include         : in String)
    is
    begin
       if Include = "" then
@@ -2491,7 +2491,7 @@ package body Reports is
 
       --  Optionally add source line number comments
       Ada.Text_IO.Put ("WLD - ");
-      if No_Line_Nos /= 0 then
+      if No_Line_Numbers then
          Ada.Text_IO.Put_Line ("1");
          --  Write_Line_Directive (Line_Number, Out_Name);
          Text_Out.Put_Line_Directive (Out_Name);
@@ -2561,7 +2561,7 @@ package body Reports is
    procedure Error_Fallback
      (Error_Sym    : in String;
       Struct       : in Struct_Access;
-      Has_Fallback : in Integer)
+      Has_Fallback : in Boolean)
    is
       use Text_Out;
    begin
@@ -2576,7 +2576,7 @@ package body Reports is
          New_Line;
       end if;
 
-      if Has_Fallback /= 0 then
+      if Has_Fallback then
          Put ("#define YYFALLBACK 1");
       end if;
 
