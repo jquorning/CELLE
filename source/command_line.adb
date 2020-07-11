@@ -84,7 +84,7 @@ package body Command_Line is
                      Help        => "Language (Ada, C). Default is 'C'.",
                      Long_Switch => Long_Switch_Language & '=',
                      Argument => "LANG");
-      Define_Switch (Config, Options.MH_Flag'Access, "-m",
+      Define_Switch (Config, Options.Make_Header'Access, "-m",
                      Help => "Output a makeheaders compatible file.");
       Define_Switch (Config, Options.No_Line_Nos'Access, "-l",
                      Help => "Do not print #line statements.");

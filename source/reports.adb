@@ -11,6 +11,7 @@ with Ada.Strings.Fixed;
 with Ada.Strings.Unbounded;
 with Ada.Directories;
 with Ada.IO_Exceptions;
+with Ada.Unchecked_Deallocation;
 
 with Rules;
 with Symbols;
@@ -115,7 +116,10 @@ package body Reports is
 
 
    procedure Print_Stack_Union
-     (Session : in Session_Type);  --  The main info structure for this parser
+     (File        :        File_Type;
+      Line        : in out Line_Number;
+      Session     :        Session_Type;
+      Make_Header :        Boolean);
 
    --  struct lemon *lemp //,
    --  //  int mhflag                  /* True if generating makeheaders output */
@@ -224,17 +228,20 @@ package body Reports is
    pragma Unreferenced (Write_Interface);
    --
 
-   procedure Write_Interface_Begin (File :        File_Type;
-                                    Line : in out Line_Number);
-   procedure Write_Interface_End (File :        File_Type;
-                                  Line : in out Line_Number);
+   procedure Write_Interface_Begin
+     (File        :        File_Type;
+      Line        : in out Line_Number;
+      Make_Header :        Boolean);
 
-   --
+   procedure Write_Interface_End
+     (File        :        File_Type;
+      Line        : in out Line_Number;
+      Make_Header :        Boolean);
+
    --  Each state contains a set of token transaction and a set of
    --  nonterminal transactions.  Each of these sets makes an instance
    --  of the following structure.  An array of these structures is used
    --  to order the creation of entries in the yy_action[] table.
-   --
    type AX_Record is
      record
         STP      : access States.State_Record; --  A pointer to a state
@@ -690,13 +697,13 @@ package body Reports is
       end;
 
       --  print_stack_union (lemp, lime_get_mh_flag());
-      Print_Stack_Union (Session);
+      Print_Stack_Union (File, Lineno, Session, Make_Header => True);
       Generate_The_Defines_2 (File, Lineno, To_String (Session.Names.Stack_Size));
 
 --    //if( lime_get_mh_flag() ){
 --    //  lime_put_line ("#if INTERFACE");
 --    //}
-      Write_Interface_Begin (File, Lineno);
+      Write_Interface_Begin (File, Lineno, Options.Make_Header);
 
       declare
 
@@ -735,7 +742,7 @@ package body Reports is
          end if;
       end;
 
-      Write_Interface_End (File, Lineno);
+      Write_Interface_End (File, Lineno, Options.Make_Header);
 --    //  if( lime_get_mh_flag() ){
 --    //    lime_put_line ("#endif");
 --    //  }
@@ -1772,7 +1779,7 @@ package body Reports is
            Element (Item.all, Index + 1) = '$'
          then
             Put (File, "(yypminor->yy");
-            Put (File, Integer'Image (Symbol.Dt_Num));
+            Put (File, Integer'Image (Symbol.DT_Num));
             Put (File, ")");
          else
             if Element (Item.all, Index) = ASCII.LF then
@@ -1803,7 +1810,6 @@ package body Reports is
       Line    : in out Line_Number)
    is
       use Ada.Strings.Unbounded;
---      use Text_Out;
 
       Code_Prefix : String renames To_String (Rule.Code_Prefix);
       Code        : String renames To_String (Rule.Code);
@@ -1859,138 +1865,213 @@ package body Reports is
 
 
    procedure Print_Stack_Union
-     (Session : Session_Type)  --  The main info structure for this parser
+     (File        :        File_Type;
+      Line        : in out Line_Number;
+      Session     :        Session_Type;
+      Make_Header :        Boolean)
    is
---    char **types;             /* A hash table of datatypes */
---    int arraysize;            /* Size of the "types" array */
---    int maxdtlength;          /* Maximum length of any ".datatype" field. */
---    char *stddt;              /* Standardized name for a datatype */
---    int i,j;                  /* Loop counters */
---    unsigned hash;            /* For hashing the name of a type */
---    const char *name;         /* Name of the parser */
+      use Ada.Strings.Unbounded;
+      use type Types.Symbol_Index;
+      use type Symbol_Access;
+      use type Symbols.Symbol_Kind;
+
+      type String_Access is access String;
+      type Type_Array    is array (Long_Integer range <>) of String_Access;
+      type Type_Array_Access is access all Type_Array;
+
+      procedure Increment_Line is new Increment (Line);
+      procedure Free is new Ada.Unchecked_Deallocation (Type_Array,
+                                                        Type_Array_Access);
+      procedure Free is new Ada.Unchecked_Deallocation (String,
+                                                        String_Access);
+
+      Types : Type_Array_Access; --  A hash table of datatypes
+      Array_Size    : Long_Integer;   --  Size of the "types" array
+      Max_DT_Length : Integer;   --  Maximum length of any ".datatype" field.
+      Std_DT : String_Access;    --  Standardized name for a datatype
+      J      : Integer;          --  Loop counters
+      Hash   : Long_Integer;     --  For hashing the name of a type
    begin
-      null;
---    /* Allocate and initialize types[] and allocate stddt[] */
---    arraysize = lemp->nsymbol * 2;
---    types = (char**)calloc( arraysize, sizeof(char*) );
---    if( types==0 ){
---      fprintf(stderr,"Out of memory.\n");
---      exit(1);
---    }
---    for(i=0; i<arraysize; i++) types[i] = 0;
---    maxdtlength = 0;
---    if( lemp->vartype ){
---      maxdtlength = lemonStrlen(lemp->vartype);
---    }
---    for(i=0; i<lemp->nsymbol; i++){
---      int len;
---      struct symbol *sp = lemp->symbols[i];
---      if( sp->datatype==0 ) continue;
---      len = lemonStrlen(sp->datatype);
---      if( len>maxdtlength ) maxdtlength = len;
---    }
---    stddt = (char*)malloc( maxdtlength*2 + 1 );
---    if( stddt==0 ){
---      fprintf(stderr,"Out of memory.\n");
---      exit(1);
---    }
+      --  Allocate and initialize types[] and allocate stddt[]
+      Array_Size := Long_Integer (Session.N_Symbol * 2);
+      Types      := new Type_Array'(0 .. Array_Size - 1 => null);
 
---    /* Build a hash table of datatypes. The ".dtnum" field of each symbol
---    ** is filled in with the hash index plus 1.  A ".dtnum" value of 0 is
---    ** used for terminal symbols.  If there is no %default_type defined then
---    ** 0 is also used as the .dtnum value for nonterminals which do not specify
---    ** a datatype using the %type directive.
---    */
---    for(i=0; i<lemp->nsymbol; i++){
---      struct symbol *sp = lemp->symbols[i];
---      char *cp;
---      if( sp==lemp->errsym ){
---        sp->dtnum = arraysize+1;
---        continue;
---      }
---      if( sp->type!=NONTERMINAL || (sp->datatype==0 && lemp->vartype==0) ){
---        sp->dtnum = 0;
---        continue;
---      }
---      cp = sp->datatype;
---      if( cp==0 ) cp = lemp->vartype;
---      j = 0;
---      while( ISSPACE(*cp) ) cp++;
---      while( *cp ) stddt[j++] = *cp++;
---      while( j>0 && ISSPACE(stddt[j-1]) ) j--;
---      stddt[j] = 0;
---      if( lemp->tokentype && strcmp(stddt, lemp->tokentype)==0 ){
---        sp->dtnum = 0;
---        continue;
---      }
---      hash = 0;
---      for(j=0; stddt[j]; j++){
---        hash = hash*53 + stddt[j];
---      }
---      hash = (hash & 0x7fffffff)%arraysize;
---      while( types[hash] ){
---        if( strcmp(types[hash],stddt)==0 ){
---          sp->dtnum = hash + 1;
---          break;
---        }
---        hash++;
---        if( hash>=(unsigned)arraysize ) hash = 0;
---      }
---      if( types[hash]==0 ){
---        sp->dtnum = hash + 1;
---        types[hash] = (char*)malloc( lemonStrlen(stddt)+1 );
---        if( types[hash]==0 ){
---          fprintf(stderr,"Out of memory.\n");
---          exit(1);
---        }
---        lemon_strcpy(types[hash],stddt);
---      }
---    }
+      Max_DT_Length := 0;
 
---    /* Print out the definition of YYTOKENTYPE and YYMINORTYPE */
---    const char*  tokentype;
+      if Session.Names.Var_Type /= Null_Unbounded_String then
+         Max_DT_Length := Length (Session.Names.Var_Type);
+      end if;
 
---    name      = (lemp->name      ? lemp->name      : "Parse");
---    tokentype = (lemp->tokentype ? lemp->tokentype : "void*");
---    lime_write_interface (name, tokentype);
---  /*   name = lemp->name ? lemp->name : "Parse"; */
---  /*   if( mhflag ) */
---  /*     { */
---  /*       lime_put_line ("#if INTERFACE"); */
---  /*     } */
---  /*   lime_put ("#define "); */
---  /*   lime_put (name); */
---  /*   lime_put ("TOKENTYPE "); */
---  /*   lime_put_line ((lemp->tokentype ? lemp->tokentype : "void*")); */
+      for I in 0 .. Session.N_Symbol - 1 loop
+         declare
+            Symbol : constant Symbol_Access := Symbols.Element_At (I);
+         begin
+            if Symbol.Data_Type /= Null_Unbounded_String then
+               Max_DT_Length := Integer'Max (Max_DT_Length,
+                                             Length (Symbol.Data_Type));
+            end if;
+         end;
+      end loop;
 
---  /*   if( mhflag ) */
---  /*     { */
---  /*       lime_put_line ("#endif"); */
---  /*     } */
+      Std_DT := new String'(0 .. Max_DT_Length * 2 - 1 + 1 => ASCII.NUL);
 
---    lime_put_line ("typedef union {");
---    lime_put_line ("  int yyinit;");
---    lime_put ("  ");
---    lime_put (name);
---    lime_put_line ("TOKENTYPE yy0;");
+      --  Build a hash table of datatypes. The ".dtnum" field of each symbol
+      --  is filled in with the hash index plus 1.  A ".dtnum" value of 0 is
+      --  used for terminal symbols.  If there is no %default_type defined
+      --  then 0 is also used as the .dtnum value for nonterminals which do
+      --  not specify a datatype using the %type directive.
 
---    for(i=0; i<arraysize; i++){
---      if( types[i]==0 ) continue;
---      lime_put ("  ");
---      lime_put (types[i]);
---      lime_put (" yy");
---      lime_put_int (i+1);
---      lime_put_line (";");
---      free(types[i]);
---    }
---    if( lemp->errsym && lemp->errsym->useCnt ){
---      lime_put ("  int yy");
---      lime_put_int (lemp->errsym->dtnum);
---      lime_put_line (";");
---    }
---    free(stddt);
---    free(types);
---    lime_put_line ("} YYMINORTYPE;");
+      for I in 0 .. Session.N_Symbol - 1 loop
+         declare
+            Symbol : constant Symbol_Access := Symbols.Element_At (I);
+         begin
+            if Symbol = Session.Error_Symbol then
+               Symbol.DT_Num := Integer (Array_Size + 1);
+               goto Continue;
+            end if;
+            if
+              Symbol.Kind /= Symbols.Non_Terminal or
+              (Symbol.Data_Type = Null_Unbounded_String and
+                 Session.Names.Var_Type = Null_Unbounded_String)
+            then
+               Symbol.DT_Num := 0;
+               goto Continue;
+            end if;
+
+            declare
+               Item  : access Unbounded_String := Symbol.Data_Type'Access;
+               Index : Natural := 1;
+--               Cp : Char_Access := Symbol.Data_Type;
+            begin
+               if Item.all = Null_Unbounded_String then
+                  Item := Session.Names.Var_Type'Access;
+               end if;
+               --  if Cp = 0 then
+               --     Cp := Session.Names.Var_Type;
+               --  end if;
+
+               while Element (Item.all, Index) = ' ' loop
+                  Index := Index + 1;
+               end loop;
+               --  while IS_SPACE (Cp.all) loop
+               --     Cp := Cp + 1;
+               --  end loop;
+
+               J := 0;
+--               while Cp.all loop
+               while Index <= Length (Item.all) loop
+                  Std_DT (J) := Element (Item.all, Index); --  Cp.all;
+                  J  := J  + 1;
+--                  Cp := Cp + 1;
+                  Index := Index + 1;
+               end loop;
+            end;
+
+            while J > 0 and Std_DT (J - 1) = ' ' loop
+               J := J - 1;
+            end loop;
+            Std_DT (J) := ASCII.NUL;
+
+            if
+              Session.Names.Token_Type /= Null_Unbounded_String and then
+              Std_DT.all = To_String (Session.Names.Token_Type)
+            then
+               Symbol.DT_Num := 0;
+               goto Continue;
+            end if;
+
+            Hash := 0;
+            J    := 0;
+            while Std_DT (J) /= ASCII.NUL loop
+               Hash := Hash * 53 + Character'Pos (Std_DT (J));
+               J    := J + 1;
+            end loop;
+            Hash := (Hash mod 16#8000_0000#) mod Array_Size;
+
+            while Types (Hash) /= null loop
+               if Types (Hash) =  Std_DT then
+                  Symbol.DT_Num := Integer (Hash + 1);
+                  exit;
+               end if;
+               Hash := Hash + 1;
+               if Hash >= Array_Size then
+                  Hash := 0;
+               end if;
+            end loop;
+
+            if Types (Hash) = null then
+               Symbol.DT_Num := Integer (Hash + 1);
+
+               Types (Hash) := new String'(0 .. Std_DT'Length + 1 - 1
+                                             => ASCII.NUL);
+               Types (Hash) := Std_DT;
+            end if;
+         end;
+         <<Continue>>
+      end loop;
+
+      --  Print out the definition of YYTOKENTYPE and YYMINORTYPE
+      --  declare
+      --     Name : constant String :=
+      --       (if Session.File_Name /= Null_Unbounded_String
+      --          then To_String (Session.File_Name)
+      --          else "Parse");
+
+      --     Token_Type : constant String :=
+      --       (if Session.Names.Token_Type /= Null_Unbounded_String
+      --          then To_String (Session.Names.Token_Type)
+      --          else "void*");
+      --  begin
+      --     Write_Interface_begin (File, Name, Token_Type, Line);
+      --  end;
+
+      declare
+         Name : constant String :=
+           (if Session.File_Name /= Null_Unbounded_String
+              then To_String (Session.File_Name) else "Parse");
+      begin
+         Write_Interface_Begin (File, Line, Make_Header);
+
+         Put (File, "#define ");
+         Put (File, Name);
+         Put (File, "TOKENTYPE ");
+         Put_Line (File, (if Session.Names.Token_Type /= Null_Unbounded_String
+                            then To_String (Session.Names.Token_Type)
+                            else "void*"));
+         Increment_Line;
+
+         Write_Interface_End (File, Line, Make_Header);
+
+         Put_Line (File, "typedef union {");  Increment_Line;
+         Put_Line (File, "  int yyinit;");    Increment_Line;
+         Put (File, "  ");
+         Put (File, Name);
+         Put_Line (File, "TOKENTYPE yy0;");   Increment_Line;
+      end;
+
+      for I in 0 .. Array_Size - 1 loop
+         if Types (I) /= null then
+            Put (File, "  ");
+            Put (File, Types (I).all);
+            Put (File, " yy");
+            Put (File, Long_Integer'Image (I + 1));
+            Put_Line (File, ";");    Increment_Line;
+            Free (Types (I));
+         end if;
+      end loop;
+
+      if
+        Session.Error_Symbol /= null and then
+        Session.Error_Symbol.Use_Count /= 0
+      then
+         Put (File, "  int yy");
+         Put (File, Integer'Image (Session.Error_Symbol.DT_Num));
+         Put_Line (File, ";");  Increment_Line;
+      end if;
+
+      Free (Std_DT);
+      Free (Types);
+      Put_Line (File, "} YYMINORTYPE;");  Increment_Line;
    end Print_Stack_Union;
 
 
@@ -2069,7 +2150,7 @@ package body Reports is
 
       Prefix : constant String := Get_Prefix;
    begin
-      if Options.MH_Flag then
+      if Options.Make_Header then
          --  const char *prefix; */
          Put_Line (File, "#if INTERFACE");
          Increment_Line;
@@ -2490,7 +2571,7 @@ package body Reports is
       Line      : in out Line_Number)
    is
    begin
-      if Options.MH_Flag then
+      if Options.Make_Header then
          Put_Line (File, "#if INTERFACE");
          Line := Line + 1;
       end if;
@@ -2502,7 +2583,7 @@ package body Reports is
       Put_Line (File);
       Line := Line + 1;
 
-      if Options.MH_Flag then
+      if Options.Make_Header then
          Put_Line (File, "#endif");
          Line := Line + 1;
       end if;
@@ -2512,10 +2593,12 @@ package body Reports is
    -- Write_Interface_Begin --
    ---------------------------
 
-   procedure Write_Interface_Begin (File :        File_Type;
-                                    Line : in out Line_Number) is
+   procedure Write_Interface_Begin
+     (File        :        File_Type;
+      Line        : in out Line_Number;
+      Make_Header :        Boolean) is
    begin
-      if Options.MH_Flag then
+      if Make_Header then
          Put_Line (File, "#if INTERFACE");
          Line := Line + 1;
       end if;
@@ -2525,10 +2608,12 @@ package body Reports is
    -- Write_Interface_End --
    -------------------------
 
-   procedure Write_Interface_End (File :        File_Type;
-                                  Line : in out Line_Number) is
+   procedure Write_Interface_End
+     (File        :        File_Type;
+      Line        : in out Line_Number;
+      Make_Header :        Boolean) is
    begin
-      if Options.MH_Flag then
+      if Make_Header then
          Put_Line (File, "#endif");
          Line := Line + 1;
       end if;
@@ -2545,7 +2630,7 @@ package body Reports is
       Prefix : constant String := Token_Prefix;
    begin
 
-      if not Options.MH_Flag then
+      if not Options.Make_Header then
          return;
       end if;
 
@@ -2781,7 +2866,7 @@ package body Reports is
       Include_Name :        String)
    is
    begin
-      if Options.MH_Flag then
+      if Options.Make_Header then
          Put (File, "#include <");
          Put (File, Include_Name);
          Put_Line (File, ">;"); Line := Line + 1;

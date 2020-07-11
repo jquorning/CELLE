@@ -88,7 +88,7 @@ package Symbols is
          --  The data type of information held by this
          --  object. Only used if type==NONTERMINAL
 
-         Dt_Num      : Integer := 0;
+         DT_Num      : Integer := 0;
          --  The data type number.  In the parser, the value
          --  stack is a union.  The .yy%d element of this
          --  union is the correct data type for this object

@@ -18,7 +18,7 @@ package Options is
    Compress      : aliased Boolean := False;
    Be_Quiet      : aliased Boolean := False;
    Statistics    : aliased Boolean := False;
-   MH_Flag       : aliased Boolean := False;
+   Make_Header   : aliased Boolean := False;
    No_Line_Nos   : aliased Boolean := False;
    No_Resort     : aliased Boolean := False;
    Show_Help     : aliased Boolean := False;
