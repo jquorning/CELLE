@@ -57,17 +57,18 @@ package body Reports is
                                  File_Name : String);
    --  Put line directive to File. Like '#line <Line> "<File_Name>"'.
 
-   procedure Rule_Print (File : in Ada.Text_IO.File_Type;
-                         Rule : in Rules.Rule_Access);
+   procedure Rule_Print (File   : File_Type;
+                         Rule   : Rules.Rule_Access;
+                         Cursor : Integer := 0);
    --  Print the text of a rule.
 
 
    procedure Print_Action
-     (Action : in     Actions.Action_Record;
-      File   : in     Ada.Text_IO.File_Type;
-      Indent : in     Natural;
-      Result :    out Boolean);
-   --  Print an action to the given file descriptor.  Return FALSE if
+     (Action :     Actions.Action_Record;
+      File   :     Ada.Text_IO.File_Type;
+      Indent :     Natural;
+      Emit   : out Boolean);
+   --  Print an Action to File with Indent indention. Return Falese if
    --  nothing was actually printed.
 
    procedure Config_Print (File : in Ada.Text_IO.File_Type;
@@ -1434,9 +1435,11 @@ package body Reports is
    end Resort_States;
 
 
-   procedure Rule_Print (File : in Ada.Text_IO.File_Type;
-                         Rule : in Rules.Rule_Access)
+   procedure Rule_Print (File   : File_Type;
+                         Rule   : Rules.Rule_Access;
+                         Cursor : Integer := 0)
    is
+      pragma Unreferenced (Cursor);
       use Ada.Strings.Unbounded;
 --      use type Symbols.Symbol_Kind;
       use Symbols;
@@ -1487,75 +1490,135 @@ package body Reports is
 
 
    procedure Print_Action
-     (Action : in     Actions.Action_Record;
-      File   : in     Ada.Text_IO.File_Type;
-      Indent : in     Natural;
-      Result :    out Boolean)
+     (Action :     Actions.Action_Record;
+      File   :     File_Type;
+      Indent :     Natural;
+      Emit   : out Boolean)
    is
+      procedure Put_Indent (Item : String);
+      procedure Put_Integer (Value : Integer);
+      function Name_Of (Symbol : Symbols.Symbol_Access) return String
+        renames Symbols.Name_Of;
+
+      procedure Put_Indent (Item : String) is
+         Image : String (1 .. Indent) := (others => ' ');
+      begin
+         Image (Image'Last - Item'Length .. Image'Last) := Item;
+         Put (File, Image);
+      end Put_Indent;
+
+      procedure Put_Integer (Value : Integer) is
+         package Integer_IO is new Ada.Text_IO.Integer_IO (Integer);
+      begin
+         Integer_IO.Put (File, Value, Width => 7);
+      end Put_Integer;
+
+      use Actions;
+      subtype Rule_Access is Rules.Rule_Access;
+      Symbol_Name  : constant String      := Name_Of (Action.Symbol);
+      State_Number : constant Integer     := Action.X.stp.State_Num;
+      Rule         : constant Rule_Access := Action.X.Rule;
    begin
---    struct action *ap,          /* The action to print */
---    FILE *fp,                   /* Print the action here */
---    int indent                  /* Indent by this amount */
---  ){
---    int result = 1;
---    switch( ap->type ){
---      case SHIFT: {
---        struct state *stp = ap->x.stp;
---        fprintf(fp,"%*s shift        %-7d",indent,ap->sp->name,stp->statenum);
---        break;
---      }
---      case REDUCE: {
---        struct rule *rp = ap->x.rp;
---        fprintf(fp,"%*s reduce       %-7d",indent,ap->sp->name,rp->iRule);
---        RulePrint(fp, rp, -1);
---        break;
---      }
---      case SHIFTREDUCE: {
---        struct rule *rp = ap->x.rp;
---        fprintf(fp,"%*s shift-reduce %-7d",indent,ap->sp->name,rp->iRule);
---        RulePrint(fp, rp, -1);
---        break;
---      }
---      case ACCEPT:
---        fprintf(fp,"%*s accept",indent,ap->sp->name);
---        break;
---      case ERROR:
---        fprintf(fp,"%*s error",indent,ap->sp->name);
---        break;
---      case SRCONFLICT:
---      case RRCONFLICT:
---        fprintf(fp,"%*s reduce       %-7d ** Parsing conflict **",
---          indent,ap->sp->name,ap->x.rp->iRule);
---        break;
---      case SSCONFLICT:
---        fprintf(fp,"%*s shift        %-7d ** Parsing conflict **",
---          indent,ap->sp->name,ap->x.stp->statenum);
---        break;
---      case SH_RESOLVED:
---        if( lemon_show_conflict ){
---          fprintf(fp,"%*s shift        %-7d -- dropped by precedence",
---                  indent,ap->sp->name,ap->x.stp->statenum);
---        }else{
---          result = 0;
---        }
---        break;
---      case RD_RESOLVED:
---        if( lemon_show_conflict ){
---          fprintf(fp,"%*s reduce %-7d -- dropped by precedence",
---                  indent,ap->sp->name,ap->x.rp->iRule);
---        }else{
---          result = 0;
---        }
---        break;
---      case NOT_USED:
---        result = 0;
---        break;
---    }
---    if( result && ap->spOpt ){
---      fprintf(fp,"  /* because %s==%s */", ap->sp->name, ap->spOpt->name);
---    }
---    return result;
-      null;
+      Emit := True;
+
+      case Action.Kind is
+
+         when Shift =>
+            declare
+               --  State : State_Type renames Action.X.stp;
+               --  struct state *stp = ap->x.stp;
+            begin
+               --  fprintf(fp,"%*s shift        %-7d",indent,ap->sp->name,stp->statenum);
+               Put_Indent (Symbol_Name);
+               Put (File, " shift        ");
+               Put_Integer (State_Number);
+            end;
+
+         when Reduce =>
+--            declare
+               --  Rule : Actions.Rule_Record renames Action.X.Rule; --  *rp = ap->x.rp;
+--            begin
+               --  fprintf(fp,"%*s reduce       %-7d",indent,ap->sp->name,rp->iRule);
+               Put_Indent (Symbol_Name);
+               Put (File, " reduce       ");
+               Put_Integer (Rule.Rule);
+               Rule_Print (File, Rule, -1);
+--            end;
+
+         when Shift_Reduce =>
+--            declare
+--               Rule : Rule_Record renames Action.X.Rule; --  *rp = ap->x.rp;
+--            begin
+               --  fprintf(fp,"%*s shift-reduce %-7d",indent,ap->sp->name,rp->iRule);
+               Put_Indent (Symbol_Name);
+               Put (File, " shift-reduce ");
+               Put_Integer (Rule.Rule);
+               Rule_Print (File, Rule, -1);
+--            end;
+
+         when C_Accept =>
+            --  fprintf(fp,"%*s accept",indent,ap->sp->name);
+            Put_Indent (Symbol_Name);
+            Put (File, " accept");
+
+         when Error =>
+            --  fprintf(fp,"%*s error",indent,ap->sp->name);
+            Put_Indent (Symbol_Name);
+            Put (File, " error");
+
+         when SR_Conflict | RR_Conflict =>
+            --  fprintf(fp,"%*s reduce       %-7d ** Parsing conflict **",
+            --  indent,ap->sp->name,ap->x.rp->iRule);
+            Put_Indent (Symbol_Name);
+            Put (File, " reduce       ");
+            Put_Integer (Rule.Rule);
+            Put (File, " ** Parsing conflict **");
+
+         when SS_Conflict =>
+            --  fprintf(fp,"%*s shift        %-7d ** Parsing conflict **",
+            --  indent,ap->sp->name,ap->x.stp->statenum);
+            Put_Indent (Symbol_Name);
+            Put (File, " shift        ");
+            Put_Integer (Action.X.stp.State_Num);
+            Put (File, " ** Parsing conflict **");
+
+         when SH_Resolved =>
+            if Options.Show_Conflict then
+               --  fprintf(fp,"%*s shift        %-7d -- dropped by precedence",
+               --  indent,ap->sp->name,ap->x.stp->statenum);
+               Put_Indent (Symbol_Name);
+               Put (File, " shift        ");
+               Put_Integer (Action.X.stp.State_Num);
+               Put (File, " -- dropped by precedence");
+            else
+               Emit := False;
+            end if;
+
+         when RD_Resolved =>
+            if Options.Show_Conflict then
+               --  fprintf(fp,"%*s reduce %-7d -- dropped by precedence",
+               --  indent,ap->sp->name,ap->x.rp->iRule);
+               Put_Indent (Symbol_Name);
+               Put (File, " reduce       ");
+               Put_Integer (Action.X.stp.State_Num);
+               Put (File, " -- dropped by precedence");
+            else
+               Emit := False;
+            end if;
+
+         when Not_Used =>
+            Emit := False;
+
+      end case;
+
+      if Emit and Action.spOpt /= null then
+         Put (File, "  /* because ");
+         Put (File,  Symbol_Name);
+         Put (File, "==");
+         Put (File, Symbols.Symbol_Kind'Image (Action.spOpt.all));
+         Put (File, " */");
+      end if;
+
    end Print_Action;
 
 
