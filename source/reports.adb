@@ -7,7 +7,6 @@
 --    May you share freely, not taking more than you give.
 --
 
-with Ada.Text_IO;
 with Ada.Strings.Fixed;
 with Ada.Strings.Unbounded;
 with Ada.Directories;
@@ -16,7 +15,7 @@ with Ada.IO_Exceptions;
 with Rules;
 with Symbols;
 with Report_Parsers;
-with Text_Out;
+--  with Text_Out;
 with Actions;
 with Action_Tables;
 with Configs;
@@ -33,8 +32,30 @@ with Auxiliary;
 
 package body Reports is
 
+   use type Types.Line_Number;
+
+   procedure Put      (File : File_Type; Item : String)
+     renames Ada.Text_IO.Put;
+   procedure Put_Line (File : File_Type; Item : String := "")
+     renames Ada.Text_IO.Put_Line;
+
+   subtype Line_Number  is Types.Line_Number;
    subtype Symbol_Index is Types.Symbol_Index;
    subtype Action_Value is Action_Tables.Action_Value;
+
+   generic
+      Line : in out Line_Number;
+   procedure Increment;
+
+   procedure Increment is
+   begin
+      Line := Line + 1;
+   end Increment;
+
+   procedure Put_Line_Directive (File      : File_Type;
+                                 Line      : Line_Number;
+                                 File_Name : String);
+   --  Put line directive to File. Like '#line <Line> "<File_Name>"'.
 
    procedure Rule_Print (File : in Ada.Text_IO.File_Type;
                          Rule : in Rules.Rule_Access);
@@ -67,7 +88,8 @@ package body Reports is
                            Extension : in String) return String;
 
 
-   procedure Write_Rule_Text (Rule : in Rules.Rule_Access);
+   procedure Write_Rule_Text (File : File_Type;
+                              Rule : Rules.Rule_Access);
    --  Write text on "out" that describes the rule "rp".
 
    procedure Emit_Destructor_Code
@@ -77,8 +99,10 @@ package body Reports is
    --  symbol sp
 
    procedure Emit_Code
-     (Rule    : in Rules.Rule_Access;
-      Session : in Sessions.Session_Type);
+     (File    :        Ada.Text_IO.File_Type;
+      Rule    :        Rules.Rule_Access;
+      Session :        Sessions.Session_Type;
+      Line    : in out Types.Line_Number);
    --  Generate code which executes when the rule "rp" is reduced.  Write
    --  the code to "out".  Make sure lineno stays up-to-date.
 
@@ -114,51 +138,61 @@ package body Reports is
          Min_Reduce       : Action_Value;
       end record;
 
-   procedure Render_Constants (Render : in Render_Record);
+   procedure Render_Constants (File   : File_Type;
+                               Render : Render_Record);
    --
    --
 
    procedure Output_Action_Table
-     (Action_Table : in Action_Tables.Table_Type;
-      N            : in Integer;
-      No_Action    : in Action_Value);
+     (File         :        File_Type;
+      Action_Table :        Action_Tables.Table_Type;
+      N            :        Integer;
+      No_Action    :        Action_Value;
+      Line         : in out Line_Number);
    --
    --
 
    procedure Output_YY_Lookahead
-     (Action_Table : in Action_Tables.Table_Type; -- A_Action_Table;
-      N            : in Integer;
-      Nsymbol      : in Integer);
+     (File         :        File_Type;
+      Action_Table :        Action_Tables.Table_Type;
+      N            :        Integer;
+      Nsymbol      :        Integer;
+      Line         : in out Line_Number);
    --
    --
 
    procedure Output_YY_Shift_Offsets
-     (Session       : in Sessions.Session_Type;
-      N             : in Integer;
-      MnTknOfst     : in Integer;
-      MxTknOfst     : in Integer;
-      Min_Size_Type : in String;
-      Nactiontab    : in Integer;
-      NO_OFFSET     : in Integer);
+     (File          :        File_Type;
+      Session       :        Sessions.Session_Type;
+      N             :        Integer;
+      MnTknOfst     :        Integer;
+      MxTknOfst     :        Integer;
+      Min_Size_Type :        String;
+      Nactiontab    :        Integer;
+      NO_OFFSET     :        Integer;
+      Line          : in out Line_Number);
 
    --
    --
    --
 
    procedure Output_YY_Reduce_Offsets
-     (Session       : in Sessions.Session_Type;
-      N             : in Integer;
-      MnNtOfst      : in Integer;
-      MxNtOfst      : in Integer;
-      Min_Size_Type : in String;
-      NO_OFFSET     : in Integer);
-
+     (File          :        File_Type;
+      Session       :        Sessions.Session_Type;
+      N             :        Integer;
+      MnNtOfst      :        Integer;
+      MxNtOfst      :        Integer;
+      Min_Size_Type :        String;
+      NO_OFFSET     :        Integer;
+      Line          : in out Line_Number);
 
    procedure Output_Default_Action_Table
-     (Session      : in Sessions.Session_Type;
-      N            : in Integer;
-      Error_Action : in Action_Value;
-      Min_Reduce   : in Action_Value);
+     (File         :        File_Type;
+      Session      :        Sessions.Session_Type;
+      N            :        Integer;
+      Error_Action :        Action_Value;
+      Min_Reduce   :        Action_Value;
+      Line         : in out Line_Number);
 
 --     procedure Template_Print_2
 --       (Line        : in String;
@@ -167,19 +201,26 @@ package body Reports is
    --  Print a string to the file and keep the linenumber up to date
 
    procedure Write_Arg_Defines
-     (Name    : in String;
-      Arg_Ctx : in String;
-      Extend  : in Boolean;
-      Arg     : in String;
-      Arg_I   : in String);
+     (File    :        File_Type;
+      Name    :        String;
+      Arg_Ctx :        String;
+      Extend  :        Boolean;
+      Arg     :        String;
+      Arg_I   :        String;
+      Line    : in out Line_Number);
 
    procedure Write_Interface
-     (Name      : in String;
-      Tokentype : in String);
+     (File      :        File_Type;
+      Name      :        String;
+      Tokentype :        String;
+      Line      : in out Line_Number);
+   pragma Unreferenced (Write_Interface);
    --
 
-   procedure Write_Interface_Begin;
-   procedure Write_Interface_End;
+   procedure Write_Interface_Begin (File :        File_Type;
+                                    Line : in out Line_Number);
+   procedure Write_Interface_End (File :        File_Type;
+                                  Line : in out Line_Number);
 
    --
    --  Each state contains a set of token transaction and a set of
@@ -210,7 +251,7 @@ package body Reports is
    --  Suffix.
 
 
-   procedure Implementation_Open (File_Name : in String);
+--   procedure Implementation_Open (File_Name : in String);
    --  Open a file for writing then implementaion (parse.adb/parse.c).
    --  File handler is located in the context structure.
 
@@ -230,27 +271,37 @@ package body Reports is
    --  Thisk function finds the template file and opens it. File handle
    --  is located in the context structure.
 
-   procedure Template_Transfer (Name : in String);
+   procedure Template_Transfer
+     (File : File_Type;
+      Name : String);
    --
 
 
    procedure Template_Print
-     (Out_Name        : in String;
-      No_Line_Numbers : in Boolean;
-      Include         : in String);
+     (File            :        File_Type;
+      Line            : in out Line_Number;
+      Out_Name        :        String;
+      No_Line_Numbers :        Boolean;
+      Include         :        String);
 
    procedure Write_Include
-     (Include_Name : in String);
+     (File         :        File_Type;
+      Line         : in out Line_Number;
+      Include_Name :        String);
 
    procedure Generate_The_Defines_1
-     (YY_Code_Type   : in String;
-      Symbol_Count   : in Types.Symbol_Index;
-      YY_Action_Type : in String;
-      Is_Wildcard    : in Boolean;
-      Wildcard_Index : in Types.Symbol_Index);
+     (File           :        File_Type;
+      Line           : in out Line_Number;
+      YY_Code_Type   :        String;
+      Symbol_Count   :        Types.Symbol_Index;
+      YY_Action_Type :        String;
+      Is_Wildcard    :        Boolean;
+      Wildcard_Index :        Types.Symbol_Index);
 
    procedure Generate_The_Defines_2
-     (Stack_Size : in String);
+     (File       :        File_Type;
+      Line       : in out Line_Number;
+      Stack_Size :        String);
 
    type Mystruct_Record is record
       Use_Count : Integer;
@@ -261,16 +312,19 @@ package body Reports is
    type Struct_Access is access all Mystruct_Record;
 
    procedure Error_Fallback
-     (Error_Sym    : in String;
-      Struct       : in Struct_Access;
-      Has_Fallback : in Boolean);
+     (File         :        File_Type;
+      Line         : in out Line_Number;
+      Error_Sym    :        String;
+      Struct       :        Struct_Access;
+      Has_Fallback :        Boolean);
+   pragma Unreferenced (Error_Fallback);
    --
    --
 
-   procedure Close_Out;
+--   procedure Close_Out;
    --  Close out file
 
-   procedure Close_In;
+--   procedure Close_In;
    --  Close in file
 
 
@@ -299,9 +353,13 @@ package body Reports is
 --    return c;
 --  }
 
-   procedure Reprint (Session : in Sessions.Session_Type)
+   -------------
+   -- Reprint --
+   -------------
+
+   procedure Reprint (File    : File_Type;
+                      Session : Sessions.Session_Type)
    is
-      use Ada.Text_IO;
       use Ada.Strings.Unbounded;
       use Symbols;
       use type Rules.Rule_Access;
@@ -316,10 +374,10 @@ package body Reports is
       Max_Len, Len, N_Columns, Skip : Integer;
       Column : Natural;
    begin
-      Put ("// Reprint of input file """);
-      Put (To_String (Unbounded_String'(Session.File_Name)));
-      Put_Line (""".");
-      Put_Line ("// Symbols:");
+      Put (File, "// Reprint of input file """);
+      Put (File, To_String (Unbounded_String'(Session.File_Name)));
+      Put_Line (File, """.");
+      Put_Line (File, "// Symbols:");
       Max_Len := 10;
 
       --  Determine Max_Len
@@ -340,38 +398,38 @@ package body Reports is
       --  Print symbol list
       Skip := (Integer (Session.N_Symbol) + N_Columns - 1) / N_Columns;
       for I in 0 .. Skip - 1 loop
-         Put ("//");
+         Put (File, "//");
          J := Types.Symbol_Index (I);
          Column := 0;
          while J < Session.N_Symbol loop
             Symbol := Symbols.Element_At (J);
             pragma Assert (Symbol.Index = J);
 
-            Put (" ");
+            Put (File, " ");
             Symbol_Index_IO.Put (J, Width => 3);
-            Put (" ");
+            Put (File, " ");
             declare
                Name  : constant String := Symbols.Name_Of (Symbol);
                Field : String (1 .. Max_Len) := (others => ' ');
             begin
                Field (Name'Range) := Name;
-               Put (Field);
+               Put (File, Field);
             end;
             J := J + Symbol_Index (Skip);
             Column := Column + 1;
          end loop;
-         New_Line;
+         Put_Line (File, "");
       end loop;
 
       --  Print rules
       for Rule of Session.Rule loop
-         Rule_Print (Standard_Output, Rule);
-         Put (".");
+         Rule_Print (File, Rule);
+         Put (File, ".");
          if Rule.Prec_Symbol /= null then
-            Put (" [" & Name_Of (Symbol_Access (Rule.Prec_Symbol)) & "]");
+            Put (File, " [" & Name_Of (Symbol_Access (Rule.Prec_Symbol)) & "]");
          end if;
          --  /* if( rp->code ) printf("\n    %s",rp->code); */
-         New_Line;
+         Put_Line (File, "");
       end loop;
    end Reprint;
 
@@ -393,14 +451,14 @@ package body Reports is
       Config : Config_Access;
    begin
 --  fp = file_open(lemp,".out","wb");
-      Open (File, Out_File, "XXX.out");
+      Ada.Text_IO.Open (File, Ada.Text_IO.Out_File, "XXX.out");
 
       for I in 0 .. Session.Nx_State - 1 loop
          State := Session.Sorted (I);
          Put (File, "State ");
          Put (File, Integer'Image (State.State_Num));
          Put (File, ":");
-         New_Line;
+         New_Line (File);
 
          if Session.Basis_Flag then
             Config := State.Basis;
@@ -538,7 +596,10 @@ package body Reports is
       use type Action_Tables.Action_Value;
 
       Session_Name : constant String := To_String (Session.Names.Name);
---    char line[LINESIZE];
+      Out_File : Ada.Text_IO.File_Type;
+      File : Ada.Text_IO.File_Type renames Out_File;
+      --    char line[LINESIZE];
+      Lineno : Types.Line_Number := 0;
       State : States.State_Access;
 --    struct action *ap;
 --      Rule  : Rules.Rule_Access;
@@ -558,6 +619,14 @@ package body Reports is
 
       Template_Open_Success : Integer;
       Error_Count           : Natural := 0;
+
+      procedure Increment_Line;
+
+      procedure Increment_Line is
+      begin
+         Lineno := Lineno + 1;
+      end Increment_Line;
+
    begin
       Session.Min_Shift_Reduce := Action_Value (Session.Sorted.Length);
 --      Session.Err_Action       := Session.Min_Shift_Reduce + Session.N_Rule;
@@ -568,20 +637,21 @@ package body Reports is
 --      Session.Max_Action       := Session.Min_Reduce + Session.N_Rule;
       Session.Max_Action       := Session.Min_Reduce + Action_Value (Session.Rule.Length);
       Template_Open (User_Template_Name, Error_Count, Template_Open_Success);
-      Implementation_Open (File_Makename (Session, ".c"));
+      Auxiliary.Recreate (File, Ada.Text_IO.Out_File,
+                          File_Name => File_Makename (Session, ".c"));
 
-      Template_Transfer (Session_Name);
+      Template_Transfer (File, Session_Name);
 
       --  Generate the include code, if any
       --  Sessions_Print (Session.Outname, Session.No_Linenos_Flag, Session.Include);
-      Template_Print (Ada.Strings.Unbounded.To_String (Session.Out_Name),
+      Template_Print (File, Lineno, Ada.Strings.Unbounded.To_String (Session.Out_Name),
                       Session.No_Linenos_Flag,
                       To_String (Session.Names.Include));
       --  lime_print (lime_get_ouüt_name (), lemp->nolinenosflag, lemap->include);
       --  lime_write_include (lime_get_mh_flag(), file_makename(lemp, ".h"));
-      Write_Include (File_Makename (Session, ".h"));
+      Write_Include (File, Lineno, File_Makename (Session, ".h"));
 
-      Template_Transfer (Session_Name);
+      Template_Transfer (File, Session_Name);
 
       --  Generate #defines for all tokens
 --  XXX    Sessions_Session_Copy := Session;
@@ -589,7 +659,7 @@ package body Reports is
       Generate_Tokens (Session, To_String (Session.Names.Token_Prefix),
                        1, Integer (Session.N_Terminal));
 
-      Template_Transfer (Session_Name);
+      Template_Transfer (File, Session_Name);
 
       --  Generate the defines
       declare
@@ -610,14 +680,14 @@ package body Reports is
       begin
          if Is_Wildcard then
             Generate_The_Defines_1
-              (Code,
+              (File, Lineno, Code,
                Symbols.Last_Index,
                Action,
                Is_Wildcard    => True,
                Wildcard_Index => Wildcard.Index);
          else
             Generate_The_Defines_1
-            (Code,
+            (File, Lineno, Code,
              Symbols.Last_Index,
              Action,
              Is_Wildcard    => False,
@@ -627,12 +697,12 @@ package body Reports is
 
       --  print_stack_union (lemp, lime_get_mh_flag());
       Print_Stack_Union (Session);
-      Generate_The_Defines_2 (To_String (Session.Names.Stack_Size));
+      Generate_The_Defines_2 (File, Lineno, To_String (Session.Names.Stack_Size));
 
 --    //if( lime_get_mh_flag() ){
 --    //  lime_put_line ("#if INTERFACE");
 --    //}
-      Write_Interface_Begin;
+      Write_Interface_Begin (File, Lineno);
 
       declare
 
@@ -658,20 +728,20 @@ package body Reports is
       begin
          Trim_Right_Symbol (ARG, ARG_I);
          if ARG = "" then
-            Write_Arg_Defines (Name, "ARG", False, "", "");
+            Write_Arg_Defines (File, Name, "ARG", False, "", "", Lineno);
          else
-            Write_Arg_Defines (Name, "ARG", True, ARG, ARG (ARG_I .. ARG'Last));
+            Write_Arg_Defines (File, Name, "ARG", True, ARG, ARG (ARG_I .. ARG'Last), Lineno);
          end if;
 
          Trim_Right_Symbol (CTX, CTX_I);
          if CTX = "" then
-            Write_Arg_Defines (Name, "CTX", False, "", "");
+            Write_Arg_Defines (File, Name, "CTX", False, "", "", Lineno);
          else
-            Write_Arg_Defines (Name, "CTX", True, CTX, CTX (CTX_I .. CTX'Last));
+            Write_Arg_Defines (File, Name, "CTX", True, CTX, CTX (CTX_I .. CTX'Last), Lineno);
          end if;
       end;
 
-      Write_Interface_Begin;
+      Write_Interface_End (File, Lineno);
 --    //  if( lime_get_mh_flag() ){
 --    //    lime_put_line ("#endif");
 --    //  }
@@ -783,7 +853,8 @@ package body Reports is
       --  Finish rendering the constants now that the action table has
       --  been computed
       Render_Constants
-        (Render =>
+        (File,
+         Render =>
            (Nx_State         => Natural (Session.Nx_State),
             N_Rule           => Integer (Session.Rule.Length),
             N_Terminal       => Integer (Session.N_Terminal),
@@ -793,7 +864,7 @@ package body Reports is
             No_Action        => Session.No_Action,
             Min_Reduce       => Session.Min_Reduce));
 
-      Template_Transfer (Session_Name);
+      Template_Transfer (File, Session_Name);
 
 
       --
@@ -815,7 +886,7 @@ package body Reports is
       N := Session.N_Action_Tab;
       Session.Table_Size := Session.Table_Size + N * Size_Of_Action_Type;
 
-      Output_Action_Table (Act_Tab.all, N, Session.No_Action);
+      Output_Action_Table (File, Act_Tab.all, N, Session.No_Action, Lineno);
 
       --
       --  Output the yy_lookahead table
@@ -824,7 +895,7 @@ package body Reports is
       N := Session.N_Lookahead_Tab;
       Session.Table_Size := Session.Table_Size + N * Size_Of_Code_Type;
 
-      Output_YY_Lookahead (Act_Tab.all, N, Integer (Symbols.Last_Index));
+      Output_YY_Lookahead (File, Act_Tab.all, N, Integer (Symbols.Last_Index), Lineno);
 
       --
       --  Output the yy_shift_ofst[] table
@@ -837,12 +908,14 @@ package body Reports is
 --
 --    lime_lemp = lemp;
       Output_YY_Shift_Offsets
-        (Session, N,
+        (File,
+         Session, N,
          Mn_Tkn_Ofst,
          Mx_Tkn_Ofst,
          Minimum_Size_Type (Mn_Tkn_Ofst, Integer (Session.N_Terminal) + Session.N_Action_Tab, SZ),
          Session.N_Action_Tab,
-         No_Offset);
+         No_Offset,
+         Lineno);
 
       Session.Table_Size := Session.Table_Size + N * SZ;
 
@@ -853,23 +926,27 @@ package body Reports is
 --    while( n>0 && lemp->sorted[n-1]->iNtOfst==NO_OFFSET ) n--;
 --
       Output_YY_Reduce_Offsets
-        (Session, N,
+        (File,
+         Session, N,
          Mn_Nt_Ofst,
          Mx_Nt_Ofst,
          Minimum_Size_Type (Mn_Nt_Ofst - 1, Mx_Nt_Ofst, SZ),
-         No_Offset);
+         No_Offset,
+         Lineno);
       Session.Table_Size := Session.Table_Size + N * SZ;
 
       --
       --  Output the default action table
       --
       Output_Default_Action_Table
-        (Session, Natural (Session.Nx_State),
+        (File,
+         Session, Natural (Session.Nx_State),
          Session.Err_Action,
-         Session.Min_Reduce);
+         Session.Min_Reduce,
+         Lineno);
       Session.Table_Size := Session.Table_Size + N * Size_Of_Action_Type;
 
-      Template_Transfer (Session_Name);
+      Template_Transfer (File, Session_Name);
 
       --
       --  Generate the table of fallback tokens.
@@ -892,34 +969,36 @@ package body Reports is
 
             for I in 0 .. MX loop
                declare
-                  use Text_Out;
                   P : constant Symbol_Access := Element_At (I);
                begin
                   if P.Fallback = null then
-                     Put ("    0,  /* ");
-                     Put (Name_Of (P));
-                     Put_Line (" => nothing */");
+                     Put (File, "    0,  /* ");
+                     Put (File, Name_Of (P));
+                     Put (File, " => nothing */");
+                     Put_Line (File, "");
                   else
-                     Put ("  ");
-                     Put_Int (Integer (P.Fallback.Index));
-                     Put (",  /* ");
-                     Put (Name_Of (P));
-                     Put (" => ");
-                     Put (To_String (P.Fallback.Name));
-                     Put_Line (" */");
+                     Put (File, "  ");
+                     Put (File, Symbol_Index'Image (P.Fallback.Index));
+                     Put (File, ",  /* ");
+                     Put (File, Name_Of (P));
+                     Put (File, " => ");
+                     Put (File, To_String (P.Fallback.Name));
+                     Put (File, " */");
+                     Put_Line (File, "");
                   end if;
+                  Increment_Line;
                end;
             end loop;
          end;
       end if;
 
-      Template_Transfer (Session_Name);
+      Template_Transfer (File, Session_Name);
 
       --
       --  Generate A Table Containing the symbolic name of every symbol
       --
       declare
-         use Text_Out;
+--         use Text_Out;
          use Symbols;
          use Types;
 
@@ -930,19 +1009,17 @@ package body Reports is
                Name : constant String := Name_Of (Element_At (I));
             begin
                --  Session_Sprintf (Line, """" & Name & """,");
-               Put ("  /* "); --  %4d */ \"%s\",\n",i, lemp->symbols[i]->name);
-               --  lineno++;
-               Put_Int (Integer (I));
-               Put_Line (" */ """ & Name & """,");
-               --  lineno++;
-               Put (Name);  --
-               Put_Line (""",");
-               --  fprintf(out,"  /* %4d */ \"%s\",\n",i, lemp->symbols[i]->name);
-               --  lineno++;
+               Put (File, "  /* ");
+               Put (File, Symbol_Index'Image (I));
+               Put (File, " */ """);
+               Put (File, Name);
+               Put (File, """,");
+               Put_Line (File, "");
+               Increment_Line;
             end;
          end loop;
 
-         Template_Transfer (Session_Name);
+         Template_Transfer (File, Session_Name);
 
          --  Generate a table containing a text string that describes every
          --  rule in the rule set of the grammar.  This information is used
@@ -951,17 +1028,17 @@ package body Reports is
 
          for Rule of Session.Rule loop
             pragma Assert (Rule.Rule = J);
-            --  fprintf(out," /* %3d */ \"", i);
-            Put (" /* ");
-            Put_Int (J);
-            Put (" */ """);
-            Write_Rule_Text (Rule);
-            --  fprintf(out,"\",\n"); lineno++;
-            Put_Line (""",");
+            Put (File, " /* ");
+            Put (File, Integer'Image (J));
+            Put (File, " */ """);
+            Write_Rule_Text (File, Rule);
+            Put_Line (File, """,");
+            Put_Line (File, "");
+            Increment_Line;
          end loop;
       end;
 
-      Template_Transfer (Session_Name);
+      Template_Transfer (File, Session_Name);
 
       --  Generate code which executes every time a symbol is popped from
       --  the stack while processing errors or while destroying the parser.
@@ -1069,23 +1146,23 @@ package body Reports is
       --  Note: This code depends on the fact that rules are number
       --  sequentually beginning with 0.
       declare
-         use Ada.Text_IO;
          Index : Natural := 0;
       begin
          for Rule of Session.Rule loop
-            Put ("  ");
-            Put (Symbol_Index'Image (Rule.LHS.Index));
-            Put (", /* (");
-            Put (Natural'Image (I));
-            Put (" ");
-            Rule_Print (Ada.Text_IO.Standard_Output, Rule);
-            Put (" */");
-            New_Line;
+            Put (File, "  ");
+            Put (File, Symbol_Index'Image (Rule.LHS.Index));
+            Put (File, ", /* (");
+            Put (File, Natural'Image (I));
+            Put (File, ") ");
+            Rule_Print (File, Rule);
+            Put (File, " */");
+            Put_Line (File);
+            Increment_Line;
             Index := Index + 1;
          end loop;
       end;
 
-      Template_Transfer (Session_Name);
+      Template_Transfer (File, Session_Name);
 --
 --    for(i=0, rp=lemp->rule; rp; rp=rp->next, i++){
 --      lime_put ("  ");
@@ -1097,7 +1174,7 @@ package body Reports is
 --      lime_put_line (" */");
 --    }
 --
-      Template_Transfer (Session_Name);
+      Template_Transfer (File, Session_Name);
 
       --  Generate code which execution during each REDUCE action
       I  := 0;
@@ -1107,7 +1184,8 @@ package body Reports is
       end loop;
 
       if I /= 0 then
-         Text_Out.Put_Line ("        YYMINORTYPE yylhsminor;");
+         Put_Line (File, "        YYMINORTYPE yylhsminor;");
+         Increment_Line;
       end if;
 
       --  First output rules other than the default: rule
@@ -1138,7 +1216,7 @@ package body Reports is
 --            rp2->codeEmitted = 1;
 --          }
 --      }
-         Emit_Code (Rule, Session);
+         Emit_Code (Out_File, Rule, Session, Lineno);
 --      lime_put_line ("        break;");
 --      rp->codeEmitted = 1;
       end loop;
@@ -1191,8 +1269,9 @@ package body Reports is
 --    //lime_template_print (lemp->extracode, lemp->nolinenosflag, lime_get_out_name ());
 --    printf ("### 2-58\n");
 
-      Close_In;
-      Close_Out;
+      --      Ada.Text_IO.Close (File_In);
+      Ada.Text_IO.Close (Backend.Context.File_Template);
+--      Ada.Text_IO.Close (File_Out);
 --    printf ("### 2-58\n");
    end Report_Table;
 
@@ -1364,7 +1443,6 @@ package body Reports is
    procedure Rule_Print (File : in Ada.Text_IO.File_Type;
                          Rule : in Rules.Rule_Access)
    is
-      use Ada.Text_IO;
       use Ada.Strings.Unbounded;
 --      use type Symbols.Symbol_Kind;
       use Symbols;
@@ -1547,25 +1625,28 @@ package body Reports is
       end if;
    end File_Makename;
 
+   ---------------------
+   -- Write_Rule_Text --
+   ---------------------
 
-   procedure Write_Rule_Text (Rule : in Rules.Rule_Access)
+   procedure Write_Rule_Text (File : File_Type;
+                              Rule : Rules.Rule_Access)
    is
-      use Text_Out;
       use Symbols;
    begin
-      Put (Name_Of (Symbol_Access (Rule.LHS)));
-      Put (" ::=");
+      Put (File, Name_Of (Symbol_Access (Rule.LHS)));
+      Put (File, " ::=");
       for Symbol of Rule.RHS loop
-         Put (" ");
+         Put (File, " ");
 
          if Symbol.Kind = Multi_Terminal then
-            Put (Name_Of (Symbol.Sub_Symbol.First_Element));
+            Put (File, Name_Of (Symbol.Sub_Symbol.First_Element));
             for K in 1 .. Symbol.Sub_Symbol.Last_Index loop
-               Put ("|");
-               Put (Name_Of (Symbol.Sub_Symbol.Element (K)));
+               Put (File, "|");
+               Put (File, Name_Of (Symbol.Sub_Symbol.Element (K)));
             end loop;
          else
-            Put (Name_Of (Symbol_Access (Symbol)));
+            Put (File, Name_Of (Symbol_Access (Symbol)));
          end if;
 
       end loop;
@@ -1624,56 +1705,69 @@ package body Reports is
 --   return;
    end Emit_Destructor_Code;
 
+   ---------------
+   -- Emit_Code --
+   ---------------
 
    procedure Emit_Code
-     (Rule   : in Rules.Rule_Access;
-      Session : in Sessions.Session_Type)
+     (File    :        Ada.Text_IO.File_Type;
+      Rule    :        Rules.Rule_Access;
+      Session :        Sessions.Session_Type;
+      Line    : in out Types.Line_Number)
    is
---         const char *cp;
+      use Ada.Strings.Unbounded;
+--      use Text_Out;
+
+      Code_Prefix : String renames To_String (Rule.Code_Prefix);
+      Code        : String renames To_String (Rule.Code);
+      Code_Suffix : String renames To_String (Rule.Code_Suffix);
    begin
-      null;
---   // Setup code prior to the #line directive
---   if( rp->codePrefix && rp->codePrefix[0] ){
---     lime_put ("{");
---     lime_put (rp->codePrefix);
---     for(cp=rp->codePrefix; *cp; cp++)
---       {
---         //if( *cp=='\n' ) //  XXX
---         //  (*lineno)++;
---       }
---   }
+      --  Setup code prior to the #line directive
+      if Code_Prefix /= "" then
+         Put (File, "{");
+         Put (File, Code_Prefix);
+         for Char of Code_Prefix loop
+            if Char = ASCII.LF then
+               Line := Line + 1;
+            end if;
+         end loop;
+      end if;
 
---  // Generate code to do the reduce action
---   if( rp->code ){
---     if( !lemp->nolinenosflag ){
---       lime_write_line_directive (rp->line, lemp->filename);
---     }
---     lime_put ("{");
---     lime_put (rp->code);
---     for(cp=rp->code; *cp; cp++){
---       //if( *cp=='\n' ) (*lineno)++;
---     }
---     lime_put_line ("}");
---     if( !lemp->nolinenosflag ){
---       //(*lineno)++;
---       //tplt_linedir(out,*lineno,lemp->outname);  //  XXX
---       //lime_write_line_directive (*lineno, lemp->outname);
---       lime_write_line_directive (0, lemp->outname);
---       //lime_write_line_directive (0, lime_get_out_name ());
---     }
---   }
+      --  Generate code to do the reduce action
+      if Code /= "" then
+         if not Session.No_Linenos_Flag then
+            Line := Line + 1;
+            Put_Line_Directive (File, Line, To_String (Session.File_Name));
+         end if;
+         Put (File, "{");
+         Put (File, Code);
+         for Char of Code loop
+            if Char = ASCII.LF then
+               Line := Line + 1;
+            end if;
+         end loop;
+         Put_Line (File, "}");
+         Line := Line + 1;
+         if not Session.No_Linenos_Flag then
+            Line := Line + 1;
+            Put_Line_Directive (File, Line, To_String (Session.Out_Name));
+         end if;
+      end if;
 
---  // Generate breakdown code that occurs after the #line directive
---   if( rp->codeSuffix && rp->codeSuffix[0] ){
---     lime_put (rp->codeSuffix);
---     for(cp=rp->codeSuffix; *cp; cp++); //{ if( *cp=='\n' ) (*lineno)++; }
---   }
+      --  Generate breakdown code that occurs after the #line directive
+      if Code_Suffix /= "" then
+         Put (File, Code_Suffix);
+         for Char of Code_Suffix loop
+            if Char = ASCII.LF then
+               Line := Line + 1;
+            end if;
+         end loop;
+      end if;
 
---   if( rp->codePrefix ){
---     lime_put_line ("}");
---   }
+      if Code_Prefix /= "" then
+         Put_Line (File, "}");
+      end if;
 
---   return;
    end Emit_Code;
 
 
@@ -1866,9 +1960,18 @@ package body Reports is
       First        : in Integer;
       Last         : in Integer)
    is
+      File : File_Type renames Ada.Text_IO.Standard_Output;
+      Line : Types.Line_Number := 0;
+
       pragma Unreferenced (Session);
 
       function Get_Prefix return String;
+      procedure Increment_Line;
+
+      procedure Increment_Line is
+      begin
+         Line := Line + 1;
+      end Increment_Line;
 
       function Get_Prefix return String is
       begin
@@ -1879,7 +1982,6 @@ package body Reports is
          end if;
       end Get_Prefix;
 
-      use Text_Out;
       use Symbols;
       use Types;
 
@@ -1887,8 +1989,8 @@ package body Reports is
    begin
       if Options.MH_Flag then
          --  const char *prefix; */
-         Put_Line ("#if INTERFACE");
---         Line_Number := Line_Number + 1;
+         Put_Line (File, "#if INTERFACE");
+         Increment_Line;
 
          for I in First .. Last loop
 --              Put_Line (Context.File_Implementation,
@@ -1897,36 +1999,38 @@ package body Reports is
 --                          Value (Get_Token_Callback (I)) &
 --                          " " & Integer'Image (I));
 --              Line_Number := Line_Number + 1;
-            Put ("#define ");
-            Put (Prefix);
+            Put (File, "#define ");
+            Put (File, Prefix);
             --  Put_CP (Get_Token_Callback (I));
             --  return lime_lemp_copy->symbols[index]->name;
-            Put (Name_Of (Element_At (Symbol_Index (I))));
-            Put (" ");
-            Put_Int (I);
-            New_Line;
+            Put (File, Name_Of (Element_At (Symbol_Index (I))));
+            Put (File, " ");
+            Put (File, Integer'Image (I));
+            Put_Line (File, "");
+            Increment_Line;
          end loop;
-         Put_Line ("#endif");
+         Put_Line (File, "#endif");
+         Increment_Line;
       end if;
    end Generate_Tokens;
 
-
-
+   ----------------------
+   -- Render_Constants --
+   ----------------------
 
    procedure Render_Constants
-     (Render : in Render_Record)
+     (File   : File_Type;
+      Render : Render_Record)
    is
       procedure Put (Item  : in String; Value : in Integer);
       procedure Put (Item  : in String; Value : in Action_Value);
 
       procedure Put (Item  : in String;
-                     Value : in Integer)
-      is
-         use Text_Out;
+                     Value : in Integer) is
       begin
-         Put (Item);
-         Put_Int (Value);
-         New_Line;
+         Put (File, Item);
+         Put (File, Integer'Image (Value));
+         Put_Line (File, "");
       end Put;
 
       procedure Put (Item  : in String;
@@ -1957,19 +2061,30 @@ package body Reports is
 
 
    --  lemon.c:4377
+   -------------------------
+   -- Output_Action_Table --
+   -------------------------
+
    procedure Output_Action_Table
-     (Action_Table : in Action_Tables.Table_Type;
-      N            : in Integer;
-      No_Action    : in Action_Value)
+     (File         :        File_Type;
+      Action_Table :        Action_Tables.Table_Type;
+      N            :        Integer;
+      No_Action    :        Action_Value;
+      Line         : in out Line_Number)
    is
-      use Text_Out;
       use type Action_Tables.Action_Value;
+
+      procedure Increment_Line;
+      procedure Increment_Line is
+      begin
+         Line := Line + 1;
+      end Increment_Line;
 
       J      : Integer;
       Action : Action_Tables.Action_Value;
    begin
-      Put_Line ("#define YY_ACTTAB_COUNT (" & Image (N) & ")");
-      Put_Line ("static const YYACTIONTYPE yy_action[] = {");
+      Put_Line (File, "#define YY_ACTTAB_COUNT (" & Image (N) & ")"); Increment_Line;
+      Put_Line (File, "static const YYACTIONTYPE yy_action[] = {");   Increment_Line;
       J := 0;
       for I in 0 .. N - 1 loop
          --  #define acttab_yyaction(X,N)  ((X)->aAction[N].action)
@@ -1981,33 +2096,47 @@ package body Reports is
             Action := No_Action;
          end if;
          if J = 0 then
-            Put (" /* " & Image (I) & " */ ");
+            Put (File, " /* ");
+            Put (File, Image (I));
+            Put (File, " */ ");
          end if;
-         Put (" " & Image (Integer (Action)) & ",");
+         Put (File, " ");
+         Put (File, Image (Integer (Action)));
+         Put (File, ",");
          if J = 9 or I = N - 1 then
-            Put_Line ("");
+            Put_Line (File, "");  Increment_Line;
             J := 0;
          else
             J := J + 1;
          end if;
       end loop;
-      Put_Line ("};");
+      Put_Line (File, "};");  Increment_Line;
 
    end Output_Action_Table;
 
+   -------------------------
+   -- Output_YY_lookahead --
+   -------------------------
 
    procedure Output_YY_Lookahead
-     (Action_Table : in Action_Tables.Table_Type;
-      N            : in Integer;
-      Nsymbol      : in Integer)
+     (File         :        File_Type;
+      Action_Table :        Action_Tables.Table_Type;
+      N            :        Integer;
+      Nsymbol      :        Integer;
+      Line         : in out Line_Number)
    is
-      use Text_Out;
       use type Action_Tables.Action_Value;
+
+      procedure Increment_Line;
+      procedure Increment_Line is
+      begin
+         Line := Line + 1;
+      end Increment_Line;
 
       LA : Action_Value;
       J  : Integer := 0;
    begin
-      Put_Line ("static const YYCODETYPE yy_lookahead[] = {");
+      Put_Line (File, "static const YYCODETYPE yy_lookahead[] = {");  Increment_Line;
       for I in 0 .. N - 1 loop
          --  LA := Get_Acttab_YY_Lookahead (I);
          LA := Action_Table.Lookahead (I).Action;
@@ -2015,41 +2144,58 @@ package body Reports is
             LA := Action_Value (Nsymbol);
          end if;
          if J = 0 then
-            Put (" /* " & Image (I) & " */ ");
+            Put (File, " /* ");
+            Put (File, Image (I));
+            Put (File, " */ ");
          end if;
-         Put (" " & Image (Integer (LA)) & ",");
+         Put (File, " ");
+         Put (File, Image (Integer (LA)));
+         Put (File, ",");
          if J = 9 or I = N - 1 then
-            Put_Line ("");
+            Put_Line (File);  Increment_Line;
             J := 0;
          else
             J := J + 1;
          end if;
       end loop;
-      Put_Line ("};");
+      Put_Line (File, "};");  Increment_Line;
    end Output_YY_Lookahead;
 
 
    --  lemon.c:4414
+   -----------------------------
+   -- Output_YY_Shift_Offsets --
+   -----------------------------
+
    procedure Output_YY_Shift_Offsets
-     (Session       : in Sessions.Session_Type;
-      N             : in Integer;
-      MnTknOfst     : in Integer;
-      MxTknOfst     : in Integer;
-      Min_Size_Type : in String;
-      Nactiontab    : in Integer;
-      NO_OFFSET     : in Integer)
+     (File          :        File_Type;
+      Session       :        Sessions.Session_Type;
+      N             :        Integer;
+      MnTknOfst     :        Integer;
+      MxTknOfst     :        Integer;
+      Min_Size_Type :        String;
+      Nactiontab    :        Integer;
+      NO_OFFSET     :        Integer;
+      Line          : in out Line_Number)
    is
-      use Text_Out;
+      procedure Increment_Line;
+
+      procedure Increment_Line is
+      begin
+         Line := Line + 1;
+      end Increment_Line;
+
       Ofst : Integer;
       J    : Integer := 0;
    begin
-      Put_Line ("#define YY_SHIFT_COUNT    (" & Image (N - 1) & ")");
-      Put_Line ("#define YY_SHIFT_MIN      (" & Image (MnTknOfst) & ")");
-      Put_Line ("#define YY_SHIFT_MAX      (" & Image (MxTknOfst) & ")");
-      Put ("static const ");
-      Put (Min_Size_Type);
-      Put (" yy_shift_ofst[] = {");
-      New_Line;
+      Put_Line (File, "#define YY_SHIFT_COUNT    (" & Image (N - 1) & ")");      Increment_Line;
+      Put_Line (File, "#define YY_SHIFT_MIN      (" & Image (MnTknOfst) & ")");  Increment_Line;
+      Put_Line (File, "#define YY_SHIFT_MAX      (" & Image (MxTknOfst) & ")");  Increment_Line;
+      Put (File, "static const ");
+      Put (File, Min_Size_Type);
+      Put (File, " yy_shift_ofst[] = {");
+      Put_Line (File);  Increment_Line;
+
 --  lemp->tablesize += n*sz;
       for I in 0 .. N - 1 loop
          declare
@@ -2067,37 +2213,56 @@ package body Reports is
             Ofst := Nactiontab;
          end if;
          if J = 0 then
-            Put (" /* " & Image (I) & " */ ");
+            Put (File, " /* ");
+            Put (File, Image (I));
+            Put (File, " */ ");
          end if;
-         Put (" " & Image (Ofst) & ",");
+         Put (File, " ");
+         Put (File, Image (Ofst));
+         Put (File, ",");
          if J = 9 or I = N - 1 then
-            Put_Line ("");
+            Put_Line (File);  Increment_Line;
             J := 0;
          else
             J := J + 1;
          end if;
       end loop;
-      Put_Line ("};");
+      Put_Line (File, "};");  Increment_Line;
    end Output_YY_Shift_Offsets;
 
 
    --  lemon.c:4440
+   ------------------------------
+   -- Output_YY_Reduce_Offsets --
+   ------------------------------
+
    procedure Output_YY_Reduce_Offsets
-     (Session          : in Sessions.Session_Type;
-      N             : in Integer;
-      MnNtOfst      : in Integer;
-      MxNtOfst      : in Integer;
-      Min_Size_Type : in String;
-      NO_OFFSET     : in Integer)
+     (File          :        File_Type;
+      Session       :        Sessions.Session_Type;
+      N             :        Integer;
+      MnNtOfst      :        Integer;
+      MxNtOfst      :        Integer;
+      Min_Size_Type :        String;
+      NO_OFFSET     :        Integer;
+      Line          : in out Line_Number)
    is
-      use Text_Out;
+      procedure Increment_Line;
+
+      procedure Increment_Line is
+      begin
+         Line := Line + 1;
+      end Increment_Line;
+
       J : Integer := 0;
       Ofst : Integer;
    begin
-      Put_Line ("#define YY_REDUCE_COUNT (" & Image (N - 1) & ")");
-      Put_Line ("#define YY_REDUCE_MIN   (" & Image (MnNtOfst) & ")");
-      Put_Line ("#define YY_REDUCE_MAX   (" & Image (MxNtOfst) & ")");
-      Put_Line ("static const " & Min_Size_Type & " yy_reduce_ofst[] = {");
+      Put_Line (File, "#define YY_REDUCE_COUNT (" & Image (N - 1) & ")");     Increment_Line;
+      Put_Line (File, "#define YY_REDUCE_MIN   (" & Image (MnNtOfst) & ")");  Increment_Line;
+      Put_Line (File, "#define YY_REDUCE_MAX   (" & Image (MxNtOfst) & ")");  Increment_Line;
+      Put (File, "static const ");
+      Put (File, Min_Size_Type);
+      Put (File, " yy_reduce_ofst[] = {");
+      Put_Line (File);  Increment_Line;
 
 --  lemp->tablesize += n*sz;
       for I in 0 .. N - 1 loop
@@ -2111,32 +2276,48 @@ package body Reports is
             Ofst := MnNtOfst - 1;
          end if;
          if J = 0 then
-            Put (" /* " & Image (I) & " */ ");
+            Put (File, " /* ");
+            Put (File, Image (I));
+            Put (File, " */ ");
          end if;
-         Put (" " & Image (Ofst) & ",");
+         Put (File, " ");
+         Put (File, Image (Ofst));
+         Put (File, ",");
          if J = 9 or I = N - 1 then
-            Put_Line ("");
+            Put_Line (File);  Increment_Line;
             J := 0;
          else
             J := J + 1;
          end if;
       end loop;
-         Put_Line ("};");
+         Put_Line (File, "};");  Increment_Line;
    end Output_YY_Reduce_Offsets;
 
 
    --  lemon.c:4465
+   ---------------------------------
+   -- Output_Default_Action_Table --
+   ---------------------------------
+
    procedure Output_Default_Action_Table
-     (Session         : in Sessions.Session_Type;
-      N            : in Integer;
-      Error_Action : in Action_Value;
-      Min_Reduce   : in Action_Value)
+     (File         :        File_Type;
+      Session      :        Sessions.Session_Type;
+      N            :        Integer;
+      Error_Action :        Action_Value;
+      Min_Reduce   :        Action_Value;
+      Line         : in out Line_Number)
    is
-      use Text_Out;
+--      use Text_Out;
       J : Integer := 0;
---      IDfltReduce : Integer;
+      --      IDfltReduce : Integer;
+
+      procedure Increment_Line;
+      procedure Increment_Line is
+      begin
+         Line := Line + 1;
+      end Increment_Line;
    begin
-      Put_Line ("static const YYACTIONTYPE yy_default[] = {");
+      Put_Line (File, "static const YYACTIONTYPE yy_default[] = {");  Increment_Line;
       for I in 0 .. N - 1 loop
          declare
             State : constant access States.State_Record :=
@@ -2145,23 +2326,23 @@ package body Reports is
 --         IDfltReduce := Get_Default_Reduce (I);
 --         stp := lemp->sorted[i];
             if J = 0 then
-               Put (" /* " & Image (I) & " */ ");
+               Put (File, " /* " & Image (I) & " */ ");
             end if;
             if State.iDfltReduce then
-               Put (" " & Image (Integer (Error_Action)) & ",");
+               Put (File, " " & Image (Integer (Error_Action)) & ",");
             else
-               Put (" " & Image (Boolean'Pos (State.iDfltReduce)
-                                   + Integer (Min_Reduce)) & ",");
+               Put (File, " " & Image (Boolean'Pos (State.iDfltReduce)
+                                         + Integer (Min_Reduce)) & ",");
             end if;
          end;
          if J = 9 or I = N - 1 then
-            Put_Line ("");
+            Put_Line (File);  Increment_Line;
             J := 0;
          else
             J := J + 1;
          end if;
       end loop;
-      Put_Line ("};");
+      Put_Line (File, "};"); Increment_Line;
    end Output_Default_Action_Table;
 
 
@@ -2195,32 +2376,47 @@ package body Reports is
 
 --     end Template_Print_2;
 
+   -----------------------
+   -- Write_Arg_Defines --
+   -----------------------
 
    procedure Write_Arg_Defines
-     (Name    : in String;
-      Arg_Ctx : in String;
-      Extend  : in Boolean;
-      Arg     : in String;
-      Arg_I   : in String)
+     (File    :        File_Type;
+      Name    :        String;
+      Arg_Ctx :        String;
+      Extend  :        Boolean;
+      Arg     :        String;
+      Arg_I   :        String;
+      Line    : in out Line_Number)
    is
-
+      procedure Increment_Line;
       procedure Write (Decl : in String);
 
-      procedure Write (Decl : in String) is
-         use Text_Out;
+      procedure Increment_Line is
       begin
-         Put_Line ("#define " & Name & Arg_Ctx & Decl & Arg & ";");
+         Line := Line + 1;
+      end Increment_Line;
+
+      procedure Write (Decl : in String) is
+      begin
+         Put (File, "#define ");
+         Put (File, Name);
+         Put (File, Arg_Ctx);
+         Put (File, Decl);
+         Put (File, Arg);
+         Put (File, ";");
+         Put_Line (File);
+         Increment_Line;
       end Write;
 
-      use Text_Out;
    begin
       Write ("_SDECL ");
       Write ("_PDECL ,");
       Write ("_PARAM ,");
       if Extend = False then
-         Put_Line ("#define " & Name & "_FETCH " &
+         Put_Line (File, "#define " & Name & "_FETCH " &
                      Arg   & "=yypParser->" & Arg_I & ";");
-         Put_Line ("#define " & Name & "_STORE " &
+         Put_Line (File, "#define " & Name & "_STORE " &
                      Arg_I & "=yypParser->" & Arg_I & ";");
       else
          Write ("_FETCH ");
@@ -2228,45 +2424,58 @@ package body Reports is
       end if;
    end Write_Arg_Defines;
 
+   ---------------------
+   -- Write_Interface --
+   ---------------------
 
    procedure Write_Interface
-     (Name      : in String;
-      Tokentype : in String)
+     (File      :        File_Type;
+      Name      :        String;
+      Tokentype :        String;
+      Line      : in out Line_Number)
    is
-      use Text_Out;
    begin
       if Options.MH_Flag then
-         Put_Line ("#if INTERFACE");
+         Put_Line (File, "#if INTERFACE");
+         Line := Line + 1;
       end if;
 
-      Put ("#define ");
-      Put (Name);
-      Put ("TOKENTYPE ");
-      Put (Tokentype);
-      New_Line;
+      Put (File, "#define ");
+      Put (File, Name);
+      Put (File, "TOKENTYPE ");
+      Put (File, Tokentype);
+      Put_Line (File);
+      Line := Line + 1;
 
       if Options.MH_Flag then
-         Put_Line ("#endif");
+         Put_Line (File, "#endif");
+         Line := Line + 1;
       end if;
    end Write_Interface;
 
+   ---------------------------
+   -- Write_Interface_Begin --
+   ---------------------------
 
-   procedure Write_Interface_Begin
-   is
-      use Text_Out;
+   procedure Write_Interface_Begin (File :        File_Type;
+                                    Line : in out Line_Number) is
    begin
       if Options.MH_Flag then
-         Put_Line ("#if INTERFACE");
+         Put_Line (File, "#if INTERFACE");
+         Line := Line + 1;
       end if;
    end Write_Interface_Begin;
 
+   -------------------------
+   -- Write_Interface_End --
+   -------------------------
 
-   procedure Write_Interface_End
-   is
-      use Text_Out;
+   procedure Write_Interface_End (File :        File_Type;
+                                  Line : in out Line_Number) is
    begin
       if Options.MH_Flag then
-         Put_Line ("#endif");
+         Put_Line (File, "#endif");
+         Line := Line + 1;
       end if;
    end Write_Interface_End;
 
@@ -2337,10 +2546,10 @@ package body Reports is
    function Default_Template_Name return String;
 
 
-   procedure Implementation_Open (File_Name : in String) is
-   begin
-      Text_Out.Implementation_Open (File_Name);
-   end Implementation_Open;
+   --  procedure Implementation_Open (File_Name : in String) is
+   --  begin
+   --     Implementation_Open (File_Name);
+   --  end Implementation_Open;
 
 
    procedure Open_If_Possible
@@ -2416,8 +2625,12 @@ package body Reports is
       Success := 0;
    end Template_Open;
 
+   -----------------------
+   -- Template_Transfer --
+   -----------------------
 
-   procedure Template_Transfer (Name : in String)
+   procedure Template_Transfer (File : File_Type;
+                                Name : String)
    is
       use Backend;
 
@@ -2446,7 +2659,7 @@ package body Reports is
                   if Index > Start then
                      Put (Line (Start .. Index));
                   end if;
-                  Text_Out.Put (Name);
+                  Put (File, Name);
                   Index := Index + Parse'Length;
                   Start := Index;
                end if;
@@ -2463,11 +2676,16 @@ package body Reports is
 
    end Template_Transfer;
 
+   --------------------
+   -- Template_Print --
+   --------------------
 
    procedure Template_Print
-     (Out_Name        : in String;
-      No_Line_Numbers : in Boolean;
-      Include         : in String)
+     (File            :        File_Type;
+      Line            : in out Line_Number;
+      Out_Name        :        String;
+      No_Line_Numbers :        Boolean;
+      Include         :        String)
    is
    begin
       if Include = "" then
@@ -2476,7 +2694,7 @@ package body Reports is
 
       --  Transfer line incrementing line numbers on ASCII.LF
       --  Text_Out.Put_Line_CP (New_String (Line));
-      Text_Out.Put_Line (Include);
+      Put_Line (File, Include); Line := Line + 1;
       --  for I in Line'Range loop
       --  Put (Context.File_Implementation, Line (I));
       --  if Line (I) = ASCII.LF then
@@ -2494,105 +2712,144 @@ package body Reports is
       if No_Line_Numbers then
          Ada.Text_IO.Put_Line ("1");
          --  Write_Line_Directive (Line_Number, Out_Name);
-         Text_Out.Put_Line_Directive (Out_Name);
+         Put_Line_Directive (File, Line, Out_Name);
       end if;
    end Template_Print;
 
+   -------------------
+   -- Write_Include --
+   -------------------
 
    procedure Write_Include
-     (Include_Name : in String)
+     (File         :        File_Type;
+      Line         : in out Line_Number;
+      Include_Name :        String)
    is
-      use Text_Out;
    begin
       if Options.MH_Flag then
-         Put ("#include <");
-         Put (Include_Name);
-         Put_Line (">;");
+         Put (File, "#include <");
+         Put (File, Include_Name);
+         Put_Line (File, ">;"); Line := Line + 1;
       end if;
    end Write_Include;
 
+   ----------------------------
+   -- Generate_The_Defines_1 --
+   ----------------------------
 
    procedure Generate_The_Defines_1
-     (YY_Code_Type   : in String;
-      Symbol_Count   : in Types.Symbol_Index;
-      YY_Action_Type : in String;
-      Is_Wildcard    : in Boolean;
-      Wildcard_Index : in Types.Symbol_Index)
+     (File           :        File_Type;
+      Line           : in out Line_Number;
+      YY_Code_Type   :        String;
+      Symbol_Count   :        Types.Symbol_Index;
+      YY_Action_Type :        String;
+      Is_Wildcard    :        Boolean;
+      Wildcard_Index :        Types.Symbol_Index)
    is
-      use Text_Out;
+      --      use Text_Out;
+      procedure Increment_Line is new Increment (Line);
    begin
-      Put ("#define YYCODETYPE ");
-      Put (YY_Code_Type);
-      New_Line;
+      Put (File, "#define YYCODETYPE ");
+      Put (File, YY_Code_Type);
+      Put_Line (File);  Increment_Line;
 
-      Put ("#define YYNOCODE ");
-      Put_Int (Integer (Symbol_Count));
-      New_Line;
+      Put (File, "#define YYNOCODE ");
+      Put (File, Symbol_Index'Image (Symbol_Count));
+      Put_Line (File);  Increment_Line;
 
-      Put ("#define YYACTIONTYPE ");
-      Put (YY_Action_Type);
-      New_Line;
+      Put (File, "#define YYACTIONTYPE ");
+      Put (File, YY_Action_Type);
+      Put_Line (File);  Increment_Line;
 
       if Is_Wildcard then
-         Put ("#define YYWILDCARD ");
-         Put_Int (Integer (Wildcard_Index));
-         Put_Line ("");
+         Put (File, "#define YYWILDCARD ");
+         Put (File, Symbol_Index'Image (Wildcard_Index));
+         Put_Line (File);  Increment_Line;
       end if;
    end Generate_The_Defines_1;
 
+   ----------------------------
+   -- Generate_The_Defines_2 --
+   ----------------------------
 
    procedure Generate_The_Defines_2
-     (Stack_Size : in String)
+     (File       :        File_Type;
+      Line       : in out Line_Number;
+      Stack_Size :        String)
    is
-      use Text_Out;
+      --      use Text_Out;
+      procedure Increment_Line is new Increment (Line);
    begin
-      Put_Line ("#ifndef YYSTACKDEPTH");
+      Put_Line (File, "#ifndef YYSTACKDEPTH");  Increment_Line;
       if Stack_Size /= "" then
-         Put ("#define YYSTACKDEPTH ");
-         Put (Stack_Size);
-         New_Line;
+         Put (File, "#define YYSTACKDEPTH ");
+         Put (File, Stack_Size);
+         Put_Line (File);  Increment_Line;
       else
-         Put_Line ("#define YYSTACKDEPTH 100");
+         Put_Line (File, "#define YYSTACKDEPTH 100");  Increment_Line;
       end if;
-      Put_Line ("#endif");
+      Put_Line (File, "#endif");  Increment_Line;
    end Generate_The_Defines_2;
 
+   --------------------
+   -- Error_Fallback --
+   --------------------
 
    procedure Error_Fallback
-     (Error_Sym    : in String;
-      Struct       : in Struct_Access;
-      Has_Fallback : in Boolean)
+     (File         :        File_Type;
+      Line         : in out Line_Number;
+      Error_Sym    :        String;
+      Struct       :        Struct_Access;
+      Has_Fallback :        Boolean)
    is
-      use Text_Out;
+      --      use Text_Out;
+      procedure Increment_Line is new Increment (Line);
    begin
 
       if Error_Sym /= "" and Struct.Use_Count /= 0 then
-         Put ("#define YYERRORSYMBOL ");
-         Put_Int (Struct.Index);
-         New_Line;
+         Put (File, "#define YYERRORSYMBOL ");
+         Put (File, Integer'Image (Struct.Index));
+         Put_Line (File);  Increment_Line;
 
-         Put ("#define YYERRSYMDT yy");
-         Put_Int (Struct.DT_Num);
-         New_Line;
+         Put (File, "#define YYERRSYMDT yy");
+         Put (File, Integer'Image (Struct.DT_Num));
+         Put_Line (File);  Increment_Line;
       end if;
 
       if Has_Fallback then
-         Put ("#define YYFALLBACK 1");
+         Put_Line (File, "#define YYFALLBACK 1"); Increment_Line;
       end if;
 
    end Error_Fallback;
 
 
-   procedure Close_Out is
+--   procedure Close_Out is
+--   begin
+--      Text_Out.Close_Out;
+--   end Close_Out;
+
+
+--   procedure Close_In is
+--   begin
+--      Ada.Text_IO.Close (Backend.Context.File_Template);
+--   end Close_In;
+
+   ------------------------
+   -- Put_Line_Directive --
+   ------------------------
+
+   procedure Put_Line_Directive (File      : File_Type;
+                                 Line      : Line_Number;
+                                 File_Name : String)
+   is
+      use Ada.Text_IO;
    begin
-      Text_Out.Close_Out;
-   end Close_Out;
-
-
-   procedure Close_In is
-   begin
-      Ada.Text_IO.Close (Backend.Context.File_Template);
-   end Close_In;
-
+      Put (File, "#line ");
+      Put (File, Line_Number'Image (Line));
+      Put (File, " """);
+      Put (File, File_Name);
+      Put (File, """");
+      New_Line (File);
+   end Put_Line_Directive;
 
 end Reports;

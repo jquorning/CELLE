@@ -10,8 +10,14 @@
 --  Handling of out file.
 --
 
+with Ada.Text_IO;
+
+with Types;
+
 package Text_Out is
 
+   subtype Line_Number is Types.Line_Number;
+   subtype File_Type   is Ada.Text_IO.File_Type;
    type Line_Number_Index is new Integer;
 
    procedure Implementation_Open (File_Name : in String);
@@ -22,7 +28,7 @@ package Text_Out is
    procedure Put (Item : in String);
    --  Put Item line to out file.
 
-   procedure Put_Line (Item : in String);
+--   procedure Put_Line (Item : in String);
    --  Put Item line to out file with new line and line number increase.
 
    procedure Put_Int (Item : in Integer);
@@ -31,7 +37,9 @@ package Text_Out is
    procedure New_Line;
    --  New line to the out file with line number increase.
 
-   procedure Put_Line_Directive (File_Name : in String);
-   --  Put line directive to File_Name
+   procedure Put_Line_Directive (File      : File_Type;
+                                 Line      : Line_Number;
+                                 File_Name : String);
+   --  Put line directive to File. Like '#line <Line> "<File_Name>"'
 
 end Text_Out;

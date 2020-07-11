@@ -227,7 +227,7 @@ begin
       --  Generate a reprint of the grammar, if requested on the command line
 
       if Options.RP_Flag then
-         Reports.Reprint (Session);
+         Reports.Reprint (Ada.Text_IO.Standard_Output, Session);
       else
          Builds.Reprint_Of_Grammar
            (Session,

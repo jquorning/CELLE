@@ -7,11 +7,17 @@
 --    May you share freely, not taking more than you give.
 --
 
+with Ada.Text_IO;
+
 with Sessions;
 
 package Reports is
 
-   procedure Reprint (Session : in Sessions.Session_Type);
+   subtype File_Type    is Ada.Text_IO.File_Type;
+   subtype Session_Type is Sessions.Session_Type;
+
+   procedure Reprint (File    : File_Type;
+                      Session : Session_Type);
    --  Duplicate the input file without comments and without actions
    --  on rules
 

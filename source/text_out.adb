@@ -14,7 +14,7 @@ with Auxiliary;
 package body Text_Out is
 
    File_Out    : Ada.Text_IO.File_Type;
-   Line_Number : Line_Number_Index := 1;
+--   Line_Number : Line_Number_Index := 1;
 
 
    procedure Implementation_Open (File_Name : in String) is
@@ -42,33 +42,33 @@ package body Text_Out is
       Ada.Text_IO.Put (File_Out, Item);
    end Put;
 
-   procedure Put_Line (Item : in String) is
-   begin
-      Ada.Text_IO.Put_Line (File_Out, Item);
-      Line_Number := Line_Number + 1;
-   end Put_Line;
+--   procedure Put_Line (Item : in String) is
+--   begin
+--      Ada.Text_IO.Put_Line (File_Out, Item);
+--      Line_Number := Line_Number + 1;
+--   end Put_Line;
 
    procedure New_Line is
    begin
       Put_Line ("");
    end New_Line;
 
+   ------------------------
+   -- Put_Line_Directive --
+   ------------------------
 
-   procedure Put_Line_Directive (File_Name : in String)
+   procedure Put_Line_Directive (File      : File_Type;
+                                 Line      : Line_Number;
+                                 File_Name : String)
    is
+      use Ada.Text_IO;
    begin
-      Ada.Text_IO.Put_Line ("Write_line_directive 616 ca");
-      Put ("#line ");
-      --  Put_Int (Line_Number_Index (Line_Number));
-      Put_Int (Integer (Line_Number));
-      Put (" """);
---  while( *filename ){
---    if( *filename == '\\' ) putc('\\',out);
---    putc(*filename,out);
---    filename++;
---  }
-      Put (File_Name);
-      Put_Line ("""");
+      Put (File, "#line ");
+      Put (File, Line_Number'Image (Line));
+      Put (File, " """);
+      Put (File, File_Name);
+      Put (File, """");
+      New_Line (File);
    end Put_Line_Directive;
 
 
