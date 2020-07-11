@@ -1484,6 +1484,9 @@ package body Reports is
       end loop;
    end Rule_Print;
 
+   ------------------
+   -- Print_Action --
+   ------------------
 
    procedure Print_Action
      (Action :     Action_Record;
