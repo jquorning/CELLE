@@ -620,13 +620,7 @@ package body Reports is
       Template_Open_Success : Integer;
       Error_Count           : Natural := 0;
 
-      procedure Increment_Line;
-
-      procedure Increment_Line is
-      begin
-         Lineno := Lineno + 1;
-      end Increment_Line;
-
+      procedure Increment_Line is new Increment (Lineno);
    begin
       Session.Min_Shift_Reduce := Action_Value (Session.Sorted.Length);
 --      Session.Err_Action       := Session.Min_Shift_Reduce + Session.N_Rule;
@@ -1966,12 +1960,7 @@ package body Reports is
       pragma Unreferenced (Session);
 
       function Get_Prefix return String;
-      procedure Increment_Line;
-
-      procedure Increment_Line is
-      begin
-         Line := Line + 1;
-      end Increment_Line;
+      procedure Increment_Line is new Increment (Line);
 
       function Get_Prefix return String is
       begin
@@ -2074,11 +2063,7 @@ package body Reports is
    is
       use type Action_Tables.Action_Value;
 
-      procedure Increment_Line;
-      procedure Increment_Line is
-      begin
-         Line := Line + 1;
-      end Increment_Line;
+      procedure Increment_Line is new Increment (Line);
 
       J      : Integer;
       Action : Action_Tables.Action_Value;
@@ -2127,11 +2112,7 @@ package body Reports is
    is
       use type Action_Tables.Action_Value;
 
-      procedure Increment_Line;
-      procedure Increment_Line is
-      begin
-         Line := Line + 1;
-      end Increment_Line;
+      procedure Increment_Line is new Increment (Line);
 
       LA : Action_Value;
       J  : Integer := 0;
@@ -2178,12 +2159,7 @@ package body Reports is
       NO_OFFSET     :        Integer;
       Line          : in out Line_Number)
    is
-      procedure Increment_Line;
-
-      procedure Increment_Line is
-      begin
-         Line := Line + 1;
-      end Increment_Line;
+      procedure Increment_Line is new Increment (Line);
 
       Ofst : Integer;
       J    : Integer := 0;
@@ -2246,12 +2222,7 @@ package body Reports is
       NO_OFFSET     :        Integer;
       Line          : in out Line_Number)
    is
-      procedure Increment_Line;
-
-      procedure Increment_Line is
-      begin
-         Line := Line + 1;
-      end Increment_Line;
+      procedure Increment_Line is new Increment (Line);
 
       J : Integer := 0;
       Ofst : Integer;
@@ -2311,11 +2282,7 @@ package body Reports is
       J : Integer := 0;
       --      IDfltReduce : Integer;
 
-      procedure Increment_Line;
-      procedure Increment_Line is
-      begin
-         Line := Line + 1;
-      end Increment_Line;
+      procedure Increment_Line is new Increment (Line);
    begin
       Put_Line (File, "static const YYACTIONTYPE yy_default[] = {");  Increment_Line;
       for I in 0 .. N - 1 loop
@@ -2389,14 +2356,9 @@ package body Reports is
       Arg_I   :        String;
       Line    : in out Line_Number)
    is
-      procedure Increment_Line;
+      procedure Increment_Line is new Increment (Line);
+
       procedure Write (Decl : in String);
-
-      procedure Increment_Line is
-      begin
-         Line := Line + 1;
-      end Increment_Line;
-
       procedure Write (Decl : in String) is
       begin
          Put (File, "#define ");
