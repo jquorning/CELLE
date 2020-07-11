@@ -47,6 +47,7 @@ package Rules is
    type Rule_Record;
    type Rule_Access is access all Rule_Record;
 
+   type Index_Number is new Integer;
    type Rule_Number  is new Integer;
 
    type Rule_Record is
@@ -84,7 +85,7 @@ package Rules is
          Prec_Symbol  : Rule_Symbol_Access := null;
          --  Precedence symbol for this rule
 
-         Index : Integer := 0;
+         Index : Index_Number := 0;
          --  An index number for this rule
 
          Number : Rule_Number := 0;

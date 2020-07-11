@@ -13,6 +13,7 @@ package body Configs is
    function "<" (Left, Right : in Config_Record) return Boolean
    is
       use type Rules.Dot_Type;
+      use type Rules.Index_Number;
    begin
       if Left.Rule.Index < Right.Rule.Index then
          return True;

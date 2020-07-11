@@ -32,6 +32,8 @@
 
 with Ada.Containers.Doubly_Linked_Lists;
 
+with Types;
+
 package body Actions is
 
    package Action_Lists is
@@ -41,11 +43,14 @@ package body Actions is
    function Action_Cmp (Left, Right : in Action_Record)
                        return Boolean
    is
-      RC : Integer;
+      use type Rules.Index_Number;
+      use type Types.Symbol_Index;
+      RC1 : Types.Symbol_Index;
+      RC : Rules.Index_Number;
    begin
-      RC := Integer (Left.Symbol.Index) - Integer (Right.Symbol.Index);
+      RC1 := Left.Symbol.Index - Right.Symbol.Index;
 
-      if RC = 0 then
+      if RC1 = 0 then
          RC := Action_Kind'Pos (Left.Kind) - Action_Kind'Pos (Right.Kind);
       end if;
 

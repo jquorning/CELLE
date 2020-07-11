@@ -15,16 +15,15 @@ package body Debugs is
    is
       use Ada.Text_IO;
       use type Rules.Rule_Symbol_Access;
+      subtype Index_Number is Rules.Index_Number;
+      subtype Rule_Number  is Rules.Rule_Number;
+      subtype Line_Number  is Types.Line_Number;
    begin
       for Rule of Session.Rule loop
-         Put ("RULE INDEX");
-         Put (Natural'Image (Rule.Index));
-         Put (" RULE");
-         Put (Rules.Rule_Number'Image (Rule.Number));
-         Put (" LINE");
-         Put (Types.Line_Number'Image (Rule.Line));
-         Put (" RULELINE");
-         Put (Types.Line_Number'Image (Rule.Rule_Line));
+         Put ("RULE INDEX");  Put (Index_Number'Image (Rule.Index));
+         Put (" RULE");       Put (Rule_Number'Image  (Rule.Number));
+         Put (" LINE");       Put (Line_Number'Image  (Rule.Line));
+         Put (" RULELINE");   Put (Line_Number'Image  (Rule.Rule_Line));
 
          if Mode = 1 then
             Put (" PREC");

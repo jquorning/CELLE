@@ -9,12 +9,16 @@
 
 with Ada.Containers.Ordered_Maps;
 
+with Rules;
+
 package body States is
 
    function State_Compare (Left, Right : in Configs.Config_Access) return Boolean;
 
    function State_Compare (Left, Right : in Configs.Config_Access) return Boolean
    is
+      use type Rules.Index_Number;
+      use type Rules.Dot_Type;
       use Configs;
 
       A  : Config_Access := Left;
@@ -23,9 +27,9 @@ package body States is
    begin
       RC := 0;
       while RC = 0 and A /= null and B /= null loop
-         RC := A.Rule.Index - B.Rule.Index;
+         RC := Integer (A.Rule.Index - B.Rule.Index);
          if RC = 0 then
-            RC := Integer (A.Dot) - Integer (B.Dot);
+            RC := Integer (A.Dot - B.Dot);
          end if;
          A := A.Basis;
          B := B.Basis;

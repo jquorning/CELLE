@@ -591,7 +591,7 @@ package body Parser_FSM is
             Rule.Code        := Null_Code;
             Rule.No_Code     := True;
             Rule.Prec_Symbol := null;
-            Rule.Index       := Integer (Scanner.Rule.Length);
+            Rule.Index       := Index_Number (Scanner.Rule.Length);
 
             declare
                use Symbols;
