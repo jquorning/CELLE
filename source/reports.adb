@@ -75,8 +75,8 @@ package body Reports is
    --  Print an Action to File with Indent indention. Return Falese if
    --  nothing was actually printed.
 
-   procedure Config_Print (File : File_Type;
-                           CFP  : Config_Access);
+   procedure Config_Print (File   : File_Type;
+                           Config : Config_Access);
    --  Print the rule for a configuration.
 
    function Minimum_Size_Type (LWS     :     Integer;
@@ -1626,13 +1626,15 @@ package body Reports is
 
    end Print_Action;
 
+   ------------------
+   -- Config_Print --
+   ------------------
 
-   procedure Config_Print (File : File_Type;
-                           CFP  : Config_Access)
+   procedure Config_Print (File   : File_Type;
+                           Config : Config_Access)
    is
    begin
-      null;
-      --  RulePrint(fp, cfp->rp, cfp->dot);
+      Rule_Print (File, Config.Rule, Integer (Config.Dot));
    end Config_Print;
 
 
