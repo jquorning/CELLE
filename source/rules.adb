@@ -24,7 +24,7 @@ package body Rules is
          if Rule.Code = Null_Code then
             Rule.Number := -1;
          else
-            Rule.Number := Integer (Index);
+            Rule.Number := Rule_Number (Index);
             Index := Index + 1;
          end if;
       end loop;
@@ -33,7 +33,7 @@ package body Rules is
 
       for Rule of Rule_List loop
          if Rule.Number < 0 then
-            Rule.Number := Integer (Index);
+            Rule.Number := Rule_Number (Index);
             Index := Index + 1;
          end if;
       end loop;

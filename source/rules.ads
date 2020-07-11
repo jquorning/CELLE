@@ -47,6 +47,8 @@ package Rules is
    type Rule_Record;
    type Rule_Access is access all Rule_Record;
 
+   type Rule_Number  is new Integer;
+
    type Rule_Record is
       record
          LHS          : Rule_Symbol_Access := null;
@@ -82,10 +84,10 @@ package Rules is
          Prec_Symbol  : Rule_Symbol_Access := null;
          --  Precedence symbol for this rule
 
-         Index        : Integer := 0;
+         Index : Integer := 0;
          --  An index number for this rule
 
-         Number       : Integer := 0;
+         Number : Rule_Number := 0;
          --  Rule number as used in the generated tables
 
          Can_Reduce   : Boolean := False;             -- True if this rule is ever reduced

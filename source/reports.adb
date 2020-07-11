@@ -990,7 +990,6 @@ package body Reports is
       --  Generate A Table Containing the symbolic name of every symbol
       --
       declare
---         use Text_Out;
          use Symbols;
          use Types;
 
@@ -1019,7 +1018,7 @@ package body Reports is
          J  := 0;
 
          for Rule of Session.Rule loop
-            pragma Assert (Rule.Number = J);
+            pragma Assert (Rules."=" (Rule.Number, Rules.Rule_Number (J)));
             Put (File, " /* ");
             Put (File, Integer'Image (J));
             Put (File, " */ """);
@@ -1492,8 +1491,12 @@ package body Reports is
       Indent :     Natural;
       Emit   : out Boolean)
    is
+      subtype Rule_Number is Rules.Rule_Number;
+
       procedure Put_Indent (Item : String);
       procedure Put_Integer (Value : Integer);
+      procedure Put (Number : Rule_Number);
+
       function Name_Of (Symbol : Symbols.Symbol_Access) return String
         renames Symbols.Name_Of;
 
@@ -1509,6 +1512,11 @@ package body Reports is
       begin
          Integer_IO.Put (File, Value, Width => 7);
       end Put_Integer;
+
+      procedure Put (Number : Rule_Number) is
+      begin
+         Put_Integer (Integer (Number));
+      end Put;
 
       use Actions;
       subtype Rule_Access is Rules.Rule_Access;
@@ -1538,7 +1546,7 @@ package body Reports is
                --  fprintf(fp,"%*s reduce       %-7d",indent,ap->sp->name,rp->iRule);
                Put_Indent (Symbol_Name);
                Put (File, " reduce       ");
-               Put_Integer (Rule.Number);
+               Put (Rule.Number);
                Rule_Print (File, Rule, -1);
 --            end;
 
@@ -1549,7 +1557,7 @@ package body Reports is
                --  fprintf(fp,"%*s shift-reduce %-7d",indent,ap->sp->name,rp->iRule);
                Put_Indent (Symbol_Name);
                Put (File, " shift-reduce ");
-               Put_Integer (Rule.Number);
+               Put (Rule.Number);
                Rule_Print (File, Rule, -1);
 --            end;
 
@@ -1568,7 +1576,7 @@ package body Reports is
             --  indent,ap->sp->name,ap->x.rp->iRule);
             Put_Indent (Symbol_Name);
             Put (File, " reduce       ");
-            Put_Integer (Rule.Number);
+            Put (Rule.Number);
             Put (File, " ** Parsing conflict **");
 
          when SS_Conflict =>

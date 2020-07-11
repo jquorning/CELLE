@@ -20,7 +20,7 @@ package body Debugs is
          Put ("RULE INDEX");
          Put (Natural'Image (Rule.Index));
          Put (" RULE");
-         Put (Natural'Image (Rule.Number));
+         Put (Rules.Rule_Number'Image (Rule.Number));
          Put (" LINE");
          Put (Types.Line_Number'Image (Rule.Line));
          Put (" RULELINE");
