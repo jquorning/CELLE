@@ -22,9 +22,9 @@ package body Rules is
       Index := 0;
       for Rule of Rule_List loop
          if Rule.Code = Null_Code then
-            Rule.Rule := -1;
+            Rule.Number := -1;
          else
-            Rule.Rule := Integer (Index);
+            Rule.Number := Integer (Index);
             Index := Index + 1;
          end if;
       end loop;
@@ -32,8 +32,8 @@ package body Rules is
       --  Assign Rule numbers when Rule < 0 stop when Rule = 0.
 
       for Rule of Rule_List loop
-         if Rule.Rule < 0 then
-            Rule.Rule := Integer (Index);
+         if Rule.Number < 0 then
+            Rule.Number := Integer (Index);
             Index := Index + 1;
          end if;
       end loop;
@@ -44,7 +44,7 @@ package body Rules is
    function Less_Than (Left, Right : in Rule_Access) return Boolean;
 
    function Less_Than (Left, Right : in Rule_Access) return Boolean is
-      (Left.Rule < Right.Rule);
+      (Left.Number < Right.Number);
 
 
    procedure Rule_Sort (Rule_List : in out Rule_Lists.List)

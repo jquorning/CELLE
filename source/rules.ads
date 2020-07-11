@@ -85,7 +85,7 @@ package Rules is
          Index        : Integer := 0;
          --  An index number for this rule
 
-         Rule         : Integer := 0;
+         Number       : Integer := 0;
          --  Rule number as used in the generated tables
 
          Can_Reduce   : Boolean := False;             -- True if this rule is ever reduced

@@ -467,7 +467,7 @@ package body Reports is
          while Config /= null loop
             if Config.Dot = Dot_Type (Config.Rule.RHS.Length) then
                Put (File, "    (");
-               Put (File, Config.Rule.Rule'Image);
+               Put (File, Config.Rule.Number'Image);
                Put (File, ") ");
             else
                Put (File, "          ");
@@ -567,7 +567,7 @@ package body Reports is
       Put_Line (File, "Rules:");
 
       for Rule of Session.Rule loop
-         Put (File, Rule.Rule'Image); -- XXX "%4d: ", rp->iRule);
+         Put (File, Rule.Number'Image); -- XXX "%4d: ", rp->iRule);
          Put (File, ": ");
          Rule_Print (File, Rule);
          Put (File, ".");
@@ -1019,7 +1019,7 @@ package body Reports is
          J  := 0;
 
          for Rule of Session.Rule loop
-            pragma Assert (Rule.Rule = J);
+            pragma Assert (Rule.Number = J);
             Put (File, " /* ");
             Put (File, Integer'Image (J));
             Put (File, " */ """);
@@ -1538,7 +1538,7 @@ package body Reports is
                --  fprintf(fp,"%*s reduce       %-7d",indent,ap->sp->name,rp->iRule);
                Put_Indent (Symbol_Name);
                Put (File, " reduce       ");
-               Put_Integer (Rule.Rule);
+               Put_Integer (Rule.Number);
                Rule_Print (File, Rule, -1);
 --            end;
 
@@ -1549,7 +1549,7 @@ package body Reports is
                --  fprintf(fp,"%*s shift-reduce %-7d",indent,ap->sp->name,rp->iRule);
                Put_Indent (Symbol_Name);
                Put (File, " shift-reduce ");
-               Put_Integer (Rule.Rule);
+               Put_Integer (Rule.Number);
                Rule_Print (File, Rule, -1);
 --            end;
 
@@ -1568,7 +1568,7 @@ package body Reports is
             --  indent,ap->sp->name,ap->x.rp->iRule);
             Put_Indent (Symbol_Name);
             Put (File, " reduce       ");
-            Put_Integer (Rule.Rule);
+            Put_Integer (Rule.Number);
             Put (File, " ** Parsing conflict **");
 
          when SS_Conflict =>
