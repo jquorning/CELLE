@@ -35,7 +35,7 @@ with Rules;
 with Symbols;
 
 package Actions is
-   
+
    type Action_Kind is
      (Shift,
       C_Accept,
@@ -54,10 +54,10 @@ package Actions is
    type Action_Access is access all Action_Record;
 
    type State_Rule_Kind is (Is_State, Is_Rule);
-   type X_Union (discr : State_Rule_Kind := Is_State) is record
-      case discr is
+   type X_Union (Typ : State_Rule_Kind := Is_State) is record
+      case Typ is
          when Is_State  =>
-            stp  : access States.State_Record;  --  The look-ahead symbol
+            State  : access States.State_Record;  --  The look-ahead symbol
          when Is_Rule   =>
             Rule : access Rules.Rule_Record;    --  The new state, if a shift
       end case;

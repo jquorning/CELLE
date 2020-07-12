@@ -1557,7 +1557,7 @@ package body Reports is
 
       Ignore       : constant Dot_Type    := Dot_Type'(Rules.Ignore);
       Symbol_Name  : constant String      := Name_Of (Action.Symbol);
-      State_Number : constant Integer     := Action.X.stp.State_Num;
+      State_Number : constant Integer     := Action.X.State.State_Num;
       Rule         : constant Rule_Access := Action.X.Rule;
    begin
       Emit := True;
@@ -1620,7 +1620,7 @@ package body Reports is
             --  indent,ap->sp->name,ap->x.stp->statenum);
             Put_Indent (Symbol_Name);
             Put (File, " shift        ");
-            Put_Integer (Action.X.stp.State_Num);
+            Put_Integer (Action.X.State.State_Num);
             Put (File, " ** Parsing conflict **");
 
          when SH_Resolved =>
@@ -1629,7 +1629,7 @@ package body Reports is
                --  indent,ap->sp->name,ap->x.stp->statenum);
                Put_Indent (Symbol_Name);
                Put (File, " shift        ");
-               Put_Integer (Action.X.stp.State_Num);
+               Put_Integer (Action.X.State.State_Num);
                Put (File, " -- dropped by precedence");
             else
                Emit := False;
@@ -1641,7 +1641,7 @@ package body Reports is
                --  indent,ap->sp->name,ap->x.rp->iRule);
                Put_Indent (Symbol_Name);
                Put (File, " reduce       ");
-               Put_Integer (Action.X.stp.State_Num);
+               Put_Integer (Action.X.State.State_Num);
                Put (File, " -- dropped by precedence");
             else
                Emit := False;

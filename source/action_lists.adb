@@ -15,7 +15,7 @@ package body Action_Lists is
       Union : X_Union;
    begin
       if Kind = Shift then
-         Union.stp := State;
+         Union.State := State;
       else
          Union.Rule := Rule;
       end if;
