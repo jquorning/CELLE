@@ -252,12 +252,12 @@ package body Reports is
    --  to order the creation of entries in the yy_action[] table.
    type AX_Record is
      record
-        STP      : access States.State_Record; --  A pointer to a state
-        Is_Token : Boolean;
+        STP        : access States.State_Record; --  A pointer to a state
+        Is_Token   : Boolean;
         --  True to use tokens.  False for non-terminals
 
-        N_Action : Integer;                    --  Number of actions
-        Order    : Integer;                    --  Original order of action sets
+        Num_Action : Action_Value;               --  Number of actions
+        Order      : Integer;                    --  Original order of action sets
      end record;
 
 
@@ -787,15 +787,15 @@ package body Reports is
          for I in 0 .. Session.Nx_State - 1 loop
             State := Session.Sorted (I);
 
-            AX (I).Token := (STP      => State,
-                             Is_Token => True,
-                             N_Action => State.Num_Token,
-                             Order    => <>);
+            AX (I).Token := (STP        => State,
+                             Is_Token   => True,
+                             Num_Action => State.Num_Token,
+                             Order      => <>);
 
-            AX (I).Non_Terminal := (STP      => State,
-                                    Is_Token => False,
-                                    N_Action => State.Num_Nonterminal,
-                                    Order    => <>);
+            AX (I).Non_Terminal := (STP        => State,
+                                    Is_Token   => False,
+                                    Num_Action => State.Num_Nonterminal,
+                                    Order      => <>);
          end loop;
       end;
 
@@ -1412,7 +1412,10 @@ package body Reports is
    procedure Resort_States (Session : in out Session_Type)
    is
       use Sessions.State_Vectors;
+
       use type Sessions.State_Index;
+      use type Action_Tables.Action_Value;
+
       subtype State_Index is Sessions.State_Index;
 
       Num_State : constant State_Index :=

@@ -9,9 +9,12 @@
 
 with Configs;
 with Action_Lists;
+with Action_Tables;
 limited with Rules;
 
 package States is
+
+   subtype Action_Value is Action_Tables.Action_Value;
 
    type State_Boolean is (Syntax_Error, False, True);
    --  Syntax_Error is used to trigger syntax error !!!
@@ -36,8 +39,8 @@ package States is
       Action : Action_Lists.List;
       --  List of actions for this state
 
-      Num_Token       : Integer;
-      Num_Nonterminal : aliased Integer;
+      Num_Token       : aliased Action_Value;
+      Num_Nonterminal : aliased Action_Value;
       --  Number of actions on terminals and nonterminals
 
       Token_Offset   : Integer;
