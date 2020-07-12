@@ -1427,7 +1427,7 @@ package body Reports is
          State.Default_Reduce  := States.Syntax_Error;
          State.Num_Token       := (if State.Num_Nonterminal = 0
                                      then 1 else 0);
-         State.Terminal_Offset := Sessions.No_Offset;
+         State.Token_Offset    := Sessions.No_Offset;
          State.Nonterm_Offset  := Sessions.No_Offset;
 
          for Action of State.Action loop
@@ -2377,11 +2377,8 @@ package body Reports is
 
             State : access States.State_Record;
          begin
-            --  stp := lemp->sorted[i];
-            State := Session.Sorted (State_Index (I));
-            --  ofst := stp->iTknOfst;
-            --  Ofst := Get_Token_Offset (I);
-            Offset := State.Terminal_Offset;
+            State  := Session.Sorted (State_Index (I));
+            Offset := State.Token_Offset;
          end;
          if Offset = No_Offset then
             Offset := Nactiontab;
