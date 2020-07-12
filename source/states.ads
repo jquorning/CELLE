@@ -42,10 +42,10 @@ package States is
       Token_Offset : Integer;
       --  Default action is to REDUCE by this rule
 
-      I_Nt_Ofst : Integer;
+      Default_Reduce : Integer;
       --  The default REDUCE rule.
 
-      Default_Reduce : State_Boolean;
+      Is_Auto_Reduce_State : State_Boolean;
       --  True if this is an auto-reduce state
 
       Default_Reduce_Rule : access Rules.Rule_Record;

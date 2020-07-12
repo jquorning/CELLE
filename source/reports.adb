@@ -1421,11 +1421,13 @@ package body Reports is
    begin
       for I in 0 .. Num_State - 1 loop
          State := Session.Sorted (I);
+
+         State.Is_Auto_Reduce_State := States.Syntax_Error;
+
          State.N_Tkn_Act      := (if State.N_Nt_Act = 0 then 1 else 0);
-         State.Default_Reduce := States.Syntax_Error;
          State.Token_Offset   := Sessions.No_Offset;
-         State.I_Nt_Ofst      := Sessions.No_Offset;
---         Action := State.Action.First_Element;
+         State.Default_Reduce := Sessions.No_Offset;
+
          for Action of State.Action loop
             declare
                I_Action : constant Integer :=
@@ -1443,10 +1445,11 @@ package body Reports is
                      pragma Assert
                        (State.Auto_Reduce = 0 or
                           State.Default_Reduce_Rule = Action.X.Rule);
-                     State.Default_Reduce := (if I_Action /= 0
-                                                then States.True
-                                                else States.False);
+
+                     State.Is_Auto_Reduce_State :=
+                       (if I_Action /= 0 then States.True else States.False);
                   end if;
+
                end if;
             end;
 --            Action := Action.Next;
@@ -2456,7 +2459,7 @@ package body Reports is
             State : access States.State_Record;
          begin
             State := Session.Sorted (Sessions.State_Index (I));
-            Ofst := State.I_Nt_Ofst;
+            Ofst  := State.Default_Reduce;
          end;
          if Ofst = NO_OFFSET then
             Ofst := MnNtOfst - 1;
@@ -2511,12 +2514,25 @@ package body Reports is
             if J = 0 then
                Put (File, " /* " & Image (I) & " */ ");
             end if;
-            if State.Default_Reduce = True then
-               Put (File, " " & Image (Integer (Error_Action)) & ",");
+
+            Put (File, " ");
+            if State.Is_Auto_Reduce_State = True then
+               Put (File, Image (Integer (Error_Action)));
             else
-               Put (File, " " & Image (State_Boolean'Pos (State.Default_Reduce)
-                                         + Integer (Min_Reduce)) & ",");
+               declare
+                  Auto_State : constant Integer :=
+                    (case State.Is_Auto_Reduce_State is
+                       when Syntax_Error => -1,
+                       when False        =>  0,
+                       when True         =>  1);
+                  Reduce       : constant Integer := Integer (Min_Reduce);
+                  State_Reduce : constant Integer := Auto_State + Reduce;
+               begin
+                  Put (File, Image (State_Reduce));
+               end;
             end if;
+            Put (File, ",");
+
          end;
          if J = 9 or I = N - 1 then
             Put_Line (File);  Increment_Line;
