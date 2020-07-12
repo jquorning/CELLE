@@ -789,7 +789,7 @@ package body Reports is
 
             AX (I).Token := (STP      => State,
                              Is_Token => True,
-                             N_Action => State.N_Tkn_Act,
+                             N_Action => State.Num_Token,
                              Order    => <>);
 
             AX (I).Non_Terminal := (STP      => State,
@@ -1425,7 +1425,7 @@ package body Reports is
          State := Session.Sorted (I);
 
          State.Default_Reduce  := States.Syntax_Error;
-         State.N_Tkn_Act       := (if State.Num_Nonterminal = 0
+         State.Num_Token       := (if State.Num_Nonterminal = 0
                                      then 1 else 0);
          State.Terminal_Offset := Sessions.No_Offset;
          State.Nonterm_Offset  := Sessions.No_Offset;
@@ -1438,7 +1438,7 @@ package body Reports is
                if I_Action >= 0 then
 
                   if Action.Symbol.Index < Session.N_Terminal then
-                     State.N_Tkn_Act := State.N_Tkn_Act + 1;
+                     State.Num_Token := State.Num_Token + 1;
 
                   elsif Action.Symbol.Index < Session.N_Symbol then
                      State.Num_Nonterminal := State.Num_Nonterminal + 1;

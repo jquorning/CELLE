@@ -36,7 +36,7 @@ package States is
       Action : Action_Lists.List;
       --  List of actions for this state
 
-      N_Tkn_Act : Integer;
+      Num_Token       : Integer;
       Num_Nonterminal : aliased Integer;
       --  Number of actions on terminals and nonterminals
 
