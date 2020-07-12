@@ -31,7 +31,6 @@ with Auxiliary;
 
 package body Reports is
 
-   use Templates;
    use type Types.Line_Number;
 
    subtype Symbol_Index  is Types.Symbol_Index;
@@ -616,22 +615,22 @@ package body Reports is
       Session.Min_Reduce       := Session.No_Action + 1;
 --      Session.Max_Action       := Session.Min_Reduce + Session.N_Rule;
       Session.Max_Action       := Session.Min_Reduce + Action_Value (Session.Rule.Length);
-      Template_Open (User_Template_Name, Error_Count, Template_Open_Success);
+      Templates.Open (User_Template_Name, Error_Count, Template_Open_Success);
       Auxiliary.Recreate (File, Ada.Text_IO.Out_File,
                           File_Name => File_Makename (Session, ".c"));
 
-      Template_Transfer (File, Session_Name);
+      Templates.Transfer (File, Session_Name);
 
       --  Generate the include code, if any
       --  Sessions_Print (Session.Outname, Session.No_Linenos_Flag, Session.Include);
-      Template_Print (File, Lineno, Ada.Strings.Unbounded.To_String (Session.Out_Name),
+      Templates.Print (File, Lineno, Ada.Strings.Unbounded.To_String (Session.Out_Name),
                       Session.No_Linenos_Flag,
                       To_String (Session.Names.Include));
       --  lime_print (lime_get_ouüt_name (), lemp->nolinenosflag, lemap->include);
       --  lime_write_include (lime_get_mh_flag(), file_makename(lemp, ".h"));
       Write_Include (File, Lineno, File_Makename (Session, ".h"));
 
-      Template_Transfer (File, Session_Name);
+      Templates.Transfer (File, Session_Name);
 
       --  Generate #defines for all tokens
 --  XXX    Sessions_Session_Copy := Session;
@@ -639,7 +638,7 @@ package body Reports is
       Generate_Tokens (Session, To_String (Session.Names.Token_Prefix),
                        1, Integer (Session.N_Terminal));
 
-      Template_Transfer (File, Session_Name);
+      Templates.Transfer (File, Session_Name);
 
       --  Generate the defines
       declare
@@ -844,7 +843,7 @@ package body Reports is
             No_Action        => Session.No_Action,
             Min_Reduce       => Session.Min_Reduce));
 
-      Template_Transfer (File, Session_Name);
+      Templates.Transfer (File, Session_Name);
 
 
       --
@@ -938,7 +937,7 @@ package body Reports is
          Lineno);
       Session.Table_Size := Session.Table_Size + N * Size_Of_Action_Type;
 
-      Template_Transfer (File, Session_Name);
+      Templates.Transfer (File, Session_Name);
 
       --
       --  Generate the table of fallback tokens.
@@ -984,7 +983,7 @@ package body Reports is
          end;
       end if;
 
-      Template_Transfer (File, Session_Name);
+      Templates.Transfer (File, Session_Name);
 
       --
       --  Generate A Table Containing the symbolic name of every symbol
@@ -1010,7 +1009,7 @@ package body Reports is
             end;
          end loop;
 
-         Template_Transfer (File, Session_Name);
+         Templates.Transfer (File, Session_Name);
 
          --  Generate a table containing a text string that describes every
          --  rule in the rule set of the grammar.  This information is used
@@ -1029,7 +1028,7 @@ package body Reports is
          end loop;
       end;
 
-      Template_Transfer (File, Session_Name);
+      Templates.Transfer (File, Session_Name);
 
       --  Generate code which executes every time a symbol is popped from
       --  the stack while processing errors or while destroying the parser.
@@ -1153,7 +1152,7 @@ package body Reports is
          end loop;
       end;
 
-      Template_Transfer (File, Session_Name);
+      Templates.Transfer (File, Session_Name);
 --
 --    for(i=0, rp=lemp->rule; rp; rp=rp->next, i++){
 --      lime_put ("  ");
@@ -1165,7 +1164,7 @@ package body Reports is
 --      lime_put_line (" */");
 --    }
 --
-      Template_Transfer (File, Session_Name);
+      Templates.Transfer (File, Session_Name);
 
       --  Generate code which execution during each REDUCE action
       I  := 0;
@@ -1741,8 +1740,8 @@ package body Reports is
          Put_Line (File, "{");  Increment_Line;
          if not Session.No_Linenos_Flag then
             Line := Line + 1;
-            Put_Line_Directive (File, Symbol.Dest_Lineno,
-                                To_String (Session.File_Name));
+            Templates.Line_Directive (File, Symbol.Dest_Lineno,
+                                      To_String (Session.File_Name));
          end if;
 
       elsif Session.Names.Var_Dest = Null_Unbounded_String then
@@ -1776,7 +1775,7 @@ package body Reports is
 
       if not Session.No_Linenos_Flag then
          Increment_Line;
-         Put_Line_Directive (File, Line, To_String (Session.Out_Name));
+         Templates.Line_Directive (File, Line, To_String (Session.Out_Name));
       end if;
 
       Put_Line (File, "}");  Increment_Line;
@@ -1813,7 +1812,7 @@ package body Reports is
       if Code /= "" then
          if not Session.No_Linenos_Flag then
             Line := Line + 1;
-            Put_Line_Directive (File, Line, To_String (Session.File_Name));
+            Templates.Line_Directive (File, Line, To_String (Session.File_Name));
          end if;
          Put (File, "{");
          Put (File, Code);
@@ -1826,7 +1825,7 @@ package body Reports is
          Line := Line + 1;
          if not Session.No_Linenos_Flag then
             Line := Line + 1;
-            Put_Line_Directive (File, Line, To_String (Session.Out_Name));
+            Templates.Line_Directive (File, Line, To_String (Session.Out_Name));
          end if;
       end if;
 

@@ -26,12 +26,12 @@ package body Templates is
    function Default_Template_Name return String;
    --
 
-   -----------------------
-   -- Template_Transfer --
-   -----------------------
+   --------------
+   -- Transfer --
+   --------------
 
-   procedure Template_Transfer (File : File_Type;
-                                Name : String)
+   procedure Transfer (File : File_Type;
+                       Name : String)
    is
       use Backend;
 
@@ -75,13 +75,13 @@ package body Templates is
          Ada.Text_IO.Put_Line (Ada.Text_IO.Standard_Error,
                                "EXCEPTION END ERROR");
 
-   end Template_Transfer;
+   end Transfer;
 
-   -------------------
-   -- Template_Open --
-   -------------------
+   ----------
+   -- Open --
+   ----------
 
-   procedure Template_Open
+   procedure Open
      (User_Template :        String;
       Error_Count   : in out Integer;
       Success       :    out Integer)
@@ -115,15 +115,15 @@ package body Templates is
       end if;
 
       Success := 0;
-   end Template_Open;
+   end Open;
 
-   ------------------------
-   -- Put_Line_Directive --
-   ------------------------
+   --------------------
+   -- Line_Directive --
+   --------------------
 
-   procedure Put_Line_Directive (File      : File_Type;
-                                 Line      : Line_Number;
-                                 File_Name : String)
+   procedure Line_Directive (File      : File_Type;
+                             Line      : Line_Number;
+                             File_Name : String)
    is
       use Ada.Text_IO;
    begin
@@ -133,13 +133,13 @@ package body Templates is
       Put (File, File_Name);
       Put (File, """");
       New_Line (File);
-   end Put_Line_Directive;
+   end Line_Directive;
 
-   --------------------
-   -- Template_Print --
-   --------------------
+   -----------
+   -- Print --
+   -----------
 
-   procedure Template_Print
+   procedure Print
      (File            :        File_Type;
       Line            : in out Line_Number;
       Out_Name        :        String;
@@ -173,9 +173,9 @@ package body Templates is
       if No_Line_Numbers then
          Ada.Text_IO.Put_Line ("1");
          --  Write_Line_Directive (Line_Number, Out_Name);
-         Put_Line_Directive (File, Line, Out_Name);
+         Line_Directive (File, Line, Out_Name);
       end if;
-   end Template_Print;
+   end Print;
 
    ----------------------
    -- Open_If_Possible --

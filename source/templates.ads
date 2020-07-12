@@ -16,24 +16,24 @@ package Templates is
    subtype File_Type   is Ada.Text_IO.File_Type;
    subtype Line_Number is Types.Line_Number;
 
-   procedure Template_Transfer
+   procedure Transfer
      (File : File_Type;
       Name : String);
    --
 
-   procedure Template_Open
+   procedure Open
      (User_Template :        String;
       Error_Count   : in out Integer;
       Success       :    out Integer);
    --  Thisk function finds the template file and opens it. File handle
    --  is located in the context structure.
 
-   procedure Put_Line_Directive (File      : File_Type;
-                                 Line      : Line_Number;
-                                 File_Name : String);
+   procedure Line_Directive (File      : File_Type;
+                             Line      : Line_Number;
+                             File_Name : String);
    --  Put line directive to File. Like '#line <Line> "<File_Name>"'.
 
-   procedure Template_Print
+   procedure Print
      (File            :        File_Type;
       Line            : in out Line_Number;
       Out_Name        :        String;
