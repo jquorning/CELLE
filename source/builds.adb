@@ -341,7 +341,7 @@ package body Builds is
    is
       use Configs;
       use States;
-      use type Sessions.State_Index;
+--      use type Sessions.State_Index;
 
       Config : Config_Access;
       Basis  : Config_Access;
@@ -529,7 +529,7 @@ package body Builds is
    is
       use Configs;
       use States;
-      use type Sessions.State_Index;
+--      use type Sessions.State_Index;
 
       Config : Config_Access;
       Other  : Config_Access;
@@ -568,7 +568,7 @@ package body Builds is
    procedure Find_Follow_Sets (Session : in out Sessions.Session_Type)
    is
       use Configs;
-      use type Sessions.State_Index;
+--      use type Sessions.State_Index;
 
       Config   : Config_Access;
       Progress : Boolean;
