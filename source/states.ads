@@ -37,22 +37,21 @@ package States is
       --  List of actions for this state
 
       N_Tkn_Act : Integer;
+      N_Nt_Act : aliased Integer;
       --  Number of actions on terminals and nonterminals
 
-      N_Nt_Act : aliased Integer;
+      Token_Offset : Integer;
+      Default_Reduce : Integer;
       --  yy_action[] offset for terminals and nonterms
 
-      Token_Offset : Integer;
+      Is_Auto_Reduce_State : State_Boolean;
       --  Default action is to REDUCE by this rule
 
-      Default_Reduce : Integer;
+      Default_Reduce_Rule : access Rules.Rule_Record;
       --  The default REDUCE rule.
 
-      Is_Auto_Reduce_State : State_Boolean;
-      --  True if this is an auto-reduce state
-
-      Default_Reduce_Rule : access Rules.Rule_Record;
       Auto_Reduce : Integer;
+      --  True if this is an auto-reduce state
    end record;
 
    type State_Access is access all State_Record;
