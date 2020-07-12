@@ -35,7 +35,7 @@ with Rules;
 with Symbols;
 
 package Actions is
-
+   
    type Action_Kind is
      (Shift,
       C_Accept,
@@ -66,15 +66,24 @@ package Actions is
    pragma Unchecked_Union (X_Union);
 
    --  Every shift or reduce operation is stored as one of the following
-   type Action_Record is
-      record
-         Symbol  : access Symbols.Symbol_Record;
-         Kind    : Action_Kind;
-         X       : X_Union;                     --  The rule, if a reduce
-         spOpt   : access Symbols.Symbol_Kind;  --  SHIFTREDUCE optimization to this symbol
---         Next    : access Action_Record;        --  Next action for this state
-         Collide : access Action_Record;        --  Next action with the same hash
-      end record;
+   type Action_Record is record
+
+      Symbol  : access Symbols.Symbol_Record;
+
+      Kind    : Action_Kind;
+
+      X       : X_Union;
+      --  The rule, if a reduce
+
+      spOpt   : access Symbols.Symbol_Kind;
+      --  SHIFTREDUCE optimization to this symbol
+
+      --  Next    : access Action_Record;
+      --  Next action for this state
+
+      Collide : access Action_Record;
+      --  Next action with the same hash
+   end record;
 
    function Action_Cmp (Left, Right : in Action_Record)
                        return Boolean;

@@ -37,7 +37,7 @@ package Reports is
    --  is a possible look-ahead.
 
 
-   procedure Resort_States (Session : Session_Type);
+   procedure Resort_States (Session : in out Session_Type);
    --  Renumber and resort states so that states with fewer choices
    --  occur at the end.  Except, keep state 0 as the first state.
 

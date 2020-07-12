@@ -18,6 +18,7 @@ with Symbols;
 with Report_Parsers;
 with Actions;
 with Action_Tables;
+with Action_Algorithms;
 with Configs;
 with States;
 with Options;
@@ -43,6 +44,8 @@ package body Reports is
    subtype Config_Access is Configs.Config_Access;
    subtype Action_Table  is Action_Tables.Table_Type;
    subtype Dot_Type      is Rules.Dot_Type;
+   subtype State_Access  is States.State_Access;
+--   subtype Action_Access is Actions.Action_Access;
 
    procedure Put (File : File_Type;
                   Item : String)
@@ -1400,56 +1403,73 @@ package body Reports is
 --  }
    end  Compress_Tables;
 
-   -------------------
-   -- Resort_States -- lemon.c:4866
-   -------------------
+   --------------------
+   --  Resort_States -- lemon.c:4866
+   --------------------
 
-   procedure Resort_States (Session : Session_Type)
+   procedure Resort_States (Session : in out Session_Type)
    is
+      use Sessions.State_Vectors;
+      use type Sessions.State_Index;
+      subtype State_Index is Sessions.State_Index;
+
+      Num_State : constant State_Index :=
+        State_Index (Length (Session.Sorted));
+
+      State   : State_Access;
+--      Action  : Action_Record; -- Access;
    begin
-      null;
---  void lemon_resort_states (struct lemon *lemp)
---  {
---    int i;
---    struct state *stp;
---    struct action *ap;
---
---    printf ("ResortStates\n");
---    for(i=0; i<lemp->nstate; i++){
---      stp = lemp->sorted[i];
---      stp->nTknAct = stp->nNtAct = 0;
---      stp->iDfltReduce = -1; /* Init dflt action to "syntax error" */
---      stp->iTknOfst = NO_OFFSET;
---      stp->iNtOfst = NO_OFFSET;
---      for(ap=stp->ap; ap; ap=ap->next){
---        int iAction = compute_action(lemp,ap);
---        if( iAction>=0 ){
---          if( ap->sp->index<lemp->nterminal ){
---            stp->nTknAct++;
---          }else if( ap->sp->index<lemp->nsymbol ){
---            stp->nNtAct++;
---          }else{
---            assert( stp->autoReduce==0 || stp->pDfltReduce==ap->x.rp );
---            stp->iDfltReduce = iAction;
---          }
---        }
---      }
---    }
---    qsort(&lemp->sorted[1], lemp->nstate-1, sizeof(lemp->sorted[0]),
---          stateResortCompare);
---    for(i=0; i<lemp->nstate; i++){
---      lemp->sorted[i]->statenum = i;
---    }
---    lemp->nxstate = lemp->nstate;
---    while( lemp->nxstate>1 && lemp->sorted[lemp->nxstate-1]->autoReduce ){
---      lemp->nxstate--;
---    }
---  }
+      for I in 0 .. Num_State - 1 loop
+         State := Session.Sorted (I);
+         State.N_Tkn_Act      := (if State.N_Nt_Act = 0 then 1 else 0);
+         State.Default_Reduce := States.Syntax_Error;
+         State.Token_Offset   := Sessions.No_Offset;
+         State.I_Nt_Ofst      := Sessions.No_Offset;
+--         Action := State.Action.First_Element;
+         for Action of State.Action loop
+            declare
+               I_Action : constant Integer :=
+                 Action_Algorithms.Compute_Action (Session, Action);
+            begin
+               if I_Action >= 0 then
+
+                  if Action.Symbol.Index < Session.N_Terminal then
+                     State.N_Tkn_Act := State.N_Tkn_Act + 1;
+
+                  elsif Action.Symbol.Index < Session.N_Symbol then
+                     State.N_Nt_Act := State.N_Nt_Act + 1;
+
+                  else
+                     pragma Assert
+                       (State.Auto_Reduce = 0 or
+                          State.Default_Reduce_Rule = Action.X.Rule);
+                     State.Default_Reduce := (if I_Action /= 0
+                                                then States.True
+                                                else States.False);
+                  end if;
+               end if;
+            end;
+--            Action := Action.Next;
+         end loop;
+      end loop;
+--  qsort(&lemp->sorted[1], lemp->nstate-1, sizeof(lemp->sorted[0]),
+--        stateResortCompare);
+      for I in 0 .. Num_State - 1 loop
+         Session.Sorted (I).State_Num := Integer (I);
+      end loop;
+      Session.Nx_State := Num_State;
+      while
+        Session.Nx_State > 1 and
+        Session.Sorted (Session.Nx_State - 1).Auto_Reduce /= 0
+      loop
+         Session.Nx_State := Session.Nx_State - 1;
+      end loop;
+
    end Resort_States;
 
-   ----------------
-   -- Rule_Print --  lemon.c:3157 - OVERLOADED
-   ----------------
+   -----------------
+   --  Rule_Print --  lemon.c:3157 - OVERLOADED
+   -----------------
 
    procedure Rule_Print (File   : File_Type;
                          Rule   : Rule_Access;
@@ -2436,7 +2456,7 @@ package body Reports is
             State : access States.State_Record;
          begin
             State := Session.Sorted (Sessions.State_Index (I));
-            Ofst := State.iNtOfst;
+            Ofst := State.I_Nt_Ofst;
          end;
          if Ofst = NO_OFFSET then
             Ofst := MnNtOfst - 1;
@@ -2482,6 +2502,7 @@ package body Reports is
       Put_Line (File, "static const YYACTIONTYPE yy_default[] = {");  Increment_Line;
       for I in 0 .. N - 1 loop
          declare
+            use States;
             State : constant access States.State_Record :=
               Session.Sorted (Sessions.State_Index (I));
          begin
@@ -2490,10 +2511,10 @@ package body Reports is
             if J = 0 then
                Put (File, " /* " & Image (I) & " */ ");
             end if;
-            if State.iDfltReduce then
+            if State.Default_Reduce = True then
                Put (File, " " & Image (Integer (Error_Action)) & ",");
             else
-               Put (File, " " & Image (Boolean'Pos (State.iDfltReduce)
+               Put (File, " " & Image (State_Boolean'Pos (State.Default_Reduce)
                                          + Integer (Min_Reduce)) & ",");
             end if;
          end;
