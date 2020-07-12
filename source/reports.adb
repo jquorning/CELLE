@@ -35,15 +35,16 @@ package body Reports is
 
    use type Types.Line_Number;
 
-   subtype Line_Number   is Types.Line_Number;
    subtype Symbol_Index  is Types.Symbol_Index;
+   subtype Line_Number   is Types.Line_Number;
+   subtype Offset_Type   is Types.Offset_Type;
    subtype Symbol_Access is Symbols.Symbol_Access;
-   subtype Action_Value  is Action_Tables.Action_Value;
    subtype Rule_Access   is Rules.Rule_Access;
-   subtype Action_Record is Actions.Action_Record;
-   subtype Config_Access is Configs.Config_Access;
-   subtype Action_Table  is Action_Tables.Table_Type;
    subtype Dot_Type      is Rules.Dot_Type;
+   subtype Action_Record is Actions.Action_Record;
+   subtype Action_Table  is Action_Tables.Table_Type;
+   subtype Action_Value  is Action_Tables.Action_Value;
+   subtype Config_Access is Configs.Config_Access;
    subtype State_Access  is States.State_Access;
    subtype State_Number  is States.State_Number;
 
@@ -188,7 +189,7 @@ package body Reports is
       MxTknOfst     :        Integer;
       Min_Size_Type :        String;
       Nactiontab    :        Integer;
-      No_Offset     :        Integer;
+      No_Offset     :        Offset_Type;
       Line          : in out Line_Number);
 
    --
@@ -202,7 +203,7 @@ package body Reports is
       MnNtOfst      :        Integer;
       MxNtOfst      :        Integer;
       Min_Size_Type :        String;
-      No_Offset     :        Integer;
+      No_Offset     :        Offset_Type;
       Line          : in out Line_Number);
 
    procedure Output_Default_Action_Table
@@ -2240,6 +2241,7 @@ package body Reports is
    end Render_Constants;
 
    function Image is new Auxiliary.Trim_Image (Integer);
+   function Image is new Auxiliary.Trim_Image (Offset_Type);
 
 
    --  lemon.c:4377
@@ -2348,12 +2350,13 @@ package body Reports is
       MxTknOfst     :        Integer;
       Min_Size_Type :        String;
       Nactiontab    :        Integer;
-      No_Offset     :        Integer;
+      No_Offset     :        Offset_Type;
       Line          : in out Line_Number)
    is
+      use type Offset_Type;
       procedure Increment_Line is new Increment (Line);
 
-      Offset : Integer;
+      Offset : Offset_Type;
       J      : Integer := 0;
    begin
       Put (File, "#define YY_SHIFT_COUNT    (");
@@ -2384,7 +2387,7 @@ package body Reports is
             Offset := State.Token_Offset;
          end;
          if Offset = No_Offset then
-            Offset := Nactiontab;
+            Offset := Offset_Type (Nactiontab);
          end if;
          if J = 0 then
             Put (File, " /* ");
@@ -2417,13 +2420,14 @@ package body Reports is
       MnNtOfst      :        Integer;
       MxNtOfst      :        Integer;
       Min_Size_Type :        String;
-      No_Offset     :        Integer;
+      No_Offset     :        Offset_Type;
       Line          : in out Line_Number)
    is
+      use type Offset_Type;
       procedure Increment_Line is new Increment (Line);
 
       J      : Integer := 0;
-      Offset : Integer;
+      Offset : Offset_Type;
    begin
       Put_Line (File, "#define YY_REDUCE_COUNT (" & Image (N - 1) & ")");     Increment_Line;
       Put_Line (File, "#define YY_REDUCE_MIN   (" & Image (MnNtOfst) & ")");  Increment_Line;
@@ -2442,7 +2446,7 @@ package body Reports is
             Offset := State.Nonterm_Offset;
          end;
          if Offset = No_Offset then
-            Offset := MnNtOfst - 1;
+            Offset := Offset_Type (MnNtOfst - 1);
          end if;
          if J = 0 then
             Put (File, " /* ");

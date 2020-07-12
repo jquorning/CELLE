@@ -7,6 +7,7 @@
 --    May you share freely, not taking more than you give.
 --
 
+with Types;
 with Configs;
 with Action_Lists;
 with Action_Tables;
@@ -15,6 +16,7 @@ limited with Rules;
 package States is
 
    subtype Action_Value is Action_Tables.Action_Value;
+   subtype Offset_Type  is Types.Offset_Type;
 
    type State_Boolean is (Syntax_Error, False, True);
    --  Syntax_Error is used to trigger syntax error !!!
@@ -43,8 +45,8 @@ package States is
       Num_Nonterminal : aliased Action_Value;
       --  Number of actions on terminals and nonterminals
 
-      Token_Offset   : Integer;
-      Nonterm_Offset : Integer;
+      Token_Offset   : Offset_Type;
+      Nonterm_Offset : Offset_Type;
       --  yy_action[] offset for terminals and nonterms
 
       Default_Reduce : State_Boolean;

@@ -29,6 +29,7 @@ package Sessions is
    use Ada.Strings.Unbounded;
 
    subtype Action_Value is Action_Tables.Action_Value;
+   subtype Offset_Type  is Types.Offset_Type;
 
    --  Symbols (terminals and nonterminals) of the grammar are stored
    --  in the following:
@@ -232,7 +233,7 @@ package Sessions is
                    No_Linenos_Flag => False, Argv0        => Null_Unbounded_String,
                    Parser          => Report_Parsers.Get_Context);
 
-   No_Offset : aliased constant Integer := Integer'First;
+   No_Offset : aliased constant Offset_Type := Offset_Type'First;
 
 
    procedure Create_Sorted_States (Session : in out Session_Type);
