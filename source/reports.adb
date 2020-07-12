@@ -89,8 +89,8 @@ package body Reports is
                            Config : Config_Access);
    --  Print the rule for a configuration.
 
-   function Minimum_Size_Type (LWS     :     Integer;
-                               UPR     :     Integer;
+   function Minimum_Size_Type (LWS     :     Offset_Type;
+                               UPR     :     Offset_Type;
                                PnBytes : out Integer)
                               return String;
 
@@ -185,8 +185,8 @@ package body Reports is
      (File          :        File_Type;
       Session       :        Session_Type;
       N             :        Integer;
-      MnTknOfst     :        Integer;
-      MxTknOfst     :        Integer;
+      MnTknOfst     :        Offset_Type;
+      MxTknOfst     :        Offset_Type;
       Min_Size_Type :        String;
       Nactiontab    :        Integer;
       No_Offset     :        Offset_Type;
@@ -200,8 +200,8 @@ package body Reports is
      (File          :        File_Type;
       Session       :        Session_Type;
       N             :        Integer;
-      MnNtOfst      :        Integer;
-      MxNtOfst      :        Integer;
+      MnNtOfst      :        Offset_Type;
+      MxNtOfst      :        Offset_Type;
       Min_Size_Type :        String;
       No_Offset     :        Offset_Type;
       Line          : in out Line_Number);
@@ -630,8 +630,8 @@ package body Reports is
       Size_Of_Action_Type : Integer;
       Size_Of_Code_Type   : Integer;
 --    const char *name;
-      Mn_Tkn_Ofst, Mx_Tkn_Ofst : Integer;
-      Mn_Nt_Ofst,  Mx_Nt_Ofst  : Integer;
+      Mn_Tkn_Ofst, Mx_Tkn_Ofst : Offset_Type;
+      Mn_Nt_Ofst,  Mx_Nt_Ofst  : Offset_Type;
 
       AX : A_AX_Set_Array;
 
@@ -679,12 +679,12 @@ package body Reports is
 
          Code     : constant String :=
            Minimum_Size_Type (0,
-                              Integer (Symbols.Last_Index),
+                              Offset_Type (Symbols.Last_Index),
                               Size_Of_Code_Type);
 
          Action   : constant String :=
            Minimum_Size_Type (0,
-                              Integer (Session.Max_Action),
+                              Offset_Type (Session.Max_Action),
                               Size_Of_Action_Type);
 
          Wildcard    : constant Symbol_Access := Session.Wildcard;
@@ -919,16 +919,24 @@ package body Reports is
 --      end loop;
 --
 --    lime_lemp = lemp;
-      Output_YY_Shift_Offsets
-        (File,
-         Session, N,
-         Mn_Tkn_Ofst,
-         Mx_Tkn_Ofst,
-         Minimum_Size_Type (Mn_Tkn_Ofst, Integer (Session.N_Terminal) + Session.N_Action_Tab, SZ),
-         Session.N_Action_Tab,
-         No_Offset,
-         Lineno);
-
+      declare
+         use type Offset_Type;
+         Num_Terminal : constant Offset_Type := Offset_Type (Session.N_Terminal);
+         Num_Actions  : constant Offset_Type := Offset_Type (Session.N_Action_Tab);
+         Upper        : constant Offset_Type := Num_Terminal + Num_Actions;
+         Data_Type    : constant String      := Minimum_Size_Type (Mn_Tkn_Ofst,
+                                                                   Upper, SZ);
+      begin
+         Output_YY_Shift_Offsets
+           (File,
+            Session, N,
+            Mn_Tkn_Ofst,
+            Mx_Tkn_Ofst,
+            Data_Type,
+            Session.N_Action_Tab,
+            No_Offset,
+            Lineno);
+      end;
       Session.Table_Size := Session.Table_Size + N * SZ;
 
       --
@@ -937,14 +945,18 @@ package body Reports is
       N := Natural (Session.Nx_State);
 --    while( n>0 && lemp->sorted[n-1]->iNtOfst==NO_OFFSET ) n--;
 --
-      Output_YY_Reduce_Offsets
-        (File,
-         Session, N,
-         Mn_Nt_Ofst,
-         Mx_Nt_Ofst,
-         Minimum_Size_Type (Mn_Nt_Ofst - 1, Mx_Nt_Ofst, SZ),
-         No_Offset,
-         Lineno);
+      declare
+         use type Offset_Type;
+      begin
+         Output_YY_Reduce_Offsets
+           (File,
+            Session, N,
+            Mn_Nt_Ofst,
+            Mx_Nt_Ofst,
+            Minimum_Size_Type (Mn_Nt_Ofst - 1, Mx_Nt_Ofst, SZ),
+            No_Offset,
+            Lineno);
+      end;
       Session.Table_Size := Session.Table_Size + N * SZ;
 
       --
@@ -1653,8 +1665,8 @@ package body Reports is
    end Config_Print;
 
 
-   function Minimum_Size_Type (LWS     : in     Integer;
-                               UPR     : in     Integer;
+   function Minimum_Size_Type (LWS     : in     Offset_Type;
+                               UPR     : in     Offset_Type;
                                PnBytes :    out Integer)
                               return String
    is
@@ -2346,8 +2358,8 @@ package body Reports is
      (File          :        File_Type;
       Session       :        Session_Type;
       N             :        Integer;
-      MnTknOfst     :        Integer;
-      MxTknOfst     :        Integer;
+      MnTknOfst     :        Offset_Type;
+      MxTknOfst     :        Offset_Type;
       Min_Size_Type :        String;
       Nactiontab    :        Integer;
       No_Offset     :        Offset_Type;
@@ -2417,8 +2429,8 @@ package body Reports is
      (File          :        File_Type;
       Session       :        Session_Type;
       N             :        Integer;
-      MnNtOfst      :        Integer;
-      MxNtOfst      :        Integer;
+      MnNtOfst      :        Offset_Type;
+      MxNtOfst      :        Offset_Type;
       Min_Size_Type :        String;
       No_Offset     :        Offset_Type;
       Line          : in out Line_Number)
