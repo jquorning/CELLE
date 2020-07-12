@@ -2254,6 +2254,7 @@ package body Reports is
 
    function Image is new Auxiliary.Trim_Image (Integer);
    function Image is new Auxiliary.Trim_Image (Offset_Type);
+   function Image is new Auxiliary.Trim_Image (Action_Value);
 
 
    --  lemon.c:4377
@@ -2441,13 +2442,22 @@ package body Reports is
       J      : Integer := 0;
       Offset : Offset_Type;
    begin
-      Put_Line (File, "#define YY_REDUCE_COUNT (" & Image (N - 1) & ")");     Increment_Line;
-      Put_Line (File, "#define YY_REDUCE_MIN   (" & Image (MnNtOfst) & ")");  Increment_Line;
-      Put_Line (File, "#define YY_REDUCE_MAX   (" & Image (MxNtOfst) & ")");  Increment_Line;
+      Put (File, "#define YY_REDUCE_COUNT (");
+      Put (File, Image (N - 1));
+      Put_Line (File, ")");     Increment_Line;
+
+      Put (File, "#define YY_REDUCE_MIN   (");
+      Put (File, Image (MnNtOfst));
+      Put_Line (File, ")");     Increment_Line;
+
+      Put (File, "#define YY_REDUCE_MAX   (");
+      Put (File, Image (MxNtOfst));
+      Put_Line (File, ")");     Increment_Line;
+
       Put (File, "static const ");
       Put (File, Min_Size_Type);
       Put (File, " yy_reduce_ofst[] = {");
-      Put_Line (File);  Increment_Line;
+      Put_Line (File);          Increment_Line;
 
 --  lemp->tablesize += n*sz;
       for I in 0 .. N - 1 loop
@@ -2492,28 +2502,29 @@ package body Reports is
       Min_Reduce   :        Action_Value;
       Line         : in out Line_Number)
    is
---      use Text_Out;
-      J : Integer := 0;
-      --      IDfltReduce : Integer;
+      Num_Column : constant       := 8;
+      type Column_Range is mod Num_Column;
+      Column     : Column_Range := Column_Range'First;
 
       procedure Increment_Line is new Increment (Line);
    begin
-      Put_Line (File, "static const YYACTIONTYPE yy_default[] = {");  Increment_Line;
+      Put_Line (File, "static const YYACTIONTYPE yy_default[] = {");
+      Increment_Line;
       for I in 0 .. N - 1 loop
          declare
             use States;
             State : constant access States.State_Record :=
               Session.Sorted (Sessions.State_Index (I));
          begin
---         IDfltReduce := Get_Default_Reduce (I);
---         stp := lemp->sorted[i];
-            if J = 0 then
-               Put (File, " /* " & Image (I) & " */ ");
+            if Column = Column_Range'First then
+               Put (File, " /* ");
+               Put (File, Image (I));
+               Put (File, " */ ");
             end if;
 
             Put (File, " ");
             if State.Default_Reduce = True then
-               Put (File, Image (Integer (Error_Action)));
+               Put (File, Image (Error_Action));
             else
                declare
                   Auto_State : constant Integer :=
@@ -2530,12 +2541,11 @@ package body Reports is
             Put (File, ",");
 
          end;
-         if J = 9 or I = N - 1 then
-            Put_Line (File);  Increment_Line;
-            J := 0;
-         else
-            J := J + 1;
+         if Column = Column_Range'Last or I = N - 1 then
+            Put_Line (File);
+            Increment_Line;
          end if;
+         Column := Column + 1;
       end loop;
       Put_Line (File, "};"); Increment_Line;
    end Output_Default_Action_Table;
