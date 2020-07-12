@@ -45,7 +45,7 @@ package body Reports is
    subtype Action_Table  is Action_Tables.Table_Type;
    subtype Dot_Type      is Rules.Dot_Type;
    subtype State_Access  is States.State_Access;
---   subtype Action_Access is Actions.Action_Access;
+   subtype State_Number  is States.State_Number;
 
    procedure Put (File : File_Type;
                   Item : String)
@@ -457,6 +457,8 @@ package body Reports is
       use Configs;
       use type Types.Symbol_Index;
 
+      subtype State_Number is States.State_Number;
+
       File : File_Type;
 
       Action_Result : Boolean;
@@ -471,7 +473,7 @@ package body Reports is
       for I in 0 .. Session.Nx_State - 1 loop
          State := Session.Sorted (I);
          Put (File, "State ");
-         Put (File, Integer'Image (State.Number));
+         Put (File, State_Number'Image (State.Number));
          Put (File, ":");
          New_Line (File);
 
@@ -1458,7 +1460,7 @@ package body Reports is
 --  qsort(&lemp->sorted[1], lemp->nstate-1, sizeof(lemp->sorted[0]),
 --        stateResortCompare);
       for I in 0 .. Num_State - 1 loop
-         Session.Sorted (I).Number := Integer (I);
+         Session.Sorted (I).Number := State_Number (I);
       end loop;
       Session.Nx_State := Num_State;
       while
@@ -1532,10 +1534,9 @@ package body Reports is
 
       subtype Rule_Access is Rules.Rule_Access;
       subtype Rule_Number is Rules.Rule_Number;
+      subtype Symbol_Kind is Symbols.Symbol_Kind;
 
       procedure Put_Indent (Item : String);
-      procedure Put_Integer (Value : Integer);
-      procedure Put (Number : Rule_Number);
 
       function Name_Of (Symbol : Symbols.Symbol_Access) return String
         renames Symbols.Name_Of;
@@ -1547,92 +1548,65 @@ package body Reports is
          Put (File, Image);
       end Put_Indent;
 
-      procedure Put_Integer (Value : Integer) is
-         package Integer_IO is new Ada.Text_IO.Integer_IO (Integer);
-      begin
-         Integer_IO.Put (File, Value, Width => 7);
-      end Put_Integer;
+      package Rule_IO  is new Ada.Text_IO.Integer_IO (Rule_Number);
+      package State_IO is new Ada.Text_IO.Integer_IO (State_Number);
+      package Kind_IO  is new Ada.Text_IO.Enumeration_IO (Symbol_Kind);
+      use Rule_IO, State_IO, Kind_IO;
 
-      procedure Put (Number : Rule_Number) is
-      begin
-         Put_Integer (Integer (Number));
-      end Put;
-
-      Ignore       : constant Dot_Type    := Dot_Type'(Rules.Ignore);
-      Symbol_Name  : constant String      := Name_Of (Action.Symbol);
-      State_Number : constant Integer     := Action.X.State.Number;
-      Rule         : constant Rule_Access := Action.X.Rule;
+      Ignore      : constant Dot_Type     := Dot_Type'(Rules.Ignore);
+      Symbol_Name : constant String       := Name_Of (Action.Symbol);
+      State_Num   : constant State_Number := Action.X.State.Number;
+      Rule        : constant Rule_Access  := Action.X.Rule;
    begin
+      Rule_IO .Default_Width := 7;
+      State_IO.Default_Width := 7;
+
       Emit := True;
 
       case Action.Kind is
 
          when Shift =>
-            declare
-               --  State : State_Type renames Action.X.stp;
-               --  struct state *stp = ap->x.stp;
-            begin
-               --  fprintf(fp,"%*s shift        %-7d",indent,ap->sp->name,stp->statenum);
-               Put_Indent (Symbol_Name);
-               Put (File, " shift        ");
-               Put_Integer (State_Number);
-            end;
+            Put_Indent (Symbol_Name);
+            Put (File, " shift        ");
+            Put (File, State_Num);
 
          when Reduce =>
---            declare
-               --  Rule : Actions.Rule_Record renames Action.X.Rule; --  *rp = ap->x.rp;
---            begin
-               --  fprintf(fp,"%*s reduce       %-7d",indent,ap->sp->name,rp->iRule);
-               Put_Indent (Symbol_Name);
-               Put (File, " reduce       ");
-               Put (Rule.Number);
-               Rule_Print (File, Rule, Ignore);
---            end;
+            Put_Indent (Symbol_Name);
+            Put (File, " reduce       ");
+            Put (File, Rule.Number);
+            Rule_Print (File, Rule, Ignore);
 
          when Shift_Reduce =>
---            declare
---               Rule : Rule_Record renames Action.X.Rule; --  *rp = ap->x.rp;
---            begin
-               --  fprintf(fp,"%*s shift-reduce %-7d",indent,ap->sp->name,rp->iRule);
-               Put_Indent (Symbol_Name);
-               Put (File, " shift-reduce ");
-               Put (Rule.Number);
-               Rule_Print (File, Rule, Ignore);
---            end;
+            Put_Indent (Symbol_Name);
+            Put (File, " shift-reduce ");
+            Put (File, Rule.Number);
+            Rule_Print (File, Rule, Ignore);
 
          when C_Accept =>
-            --  fprintf(fp,"%*s accept",indent,ap->sp->name);
             Put_Indent (Symbol_Name);
             Put (File, " accept");
 
          when Error =>
-            --  fprintf(fp,"%*s error",indent,ap->sp->name);
             Put_Indent (Symbol_Name);
             Put (File, " error");
 
          when SR_Conflict | RR_Conflict =>
-            --  fprintf(fp,"%*s reduce       %-7d ** Parsing conflict **",
-            --  indent,ap->sp->name,ap->x.rp->iRule);
             Put_Indent (Symbol_Name);
             Put (File, " reduce       ");
-            Put (Rule.Number);
+            Put (File, Rule.Number);
             Put (File, " ** Parsing conflict **");
 
          when SS_Conflict =>
-            --  fprintf(fp,"%*s shift        %-7d ** Parsing conflict **",
-            --  indent,ap->sp->name,ap->x.stp->statenum);
             Put_Indent (Symbol_Name);
             Put (File, " shift        ");
-            Put_Integer (Action.X.State.Number);
+            Put (File, Action.X.State.Number);
             Put (File, " ** Parsing conflict **");
 
          when SH_Resolved =>
             if Options.Show_Conflict then
-               --  fprintf(fp,"%*s shift        %-7d -- dropped by precedence",
-               --  indent,ap->sp->name,ap->x.stp->statenum);
                Put_Indent (Symbol_Name);
                Put (File, " shift        ");
-               Put_Integer (Action.X.State.Number);
+               Put (File, Action.X.State.Number);
                Put (File, " -- dropped by precedence");
             else
                Emit := False;
@@ -1640,11 +1614,9 @@ package body Reports is
 
          when RD_Resolved =>
             if Options.Show_Conflict then
-               --  fprintf(fp,"%*s reduce %-7d -- dropped by precedence",
-               --  indent,ap->sp->name,ap->x.rp->iRule);
                Put_Indent (Symbol_Name);
                Put (File, " reduce       ");
-               Put_Integer (Action.X.State.Number);
+               Put (File, Action.X.State.Number);
                Put (File, " -- dropped by precedence");
             else
                Emit := False;
@@ -1659,7 +1631,7 @@ package body Reports is
          Put (File, "  /* because ");
          Put (File,  Symbol_Name);
          Put (File, "==");
-         Put (File, Symbols.Symbol_Kind'Image (Action.Symbol_Kind_Link.all));
+         Put (File, Action.Symbol_Kind_Link.all);
          Put (File, " */");
       end if;
 

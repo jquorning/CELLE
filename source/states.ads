@@ -16,6 +16,9 @@ package States is
    type State_Boolean is (Syntax_Error, False, True);
    --  Syntax_Error is used to trigger syntax error !!!
 
+   type State_Number is new Integer;
+   --  Identification number for state.
+
    --  Each state of the generated parser's finite state machine
    --  is encoded as an instance of the following structure.
 
@@ -27,7 +30,7 @@ package States is
       Config : Configs.Config_Access;
       --  All configurations in this set
 
-      Number : Integer;
+      Number : State_Number;
       --  Sequential number for this state
 
       Action : Action_Lists.List;
