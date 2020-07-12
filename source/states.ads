@@ -41,7 +41,7 @@ package States is
       --  Number of actions on terminals and nonterminals
 
       Token_Offset : Integer;
-      Default_Reduce : Integer;
+      Nonterm_Offset : Integer;
       --  yy_action[] offset for terminals and nonterms
 
       Is_Auto_Reduce_State : State_Boolean;
