@@ -389,7 +389,7 @@ package body Builds is
          State.Config := Config;              -- Remember the configuration closure
          --  XXX
          --  State.State_Num := Natural (Session.N_State);  -- Every state gets a sequence number
-         State.State_Num := Natural (Session.Sorted.Length);  -- Every state gets a sequence number
+         State.Number := Natural (Session.Sorted.Length);  -- Every state gets a sequence number
 
          --  Session.N_State := Session.N_State + 1;
          State.Action.Clear;                  -- No actions, yet.

@@ -13,7 +13,7 @@ package body Action_Algorithms is
       use Actions;
       use type Types.Symbol_Index;
 
-      State_Num   : constant Integer := Action.X.State.State_Num;
+      State_Num   : constant Integer := Action.X.State.Number;
       Min_Reduce  : constant Integer := Integer (Session.Min_Reduce);
       Min_SR      : constant Integer := Integer (Session.Min_Shift_Reduce);
       Rule_Number : constant Integer := Integer (Action.X.Rule.Number);

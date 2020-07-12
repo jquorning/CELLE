@@ -59,7 +59,7 @@ package body Debugs is
       use States;
    begin
       Put ("NUM");
-      Put (State.State_Num'Image);
+      Put (State.Number'Image);
       Put (" AC.LEN");
       Put (" 999");
 --      Put (State.Action.Length'Image);

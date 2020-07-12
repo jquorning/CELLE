@@ -27,7 +27,7 @@ package States is
       Config : Configs.Config_Access;
       --  All configurations in this set
 
-      State_Num : Integer;
+      Number : Integer;
       --  Sequential number for this state
 
       Action : Action_Lists.List;

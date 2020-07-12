@@ -471,7 +471,7 @@ package body Reports is
       for I in 0 .. Session.Nx_State - 1 loop
          State := Session.Sorted (I);
          Put (File, "State ");
-         Put (File, Integer'Image (State.State_Num));
+         Put (File, Integer'Image (State.Number));
          Put (File, ":");
          New_Line (File);
 
@@ -1458,7 +1458,7 @@ package body Reports is
 --  qsort(&lemp->sorted[1], lemp->nstate-1, sizeof(lemp->sorted[0]),
 --        stateResortCompare);
       for I in 0 .. Num_State - 1 loop
-         Session.Sorted (I).State_Num := Integer (I);
+         Session.Sorted (I).Number := Integer (I);
       end loop;
       Session.Nx_State := Num_State;
       while
@@ -1560,7 +1560,7 @@ package body Reports is
 
       Ignore       : constant Dot_Type    := Dot_Type'(Rules.Ignore);
       Symbol_Name  : constant String      := Name_Of (Action.Symbol);
-      State_Number : constant Integer     := Action.X.State.State_Num;
+      State_Number : constant Integer     := Action.X.State.Number;
       Rule         : constant Rule_Access := Action.X.Rule;
    begin
       Emit := True;
@@ -1623,7 +1623,7 @@ package body Reports is
             --  indent,ap->sp->name,ap->x.stp->statenum);
             Put_Indent (Symbol_Name);
             Put (File, " shift        ");
-            Put_Integer (Action.X.State.State_Num);
+            Put_Integer (Action.X.State.Number);
             Put (File, " ** Parsing conflict **");
 
          when SH_Resolved =>
@@ -1632,7 +1632,7 @@ package body Reports is
                --  indent,ap->sp->name,ap->x.stp->statenum);
                Put_Indent (Symbol_Name);
                Put (File, " shift        ");
-               Put_Integer (Action.X.State.State_Num);
+               Put_Integer (Action.X.State.Number);
                Put (File, " -- dropped by precedence");
             else
                Emit := False;
@@ -1644,7 +1644,7 @@ package body Reports is
                --  indent,ap->sp->name,ap->x.rp->iRule);
                Put_Indent (Symbol_Name);
                Put (File, " reduce       ");
-               Put_Integer (Action.X.State.State_Num);
+               Put_Integer (Action.X.State.Number);
                Put (File, " -- dropped by precedence");
             else
                Emit := False;
