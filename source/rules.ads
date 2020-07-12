@@ -17,8 +17,10 @@ limited with Symbols;
 package Rules is
 
    type Dot_Type is new Natural;
+   Ignore : constant Dot_Type := Dot_Type'Last;
+
    type Rule_Symbol_Access is access all Symbols.Symbol_Record;
-   subtype Line_Number is Types.Line_Number;
+   subtype Line_Number     is Types.Line_Number;
 
    package RHS_Vectors is
       new Ada.Containers.Vectors (Index_Type   => Dot_Type,

@@ -34,11 +34,6 @@ package body Reports is
 
    use type Types.Line_Number;
 
-   procedure Put      (File : File_Type; Item : String)
-     renames Ada.Text_IO.Put;
-   procedure Put_Line (File : File_Type; Item : String := "")
-     renames Ada.Text_IO.Put_Line;
-
    subtype Line_Number   is Types.Line_Number;
    subtype Symbol_Index  is Types.Symbol_Index;
    subtype Symbol_Access is Symbols.Symbol_Access;
@@ -47,6 +42,15 @@ package body Reports is
    subtype Action_Record is Actions.Action_Record;
    subtype Config_Access is Configs.Config_Access;
    subtype Action_Table  is Action_Tables.Table_Type;
+   subtype Dot_Type      is Rules.Dot_Type;
+
+   procedure Put (File : File_Type;
+                  Item : String)
+     renames Ada.Text_IO.Put;
+
+   procedure Put_Line (File : File_Type;
+                       Item : String := "")
+     renames Ada.Text_IO.Put_Line;
 
    generic
       Line : in out Line_Number;
@@ -63,10 +67,11 @@ package body Reports is
    --  Put line directive to File. Like '#line <Line> "<File_Name>"'.
 
    procedure Rule_Print (File   : File_Type;
+                         Rule   : Rule_Access);
+   procedure Rule_Print (File   : File_Type;
                          Rule   : Rule_Access;
-                         Cursor : Integer := 0);
-   --  Print the text of a rule.
-
+                         Cursor : Dot_Type);
+   --  Print the text of a rule. This procedure i overloaded !!!
 
    procedure Print_Action
      (Action :     Action_Record;
@@ -1170,7 +1175,7 @@ package body Reports is
 --      lime_put (",  /* (");
 --      lime_put_int (i);
 --      lime_put (") ");
---      rule_print (rp);
+--      rule_print (file, rp);
 --      lime_put_line (" */");
 --    }
 --
@@ -1395,6 +1400,9 @@ package body Reports is
 --  }
    end  Compress_Tables;
 
+   -------------------
+   -- Resort_States -- lemon.c:4866
+   -------------------
 
    procedure Resort_States (Session : Session_Type)
    is
@@ -1439,35 +1447,35 @@ package body Reports is
 --  }
    end Resort_States;
 
+   ----------------
+   -- Rule_Print --  lemon.c:3157 - OVERLOADED
+   ----------------
 
    procedure Rule_Print (File   : File_Type;
                          Rule   : Rule_Access;
-                         Cursor : Integer := 0)
+                         Cursor : Dot_Type)
    is
-      pragma Unreferenced (Cursor);
       use Ada.Strings.Unbounded;
---      use type Symbols.Symbol_Kind;
       use Symbols;
+      use type Rules.Dot_Type;
    begin
       --  Print LHS
       Put (File, To_String (Rule.LHS.Name));
-
-      --  Print LHS alias
-      --  This part is uncommented in lemon.c
-      if False then
-         if Rule.LHS_Alias /= Null_Unbounded_String then
-            Put (File, "(");
-            Put (File, To_String (Rule.LHS_Alias));
-            Put (File, ")");
-         end if;
-      end if;
-
       Put (File, " ::=");
 
       --  Print RHS
       for I in Rule.RHS.First_Index .. Rule.RHS.Last_Index loop
+
+         if I = Cursor then
+            Put (File, " *");
+         end if;
+
+         exit when I = Rule.RHS.Last_Index;
+
          declare
-            Symbol : constant Symbols.Symbol_Access := Symbol_Access (Rule.RHS.Element (I));
+            Symbol : constant Symbols.Symbol_Access :=
+              Symbol_Access (Rule.RHS.Element (I));
+
             First  : Boolean := True;
          begin
             if Symbol.Kind = Symbols.Multi_Terminal then
@@ -1483,12 +1491,6 @@ package body Reports is
                Put (File, " ");
                Put (File, To_String (Symbol.Name));
             end if;
-
-            if Rule.RHS_Alias.Element (I) /= Null_Unbounded_String then
-               Put (File, "(");
-               Put (File, To_String (Rule.RHS_Alias.Element (I)));
-               Put (File, ")");
-            end if;
          end;
       end loop;
    end Rule_Print;
@@ -1503,6 +1505,9 @@ package body Reports is
       Indent :     Natural;
       Emit   : out Boolean)
    is
+      use Actions;
+
+      subtype Rule_Access is Rules.Rule_Access;
       subtype Rule_Number is Rules.Rule_Number;
 
       procedure Put_Indent (Item : String);
@@ -1530,8 +1535,7 @@ package body Reports is
          Put_Integer (Integer (Number));
       end Put;
 
-      use Actions;
-      subtype Rule_Access is Rules.Rule_Access;
+      Ignore       : constant Dot_Type    := Dot_Type'(Rules.Ignore);
       Symbol_Name  : constant String      := Name_Of (Action.Symbol);
       State_Number : constant Integer     := Action.X.stp.State_Num;
       Rule         : constant Rule_Access := Action.X.Rule;
@@ -1559,7 +1563,7 @@ package body Reports is
                Put_Indent (Symbol_Name);
                Put (File, " reduce       ");
                Put (Rule.Number);
-               Rule_Print (File, Rule, -1);
+               Rule_Print (File, Rule, Ignore);
 --            end;
 
          when Shift_Reduce =>
@@ -1570,7 +1574,7 @@ package body Reports is
                Put_Indent (Symbol_Name);
                Put (File, " shift-reduce ");
                Put (Rule.Number);
-               Rule_Print (File, Rule, -1);
+               Rule_Print (File, Rule, Ignore);
 --            end;
 
          when C_Accept =>
@@ -1646,7 +1650,7 @@ package body Reports is
                            Config : Config_Access)
    is
    begin
-      Rule_Print (File, Config.Rule, Integer (Config.Dot));
+      Rule_Print (File, Config.Rule, Config.Dot);
    end Config_Print;
 
 
@@ -2074,53 +2078,70 @@ package body Reports is
       Put_Line (File, "} YYMINORTYPE;");  Increment_Line;
    end Print_Stack_Union;
 
+   ----------------
+   -- Rule_Print --
+   ----------------
+   --  lemon.c:3101 - OVERLOADED
 
- --  procedure Rule_Print (Rule : in Rules.Rule_Access)
- --  is
-      --  int i, j;
---   begin
---      null;
---    lime_put (rp->lhs->name);
---    /*    if( rp->lhsalias ) fprintf(out,"(%s)",rp->lhsalias); */ // XXX
---    lime_put (" ::=");
---    for(i=0; i<rp->nrhs; i++){
---      struct symbol *sp = rp->rhs[i];
---      if( sp->type==MULTITERMINAL ){
---        lime_put (" ");
---        lime_put (sp->subsym[0]->name);
---        for(j=1; j<sp->nsubsym; j++){
---          lime_put ("|");
---          lime_put (sp->subsym[j]->name);
---        }
---      }else{
---        lime_put (" ");
---        lime_put (sp->name);
---      }
---      /* if( rp->rhsalias[i] ) fprintf(out,"(%s)",rp->rhsalias[i]); */  //  XXX
---    }
---   end Rule_Print;
+   procedure Rule_Print (File : File_Type;
+                         Rule : Rule_Access)
+   is
+      use Ada.Strings.Unbounded;
+      use Symbols;
+      use type Rules.Dot_Type;
+   begin
+      --  Print LHS
+      Put (File, To_String (Rule.LHS.Name));
+      Put (File, " ::=");
 
+      --  This part is uncommented in lemon.c
+      --  Print LHS alias
+      --  if False then
+      --     if Rule.LHS_Alias /= Null_Unbounded_String then
+      --        Put (File, "(");
+      --        Put (File, To_String (Rule.LHS_Alias));
+      --        Put (File, ")");
+      --     end if;
+      --  end if;
 
---  /* Print a single rule.
---  */
---  void RulePrint(FILE *fp, struct rule *rp, int iCursor){
---    struct symbol *sp;
---    int i, j;
---    fprintf(fp,"%s ::=",rp->lhs->name);
---    for(i=0; i<=rp->nrhs; i++){
---      if( i==iCursor ) fprintf(fp," *");
---      if( i==rp->nrhs ) break;
---      sp = rp->rhs[i];
---      if( sp->type==MULTITERMINAL ){
---        fprintf(fp," %s", sp->subsym[0]->name);
---        for(j=1; j<sp->nsubsym; j++){
---          fprintf(fp,"|%s",sp->subsym[j]->name);
---        }
---      }else{
---        fprintf(fp," %s", sp->name);
---      }
---    }
---  }
+      --  Print RHS
+      for I in Rule.RHS.First_Index .. Rule.RHS.Last_Index loop
+
+         exit when I = Rule.RHS.Last_Index;
+
+         declare
+            Symbol : constant Symbols.Symbol_Access :=
+              Symbol_Access (Rule.RHS.Element (I));
+
+            First  : Boolean := True;
+         begin
+            if Symbol.Kind = Symbols.Multi_Terminal then
+               Put (File, " ");
+               for Sub_Symbol of Symbol.Sub_Symbol loop
+                  if not First then
+                     Put (File, "|");
+                  end if;
+                  Put (File, To_String (Sub_Symbol.Name));
+                  First := False;
+               end loop;
+            else
+               Put (File, " ");
+               Put (File, To_String (Symbol.Name));
+            end if;
+
+            --  This part is uncommented i lemon.c
+            --  if Rule.RHS_Alias.Element (I) /= Null_Unbounded_String then
+            --     Put (File, "(");
+            --     Put (File, To_String (Rule.RHS_Alias.Element (I)));
+            --     Put (File, ")");
+            --  end if;
+         end;
+      end loop;
+   end Rule_Print;
+
+   ---------------------
+   -- Generate_Tokens --
+   ---------------------
 
    procedure Generate_Tokens
      (Session      : in Session_Type;
