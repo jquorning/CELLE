@@ -17,8 +17,9 @@ package Templates is
    subtype Line_Number is Types.Line_Number;
 
    procedure Transfer
-     (File : File_Type;
-      Name : String);
+     (File :        File_Type;
+      Name :        String;
+      Line : in out Line_Number);
    --
 
    procedure Open
@@ -35,10 +36,10 @@ package Templates is
 
    procedure Print
      (File            :        File_Type;
-      Line            : in out Line_Number;
       Out_Name        :        String;
       No_Line_Numbers :        Boolean;
-      Include         :        String);
+      Include         :        String;
+      Line            : in out Line_Number);
 
 
 end Templates;

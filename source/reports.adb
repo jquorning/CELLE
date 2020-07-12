@@ -619,18 +619,18 @@ package body Reports is
       Auxiliary.Recreate (File, Ada.Text_IO.Out_File,
                           File_Name => File_Makename (Session, ".c"));
 
-      Templates.Transfer (File, Session_Name);
+      Templates.Transfer (File, Session_Name, Lineno);
 
       --  Generate the include code, if any
       --  Sessions_Print (Session.Outname, Session.No_Linenos_Flag, Session.Include);
-      Templates.Print (File, Lineno, Ada.Strings.Unbounded.To_String (Session.Out_Name),
-                      Session.No_Linenos_Flag,
-                      To_String (Session.Names.Include));
+      Templates.Print (File, Ada.Strings.Unbounded.To_String (Session.Out_Name),
+                       Session.No_Linenos_Flag,
+                       To_String (Session.Names.Include), Lineno);
       --  lime_print (lime_get_ouüt_name (), lemp->nolinenosflag, lemap->include);
       --  lime_write_include (lime_get_mh_flag(), file_makename(lemp, ".h"));
       Write_Include (File, Lineno, File_Makename (Session, ".h"));
 
-      Templates.Transfer (File, Session_Name);
+      Templates.Transfer (File, Session_Name, Lineno);
 
       --  Generate #defines for all tokens
 --  XXX    Sessions_Session_Copy := Session;
@@ -638,7 +638,7 @@ package body Reports is
       Generate_Tokens (Session, To_String (Session.Names.Token_Prefix),
                        1, Integer (Session.N_Terminal));
 
-      Templates.Transfer (File, Session_Name);
+      Templates.Transfer (File, Session_Name, Lineno);
 
       --  Generate the defines
       declare
@@ -843,7 +843,7 @@ package body Reports is
             No_Action        => Session.No_Action,
             Min_Reduce       => Session.Min_Reduce));
 
-      Templates.Transfer (File, Session_Name);
+      Templates.Transfer (File, Session_Name, Lineno);
 
 
       --
@@ -937,7 +937,7 @@ package body Reports is
          Lineno);
       Session.Table_Size := Session.Table_Size + N * Size_Of_Action_Type;
 
-      Templates.Transfer (File, Session_Name);
+      Templates.Transfer (File, Session_Name, Lineno);
 
       --
       --  Generate the table of fallback tokens.
@@ -983,7 +983,7 @@ package body Reports is
          end;
       end if;
 
-      Templates.Transfer (File, Session_Name);
+      Templates.Transfer (File, Session_Name, Lineno);
 
       --
       --  Generate A Table Containing the symbolic name of every symbol
@@ -1009,7 +1009,7 @@ package body Reports is
             end;
          end loop;
 
-         Templates.Transfer (File, Session_Name);
+         Templates.Transfer (File, Session_Name, Lineno);
 
          --  Generate a table containing a text string that describes every
          --  rule in the rule set of the grammar.  This information is used
@@ -1028,7 +1028,7 @@ package body Reports is
          end loop;
       end;
 
-      Templates.Transfer (File, Session_Name);
+      Templates.Transfer (File, Session_Name, Lineno);
 
       --  Generate code which executes every time a symbol is popped from
       --  the stack while processing errors or while destroying the parser.
@@ -1152,7 +1152,7 @@ package body Reports is
          end loop;
       end;
 
-      Templates.Transfer (File, Session_Name);
+      Templates.Transfer (File, Session_Name, Lineno);
 --
 --    for(i=0, rp=lemp->rule; rp; rp=rp->next, i++){
 --      lime_put ("  ");
@@ -1164,7 +1164,7 @@ package body Reports is
 --      lime_put_line (" */");
 --    }
 --
-      Templates.Transfer (File, Session_Name);
+      Templates.Transfer (File, Session_Name, Lineno);
 
       --  Generate code which execution during each REDUCE action
       I  := 0;

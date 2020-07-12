@@ -8,7 +8,6 @@
 --
 
 with Ada.Directories;
-with Ada.IO_Exceptions;
 
 with Setup;
 with Backend;
@@ -30,51 +29,45 @@ package body Templates is
    -- Transfer --
    --------------
 
-   procedure Transfer (File : File_Type;
-                       Name : String)
+   procedure Transfer (File :        File_Type;
+                       Name :        String;
+                       Line : in out Line_Number)
    is
+      pragma Unreferenced (Line);
       use Backend;
+      use Ada.Text_IO;
 
       Parse : constant String := "Parse";
       Start : Natural;
    begin
-      loop
+      while not End_Of_File (Context.File_Template) loop
          declare
-            use Ada.Text_IO;
-
-            Line  : constant String := Get_Line (Context.File_Template);
+            L     : constant String := Get_Line (Context.File_Template);
             Index : Natural;
          begin
             exit when
-              Line'Length >= 2 and then
-              Line (Line'First .. Line'First + 1) = "%%";
+              L'Length >= 2 and then
+              L (L'First .. L'First + 1) = "%%";
 
-            Start := Line'First;
+            Start := L'First;
             if False then  --  Name /= Null_Ptr then  XXX
-               Index := Line'First;
+               Index := L'First;
                if
-                 Line (Index) = 'P'              and then
-                 Line (Index .. Index + Parse'Length - 1) = Parse and then
-                 (Index = Line'First or else not Auxiliary.Is_Alpha (Line (Index - 1)))
+                 L (Index) = 'P'              and then
+                 L (Index .. Index + Parse'Length - 1) = Parse and then
+                 (Index = L'First or else not Auxiliary.Is_Alpha (L (Index - 1)))
                then
                   if Index > Start then
-                     Put (Line (Start .. Index));
+                     Put (L (Start .. Index));
                   end if;
                   Put (File, Name);
                   Index := Index + Parse'Length;
                   Start := Index;
                end if;
             end if;
-            Put_Line (Line (Start .. Line'Last));
+            Put_Line (L (Start .. L'Last));
          end;
       end loop;
-
-   exception
-
-      when Ada.IO_Exceptions.End_Error =>
-         Ada.Text_IO.Put_Line (Ada.Text_IO.Standard_Error,
-                               "EXCEPTION END ERROR");
-
    end Transfer;
 
    ----------
@@ -141,10 +134,10 @@ package body Templates is
 
    procedure Print
      (File            :        File_Type;
-      Line            : in out Line_Number;
       Out_Name        :        String;
       No_Line_Numbers :        Boolean;
-      Include         :        String)
+      Include         :        String;
+      Line            : in out Line_Number)
    is
       use Ada.Text_IO;
       use type Line_Number;
