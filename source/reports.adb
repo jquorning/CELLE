@@ -1424,8 +1424,7 @@ package body Reports is
       for I in 0 .. Num_State - 1 loop
          State := Session.Sorted (I);
 
-         State.Is_Auto_Reduce_State := States.Syntax_Error;
-
+         State.Default_Reduce  := States.Syntax_Error;
          State.N_Tkn_Act       := (if State.N_Nt_Act = 0 then 1 else 0);
          State.Terminal_Offset := Sessions.No_Offset;
          State.Nonterm_Offset  := Sessions.No_Offset;
@@ -1448,7 +1447,7 @@ package body Reports is
                        (State.Auto_Reduce = 0 or
                           State.Default_Reduce_Rule = Action.X.Rule);
 
-                     State.Is_Auto_Reduce_State :=
+                     State.Default_Reduce :=
                        (if I_Action /= 0 then States.True else States.False);
                   end if;
 
@@ -2496,12 +2495,12 @@ package body Reports is
             end if;
 
             Put (File, " ");
-            if State.Is_Auto_Reduce_State = True then
+            if State.Default_Reduce = True then
                Put (File, Image (Integer (Error_Action)));
             else
                declare
                   Auto_State : constant Integer :=
-                    (case State.Is_Auto_Reduce_State is
+                    (case State.Default_Reduce is
                        when Syntax_Error => -1,
                        when False        =>  0,
                        when True         =>  1);

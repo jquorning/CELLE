@@ -44,7 +44,7 @@ package States is
       Nonterm_Offset  : Integer;
       --  yy_action[] offset for terminals and nonterms
 
-      Is_Auto_Reduce_State : State_Boolean;
+      Default_Reduce : State_Boolean;
       --  Default action is to REDUCE by this rule
 
       Default_Reduce_Rule : access Rules.Rule_Record;
