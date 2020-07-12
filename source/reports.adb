@@ -1652,11 +1652,11 @@ package body Reports is
 
       end case;
 
-      if Emit and Action.spOpt /= null then
+      if Emit and Action.Symbol_Kind_Link /= null then
          Put (File, "  /* because ");
          Put (File,  Symbol_Name);
          Put (File, "==");
-         Put (File, Symbols.Symbol_Kind'Image (Action.spOpt.all));
+         Put (File, Symbols.Symbol_Kind'Image (Action.Symbol_Kind_Link.all));
          Put (File, " */");
       end if;
 

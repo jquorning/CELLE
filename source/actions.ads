@@ -75,8 +75,8 @@ package Actions is
       X       : X_Union;
       --  The rule, if a reduce
 
-      spOpt   : access Symbols.Symbol_Kind;
-      --  SHIFTREDUCE optimization to this symbol
+      Symbol_Kind_Link : access Symbols.Symbol_Kind;
+      --  Shift_Reduce optimization to this symbol
 
       --  Next    : access Action_Record;
       --  Next action for this state
