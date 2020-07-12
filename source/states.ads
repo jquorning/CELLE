@@ -40,8 +40,8 @@ package States is
       N_Nt_Act : aliased Integer;
       --  Number of actions on terminals and nonterminals
 
-      Token_Offset : Integer;
-      Nonterm_Offset : Integer;
+      Terminal_Offset : Integer;
+      Nonterm_Offset  : Integer;
       --  yy_action[] offset for terminals and nonterms
 
       Is_Auto_Reduce_State : State_Boolean;

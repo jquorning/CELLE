@@ -188,7 +188,7 @@ package body Reports is
       MxTknOfst     :        Integer;
       Min_Size_Type :        String;
       Nactiontab    :        Integer;
-      NO_OFFSET     :        Integer;
+      No_Offset     :        Integer;
       Line          : in out Line_Number);
 
    --
@@ -1426,9 +1426,9 @@ package body Reports is
 
          State.Is_Auto_Reduce_State := States.Syntax_Error;
 
-         State.N_Tkn_Act      := (if State.N_Nt_Act = 0 then 1 else 0);
-         State.Token_Offset   := Sessions.No_Offset;
-         State.Nonterm_Offset := Sessions.No_Offset;
+         State.N_Tkn_Act       := (if State.N_Nt_Act = 0 then 1 else 0);
+         State.Terminal_Offset := Sessions.No_Offset;
+         State.Nonterm_Offset  := Sessions.No_Offset;
 
          for Action of State.Action loop
             declare
@@ -2332,11 +2332,10 @@ package body Reports is
       Put_Line (File, "};");  Increment_Line;
    end Output_YY_Lookahead;
 
-
-   --  lemon.c:4414
    -----------------------------
    -- Output_YY_Shift_Offsets --
    -----------------------------
+   --  lemon.c:4414
 
    procedure Output_YY_Shift_Offsets
      (File          :        File_Type;
@@ -2346,17 +2345,26 @@ package body Reports is
       MxTknOfst     :        Integer;
       Min_Size_Type :        String;
       Nactiontab    :        Integer;
-      NO_OFFSET     :        Integer;
+      No_Offset     :        Integer;
       Line          : in out Line_Number)
    is
       procedure Increment_Line is new Increment (Line);
 
-      Ofst : Integer;
-      J    : Integer := 0;
+      Offset : Integer;
+      J      : Integer := 0;
    begin
-      Put_Line (File, "#define YY_SHIFT_COUNT    (" & Image (N - 1) & ")");      Increment_Line;
-      Put_Line (File, "#define YY_SHIFT_MIN      (" & Image (MnTknOfst) & ")");  Increment_Line;
-      Put_Line (File, "#define YY_SHIFT_MAX      (" & Image (MxTknOfst) & ")");  Increment_Line;
+      Put (File, "#define YY_SHIFT_COUNT    (");
+      Put (File, Image (N - 1));
+      Put_Line (File, ")");      Increment_Line;
+
+      Put (File, "#define YY_SHIFT_MIN      (");
+      Put (File, Image (MnTknOfst));
+      Put_Line (File, ")");      Increment_Line;
+
+      Put (File, "#define YY_SHIFT_MAX      (");
+      Put (File, Image (MxTknOfst));
+      Put_Line (File, ")");      Increment_Line;
+
       Put (File, "static const ");
       Put (File, Min_Size_Type);
       Put (File, " yy_shift_ofst[] = {");
@@ -2367,16 +2375,16 @@ package body Reports is
          declare
             use Sessions;
 
-            State : access States.State_Record;  --  States.State_Access;
+            State : access States.State_Record;
          begin
             --  stp := lemp->sorted[i];
             State := Session.Sorted (State_Index (I));
             --  ofst := stp->iTknOfst;
             --  Ofst := Get_Token_Offset (I);
-            Ofst := State.Token_Offset;
+            Offset := State.Terminal_Offset;
          end;
-         if Ofst = NO_OFFSET then
-            Ofst := Nactiontab;
+         if Offset = No_Offset then
+            Offset := Nactiontab;
          end if;
          if J = 0 then
             Put (File, " /* ");
@@ -2384,7 +2392,7 @@ package body Reports is
             Put (File, " */ ");
          end if;
          Put (File, " ");
-         Put (File, Image (Ofst));
+         Put (File, Image (Offset));
          Put (File, ",");
          if J = 9 or I = N - 1 then
             Put_Line (File);  Increment_Line;
