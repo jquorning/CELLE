@@ -2488,11 +2488,10 @@ package body Reports is
          Put_Line (File, "};");  Increment_Line;
    end Output_YY_Reduce_Offsets;
 
-
-   --  lemon.c:4465
    ---------------------------------
    -- Output_Default_Action_Table --
    ---------------------------------
+   --  lemon.c:4465
 
    procedure Output_Default_Action_Table
      (File         :        File_Type;
@@ -2614,10 +2613,23 @@ package body Reports is
       Write ("_PDECL ,");
       Write ("_PARAM ,");
       if Extend = False then
-         Put_Line (File, "#define " & Name & "_FETCH " &
-                     Arg   & "=yypParser->" & Arg_I & ";");
-         Put_Line (File, "#define " & Name & "_STORE " &
-                     Arg_I & "=yypParser->" & Arg_I & ";");
+         Put (File, "#define ");
+         Put (File, Name);
+         Put (File, "_FETCH ");
+         Put (File, Arg);
+         Put (File, "=yypParser->");
+         Put (File, Arg_I);
+         Put_Line (File, ";");
+         Increment_Line;
+
+         Put (File, "#define ");
+         Put (File, Name);
+         Put (File, "_STORE ");
+         Put (File, Arg_I);
+         Put (File, "=yypParser->");
+         Put (File, Arg_I);
+         Put_Line (File, ";");
+         Increment_Line;
       else
          Write ("_FETCH ");
          Write ("_STORE ");
