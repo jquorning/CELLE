@@ -37,7 +37,7 @@ package States is
       --  List of actions for this state
 
       N_Tkn_Act : Integer;
-      N_Nt_Act : aliased Integer;
+      Num_Nonterminal : aliased Integer;
       --  Number of actions on terminals and nonterminals
 
       Terminal_Offset : Integer;

@@ -794,7 +794,7 @@ package body Reports is
 
             AX (I).Non_Terminal := (STP      => State,
                                     Is_Token => False,
-                                    N_Action => State.N_Nt_Act,
+                                    N_Action => State.Num_Nonterminal,
                                     Order    => <>);
          end loop;
       end;
@@ -1425,7 +1425,8 @@ package body Reports is
          State := Session.Sorted (I);
 
          State.Default_Reduce  := States.Syntax_Error;
-         State.N_Tkn_Act       := (if State.N_Nt_Act = 0 then 1 else 0);
+         State.N_Tkn_Act       := (if State.Num_Nonterminal = 0
+                                     then 1 else 0);
          State.Terminal_Offset := Sessions.No_Offset;
          State.Nonterm_Offset  := Sessions.No_Offset;
 
@@ -1440,7 +1441,7 @@ package body Reports is
                      State.N_Tkn_Act := State.N_Tkn_Act + 1;
 
                   elsif Action.Symbol.Index < Session.N_Symbol then
-                     State.N_Nt_Act := State.N_Nt_Act + 1;
+                     State.Num_Nonterminal := State.Num_Nonterminal + 1;
 
                   else
                      pragma Assert
