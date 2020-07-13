@@ -5,7 +5,7 @@ The *Lemon* parser generator from the *SQLite* project translated to Ada.
 ## Status
 ![Build](https://github.com/jquorning/Cherry/workflows/Build/badge.svg)
 * Little C left
-* Do not work
+* Does not work
 
 ## Roadmap
 1. Generate C parser code from parse.y
