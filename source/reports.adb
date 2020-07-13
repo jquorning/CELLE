@@ -48,23 +48,6 @@ package body Reports is
    subtype State_Access  is States.State_Access;
    subtype State_Number  is States.State_Number;
 
-   procedure Put (File : File_Type;
-                  Item : String)
-     renames Ada.Text_IO.Put;
-
-   procedure Put_Line (File : File_Type;
-                       Item : String := "")
-     renames Ada.Text_IO.Put_Line;
-
-   generic
-      Line : in out Line_Number;
-   procedure Increment;
-
-   procedure Increment is
-   begin
-      Line := Line + 1;
-   end Increment;
-
    procedure Rule_Print (File   : File_Type;
                          Rule   : Rule_Access);
    procedure Rule_Print (File   : File_Type;
@@ -88,8 +71,6 @@ package body Reports is
                                UPR     :     Offset_Type;
                                PnBytes : out Integer)
                               return String;
-
-
    --  Return the name of a C datatype able to represent values between
    --  lwr and upr, inclusive.  If pnByte!=NULL then also write the sizeof
    --  for that type (1, 2, or 4) into *pnByte.
@@ -118,28 +99,23 @@ package body Reports is
    --  Generate code which executes when the rule "rp" is reduced.  Write
    --  the code to "out".  Make sure lineno stays up-to-date.
 
-
    procedure Print_Stack_Union
      (File        :        File_Type;
       Line        : in out Line_Number;
       Session     :        Session_Type;
       Make_Header :        Boolean);
-
-   --  struct lemon *lemp //,
-   --  //  int mhflag                  /* True if generating makeheaders output */
-
    --  Print the definition of the union used for the parser's data stack.
    --  This union contains fields for every possible data type for tokens
    --  and nonterminals.  In the process of computing and printing this
    --  union, also set the ".dtnum" field of every terminal and nonterminal
    --  symbol.
 
-
    procedure Generate_Tokens
      (Session      : in Session_Type;
       Token_Prefix : in String;
       First        : in Integer;
       Last         : in Integer);
+   --
 
    type Render_Record is
       record
@@ -273,13 +249,12 @@ package body Reports is
    --  Open a file for writing then implementaion (parse.adb/parse.c).
    --  File handler is located in the context structure.
 
-   --  function Get_Token (Index : in Integer) return String;
-   --  Get token for token symbol creation.
 
    procedure Write_Include
      (File         :        File_Type;
       Line         : in out Line_Number;
       Include_Name :        String);
+   --
 
    procedure Generate_The_Defines_1
      (File           :        File_Type;
@@ -289,11 +264,13 @@ package body Reports is
       YY_Action_Type :        String;
       Is_Wildcard    :        Boolean;
       Wildcard_Index :        Symbol_Index);
+   --
 
    procedure Generate_The_Defines_2
      (File       :        File_Type;
       Line       : in out Line_Number;
       Stack_Size :        String);
+   --
 
    type Mystruct_Record is record
       Use_Count : Integer;
@@ -322,6 +299,24 @@ package body Reports is
    type AX_Set_Array is array (Symbol_Index range <>) of AX_Set_Record;
    type A_AX_Set_Array is access all AX_Set_Array;
 
+   procedure Put (File : File_Type;
+                  Item : String)
+     renames Ada.Text_IO.Put;
+
+   procedure Put_Line (File : File_Type;
+                       Item : String := "")
+     renames Ada.Text_IO.Put_Line;
+
+   generic
+      Line : in out Line_Number;
+   procedure Increment;
+
+   procedure Increment is
+   begin
+      Line := Line + 1;
+   end Increment;
+
+   -----------------------------------------------------------------------------
 
 --   function Axset_Compare (A, B : AX_Set_Record) return Integer;
    --  Compare to axset structures for sorting purposes
@@ -2332,11 +2327,9 @@ package body Reports is
    function Image is new Auxiliary.Trim_Image (Offset_Type);
    function Image is new Auxiliary.Trim_Image (Action_Value);
 
-
-   --  lemon.c:4377
-   -------------------------
-   -- Output_Action_Table --
-   -------------------------
+   ---------------------------
+   --  Output_Action_Table  --  lemon.c:4377
+   ---------------------------
 
    procedure Output_Action_Table
      (File      :        File_Type;
@@ -2426,10 +2419,9 @@ package body Reports is
       Put_Line (File, "};");  Increment_Line;
    end Output_YY_Lookahead;
 
-   -----------------------------
-   -- Output_YY_Shift_Offsets --
-   -----------------------------
-   --  lemon.c:4414
+   -------------------------------
+   --  Output_YY_Shift_Offsets  --  lemon.c:4414
+   -------------------------------
 
    procedure Output_YY_Shift_Offsets
      (File          :        File_Type;
@@ -2496,11 +2488,9 @@ package body Reports is
       Put_Line (File, "};");  Increment_Line;
    end Output_YY_Shift_Offsets;
 
-
-   --  lemon.c:4440
-   ------------------------------
-   -- Output_YY_Reduce_Offsets --
-   ------------------------------
+   --------------------------------
+   --  Output_YY_Reduce_Offsets  --  lemon.c:4440
+   --------------------------------
 
    procedure Output_YY_Reduce_Offsets
      (File          :        File_Type;
@@ -2564,10 +2554,9 @@ package body Reports is
          Put_Line (File, "};");  Increment_Line;
    end Output_YY_Reduce_Offsets;
 
-   ---------------------------------
-   -- Output_Default_Action_Table --
-   ---------------------------------
-   --  lemon.c:4465
+   -----------------------------------
+   --  Output_Default_Action_Table  --  lemon.c:4465
+   -----------------------------------
 
    procedure Output_Default_Action_Table
      (File         :        File_Type;
@@ -2833,8 +2822,6 @@ package body Reports is
       end case;
    end Generate_Spec;
 
-
-
    -------------------
    -- Write_Include --
    -------------------
@@ -2865,7 +2852,6 @@ package body Reports is
       Is_Wildcard    :        Boolean;
       Wildcard_Index :        Symbol_Index)
    is
-      --      use Text_Out;
       procedure Increment_Line is new Increment (Line);
    begin
       Put (File, "#define YYCODETYPE ");
@@ -2896,7 +2882,6 @@ package body Reports is
       Line       : in out Line_Number;
       Stack_Size :        String)
    is
-      --      use Text_Out;
       procedure Increment_Line is new Increment (Line);
    begin
       Put_Line (File, "#ifndef YYSTACKDEPTH");  Increment_Line;
@@ -2921,7 +2906,6 @@ package body Reports is
       Struct       :        Struct_Access;
       Has_Fallback :        Boolean)
    is
-      --      use Text_Out;
       procedure Increment_Line is new Increment (Line);
    begin
 
