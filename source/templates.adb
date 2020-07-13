@@ -33,40 +33,55 @@ package body Templates is
                        Name :        String;
                        Line : in out Line_Number)
    is
-      pragma Unreferenced (Line);
       use Backend;
       use Ada.Text_IO;
 
-      Parse : constant String := "Parse";
-      Start : Natural;
-   begin
-      while not End_Of_File (Context.File_Template) loop
-         declare
-            L     : constant String := Get_Line (Context.File_Template);
-            Index : Natural;
-         begin
-            exit when
-              L'Length >= 2 and then
-              L (L'First .. L'First + 1) = "%%";
+      Lineno : Line_Number renames Line;
 
-            Start := L'First;
-            if False then  --  Name /= Null_Ptr then  XXX
-               Index := L'First;
-               if
-                 L (Index) = 'P'              and then
-                 L (Index .. Index + Parse'Length - 1) = Parse and then
-                 (Index = L'First or else not Auxiliary.Is_Alpha (L (Index - 1)))
-               then
-                  if Index > Start then
-                     Put (L (Start .. Index));
-                  end if;
-                  Put (File, Name);
-                  Index := Index + Parse'Length;
-                  Start := Index;
+      procedure Inner (Buffer : String; More : out Boolean);
+      procedure Inner (Buffer : String; More : out Boolean)
+      is
+         Line  : String renames Buffer;
+         Parse : constant String := "Parse";
+         Index : Natural;
+         Start : Natural;
+      begin
+         More := True;
+
+         if
+           Line'Length >= 2 and then
+           Line (Line'First .. Line'First + 1) = "%%"
+         then
+            More := False;
+            return;
+         end if;
+
+         Start := Line'First;
+         if Name /= "" then
+            Index := Line'First;
+            if
+              Line (Index) = 'P' and then
+              Line (Index .. Index + Parse'Length - 1) = Parse and then
+              (Index = Line'First or else not Auxiliary.Is_Alpha (Line (Index - 1)))
+            then
+               if Index > Start then
+                  Put (Line (Start .. Index));
                end if;
+               Put (File, Name);
+               Index := Index + Parse'Length;
+               Start := Index;
             end if;
-            Put_Line (L (Start .. L'Last));
-         end;
+         end if;
+         Put_Line (Line (Start .. Line'Last));
+      end Inner;
+
+      use type Line_Number;
+
+      More : Boolean := True;
+   begin
+      while More and not End_Of_File (Context.File_Template) loop
+         Inner (Get_Line (Context.File_Template), More);
+         Lineno := Lineno + 1;
       end loop;
    end Transfer;
 
