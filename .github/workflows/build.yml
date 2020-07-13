@@ -22,7 +22,7 @@ jobs:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
 
-    - name: Install GNAT
+    - name: Install GNAT and gprbuild
       run: sudo apt-get install gnat gprbuild
 
     - name: Setup Cherry
@@ -30,3 +30,6 @@ jobs:
 
     - name: Build Cherry
       run: gprbuild cherry.gpr -j0 -k
+
+    - name: Build Lemon
+      run: gcc original/lemon.c -o lemon
