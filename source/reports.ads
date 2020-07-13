@@ -28,7 +28,7 @@ package Reports is
                            User_Template_Name : in     String);
    --  Generate C source code for the parser
 
-   procedure Compress_Tables (Session : Session_Type);
+   procedure Compress_Tables (Session : in out Session_Type);
    --  Reduce the size of the action tables, if possible, by making use
    --  of defaults.
    --
