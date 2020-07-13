@@ -22,10 +22,11 @@ jobs:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
 
-    # Runs a single command using the runners shell
     - name: Install GNAT
       run: sudo apt-get install gnat gprbuild
 
-    # Runs a set of commands using the runners shell
+    - name: Setup Cherry
+      run: make setup
+
     - name: Build Cherry
-      run: gprbuild cherry.gpr -k
+      run: gprbuild cherry.gpr -j0 -k
