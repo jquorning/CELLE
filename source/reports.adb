@@ -1267,27 +1267,25 @@ package body Reports is
 --    printf ("### 2-58\n");
    end Report_Table;
 
+   ---------------------
+   -- Compress_Tables --
+   ---------------------
 
    procedure Compress_Tables (Session : in out Session_Type)
    is
+      package Lists renames Action_Lists.Action_DLLs;
+
+      use Lists;
       use Actions;
       use Rules.RHS_Vectors;
-      use type Ada.Containers.Count_Type;
-      package Lists renames Action_Lists.Action_DLLs;
-      subtype Action_Cursor is Lists.Cursor;
 
-      use type Action_Cursor;
+      use type Ada.Containers.Count_Type;
       use type Rule_Access;
       use type Symbol_Index;
 
+      subtype Action_Cursor is Lists.Cursor;
+
       No_Element : Action_Cursor renames Lists.No_Element;
-
-      Action_Cur   : Action_Cursor;
-      Action_Cur_2 : Action_Cursor;
-      Next_Action  : Action_Cursor;
-
-      Action   : Action_Record renames Lists.Element (Action_Cur);
-      Action_2 : Action_Record renames Lists.Element (Action_Cur_2);
 
       Rule   : Rule_Access;
       Rule_2 : Rule_Access;
@@ -1299,42 +1297,48 @@ package body Reports is
       Uses_Wildcard : Boolean;
    begin
 
-      --  for I in 0 .. Num_State - 1 loop
-      for State of Session.Sorted loop  -- (I);
+      for State of Session.Sorted loop
          N_Best := 0;
          R_Best := null;
          Uses_Wildcard := False;
 
-         Action_Cur := State.Action.First;
-         while Action_Cur /= No_Element loop
-            if Action.Kind = Shift and Action.Symbol = Session.Wildcard then
-               Uses_Wildcard := True;
-            end if;
-            if Action.Kind /= Reduce then goto Continue_Outer; end if;
-            Rule := Action.X.Rule;
-            if Rule.LHS_Start then goto Continue_Outer; end if;
-            if Rule = R_Best  then goto Continue_Outer; end if;
+         declare
+            Action_Cur   : Action_Cursor;
+            Action_Cur_2 : Action_Cursor;
+            Action   : Action_Record renames Lists.Element (Action_Cur);
+            Action_2 : Action_Record renames Lists.Element (Action_Cur_2);
+         begin
+            Action_Cur := State.Action.First;
+            while Action_Cur /= No_Element loop
+               if Action.Kind = Shift and Action.Symbol = Session.Wildcard then
+                  Uses_Wildcard := True;
+               end if;
+               if Action.Kind /= Reduce then goto Continue_Outer; end if;
+               Rule := Action.X.Rule;
+               if Rule.LHS_Start then goto Continue_Outer; end if;
+               if Rule = R_Best  then goto Continue_Outer; end if;
 
-            N := 1;
-            Action_Cur_2 := Lists.Next (Action_Cur);
-            while Action_Cur_2 /= No_Element loop
-               if Action_2.Kind /= Reduce then goto Continue_Inner; end if;
-               Rule_2 := Action_2.X.Rule;
-               if Rule_2 = R_Best then goto Continue_Inner; end if;
-               if Rule_2 = Rule   then N := N + 1; end if;
+               N := 1;
+               Action_Cur_2 := Next (Action_Cur);
+               while Action_Cur_2 /= No_Element loop
+                  if Action_2.Kind /= Reduce then goto Continue_Inner; end if;
+                  Rule_2 := Action_2.X.Rule;
+                  if Rule_2 = R_Best then goto Continue_Inner; end if;
+                  if Rule_2 = Rule   then N := N + 1; end if;
 
-               <<Continue_Inner>>
-               Action_Cur_2 := Lists.Next (Action_Cur_2);
+                  <<Continue_Inner>>
+                  Action_Cur_2 := Next (Action_Cur_2);
+               end loop;
+
+               if N > N_Best then
+                  N_Best := N;
+                  R_Best := Rule;
+               end if;
+
+               <<Continue_Outer>>
+               Action_Cur := Next (Action_Cur);
             end loop;
-
-            if N > N_Best then
-               N_Best := N;
-               R_Best := Rule;
-            end if;
-
-            <<Continue_Outer>>
-            Action_Cur := Lists.Next (Action_Cur);
-         end loop;
+         end;
 
          --  Do not make a default if the number of rules to default
          --  is not at least 1 or if the wildcard token is a possible
@@ -1342,80 +1346,95 @@ package body Reports is
          if N_Best < 1 or Uses_Wildcard then goto Outmost; end if;
 
          --  Combine matching REDUCE actions into a single default
-         Action_Cur := State.Action.First;
-         while Action_Cur /= No_Element loop
-            exit when Action.Kind = Reduce and Action.X.Rule = R_Best;
-            Lists.Next (Action_Cur);
-         end loop;
-         pragma Assert (Action_Cur /= No_Element);
-
-         --  Update Symbol
          declare
-            Item : Action_Record := Action;
+            Action_Cur : Action_Cursor;
+            Action     : Action_Record renames Lists.Element (Action_Cur);
          begin
-            Item.Symbol := Symbols.Create ("{default}");
-            State.Action.Replace_Element (Action_Cur, Item);
+            Action_Cur := State.Action.First;
+            while Action_Cur /= No_Element loop
+               exit when Action.Kind = Reduce and Action.X.Rule = R_Best;
+               Next (Action_Cur);
+            end loop;
+            pragma Assert (Action_Cur /= No_Element);
+
+            --  Update Symbol
+            declare
+               Item : Action_Record := Action;
+            begin
+               Item.Symbol := Symbols.Create ("{default}");
+               State.Action.Replace_Element (Action_Cur, Item);
+            end;
+
+            Next (Action_Cur);
+            while Action_Cur /= No_Element loop
+               if Action.Kind = Reduce and Action.X.Rule = R_Best then
+                  declare
+                     Item : Action_Record := Action;
+                  begin
+                     Item.Kind := Not_Used;
+                     State.Action.Replace_Element (Action_Cur, Item);
+                  end;
+               end if;
+               Next (Action_Cur);
+            end loop;
+            Action_Lists.Sort (State.Action);
          end;
 
-         Lists.Next (Action_Cur);
-         while Action_Cur /= No_Element loop
-            if Action.Kind = Reduce and Action.X.Rule = R_Best then
-               declare
-                  Item : Action_Record := Action;
-               begin
-                  Item.Kind := Not_Used;
-                  State.Action.Replace_Element (Action_Cur, Item);
-               end;
+         declare
+            Action_Cur : Action_Cursor;
+            Action     : Action_Record renames Lists.Element (Action_Cur);
+         begin
+            Action_Cur := State.Action.First;
+            while Action_Cur /= No_Element loop
+               exit when Action.Kind = Shift;
+               exit when Action.Kind = Reduce and Action.X.Rule /= R_Best;
+               Next (Action_Cur);
+            end loop;
+
+            if Action_Cur = No_Element then
+               State.Auto_Reduce         := 1;
+               State.Default_Reduce_Rule := R_Best;
             end if;
-            Lists.Next (Action_Cur);
-         end loop;
-         Action_Lists.Sort (State.Action);
-
-         Action_Cur := State.Action.First;
-         while Action_Cur /= No_Element loop
-            exit when Action.Kind = Shift;
-            exit when Action.Kind = Reduce and Action.X.Rule /= R_Best;
-            Action_Cur := Lists.Next (Action_Cur);
-         end loop;
-
-         if Action_Cur = No_Element then
-            State.Auto_Reduce         := 1;
-            State.Default_Reduce_Rule := R_Best;
-         end if;
+         end;
 
          <<Outmost>>
+         null;
       end loop;
 
       --  Make a second pass over all states and actions.  Convert
       --  every action that is a SHIFT to an autoReduce state into
       --  a SHIFTREDUCE action.
       for State of Session.Sorted loop
-         Action_Cur := State.Action.First;
-         while Action_Cur /= No_Element loop
-            --  struct state *pNextState;
-            if Action.Kind /= Shift then goto Local; end if;
-            declare
-               Next_State : constant State_Access := Action.X.State;
-            begin
-               if
-                 Next_State.Auto_Reduce /= 0 and then
-                 Next_State.Default_Reduce_Rule /= null
-               then
-                  declare
-                     Item : Action_Record := Action;
-                  begin
-                     Item.Kind   := Shift_Reduce;
-                     Item.X.Rule := Next_State.Default_Reduce_Rule;
-                     State.Action.Replace_Element (Action_Cur, Item);
-                  end;
-                  --  Action.Kind   := Shift_Reduce;
-                  --  Action.X.Rule := Next_State.Default_Reduce_Rule;
-               end if;
-            end;
 
-            <<Local>>
-            Action_Cur := Lists.Next (Action_Cur);
-         end loop;
+         declare
+            Action_Cur : Action_Cursor;
+            Action     : Action_Record renames Lists.Element (Action_Cur);
+         begin
+            Action_Cur := State.Action.First;
+            while Action_Cur /= No_Element loop
+               if Action.Kind /= Shift then goto Local; end if;
+               declare
+                  Next_State : constant State_Access := Action.X.State;
+               begin
+                  if
+                    Next_State.Auto_Reduce /= 0 and then
+                    Next_State.Default_Reduce_Rule /= null
+                  then
+                     declare
+                        Item : Action_Record := Action;
+                     begin
+                        Item.Kind   := Shift_Reduce;
+                        Item.X.Rule := Next_State.Default_Reduce_Rule;
+                        State.Action.Replace_Element (Action_Cur, Item);
+                     end;
+                  end if;
+               end;
+
+               <<Local>>
+               Next (Action_Cur);
+            end loop;
+         end;
+
       end loop;
 
       --  If a SHIFTREDUCE action specifies a rule that has a single RHS term
@@ -1426,48 +1445,55 @@ package body Reports is
 
       for State of Session.Sorted loop
 
-         Action_Cur := State.Action.First;
-         while Action_Cur /= No_Element loop
-            Next_Action := Lists.Next (Action_Cur);
-            if Action.Kind /= Shift_Reduce then goto Looper; end if;
-            Rule := Action.X.Rule;
-            if Rule.No_Code = False then goto Looper; end if;
-            if Length (Rule.RHS) /= 1 then goto Looper; end if;
-            --  #if 1
-            --  Only apply this optimization to non-terminals.  It would be OK to
-            --  apply it to terminal symbols too, but that makes the parser tables
-            --  larger.
-            if Action.Symbol.Index < Session.N_Terminal then goto Looper; end if;
-            --  #endif
+         declare
+            Action_Cur   : Action_Cursor;
+            Action_Cur_2 : Action_Cursor;
+            Action       : Action_Record renames Lists.Element (Action_Cur);
+            Action_2     : Action_Record renames Lists.Element (Action_Cur);
+            Next_Action  : Action_Cursor;
+         begin
+            Action_Cur := State.Action.First;
+            while Action_Cur /= No_Element loop
+               Next (Action_Cur);
+               if Action.Kind /= Shift_Reduce then goto Looper; end if;
+               Rule := Action.X.Rule;
+               if Rule.No_Code = False then goto Looper; end if;
+               if Length (Rule.RHS) /= 1 then goto Looper; end if;
+               --  #if 1
+               --  Only apply this optimization to non-terminals.  It would be OK to
+               --  apply it to terminal symbols too, but that makes the parser tables
+               --  larger.
+               if Action.Symbol.Index < Session.N_Terminal then goto Looper; end if;
+               --  #endif
 
-            --  If we reach this point, it means the optimization can be applied
-            Next_Action := Action_Cur;
-            Action_Cur_2 := State.Action.First;
-            while
-              Action_Cur_2 /= No_Element and then
-              (Action_Cur_2 = Action_Cur or
-                 Action_2.Symbol /= Rule.LHS)
-            loop
-               Action_Cur_2 := Lists.Next (Action_Cur_2);
+               --  If we reach this point, it means the optimization can be applied
+               Next_Action := Action_Cur;
+               Action_Cur_2 := State.Action.First;
+               while
+                 Action_Cur_2 /= No_Element and then
+                 (Action_Cur_2 = Action_Cur or
+                    Action_2.Symbol /= Rule.LHS)
+               loop
+                  Next (Action_Cur_2);
+               end loop;
+
+               pragma Assert (Action_Cur_2 /= No_Element);
+               declare
+                  Item : Action_Record := Action;
+               begin
+                  Item.Symbol_Link := Action_2.Symbol;
+                  Item.Kind        := Action_2.Kind;
+                  Item.X           := Action_2.X;
+                  State.Action.Replace_Element (Action_Cur, Item);
+               end;
+
+               <<Looper>>
+               Action_Cur := Next_Action;
             end loop;
+         end;
 
-            pragma Assert (Action_Cur_2 /= No_Element);
-            declare
-               Item : Action_Record := Action;
-            begin
-               Item.Symbol_Link := Action_2.Symbol;
-               Item.Kind        := Action_2.Kind;
-               Item.X           := Action_2.X;
-               State.Action.Replace_Element (Action_Cur, Item);
-               --  Action.Symbol_Kind_Link := Action_2.Symbol;
-               --  Action.Kind             := Action_2.Kind;
-               --  Action.X                := Action_2.X;
-            end;
-
-            <<Looper>>
-            Action_Cur := Next_Action;
-         end loop;
       end loop;
+
    end  Compress_Tables;
 
    --------------------
