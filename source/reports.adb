@@ -1392,7 +1392,7 @@ package body Reports is
             end loop;
 
             if Action_Cur = No_Element then
-               State.Auto_Reduce         := 1;
+               State.Auto_Reduce         := True;
                State.Default_Reduce_Rule := R_Best;
             end if;
          end;
@@ -1417,7 +1417,7 @@ package body Reports is
                   Next_State : constant State_Access := Action.X.State;
                begin
                   if
-                    Next_State.Auto_Reduce /= 0 and then
+                    Next_State.Auto_Reduce and then
                     Next_State.Default_Reduce_Rule /= null
                   then
                      declare
@@ -1539,7 +1539,7 @@ package body Reports is
 
                   else
                      pragma Assert
-                       (State.Auto_Reduce = 0 or
+                       (not State.Auto_Reduce or else
                           State.Default_Reduce_Rule = Action.X.Rule);
 
                      State.Default_Reduce :=
@@ -1559,7 +1559,7 @@ package body Reports is
       Session.Nx_State := Num_State;
       while
         Session.Nx_State > 1 and
-        Session.Sorted (Session.Nx_State - 1).Auto_Reduce /= 0
+        Session.Sorted (Session.Nx_State - 1).Auto_Reduce
       loop
          Session.Nx_State := Session.Nx_State - 1;
       end loop;

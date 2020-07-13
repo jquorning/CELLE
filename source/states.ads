@@ -55,7 +55,7 @@ package States is
       Default_Reduce_Rule : access Rules.Rule_Record;
       --  The default REDUCE rule.
 
-      Auto_Reduce : Integer;
+      Auto_Reduce : Boolean;
       --  True if this is an auto-reduce state
    end record;
 
