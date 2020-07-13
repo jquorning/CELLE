@@ -3,8 +3,8 @@
 The *Lemon* parser generator from the *SQLite* project translated to Ada.
 
 ## Status
+![Build](https://github.com/jquorning/Cherry/workflows/Build/badge.svg)
 * Little C left
-* Can build
 * Do not work
 
 ## Roadmap
