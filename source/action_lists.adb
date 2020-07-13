@@ -19,11 +19,11 @@ package body Action_Lists is
       else
          Union.Rule := Rule;
       end if;
-      Action_List.Append (Action_Record'(Kind             => Kind,
-                                         Symbol           => Symbol,
-                                         Symbol_Kind_Link => null,
-                                         X                => Union,
-                                         Collide          => null));
+      Action_List.Append (Action_Record'(Kind        => Kind,
+                                         Symbol      => Symbol,
+                                         Symbol_Link => null,
+                                         X           => Union,
+                                         Collide     => null));
 --        New_Action := new Action_Record;  --  Action_New ();
 --        New_Action.Next := Action;
 --        Action := New_Action;
