@@ -11,17 +11,18 @@ with GNAT.Strings;
 
 package Options is
 
-   Show_Conflict : aliased Boolean := False;
-   Show_Version  : aliased Boolean := False;
-   RP_Flag       : aliased Boolean := False;
-   Basis_Flag    : aliased Boolean := False;
-   Compress      : aliased Boolean := False;
-   Be_Quiet      : aliased Boolean := False;
-   Statistics    : aliased Boolean := False;
-   Make_Header   : aliased Boolean := False;
-   No_Line_Nos   : aliased Boolean := False;
-   No_Resort     : aliased Boolean := False;
-   Show_Help     : aliased Boolean := False;
+   Show_Conflict   : aliased Boolean := False;
+   Show_Version    : aliased Boolean := False;
+   RP_Flag         : aliased Boolean := False;
+   Basis_Flag      : aliased Boolean := False;
+   Compress        : aliased Boolean := False;
+   Be_Quiet        : aliased Boolean := False;
+   Statistics      : aliased Boolean := False;
+   Make_Header     : aliased Boolean := False;
+   No_Line_Nos     : aliased Boolean := False;
+   No_Resort       : aliased Boolean := False;
+   Show_Help       : aliased Boolean := False;
+   Emit_Debug_Info : aliased Boolean := False;
 
    use GNAT.Strings;
    Program_Name  : aliased String_Access := new String'("");

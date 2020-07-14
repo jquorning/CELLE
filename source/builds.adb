@@ -634,19 +634,25 @@ package body Builds is
 
       --  Find the precedence for every production rule (that has one)
       Builds.Find_Rule_Precedences (Session);
-      Ada.Text_IO.Put_Line ("16 dump_symbols");
-      Symbols.IO.JQ_Dump_Symbols (Session, Mode => 1);
+      if Options.Emit_Debug_Info then
+         Ada.Text_IO.Put_Line ("16 dump_symbols");
+         Symbols.IO.JQ_Dump_Symbols (Session, Mode => 1);
+      end if;
 
       --  Compute the lambda-nonterminals and the first-sets for every
       --  nonterminal
       Builds.Find_First_Sets (Session);
 
-      Ada.Text_IO.Put_Line ("17 dump_symbols");
-      Symbols.IO.JQ_Dump_Symbols (Session, Mode => 1);
+      if Options.Emit_Debug_Info then
+         Ada.Text_IO.Put_Line ("17 dump_symbols");
+         Symbols.IO.JQ_Dump_Symbols (Session, Mode => 1);
+      end if;
 --        Ada.Text_IO.Put_Line ("17 dump_rules");
 --        Debugs.JQ_Dump_Rules (Session, Mode => 1);
-      Ada.Text_IO.Put_Line ("17 dump_states");
-      Debugs.Put_States (Session, Mode => 1);
+      if Options.Emit_Debug_Info then
+         Ada.Text_IO.Put_Line ("17 dump_states");
+         Debugs.Put_States (Session, Mode => 1);
+      end if;
 
          --  Compute all LR(0) states.  Also record follow-set propagation
          --  links so that the follow-set can be computed later

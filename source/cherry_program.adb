@@ -185,13 +185,17 @@ begin
          null;
       end;
 
-      Ada.Text_IO.Put_Line ("jq_dump_symbols before sort");
-      Symbols.IO.JQ_Dump_Symbols (Session, Mode => 0);
+      if Options.Emit_Debug_Info then
+         Ada.Text_IO.Put_Line ("jq_dump_symbols before sort");
+         Symbols.IO.JQ_Dump_Symbols (Session, Mode => 0);
+      end if;
 
       Symbols.Sort;
 
-      Ada.Text_IO.Put_Line ("jq_dump_symbols after sort");
-      Symbols.IO.JQ_Dump_Symbols (Session, 0);
+      if Options.Emit_Debug_Info then
+         Ada.Text_IO.Put_Line ("jq_dump_symbols after sort");
+         Symbols.IO.JQ_Dump_Symbols (Session, 0);
+      end if;
 
       declare
          Symbol_Count   : Natural;
@@ -201,28 +205,35 @@ begin
                                               Terminal_Count => Terminal_Count);
          Session.N_Symbol   := Types.Symbol_Index (Symbol_Count);
          Session.N_Terminal := Types.Symbol_Index (Terminal_Count);
-         Ada.Text_IO.Put ("nsymbol:" & Natural'Image (Symbol_Count));
-         Ada.Text_IO.Put ("  nterminal:" & Natural'Image (Terminal_Count));
-         Ada.Text_IO.Put_Line (" ");
+         if Options.Emit_Debug_Info then
+            Ada.Text_IO.Put ("nsymbol:" & Natural'Image (Symbol_Count));
+            Ada.Text_IO.Put ("  nterminal:" & Natural'Image (Terminal_Count));
+            Ada.Text_IO.Put_Line (" ");
+         end if;
       end;
+
+      if Options.Emit_Debug_Info then
+         Ada.Text_IO.Put_Line ("jq_dump_rules first");
+         Debugs.JQ_Dump_Rules (Session, 0);
+      end if;
 
       --  Assign sequential rule numbers.  Start with 0.  Put rules that have no
       --  reduce action C-code associated with them last, so that the switch()
       --  statement that selects reduction actions will have a smaller jump table.
-
-      Ada.Text_IO.Put_Line ("jq_dump_rules first");
-      Debugs.JQ_Dump_Rules (Session, 0);
-
       Rules.Assing_Sequential_Rule_Numbers (Rule_List => Session.Rule);
 
-      Ada.Text_IO.Put_Line ("jq_dump_rules second");
-      Debugs.JQ_Dump_Rules (Session, 0);
+      if Options.Emit_Debug_Info then
+         Ada.Text_IO.Put_Line ("jq_dump_rules second");
+         Debugs.JQ_Dump_Rules (Session, 0);
+      end if;
 
       Session.Start_Rule := Session.Rule.First;
       Rule_Sort (Session.Rule);
 
-      Ada.Text_IO.Put_Line ("jq_dump_rules third");
-      Debugs.JQ_Dump_Rules (Session, 0);
+      if Options.Emit_Debug_Info then
+         Ada.Text_IO.Put_Line ("jq_dump_rules third");
+         Debugs.JQ_Dump_Rules (Session, 0);
+      end if;
 
       --  Generate a reprint of the grammar, if requested on the command line
 
