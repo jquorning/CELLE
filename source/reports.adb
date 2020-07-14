@@ -91,6 +91,16 @@ package body Reports is
    --  The following routine emits code for the destructor for the
    --  symbol sp
 
+   procedure Translate_Code
+     (Session :     Session_Type;
+      Rule    :     Rule_Access;
+      Length  : out Natural);
+     --  Write and transform the rp->code string so that symbols are expanded.
+     --  Populate the rp->codePrefix and rp->codeSuffix strings, as appropriate.
+     --
+     --  Return 1 if the expanded code requires that "yylhsminor" local variable
+     --  to be defined.
+
    procedure Emit_Code
      (File    :        File_Type;
       Rule    :        Rule_Access;
@@ -127,10 +137,13 @@ package body Reports is
          Acc_Action       : Action_Value;
          No_Action        : Action_Value;
          Min_Reduce       : Action_Value;
+         Num_Rule_With_Action : Natural;
       end record;
 
-   procedure Render_Constants (File   : File_Type;
-                               Render : Render_Record);
+   procedure Render_Constants
+     (File   :        File_Type;
+      Render :        Render_Record;
+      Line   : in out Line_Number);
    --
    --
 
@@ -143,12 +156,12 @@ package body Reports is
    --
    --
 
-   procedure Output_YY_Lookahead
-     (File    :        File_Type;
-      Table   :        Action_Table;
-      N       :        Integer;
-      Nsymbol :        Integer;
-      Line    : in out Line_Number);
+   --  procedure Output_YY_Lookahead
+   --    (File    :        File_Type;
+   --     Table   :        Action_Table;
+   --     N       :        Integer;
+   --     Nsymbol :        Integer;
+   --     Line    : in out Line_Number);
    --
    --
 
@@ -577,15 +590,26 @@ package body Reports is
 
    procedure Report_Table
      (Session            : in out Session_Type;
-      User_Template_Name : in     String)
+      Make_Headers       :        Boolean;
+      Generate_SQL       :        Boolean;
+      User_Template_Name :        String)
    is
       use Ada.Strings.Unbounded;
       use Sessions;
       use type Action_Tables.Action_Value;
 
+      Column_Count : constant := 8;
+
+      type Column_Number is mod Column_Count;
+
+      procedure Close (File : in out File_Type) renames Ada.Text_IO.Close;
+
       Session_Name : constant String := To_String (Session.Names.Name);
-      Out_File : Ada.Text_IO.File_Type;
-      File : Ada.Text_IO.File_Type renames Out_File;
+
+      Out_File : File_Type;
+      SQL_File : File_Type;
+      File     : File_Type renames Out_File;
+
       --    char line[LINESIZE];
       Lineno : Types.Line_Number := 0;
       State : States.State_Access;
@@ -618,9 +642,84 @@ package body Reports is
       Session.Min_Reduce       := Session.No_Action + 1;
 --      Session.Max_Action       := Session.Min_Reduce + Session.N_Rule;
       Session.Max_Action       := Session.Min_Reduce + Action_Value (Session.Rule.Length);
+
       Templates.Open (User_Template_Name, Error_Count, Template_Open_Success);
       Auxiliary.Recreate (File, Ada.Text_IO.Out_File,
                           File_Name => File_Makename (Session, ".c"));
+
+  --  if( sqlFlag==0 ){
+  --    sql = 0;
+  --  }else{
+  --    sql = file_open(lemp, ".sql", "wb");
+  --    if( sql==0 ){
+  --      fclose(in);
+  --      fclose(out);
+  --      return;
+  --    }
+  --    fprintf(sql,
+  --       "BEGIN;\n"
+  --       "CREATE TABLE symbol(\n"
+  --       "  id INTEGER PRIMARY KEY,\n"
+  --       "  name TEXT NOT NULL,\n"
+  --       "  isTerminal BOOLEAN NOT NULL,\n"
+  --       "  fallback INTEGER REFERENCES symbol"
+  --               " DEFERRABLE INITIALLY DEFERRED\n"
+  --       ");\n"
+  --    );
+  --    for(i=0; i<lemp->nsymbol; i++){
+  --      fprintf(sql,
+  --         "INSERT INTO symbol(id,name,isTerminal,fallback)"
+  --         "VALUES(%d,'%s',%s",
+  --         i, lemp->symbols[i]->name,
+  --         i<lemp->nterminal ? "TRUE" : "FALSE"
+  --      );
+  --      if( lemp->symbols[i]->fallback ){
+  --        fprintf(sql, ",%d);\n", lemp->symbols[i]->fallback->index);
+  --      }else{
+  --        fprintf(sql, ",NULL);\n");
+  --      }
+  --    }
+  --    fprintf(sql,
+  --      "CREATE TABLE rule(\n"
+  --      "  ruleid INTEGER PRIMARY KEY,\n"
+  --      "  lhs INTEGER REFERENCES symbol(id),\n"
+  --      "  txt TEXT\n"
+  --      ");\n"
+  --      "CREATE TABLE rulerhs(\n"
+  --      "  ruleid INTEGER REFERENCES rule(ruleid),\n"
+  --      "  pos INTEGER,\n"
+  --      "  sym INTEGER REFERENCES symbol(id)\n"
+  --      ");\n"
+  --    );
+  --    for(i=0, rp=lemp->rule; rp; rp=rp->next, i++){
+  --      assert( i==rp->iRule );
+  --      fprintf(sql,
+  --        "INSERT INTO rule(ruleid,lhs,txt)VALUES(%d,%d,'",
+  --        rp->iRule, rp->lhs->index
+  --      );
+  --      writeRuleText(sql, rp);
+  --      fprintf(sql,"');\n");
+  --      for(j=0; j<rp->nrhs; j++){
+  --        struct symbol *sp = rp->rhs[j];
+  --        if( sp->type!=MULTITERMINAL ){
+  --          fprintf(sql,
+  --            "INSERT INTO rulerhs(ruleid,pos,sym)VALUES(%d,%d,%d);\n",
+  --            i,j,sp->index
+  --          );
+  --        }else{
+  --          int k;
+  --          for(k=0; k<sp->nsubsym; k++){
+  --            fprintf(sql,
+  --              "INSERT INTO rulerhs(ruleid,pos,sym)VALUES(%d,%d,%d);\n",
+  --              i,j,sp->subsym[k]->index
+  --            );
+  --          }
+  --        }
+  --      }
+  --    }
+  --    fprintf(sql, "COMMIT;\n");
+  --  }
+  --  lineno = 1;
 
       Templates.Transfer (File, Session_Name, Lineno);
 
@@ -684,7 +783,7 @@ package body Reports is
 --    //if( lime_get_mh_flag() ){
 --    //  lime_put_line ("#if INTERFACE");
 --    //}
-      Write_Interface_Begin (File, Lineno, Options.Make_Header);
+      Write_Interface_Begin (File, Lineno, Make_Headers);
 
       declare
 
@@ -723,7 +822,7 @@ package body Reports is
          end if;
       end;
 
-      Write_Interface_End (File, Lineno, Options.Make_Header);
+      Write_Interface_End (File, Lineno, Make_Headers);
 --    //  if( lime_get_mh_flag() ){
 --    //    lime_put_line ("#endif");
 --    //  }
@@ -844,7 +943,9 @@ package body Reports is
             Err_Action       => Session.Err_Action,
             Acc_Action       => Session.Acc_Action,
             No_Action        => Session.No_Action,
-            Min_Reduce       => Session.Min_Reduce));
+            Min_Reduce       => Session.Min_Reduce,
+            Num_Rule_With_Action => Session.Num_Rule_With_Action),
+        Line => Lineno);
 
       Templates.Transfer (File, Session_Name, Lineno);
 
@@ -871,17 +972,91 @@ package body Reports is
       Output_Action_Table (File, Act_Tab.all, N, Session.No_Action, Lineno);
 
       --
-      --  Output the yy_lookahead table
+      --  Output the yy_lookahead table -- lemon.c:4484
       --
-      Session.N_Lookahead_Tab := Action_Tables.Lookahead_Size (Act_Tab.all);
-      N := Session.N_Lookahead_Tab;
-      Session.Table_Size := Session.Table_Size + N * Size_Of_Code_Type;
+      Output_YY_Lookahead_Table :
+      declare
+         package Integer_IO is new Ada.Text_IO.Integer_IO (Integer);
+         package Action_IO  is new Ada.Text_IO.Integer_IO (Action_Value);
+         package Symbol_IO  is new Ada.Text_IO.Integer_IO (Symbol_Index);
 
-      Output_YY_Lookahead (File, Act_Tab.all, N, Integer (Symbols.Last_Index), Lineno);
+         use Integer_IO, Action_IO, Symbol_IO;
 
-      --
+         procedure Increment_Line is new Increment (Lineno);
+
+         Column : Column_Number := Column_Number'First;
+
+         Index          : Natural;
+         Look_Action    : Action_Value;
+         Num_Look_Ahead : Natural;
+      begin
+         Session.N_Lookahead_Tab := Action_Tables.Lookahead_Size (Act_Tab.all);
+         N                       := Session.N_Lookahead_Tab;
+         Session.Table_Size      := Session.Table_Size + N * Size_Of_Code_Type;
+
+         Put_Line (File, "static const YYCODETYPE yy_lookahead[] = {");
+         Increment_Line;
+
+         for Index in 0 .. N - 1 loop
+
+            Look_Action := Act_Tab.Action (Index).Lookahead;
+            if Look_Action < 0 then
+               Look_Action := Action_Value (Session.N_Symbol);
+            end if;
+
+            if Column = Column_Number'First then
+               Put (File, " /* ");
+               Put (File, Index);
+               Put (File, " */ ");
+            end if;
+
+            Put (File, " ");
+            Put (File, Look_Action);
+            Put (File, ",");
+
+            if Column = Column_Number'Last or Index = N - 1 then
+               Put_Line (File);
+               Increment_Line;
+            end if;
+            Column := Column + 1;
+
+         end loop;
+         Index := N - 1;  --  Dirty C trick using loop variable
+
+         --  Add extra entries to the end of the yy_lookahead[] table so that
+         --  yy_shift_ofst[]+iToken will always be a valid index into the array,
+         --  even for the largest possible value of yy_shift_ofst[] and iToken.
+         Num_Look_Ahead := Natural (Session.N_Terminal) + Session.N_Action_Tab;
+
+         while Index < Num_Look_Ahead loop
+
+            if Column = Column_Number'First then
+               Put (File, " /* ");
+               Put (File, Index, Width => 5);
+               Put (File, " */ ");
+            end if;
+
+            Put (File, " ");
+            Put (File, Session.N_Terminal, Width => 4);
+            Put (File, ",");
+
+            if Column = Column_Number'Last then
+               Put_Line (File);
+               Increment_Line;
+            end if;
+            Column := Column + 1;
+
+            Index := Index + 1;
+         end loop;
+         if Column > Column_Number'First then
+            Put_Line (File);
+            Increment_Line;
+         end if;
+         Put_Line (File, "};");
+         Increment_Line;
+      end Output_YY_Lookahead_Table;
+
       --  Output the yy_shift_ofst[] table
-      --
 
       N := Natural (Session.Nx_State);
 --      while  N > 0 and Session.Sorted(N - 1).I_Tkn_Ofst = NO_Offset loop
@@ -1170,16 +1345,21 @@ package body Reports is
       Templates.Transfer (File, Session_Name, Lineno);
 
       --  Generate code which execution during each REDUCE action
-      I  := 0;
-      for Rule of Session.Rule loop
-      --  I  := I + Translate_Code (Session, Rule);
-         null;
-      end loop;
+      Generate_Code_For_Reduce_Action :
+      declare
+         Total  : Natural := 0;
+         Length : Natural;
+      begin
+         for Rule of Session.Rule loop
+            Translate_Code (Session, Rule, Length);
+            Total := Total + Length;
+         end loop;
 
-      if I /= 0 then
-         Put_Line (File, "        YYMINORTYPE yylhsminor;");
-         Increment_Line;
-      end if;
+         if Total /= 0 then
+            Put_Line (File, "        YYMINORTYPE yylhsminor;");
+            Increment_Line;
+         end if;
+      end Generate_Code_For_Reduce_Action;
 
       --  First output rules other than the default: rule
       for Rule of Session.Rule loop
@@ -1263,9 +1443,12 @@ package body Reports is
 --    printf ("### 2-58\n");
 
       --      Ada.Text_IO.Close (File_In);
-      Ada.Text_IO.Close (Backend.Context.File_Template);
+      Close (Backend.Context.File_Template);
 --      Ada.Text_IO.Close (File_Out);
---    printf ("### 2-58\n");
+      if Generate_SQL then
+         Close (SQL_File);
+      end if;
+      --    printf ("### 2-58\n");
    end Report_Table;
 
    ---------------------
@@ -1899,6 +2082,210 @@ package body Reports is
       Put_Line (File, "}");  Increment_Line;
    end Emit_Destructor_Code;
 
+   --------------------
+   -- Translate_Code --
+   --------------------
+
+   procedure Translate_Code
+     (Session :     Session_Type;
+      Rule    :     Rule_Access;
+      Length  : out Natural)
+   is
+   begin
+      null;
+--  PRIVATE int translate_code(struct lemon *lemp, struct rule *rp){
+--    char *cp, *xp;
+--    int i;
+--    int rc = 0;            /* True if yylhsminor is used */
+--    int dontUseRhs0 = 0;   /* If true, use of left-most RHS label is illegal */
+--    const char *zSkip = 0; /* The zOvwrt comment within rp->code, or NULL */
+--    char lhsused = 0;      /* True if the LHS element has been used */
+--    char lhsdirect;        /* True if LHS writes directly into stack */
+--    char used[MAXRHS];     /* True for each RHS element which is used */
+--    char zLhs[50];         /* Convert the LHS symbol into this string */
+--    char zOvwrt[900];      /* Comment that to allow LHS to overwrite RHS */
+
+--    for(i=0; i<rp->nrhs; i++) used[i] = 0;
+--    lhsused = 0;
+
+--    if( rp->code==0 ){
+--      static char newlinestr[2] = { '\n', '\0' };
+--      rp->code = newlinestr;
+--      rp->line = rp->ruleline;
+--      rp->noCode = 1;
+--    }else{
+--      rp->noCode = 0;
+--    }
+
+
+--    if( rp->nrhs==0 ){
+--      /* If there are no RHS symbols, then writing directly to the LHS is ok */
+--      lhsdirect = 1;
+--    }else if( rp->rhsalias[0]==0 ){
+--      /* The left-most RHS symbol has no value.  LHS direct is ok.  But
+--      ** we have to call the distructor on the RHS symbol first. */
+--      lhsdirect = 1;
+--      if( has_destructor(rp->rhs[0],lemp) ){
+--        append_str(0,0,0,0);
+--        append_str("  yy_destructor(yypParser,%d,&yymsp[%d].minor);\n", 0,
+--                   rp->rhs[0]->index,1-rp->nrhs);
+--        rp->codePrefix = Strsafe(append_str(0,0,0,0));
+--        rp->noCode = 0;
+--      }
+--    }else if( rp->lhsalias==0 ){
+--      /* There is no LHS value symbol. */
+--      lhsdirect = 1;
+--    }else if( strcmp(rp->lhsalias,rp->rhsalias[0])==0 ){
+--      /* The LHS symbol and the left-most RHS symbol are the same, so
+--      ** direct writing is allowed */
+--      lhsdirect = 1;
+--      lhsused = 1;
+--      used[0] = 1;
+--      if( rp->lhs->dtnum!=rp->rhs[0]->dtnum ){
+--        ErrorMsg(lemp->filename,rp->ruleline,
+--          "%s(%s) and %s(%s) share the same label but have "
+--          "different datatypes.",
+--          rp->lhs->name, rp->lhsalias, rp->rhs[0]->name, rp->rhsalias[0]);
+--        lemp->errorcnt++;
+--      }
+--    }else{
+--      lemon_sprintf(zOvwrt, "/*%s-overwrites-%s*/",
+--                    rp->lhsalias, rp->rhsalias[0]);
+--      zSkip = strstr(rp->code, zOvwrt);
+--      if( zSkip!=0 ){
+--        /* The code contains a special comment that indicates that it is safe
+--        ** for the LHS label to overwrite left-most RHS label. */
+--        lhsdirect = 1;
+--      }else{
+--        lhsdirect = 0;
+--      }
+--    }
+--    if( lhsdirect ){
+--      sprintf(zLhs, "yymsp[%d].minor.yy%d",1-rp->nrhs,rp->lhs->dtnum);
+--    }else{
+--      rc = 1;
+--      sprintf(zLhs, "yylhsminor.yy%d",rp->lhs->dtnum);
+--    }
+
+--    append_str(0,0,0,0);
+
+--    /* This const cast is wrong but harmless, if we're careful. */
+--    for(cp=(char *)rp->code; *cp; cp++){
+--      if( cp==zSkip ){
+--        append_str(zOvwrt,0,0,0);
+--        cp += lemonStrlen(zOvwrt)-1;
+--        dontUseRhs0 = 1;
+--        continue;
+--      }
+--      if( ISALPHA(*cp) && (cp==rp->code || (!ISALNUM(cp[-1]) && cp[-1]!='_')) ){
+--        char saved;
+--        for(xp= &cp[1]; ISALNUM(*xp) || *xp=='_'; xp++);
+--        saved = *xp;
+--        *xp = 0;
+--        if( rp->lhsalias && strcmp(cp,rp->lhsalias)==0 ){
+--          append_str(zLhs,0,0,0);
+--          cp = xp;
+--          lhsused = 1;
+--        }else{
+--          for(i=0; i<rp->nrhs; i++){
+--            if( rp->rhsalias[i] && strcmp(cp,rp->rhsalias[i])==0 ){
+--              if( i==0 && dontUseRhs0 ){
+--                ErrorMsg(lemp->filename,rp->ruleline,
+--                   "Label %s used after '%s'.",
+--                   rp->rhsalias[0], zOvwrt);
+--                lemp->errorcnt++;
+--              }else if( cp!=rp->code && cp[-1]=='@' ){
+--                /* If the argument is of the form @X then substituted
+--                ** the token number of X, not the value of X */
+--                append_str("yymsp[%d].major",-1,i-rp->nrhs+1,0);
+--              }else{
+--                struct symbol *sp = rp->rhs[i];
+--                int dtnum;
+--                if( sp->type==MULTITERMINAL ){
+--                  dtnum = sp->subsym[0]->dtnum;
+--                }else{
+--                  dtnum = sp->dtnum;
+--                }
+--                append_str("yymsp[%d].minor.yy%d",0,i-rp->nrhs+1, dtnum);
+--              }
+--              cp = xp;
+--              used[i] = 1;
+--              break;
+--            }
+--          }
+--        }
+--        *xp = saved;
+--      }
+--      append_str(cp, 1, 0, 0);
+--    } /* End loop */
+
+--    /* Main code generation completed */
+--    cp = append_str(0,0,0,0);
+--    if( cp && cp[0] ) rp->code = Strsafe(cp);
+--    append_str(0,0,0,0);
+
+--    /* Check to make sure the LHS has been used */
+--    if( rp->lhsalias && !lhsused ){
+--      ErrorMsg(lemp->filename,rp->ruleline,
+--        "Label \"%s\" for \"%s(%s)\" is never used.",
+--          rp->lhsalias,rp->lhs->name,rp->lhsalias);
+--      lemp->errorcnt++;
+--    }
+
+--    /* Generate destructor code for RHS minor values which are not referenced.
+--    ** Generate error messages for unused labels and duplicate labels.
+--    */
+--    for(i=0; i<rp->nrhs; i++){
+--      if( rp->rhsalias[i] ){
+--        if( i>0 ){
+--          int j;
+--          if( rp->lhsalias && strcmp(rp->lhsalias,rp->rhsalias[i])==0 ){
+--            ErrorMsg(lemp->filename,rp->ruleline,
+--              "%s(%s) has the same label as the LHS but is not the left-most "
+--              "symbol on the RHS.",
+--              rp->rhs[i]->name, rp->rhsalias[i]);
+--            lemp->errorcnt++;
+--          }
+--          for(j=0; j<i; j++){
+--            if( rp->rhsalias[j] && strcmp(rp->rhsalias[j],rp->rhsalias[i])==0 ){
+--              ErrorMsg(lemp->filename,rp->ruleline,
+--                "Label %s used for multiple symbols on the RHS of a rule.",
+--                rp->rhsalias[i]);
+--              lemp->errorcnt++;
+--              break;
+--            }
+--          }
+--        }
+--        if( !used[i] ){
+--          ErrorMsg(lemp->filename,rp->ruleline,
+--            "Label %s for \"%s(%s)\" is never used.",
+--            rp->rhsalias[i],rp->rhs[i]->name,rp->rhsalias[i]);
+--          lemp->errorcnt++;
+--        }
+--      }else if( i>0 && has_destructor(rp->rhs[i],lemp) ){
+--        append_str("  yy_destructor(yypParser,%d,&yymsp[%d].minor);\n", 0,
+--           rp->rhs[i]->index,i-rp->nrhs+1);
+--      }
+--    }
+
+--    /* If unable to write LHS values directly into the stack, write the
+--    ** saved LHS value now. */
+--    if( lhsdirect==0 ){
+--      append_str("  yymsp[%d].minor.yy%d = ", 0, 1-rp->nrhs, rp->lhs->dtnum);
+--      append_str(zLhs, 0, 0, 0);
+--      append_str(";\n", 0, 0, 0);
+--    }
+
+--    /* Suffix code generation complete */
+--    cp = append_str(0,0,0,0);
+--    if( cp && cp[0] ){
+--      rp->codeSuffix = Strsafe(cp);
+--      rp->noCode = 0;
+--    }
+
+--    return rc;
+   end Translate_Code;
+
    ---------------
    -- Emit_Code --
    ---------------
@@ -2270,7 +2657,7 @@ package body Reports is
 
       Prefix : constant String := Get_Prefix;
    begin
-      if Options.Make_Header then
+      if Options.Make_Headers then
          --  const char *prefix; */
          Put_Line (File, "#if INTERFACE");
          Increment_Line;
@@ -2302,8 +2689,9 @@ package body Reports is
    ----------------------
 
    procedure Render_Constants
-     (File   : File_Type;
-      Render : Render_Record)
+     (File   :        File_Type;
+      Render :        Render_Record;
+      Line   : in out Line_Number)
    is
       procedure Put (Item  : in String; Value : in Integer);
       procedure Put (Item  : in String; Value : in Action_Value);
@@ -2314,6 +2702,7 @@ package body Reports is
          Put (File, Item);
          Put (File, Integer'Image (Value));
          Put_Line (File, "");
+         Line := Line + 1;
       end Put;
 
       procedure Put (Item  : in String;
@@ -2326,6 +2715,7 @@ package body Reports is
    begin
       Put ("#define YYNSTATE             ", Render.Nx_State);
       Put ("#define YYNRULE              ", Render.N_Rule);
+      Put ("#define YYNRULE_WITH_ACTION  ", Render.Num_Rule_With_Action);
       Put ("#define YYNTOKEN             ", Render.N_Terminal);
       Put ("#define YY_MAX_SHIFT         ", Render.Nx_State - 1);
       I := Integer (Render.Min_Shift_Reduce);
@@ -2398,44 +2788,44 @@ package body Reports is
    -- Output_YY_lookahead --
    -------------------------
 
-   procedure Output_YY_Lookahead
-     (File    :        File_Type;
-      Table   :        Action_Table;
-      N       :        Integer;
-      Nsymbol :        Integer;
-      Line    : in out Line_Number)
-   is
-      use type Action_Tables.Action_Value;
+   --  procedure Output_YY_Lookahead
+   --    (File    :        File_Type;
+   --     Table   :        Action_Table;
+   --     N       :        Integer;
+   --     Nsymbol :        Integer;
+   --     Line    : in out Line_Number)
+   --  is
+   --     use type Action_Tables.Action_Value;
 
-      procedure Increment_Line is new Increment (Line);
+   --     procedure Increment_Line is new Increment (Line);
 
-      LA : Action_Value;
-      J  : Integer := 0;
-   begin
-      Put_Line (File, "static const YYCODETYPE yy_lookahead[] = {");  Increment_Line;
-      for I in 0 .. N - 1 loop
-         --  LA := Get_Acttab_YY_Lookahead (I);
-         LA := Table.Lookahead (I).Action;
-         if LA < 0 then
-            LA := Action_Value (Nsymbol);
-         end if;
-         if J = 0 then
-            Put (File, " /* ");
-            Put (File, Image (I));
-            Put (File, " */ ");
-         end if;
-         Put (File, " ");
-         Put (File, Image (Integer (LA)));
-         Put (File, ",");
-         if J = 9 or I = N - 1 then
-            Put_Line (File);  Increment_Line;
-            J := 0;
-         else
-            J := J + 1;
-         end if;
-      end loop;
-      Put_Line (File, "};");  Increment_Line;
-   end Output_YY_Lookahead;
+   --     LA : Action_Value;
+   --     J  : Integer := 0;
+   --  begin
+   --     Put_Line (File, "static const YYCODETYPE yy_lookahead[] = {");  Increment_Line;
+   --     for I in 0 .. N - 1 loop
+   --        --  LA := Get_Acttab_YY_Lookahead (I);
+   --        LA := Table.Lookahead (I).Action;
+   --        if LA < 0 then
+   --           LA := Action_Value (Nsymbol);
+   --        end if;
+   --        if J = 0 then
+   --           Put (File, " /* ");
+   --           Put (File, Image (I));
+   --           Put (File, " */ ");
+   --        end if;
+   --        Put (File, " ");
+   --        Put (File, Image (Integer (LA)));
+   --        Put (File, ",");
+   --        if J = 9 or I = N - 1 then
+   --           Put_Line (File);  Increment_Line;
+   --           J := 0;
+   --        else
+   --           J := J + 1;
+   --        end if;
+   --     end loop;
+   --     Put_Line (File, "};");  Increment_Line;
+   --  end Output_YY_Lookahead;
 
    -----------------------------
    -- Output_YY_Shift_Offsets --
@@ -2733,7 +3123,7 @@ package body Reports is
       Line      : in out Line_Number)
    is
    begin
-      if Options.Make_Header then
+      if Options.Make_Headers then
          Put_Line (File, "#if INTERFACE");
          Line := Line + 1;
       end if;
@@ -2745,7 +3135,7 @@ package body Reports is
       Put_Line (File);
       Line := Line + 1;
 
-      if Options.Make_Header then
+      if Options.Make_Headers then
          Put_Line (File, "#endif");
          Line := Line + 1;
       end if;
@@ -2795,7 +3185,7 @@ package body Reports is
       Prefix : constant String := Token_Prefix;
    begin
 
-      if not Options.Make_Header then
+      if not Options.Make_Headers then
          return;
       end if;
 
@@ -2859,7 +3249,7 @@ package body Reports is
       Include_Name :        String)
    is
    begin
-      if Options.Make_Header then
+      if Options.Make_Headers then
          Put (File, "#include <");
          Put (File, Include_Name);
          Put_Line (File, ">;"); Line := Line + 1;

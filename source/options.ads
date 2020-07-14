@@ -18,11 +18,12 @@ package Options is
    Compress        : aliased Boolean := False;
    Be_Quiet        : aliased Boolean := False;
    Statistics      : aliased Boolean := False;
-   Make_Header     : aliased Boolean := False;
+   Make_Headers    : aliased Boolean := False; --  Output makeheaders compompatible
    No_Line_Nos     : aliased Boolean := False;
    No_Resort       : aliased Boolean := False;
    Show_Help       : aliased Boolean := False;
    Emit_Debug_Info : aliased Boolean := False;
+   Generate_SQL    : aliased Boolean := False;
 
    use GNAT.Strings;
    Program_Name  : aliased String_Access := new String'("");

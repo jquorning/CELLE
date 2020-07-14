@@ -25,7 +25,9 @@ package Reports is
    --  Generate the "*.out" log file
 
    procedure Report_Table (Session            : in out Session_Type;
-                           User_Template_Name : in     String);
+                           Make_Headers       :        Boolean;
+                           Generate_SQL       :        Boolean;
+                           User_Template_Name :        String);
    --  Generate C source code for the parser
 
    procedure Compress_Tables (Session : in out Session_Type);

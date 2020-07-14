@@ -143,6 +143,9 @@ package Sessions is
          Nx_State : State_Index;
          --  nstate with tail degenerate states removed
 
+         Num_Rule_With_Action : Integer;
+         --  Number of rules with actions
+
          N_Symbol : Types.Symbol_Index;
          --  Number of terminal and nonterminal symbols
 
@@ -231,7 +234,8 @@ package Sessions is
                    N_Conflict   => 0,        N_Action_Tab => 0,         N_Lookahead_Tab  => 0,
                    Table_Size   => 0,        Basis_Flag   => False,     Has_Fallback     => False,
                    No_Linenos_Flag => False, Argv0        => Null_Unbounded_String,
-                   Parser          => Report_Parsers.Get_Context);
+                   Parser          => Report_Parsers.Get_Context,
+                   Num_Rule_With_Action => 0);
 
    No_Offset : aliased constant Offset_Type := Offset_Type'First;
 

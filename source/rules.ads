@@ -93,8 +93,16 @@ package Rules is
          Number : Rule_Number := 0;
          --  Rule number as used in the generated tables
 
-         Can_Reduce   : Boolean := False;             -- True if this rule is ever reduced
-         Does_Reduce  : Boolean := False;             -- Reduce actions occur after optimization
+         Can_Reduce : Boolean := False;
+         --  True if this rule is ever reduced
+
+         Does_Reduce : Boolean := False;
+         --  Reduce actions occur after optimization
+
+         Never_Reduce : Boolean := False;
+         --  Reduce is theoretically possible, but prevented
+         --  by actions or other outside implementation
+
          Next_LHS     : Rule_Access := null;   -- Next rule with the same LHS
       end record;
 

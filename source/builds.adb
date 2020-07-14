@@ -722,6 +722,8 @@ package body Builds is
 
       Reports.Report_Table
         (Session,
+         Make_Headers => Options.Make_Headers,
+         Generate_SQL => Options.Generate_SQL,
          User_Template_Name => Options.User_Template.all);
 
       --  Produce a header file for use by the scanner.  (This step is

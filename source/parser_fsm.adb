@@ -231,6 +231,9 @@ package body Parser_FSM is
          elsif Rules."/=" (Element (Scanner.Previous_Rule).Code, Null_Code) then
             Parser_Error (E002, Scanner.Token_Lineno);
 
+         elsif Token = "{NEVER-REDUCE" then
+            Element (Scanner.Previous_Rule).Never_Reduce := True;
+
          else
             Element (Scanner.Previous_Rule).Line := Scanner.Token_Lineno;
             Element (Scanner.Previous_Rule).Code :=

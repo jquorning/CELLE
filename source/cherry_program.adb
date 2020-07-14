@@ -222,6 +222,11 @@ begin
       --  statement that selects reduction actions will have a smaller jump table.
       Rules.Assing_Sequential_Rule_Numbers (Rule_List => Session.Rule);
 
+      --  Session.Num_Rule_With_Action := i;
+      --  lem.nruleWithAction = i;
+      --  Insert from lemon.c 3.32.3
+      --  Not sure is should go into Assing_Sequential_Rule_Numbers
+
       if Options.Emit_Debug_Info then
          Ada.Text_IO.Put_Line ("jq_dump_rules second");
          Debugs.JQ_Dump_Rules (Session, 0);

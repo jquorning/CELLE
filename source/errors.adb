@@ -58,7 +58,7 @@ package body Errors is
                   E206 => -"Symbol name missing after %type keyword",
                   E207 => -"Symbol %type '$1' already defined",
                   E208 => -"%token_class argument '%1' should be a token",
-                  E209 => -"%token_class must be followed by an identifier: '$1'",
+                  E209 => -"%token_class must be followed by an identifier: $1",
                   E210 => -"Symbol '$1' already used",
                   E211 => -"%wildcard argument '$1' should be a token",
                   E212 => -"Extra wildcard to token: '$1'",

@@ -84,7 +84,7 @@ package body Command_Line is
                      Help        => "Language (Ada, C). Default is 'C'.",
                      Long_Switch => Long_Switch_Language & '=',
                      Argument => "LANG");
-      Define_Switch (Config, Options.Make_Header'Access, "-m",
+      Define_Switch (Config, Options.Make_Headers'Access, "-m",
                      Help => "Output a makeheaders compatible file.");
       Define_Switch (Config, Options.No_Line_Nos'Access, "-l",
                      Help => "Do not print #line statements.");
@@ -99,6 +99,8 @@ package body Command_Line is
                      Help => "Do not sort or renumber states");
       Define_Switch (Config, Options.Statistics'Access, "-s",
                      Help => "Print parser stats to standard output.");
+      Define_Switch (Config, Options.Generate_SQL'Access, "-S",
+                     Help => "Generate the *.sql file describing the parser tables.");
       Define_Switch (Config, Options.Show_Version'Access, "-x",
                      Help => "Show program name and version.",
                      Long_Switch => Long_Switch_Show_Version);

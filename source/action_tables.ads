@@ -31,8 +31,8 @@
 
 package Action_Tables is
 
-   type Lookahead_Type is new Integer;
    type Action_Value   is new Integer;
+   subtype Lookahead_Type is Action_Value;
 
    type Lookahead_Action is
       record
