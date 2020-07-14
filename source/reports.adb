@@ -413,6 +413,9 @@ package body Reports is
       end loop;
    end Reprint;
 
+   -------------------
+   -- Report_Output --
+   -------------------
 
    procedure Report_Output (Session : Session_Type)
    is
@@ -568,6 +571,9 @@ package body Reports is
       Close (File);
    end Report_Output;
 
+   ------------------
+   -- Report_Table --
+   ------------------
 
    procedure Report_Table
      (Session            : in out Session_Type;
@@ -1491,9 +1497,10 @@ package body Reports is
 
    end  Compress_Tables;
 
-   --------------------
-   --  Resort_States -- lemon.c:4866
-   --------------------
+   -------------------
+   -- Resort_States --
+   -------------------
+   --  lemon.c:4866
 
    procedure Resort_States (Session : in out Session_Type)
    is
@@ -1561,9 +1568,10 @@ package body Reports is
 
    end Resort_States;
 
-   -----------------
-   --  Rule_Print --  lemon.c:3157 - OVERLOADED
-   -----------------
+   ----------------
+   -- Rule_Print --
+   ----------------
+   --  lemon.c:3157 - OVERLOADED
 
    procedure Rule_Print (File   : File_Type;
                          Rule   : Rule_Access;
@@ -1735,6 +1743,9 @@ package body Reports is
       Rule_Print (File, Config.Rule, Config.Dot);
    end Config_Print;
 
+   -----------------------
+   -- Minimum_Size_Type --
+   -----------------------
 
    function Minimum_Size_Type (LWS     : in     Offset_Type;
                                UPR     : in     Offset_Type;
@@ -1770,6 +1781,9 @@ package body Reports is
       return "";
    end Minimum_Size_Type;
 
+   -------------------
+   -- File_Makename --
+   -------------------
 
    function File_Makename (Session   : in Sessions.Session_Type;
                            Extension : in String) return String
@@ -1949,6 +1963,9 @@ package body Reports is
 
    end Emit_Code;
 
+   -----------------------
+   -- Print_Stack_Union --
+   -----------------------
 
    procedure Print_Stack_Union
      (File        :        File_Type;
@@ -2327,9 +2344,10 @@ package body Reports is
    function Image is new Auxiliary.Trim_Image (Offset_Type);
    function Image is new Auxiliary.Trim_Image (Action_Value);
 
-   ---------------------------
-   --  Output_Action_Table  --  lemon.c:4377
-   ---------------------------
+   -------------------------
+   -- Output_Action_Table --
+   -------------------------
+   --  lemon.c:4377
 
    procedure Output_Action_Table
      (File      :        File_Type;
@@ -2419,9 +2437,10 @@ package body Reports is
       Put_Line (File, "};");  Increment_Line;
    end Output_YY_Lookahead;
 
-   -------------------------------
-   --  Output_YY_Shift_Offsets  --  lemon.c:4414
-   -------------------------------
+   -----------------------------
+   -- Output_YY_Shift_Offsets --
+   -----------------------------
+   --  lemon.c:4414
 
    procedure Output_YY_Shift_Offsets
      (File          :        File_Type;
@@ -2488,9 +2507,10 @@ package body Reports is
       Put_Line (File, "};");  Increment_Line;
    end Output_YY_Shift_Offsets;
 
-   --------------------------------
-   --  Output_YY_Reduce_Offsets  --  lemon.c:4440
-   --------------------------------
+   ------------------------------
+   -- Output_YY_Reduce_Offsets --
+   ------------------------------
+   --  lemon.c:4440
 
    procedure Output_YY_Reduce_Offsets
      (File          :        File_Type;
@@ -2554,9 +2574,10 @@ package body Reports is
          Put_Line (File, "};");  Increment_Line;
    end Output_YY_Reduce_Offsets;
 
-   -----------------------------------
-   --  Output_Default_Action_Table  --  lemon.c:4465
-   -----------------------------------
+   ---------------------------------
+   -- Output_Default_Action_Table --
+   ---------------------------------
+   --  lemon.c:4465
 
    procedure Output_Default_Action_Table
      (File         :        File_Type;
@@ -2760,6 +2781,9 @@ package body Reports is
       end if;
    end Write_Interface_End;
 
+   -------------------
+   -- Report_Header --
+   -------------------
 
    procedure Report_Header
      (Session       : Session_Type;
@@ -2786,6 +2810,9 @@ package body Reports is
                      Last  => Terminal_Last);
    end Report_Header;
 
+   -------------------
+   -- Generate_Spec --
+   -------------------
 
    procedure Generate_Spec
      (Session   : Session_Type;
