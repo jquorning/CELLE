@@ -32,4 +32,4 @@ jobs:
       run: gprbuild cherry.gpr -j0 -k
 
     - name: Build Lemon
-      run: gcc original/lemon.c -o lemon
+      run: gcc original/lemon_3320300.c -o lemon
