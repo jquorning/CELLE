@@ -287,19 +287,16 @@ package body Reports is
 
    type Mystruct_Record is record
       Use_Count : Integer;
-      Index     : Integer;
+      Index     : Symbol_Index;
       DT_Num    : Integer;
    end record;
-
-   type Struct_Access is access all Mystruct_Record;
 
    procedure Error_Fallback
      (File         :        File_Type;
       Line         : in out Line_Number;
       Error_Sym    :        String;
-      Struct       :        Struct_Access;
+      Struct       :        Mystruct_Record;
       Has_Fallback :        Boolean);
-   pragma Unreferenced (Error_Fallback);
    --
    --
 
@@ -777,12 +774,9 @@ package body Reports is
       end;
 
       --  print_stack_union (lemp, lime_get_mh_flag());
-      Print_Stack_Union (File, Lineno, Session, Make_Header => True);
+      Print_Stack_Union (File, Lineno, Session, Make_Headers);
       Generate_The_Defines_2 (File, Lineno, To_String (Session.Names.Stack_Size));
 
---    //if( lime_get_mh_flag() ){
---    //  lime_put_line ("#if INTERFACE");
---    //}
       Write_Interface_Begin (File, Lineno, Make_Headers);
 
       declare
@@ -811,33 +805,26 @@ package body Reports is
          if ARG = "" then
             Write_Arg_Defines (File, Name, "ARG", False, "", "", Lineno);
          else
-            Write_Arg_Defines (File, Name, "ARG", True, ARG, ARG (ARG_I .. ARG'Last), Lineno);
+            Write_Arg_Defines (File, Name, "ARG", True, ARG,
+                               ARG (ARG_I .. ARG'Last), Lineno);
          end if;
 
          Trim_Right_Symbol (CTX, CTX_I);
          if CTX = "" then
             Write_Arg_Defines (File, Name, "CTX", False, "", "", Lineno);
          else
-            Write_Arg_Defines (File, Name, "CTX", True, CTX, CTX (CTX_I .. CTX'Last), Lineno);
+            Write_Arg_Defines (File, Name, "CTX", True,
+                               CTX, CTX (CTX_I .. CTX'Last), Lineno);
          end if;
       end;
 
       Write_Interface_End (File, Lineno, Make_Headers);
---    //  if( lime_get_mh_flag() ){
---    //    lime_put_line ("#endif");
---    //  }
---
---    struct mystruct lime_mystruct;
---    if (lemp->errsym) {
---      lime_mystruct.use_count = lemp->errsym->useCnt;
---      lime_mystruct.index     = lemp->errsym->index;
---      lime_mystruct.dt_num    = lemp->errsym->dtnum;
---    }
---
---    lime_error_fallback
---      ((const char*)lemp->errsym,
---       &lime_mystruct,
---       lemp->has_fallback);
+
+      Error_Fallback (File, Lineno, "",
+                      Struct => (Use_Count => Session.Error_Symbol.Use_Count,
+                                 Index     => Session.Error_Symbol.Index,
+                                 DT_Num    => Session.Error_Symbol.DT_Num),
+                      Has_Fallback => Session.Has_Fallback);
 
       --  Compute the action table, but do not output it yet.  The action
       --  table must be computed before generating the YYNSTATE macro because
@@ -3320,7 +3307,7 @@ package body Reports is
      (File         :        File_Type;
       Line         : in out Line_Number;
       Error_Sym    :        String;
-      Struct       :        Struct_Access;
+      Struct       :        Mystruct_Record;
       Has_Fallback :        Boolean)
    is
       procedure Increment_Line is new Increment (Line);
@@ -3328,7 +3315,7 @@ package body Reports is
 
       if Error_Sym /= "" and Struct.Use_Count /= 0 then
          Put (File, "#define YYERRORSYMBOL ");
-         Put (File, Integer'Image (Struct.Index));
+         Put (File, Symbol_Index'Image (Struct.Index));
          Put_Line (File);  Increment_Line;
 
          Put (File, "#define YYERRSYMDT yy");
