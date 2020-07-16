@@ -140,7 +140,7 @@ package Sessions is
 
          --  Number of states in Sorted
 
-         Nx_State : State_Index;
+         Num_X_State : State_Index;
          --  nstate with tail degenerate states removed
 
          Num_Rule_With_Action : Integer;
@@ -224,7 +224,7 @@ package Sessions is
      Session_Type'(Sorted       => State_Vectors.Empty_Vector,
                    Rule         => Rules.Rule_Lists.Empty_List,
                    Start_Rule   => Rules.Rule_Lists.No_Element,
-                   Nx_State     => 0,
+                   Num_X_State  => 0,
                    Num_Symbol   => 0,          Num_Terminal   => 0,
                    Min_Shift_Reduce => 0,      Err_Action   => 0,
                    Acc_Action   => 0,         No_Action        => 0,

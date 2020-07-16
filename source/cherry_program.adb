@@ -103,7 +103,7 @@ procedure Cherry_Program is
       Stats_Line ("non-terminal symbols",     Integer (Num_Non_Terminal));
       Stats_Line ("total symbols",            Integer (Session.Num_Symbol));
       Stats_Line ("rules",                    Integer (Session.Rule.Length));
-      Stats_Line ("states",                   Integer (Session.Nx_State));
+      Stats_Line ("states",                   Integer (Session.Num_X_State));
       Stats_Line ("conflicts",                Session.Num_Conflict);
       Stats_Line ("action table entries",     Session.Num_Action_Tab);
       Stats_Line ("lookahead table entries",  Session.Num_Lookahead_Tab);

@@ -452,7 +452,7 @@ package body Reports is
 --  fp = file_open(lemp,".out","wb");
       Ada.Text_IO.Open (File, Ada.Text_IO.Out_File, "XXX.out");
 
-      for I in 0 .. Session.Nx_State - 1 loop
+      for I in 0 .. Session.Num_X_State - 1 loop
          State := Session.Sorted (I);
          Put (File, "State ");
          Put (File, State_Number'Image (State.Number));
@@ -881,13 +881,13 @@ package body Reports is
       declare
          use type Types.Symbol_Index;
       begin
-         AX := new AX_Set_Array (0 .. Session.Nx_State - 1);
+         AX := new AX_Set_Array (0 .. Session.Num_X_State - 1);
 
       --  if( ax==0 ){
       --    fprintf(stderr,"malloc failed\n");
       --    exit(1);
 
-         for I in 0 .. Session.Nx_State - 1 loop
+         for I in 0 .. Session.Num_X_State - 1 loop
             State := Session.Sorted (I);
 
             AX (I).Token := (STP        => State,
@@ -970,7 +970,7 @@ package body Reports is
       Render_Constants
         (File,
          Render =>
-           (Nx_State         => Natural (Session.Nx_State),
+           (Nx_State         => Natural (Session.Num_X_State),
             N_Rule           => Integer (Session.Rule.Length),
             N_Terminal       => Integer (Session.Num_Terminal),
             Min_Shift_Reduce => Session.Min_Shift_Reduce,
@@ -1092,7 +1092,7 @@ package body Reports is
 
       --  Output the yy_shift_ofst[] table
 
-      N := Natural (Session.Nx_State);
+      N := Natural (Session.Num_X_State);
 --      while  N > 0 and Session.Sorted(N - 1).I_Tkn_Ofst = NO_Offset loop
 --         N := N - 1;
 --      end loop;
@@ -1121,7 +1121,7 @@ package body Reports is
       --
       --  Output the yy_reduce_ofst[] table
       --
-      N := Natural (Session.Nx_State);
+      N := Natural (Session.Num_X_State);
 --    while( n>0 && lemp->sorted[n-1]->iNtOfst==NO_OFFSET ) n--;
 --
       declare
@@ -1143,7 +1143,7 @@ package body Reports is
       --
       Output_Default_Action_Table
         (File,
-         Session, Natural (Session.Nx_State),
+         Session, Natural (Session.Num_X_State),
          Session.Err_Action,
          Session.Min_Reduce,
          Lineno);
@@ -1770,17 +1770,19 @@ package body Reports is
 --            Action := Action.Next;
          end loop;
       end loop;
+
 --  qsort(&lemp->sorted[1], lemp->nstate-1, sizeof(lemp->sorted[0]),
 --        stateResortCompare);
+
       for I in 0 .. Num_State - 1 loop
          Session.Sorted (I).Number := State_Number (I);
       end loop;
-      Session.Nx_State := Num_State;
+      Session.Num_X_State := Num_State;
       while
-        Session.Nx_State > 1 and
-        Session.Sorted (Session.Nx_State - 1).Auto_Reduce
+        Session.Num_X_State > 1 and
+        Session.Sorted (Session.Num_X_State - 1).Auto_Reduce
       loop
-         Session.Nx_State := Session.Nx_State - 1;
+         Session.Num_X_State := Session.Num_X_State - 1;
       end loop;
 
    end Resort_States;
