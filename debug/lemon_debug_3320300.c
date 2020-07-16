@@ -1623,6 +1623,17 @@ static void stats_line(const char *zLabel, int iValue){
          iValue);
 }
 
+/*
+** Debug aid
+*/
+void debug_dump_symbols (struct lemon *lem, int mode);
+void debug_dump_rules (struct lemon *lem, int mode);
+void debug_put_state (struct state* stat);
+void debug_put_configs (struct lemon*   lem,
+                        struct config*  cfg);
+void debug_dump_states (struct lemon *lem, int mode);
+
+
 /* The main program.  Parse the command line and do it... */
 int main(int argc, char **argv)
 {
@@ -5827,7 +5838,7 @@ void debug_dump_symbols (struct lemon *lem, int mode)
             printf ("<null>");
           else
             {
-              SetPrint (lem->symbols[i]->firstset, lem);
+              /* SetPrint (lem->symbols[i]->firstset, lem); */
 /*               int bit; */
 
 /*               for (bit=0; bit < lem->nterminal+1; bit++) */
@@ -5885,7 +5896,7 @@ void debug_put_configs (struct lemon*   lem,
               cfg->rp->index,
               cfg->dot,
               (cfg->status==COMPLETE ? "COMPLETE" : "INCOMPLETE"));
-      SetPrint (cfg->fws, lem);
+      /* SetPrint (cfg->fws, lem); */
       printf ("\n");
     }
 
