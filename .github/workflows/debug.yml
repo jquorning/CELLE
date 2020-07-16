@@ -31,8 +31,8 @@ jobs:
     - name: Test Run (-z=0)
       run: |
            cd test/sqlite
-           ../../binary/dlemon -z=0 parse.y
+           ../../binary/dlemon -z=0 -T../../original/lempar_3320300.c parse.y
 
     - name: Test Run (-z=1)
       run: |
-           ../../binary/dlemon -z=1 parse.y
+           ../../binary/dlemon -z=1 -T../../original/lempar_3320300.c parse.y
