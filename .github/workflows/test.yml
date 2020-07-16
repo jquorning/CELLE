@@ -34,8 +34,9 @@ jobs:
       run: |
            ln -s ../../binary/lemon .
            ln -s ../../binary/dlemon .
-           lemon  parse.y -T../../original/lempar_3320300.c -doriginal
-           dlemon parse.y -T../../original/lempar_3320300.c -ddebug
+           ls -l
+           ../../binary/lemon  parse.y -T../../original/lempar_3320300.c -doriginal
+           ../../binary/dlemon parse.y -T../../original/lempar_3320300.c -ddebug
 
     - name: Compare Header
       run: diff -y original/parse.h debug/parse.h
