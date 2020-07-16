@@ -27,11 +27,11 @@ jobs:
            mkdir binary
            gcc original/lemon_3320300.c    -o binary/lemon
            gcc debug/lemon_debug_3320300.c -o binary/dlemon
-           cd test/sqlite
-           mkdir debug original
 
     - name: Parse with Lemon (Debug and Original)
       run: |
+           cd test/sqlite
+           mkdir debug original
            ln -s ../../binary/lemon .
            ln -s ../../binary/dlemon .
            ls -l
