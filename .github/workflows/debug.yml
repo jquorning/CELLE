@@ -23,4 +23,4 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: Build Lemon
-      run: gcc debug/lemon_debug_3320300.c -o dlemon
+      run: gcc debug/lemon_debug_3320300.c -o binary/dlemon
