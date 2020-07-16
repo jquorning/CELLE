@@ -9,10 +9,10 @@
 
 with Ada.Strings.Unbounded;
 with Ada.Containers.Vectors;
-with Ada.Containers.Doubly_Linked_Lists;
 
 with Types;
 limited with Symbols;
+with Rule_Lists;
 
 package Rules is
 
@@ -106,12 +106,12 @@ package Rules is
          Next_LHS     : Rule_Access := null;   -- Next rule with the same LHS
       end record;
 
-   package Rule_Lists is
-      new Ada.Containers.Doubly_Linked_Lists (Element_Type => Rule_Access);
+--   package Rule_Lists is
+--      new Ada.Containers.Doubly_Linked_Lists (Element_Type => Rule_Access);
 
-   procedure Rule_Sort (Rule_List : in out Rule_Lists.List);
+   procedure Rule_Sort (Rule_List : in out Rule_Lists.Lists.List);
    --  Sort a list of rules in order of increasing iRule Value
 
-   procedure Assing_Sequential_Rule_Numbers (Rule_List : in out Rule_Lists.List);
+   procedure Assing_Sequential_Rule_Numbers (Rule_List : in out Rule_Lists.Lists.List);
 
 end Rules;

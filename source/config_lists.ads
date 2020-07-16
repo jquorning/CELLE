@@ -10,19 +10,22 @@
 with Sessions;
 with Configs;
 with Rules;
+with Rule_Lists;
 
 package Config_Lists is
+
+   subtype Rule_Access is Rule_Lists.Rule_Access;
 
    procedure Init;
    --  Initialized the configuration list builder.
 
    function Add
-     (Rule : in Rules.Rule_Access;
+     (Rule : in Rule_Access;
       Dot  : in Rules.Dot_Type) return Configs.Config_Access;
    --  Add another configuration to the configuration list.
 
    function Add_Basis
-     (Rule : in Rules.Rule_Access;
+     (Rule : in Rule_Access;
       Dot  : in Rules.Dot_Type) return Configs.Config_Access;
    --  Add a basis configuration to the configuration List.
 

@@ -13,6 +13,7 @@ with Ada.Unchecked_Deallocation;
 with Ada.Containers;
 
 with Rules;
+with Rule_Lists;
 with Symbols;
 with Report_Parsers;
 with Actions;
@@ -39,7 +40,8 @@ package body Reports is
    subtype Line_Number   is Types.Line_Number;
    subtype Offset_Type   is Types.Offset_Type;
    subtype Symbol_Access is Symbols.Symbol_Access;
-   subtype Rule_Access   is Rules.Rule_Access;
+--   subtype Rule_Access   is Rules.Rule_Access;
+   subtype Rule_Access   is Rule_Lists.Rule_Access;
    subtype Dot_Type      is Rules.Dot_Type;
    subtype Action_Record is Actions.Action_Record;
    subtype Action_Table  is Action_Tables.Table_Type;
@@ -356,7 +358,7 @@ package body Reports is
    is
       use Ada.Strings.Unbounded;
       use Symbols;
-      use type Rules.Rule_Access;
+      use type Rule_Access;
       use type Rules.Rule_Symbol_Access;
       use Types;
 
@@ -1848,7 +1850,7 @@ package body Reports is
    is
       use Actions;
 
-      subtype Rule_Access is Rules.Rule_Access;
+--      subtype Rule_Access is Rules.Rule_Access;
       subtype Rule_Number is Rules.Rule_Number;
 
       procedure Put_Indent (Item : String);

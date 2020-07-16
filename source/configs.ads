@@ -8,6 +8,7 @@
 --
 
 with Rules;
+with Rule_Lists;
 with Symbol_Sets;
 with Prop_Links;
 limited with States;
@@ -25,17 +26,37 @@ package Configs is
    type Config_Record;
    type Config_Access is access all Config_Record;
 
-   type Config_Record is record
-      Rule        : Rules.Rule_Access;          --  The rule upon which the configuration is based
-      Dot         : Rules.Dot_Type;             --  The parse point
-      Follow_Set  : Symbol_Sets.Set_Type;       --  Follow-set for this configuration only
-      Forward_PL  : Prop_Links.List;            --  Forward propagation links
-      Backward_PL : Prop_Links.List;            --  Follow-set backwards propagation links
-      State       : access States.State_Record; --  Pointer to state which contains this
-      Status      : Config_Status;              --  Used during followset and shift computations
-      Next        : Config_Access;              --  Next configuration in the state
-      Basis       : Config_Access;              --  The next basis configuration
-   end record;
+   type Config_Record is
+      record
+
+         Rule : Rule_Lists.Rule_Access;
+         --  The rule upon which the configuration is based
+
+         Dot : Rules.Dot_Type;
+         --  The parse point
+
+         Follow_Set : Symbol_Sets.Set_Type;
+         --  Follow-set for this configuration only
+
+         Forward_PL : Prop_Links.List;
+         --  Forward propagation links
+
+         Backward_PL : Prop_Links.List;
+         --  Follow-set backwards propagation links
+
+         State : access States.State_Record;
+         --  Pointer to state which contains this
+
+         Status : Config_Status;
+         --  Used during followset and shift computations
+
+         Next : Config_Access;
+         --  Next configuration in the state
+
+         Basis : Config_Access;
+         --  The next basis configuration
+
+      end record;
 
    function "<" (Left, Right : in Config_Record) return Boolean;
    function "<" (Left, Right : in Config_Access) return Boolean;

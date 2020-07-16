@@ -43,7 +43,7 @@ package body Config_Lists is
 
 
    function Add
-     (Rule : in Rules.Rule_Access;
+     (Rule : in Rule_Access;
       Dot  : in Rules.Dot_Type) return Configs.Config_Access
    is
       use Configs;
@@ -74,7 +74,7 @@ package body Config_Lists is
 
 
    function Add_Basis
-     (Rule : in Rules.Rule_Access;
+     (Rule : in Rule_Access;
       Dot  : in Rules.Dot_Type) return Configs.Config_Access
    is
       use Configs;
@@ -108,17 +108,19 @@ package body Config_Lists is
    procedure Closure (Session : in Sessions.Session_Type)
    is
       use Configs;
-      use Rules;
+--      use Rules;
       use Symbols;
       use Symbol_Sets;
       use type Configuration_Lists.Cursor;
+      use type Rules.Dot_Type;
+      use type Rule_Access;
 
       New_Config : Config_Access;
       Rule       : Rule_Access;
       New_Rule   : Rule_Access;
       Symbol     : Symbol_Access;
       RHS_Symbol : Symbol_Access;
-      Dot        : Dot_Type;
+      Dot        : Rules.Dot_Type;
       Dummy      : Boolean;
       Last_RHS   : Boolean;
       Config_Pos : Configuration_Lists.Cursor;
@@ -185,7 +187,7 @@ package body Config_Lists is
                      if Last_RHS then
                         Config.Forward_PL.Append (Prop_Links.Config_Access (New_Config));
                      end if;
-                     New_Rule := New_Rule.Next_LHS;
+                     New_Rule := Rule_Access (New_Rule.Next_LHS);
                   end loop;
                end if;
 

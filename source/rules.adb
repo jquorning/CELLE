@@ -10,7 +10,7 @@
 package body Rules is
 
 
-   procedure Assing_Sequential_Rule_Numbers (Rule_List : in out Rule_Lists.List)
+   procedure Assing_Sequential_Rule_Numbers (Rule_List : in out Rule_Lists.Lists.List)
    is
       use Types;
 
@@ -41,16 +41,16 @@ package body Rules is
    end Assing_Sequential_Rule_Numbers;
 
 
-   function Less_Than (Left, Right : in Rule_Access) return Boolean;
+   function Less_Than (Left, Right : in Rule_Lists.Rule_Access) return Boolean;
 
-   function Less_Than (Left, Right : in Rule_Access) return Boolean is
+   function Less_Than (Left, Right : in Rule_Lists.Rule_Access) return Boolean is
       (Left.Number < Right.Number);
 
 
-   procedure Rule_Sort (Rule_List : in out Rule_Lists.List)
+   procedure Rule_Sort (Rule_List : in out Rule_Lists.Lists.List)
    is
       package Rule_List_Sorting is
-         new Rule_Lists.Generic_Sorting ("<" => Less_Than);
+         new Rule_Lists.Lists.Generic_Sorting ("<" => Less_Than);
    begin
       Rule_List_Sorting.Sort (Rule_List);
    end Rule_Sort;

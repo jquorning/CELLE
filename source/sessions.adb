@@ -28,8 +28,8 @@ package body Sessions is
    begin
       return
         Session_Type'(Sorted       => State_Vectors.Empty_Vector,
-                      Rule         => Rules.Rule_Lists.Empty_List,
-                      Start_Rule   => Rules.Rule_Lists.No_Element,
+                      Rule         => Rule_Lists.Lists.Empty_List,
+                      Start_Rule   => Rule_Lists.Lists.No_Element,
                       Num_X_State  => 0,
                       Num_Symbol   => 0,          Num_Terminal   => 0,
                       Min_Shift_Reduce => 0,      Err_Action   => 0,

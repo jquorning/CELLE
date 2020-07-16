@@ -1,6 +1,6 @@
 with Symbols;
 with States;
-with Rules;
+--  with Rules;
 
 package body Action_Lists is
 
@@ -8,7 +8,7 @@ package body Action_Lists is
                      Kind        : in     Actions.Action_Kind;
                      Symbol      : in     Symbols.Symbol_Access;
                      State       : in     States.State_Access;
-                     Rule        : in     Rules.Rule_Access)
+                     Rule        : in     Rule_Access)
    is
       use Actions;
 --      New_Action : Action_Access;

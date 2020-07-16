@@ -18,7 +18,7 @@ with Ada.Containers.Vectors;
 
 limited with Symbols;
 
-with Rules;
+with Rule_Lists;
 with Report_Parsers;
 with States;
 with Types;
@@ -138,9 +138,10 @@ package Sessions is
          Sorted : State_Vectors.Vector;
          --  Table of states sorted by state number
 
-         Rule : Rules.Rule_Lists.List;
+         Rule : Rule_Lists.Lists.List;
          --  List of all rules
-         Start_Rule : Rules.Rule_Lists.Cursor;
+
+         Start_Rule : Rule_Lists.Lists.Cursor;
          --  First rule
 
          --  Number of states in Sorted

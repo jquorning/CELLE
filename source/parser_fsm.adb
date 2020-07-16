@@ -13,12 +13,34 @@ with Types;
 with Symbols;
 with Errors;
 with Rules;
+with Rule_Lists;
 
 package body Parser_FSM is
+
+   package Unbounded renames Ada.Strings.Unbounded;
+
+   subtype Ustring is Unbounded.Unbounded_String;
 
    subtype Session_Type   is Sessions.Session_Type;
    subtype Scanner_Record is Parser_Data.Scanner_Record;
    subtype Symbol_Record  is Symbols.Symbol_Record;
+
+   subtype Rule_Symbol_Access is Rules.Rule_Symbol_Access;
+
+   subtype Dot_Type     is Rules.Dot_Type;
+   subtype Index_Number is Rules.Index_Number;
+
+   Null_Ustring : constant Ustring :=
+     Unbounded.Null_Unbounded_String;
+
+   function To_String (Item : Ustring) return String
+     renames Unbounded.To_String;
+
+   function To_Ustring (Item : String) return Ustring
+     renames Unbounded.To_Unbounded_String;
+
+   function Length (Item : Ustring) return Natural
+     renames Unbounded.Length;
 
    use Parser_Data;
 
@@ -98,8 +120,6 @@ package body Parser_FSM is
    --
 
    use Errors;
-   use Ada.Strings.Unbounded;
-
 
    procedure Do_State (Session : in out Session_Type;
                        Scanner : in out Scanner_Record;
@@ -196,7 +216,7 @@ package body Parser_FSM is
                              Scanner : in out Scanner_Record)
    is
       pragma Unreferenced (Session);
-      use Rules.Rule_Lists;
+      use Rule_Lists.Lists;
    begin
       Scanner.Previous_Rule := No_Element;
       Scanner.Prec_Counter  := 0;
@@ -211,7 +231,7 @@ package body Parser_FSM is
    is
       pragma Unreferenced (Session);
       use Rules;
-      use Rules.Rule_Lists;
+      use Rule_Lists.Lists;
 
       Cur : Character renames Token (Token'First);
    begin
@@ -240,7 +260,7 @@ package body Parser_FSM is
          else
             Element (Scanner.Previous_Rule).Line := Scanner.Token_Lineno;
             Element (Scanner.Previous_Rule).Code :=
-              Unbounded_String'(To_Unbounded_String (Token (Token'First + 1 .. Token'Last)));
+              Ustring'(To_Ustring (Token (Token'First + 1 .. Token'Last)));
             Element (Scanner.Previous_Rule).No_Code := False;
          end if;
 
@@ -257,7 +277,7 @@ package body Parser_FSM is
                                          Token   : in     String)
    is
       use Rules;
-      use Rules.Rule_Lists;
+      use Rule_Lists.Lists;
    begin
       if Token (Token'First) not in 'A' .. 'Z' then
          Parser_Error (E004, Scanner.Token_Lineno);
@@ -302,7 +322,7 @@ package body Parser_FSM is
         Cur in 'a' .. 'z' or
         Cur in 'A' .. 'Z'
       then
-         Scanner.Decl_Keyword      := To_Unbounded_String (Token);
+         Scanner.Decl_Keyword      := To_Ustring (Token);
          Scanner.Decl_Arg_Slot     := null;
          Scanner.Insert_Line_Macro := True;
 
@@ -430,7 +450,7 @@ package body Parser_FSM is
 
             Symbol : Symbol_Access := Create (Token);
          begin
-            Scanner.Decl_Arg_Slot     := new Unbounded_String'(Symbol.Destructor);
+            Scanner.Decl_Arg_Slot     := new Ustring'(Symbol.Destructor);
             Scanner.Decl_Lineno_Slot  := Symbol.Dest_Lineno'Access;
             Scanner.Insert_Line_Macro := True;
          end;
@@ -563,20 +583,24 @@ package body Parser_FSM is
    begin
       if Cur = '.' then
          declare
-            use Rules;
+            use Rule_Lists;
             use Rules.Alias_Vectors;
 
             Rule : Rule_Access;
          begin
-            Rule := new Rule_Record;
+            Rule := new Rules.Rule_Record;
             Rule.Rule_Line := Scanner.Token_Lineno;
 
             for I in Scanner.RHS.First_Index .. Scanner.RHS.Last_Index loop
-               Rule.RHS.Append (Rule_Symbol_Access (Scanner.RHS.Element (I)));
+
+               Rule.RHS.Append
+                 (New_Item => Rules.Rule_Symbol_Access (Scanner.RHS.Element (I)),
+                  Count    => 1);
+
                if I in Scanner.Alias.First_Index .. Scanner.Alias.Last_Index then
                   Rule.RHS_Alias.Append (Scanner.Alias.Element (I));
                else
-                  Rule.RHS_Alias.Append (Null_Unbounded_String);
+                  Rule.RHS_Alias.Append (Null_Ustring);
                end if;
 
                if Length (Rule.RHS_Alias.Element (Dot_Type (I))) /= 0 then
@@ -590,11 +614,11 @@ package body Parser_FSM is
 
             Rule.LHS := Rule_Symbol_Access (Scanner.LHS.First_Element);
             if Scanner.LHS_Alias.Is_Empty then
-               Rule.LHS_Alias := Null_Unbounded_String;
+               Rule.LHS_Alias := Null_Ustring;
             else
                Rule.LHS_Alias := Scanner.LHS_Alias.First_Element;
             end if;
-            Rule.Code        := Null_Code;
+            Rule.Code        := Rules.Null_Code;
             Rule.No_Code     := True;
             Rule.Prec_Symbol := null;
             Rule.Index       := Index_Number (Scanner.Rule.Length);
@@ -602,7 +626,7 @@ package body Parser_FSM is
             declare
                use Symbols;
             begin
-               Rule.Next_LHS := Rule_Access (Symbol_Access (Rule.LHS).Rule);
+               Rule.Next_LHS := Rules.Rule_Access (Symbol_Access (Rule.LHS).Rule);
                Symbol_Access (Rule.LHS).Rule := Rule;
             end;
 
@@ -616,7 +640,7 @@ package body Parser_FSM is
         Cur in 'A' .. 'Z'
       then
          Scanner.RHS  .Append (Symbols.Create (Token));
-         Scanner.Alias.Append (Null_Unbounded_String);
+         Scanner.Alias.Append (Null_Ustring);
 
       elsif
         (Cur = '|' or Cur = '/') and not
@@ -676,19 +700,20 @@ package body Parser_FSM is
         Cur in '0' .. '9'
       then
          declare
+            use Unbounded;
             use type Types.Line_Number;
 
             N    : Integer;
             Back : Integer;
             New_String     : constant String := Token;
-            Old_String     : Unbounded_String;
-            Buf_String     : Unbounded_String;
-            Z              : Unbounded_String;
+            Old_String     : Ustring;
+            Buf_String     : Ustring;
+            Z              : Ustring;
             New_First      : Positive := New_String'First;
             Old_Length     : Natural;
             Z_Pos          : Natural;
             Add_Line_Macro : Boolean;
-            Line           : Unbounded_String;
+            Line           : Ustring;
          begin
             if
               New_String (New_First) = '"' or
@@ -698,7 +723,7 @@ package body Parser_FSM is
             end if;
 
             if Scanner.Decl_Arg_Slot = null then
-               Old_String := To_Unbounded_String ("");
+               Old_String := To_Ustring ("");
             else
                Old_String := Scanner.Decl_Arg_Slot.all;
             end if;
@@ -798,6 +823,7 @@ package body Parser_FSM is
                                                    Token   : in     String)
    is
       pragma Unreferenced (Session);
+      use type Ustring;
    begin
       if
         Token (Token'First) not in 'a' .. 'z' and
@@ -813,7 +839,7 @@ package body Parser_FSM is
          begin
             if
               Symbol /= null and then
-              Symbol.Data_Type /= Null_Unbounded_String
+              Symbol.Data_Type /= Null_Ustring
             then
                Parser_Error (E207, Scanner.Line, Token);
                Scanner.State := RESYNC_AFTER_DECL_ERROR;

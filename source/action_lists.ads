@@ -4,9 +4,12 @@ with Ada.Containers.Doubly_Linked_Lists;
 with Actions;
 limited with Symbols;
 limited with States;
-limited with Rules;
+--  limited with Rules;
+with Rule_Lists;
 
 package Action_Lists is
+
+   subtype Rule_Access is Rule_Lists.Rule_Access;
 
    package Action_DLLs is
       new Ada.Containers.Doubly_Linked_Lists ("="          => Actions."=",
@@ -21,7 +24,7 @@ package Action_Lists is
                      Kind        : in     Actions.Action_Kind;
                      Symbol      : in     Symbols.Symbol_Access;
                      State       : in     States.State_Access;
-                     Rule        : in     Rules.Rule_Access);
+                     Rule        : in     Rule_Access);
    --  Action_Add
    --  Append symbol to Action_List
 

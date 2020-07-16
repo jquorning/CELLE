@@ -15,6 +15,7 @@ with Types;
 with Reports;
 with Options;
 with Rules;
+with Rule_Lists;
 with Symbols.IO;
 with Symbol_Sets;
 with Errors;
@@ -27,6 +28,7 @@ with Debugs;
 
 package body Builds is
 
+   subtype Rule_Access is Rule_Lists.Rule_Access;
 
    procedure Find_Rule_Precedences (Session : in out Sessions.Session_Type)
    is
@@ -147,11 +149,9 @@ package body Builds is
       use Ada.Strings.Unbounded;
       use Errors;
       use Symbols;
-      use Rules;
-      use Rules.Rule_Lists;
+      use Rule_Lists.Lists;
 
       Start_Symbol      : Symbol_Access;
-      Rule              : Rule_Access;
       Dummy_First_State : States.State_Access;
    begin
       Config_Lists.Init;
@@ -188,19 +188,22 @@ package body Builds is
       --  The basis configuration set for the first state
       --  is all rules which have the start symbol as their
       --  left-hand side
-
-      Rule := Rule_Access (Start_Symbol.Rule);
-      while Rule /= null loop
-         declare
-            Dummy  : Boolean;
-            Config : Configs.Config_Access;
-         begin
-            Rule.LHS_Start := True;
-            Config := Config_Lists.Add_Basis (Rule, Dot => 0);
-            Dummy  := Symbol_Sets.Set_Add (Config.Follow_Set, 0);
-         end;
-         Rule := Rule.Next_LHS;
-      end loop;
+      declare
+         use type Rule_Access;
+         Rule : Rule_Access := Rule_Access (Start_Symbol.Rule);
+      begin
+         while Rule /= null loop
+            declare
+               Dummy  : Boolean;
+               Config : Configs.Config_Access;
+            begin
+               Rule.LHS_Start := True;
+               Config := Config_Lists.Add_Basis (Rule, Dot => 0);
+               Dummy  := Symbol_Sets.Set_Add (Config.Follow_Set, 0);
+            end;
+            Rule := Rule_Access (Rule.Next_LHS);
+         end loop;
+      end;
 
       --  Compute the first state.  All other states will be
       --  computed automatically during the computation of the first one.
@@ -240,8 +243,9 @@ package body Builds is
             if Dot_Type (Config.Rule.RHS.Length) = Config.Dot then
                for J in 0 .. Session.Num_Terminal - 1 loop
                   if Symbol_Sets.Set_Find (Config.Follow_Set, J) then
-                     --  Add a reduce action to the state "stp" which will reduce by the
-                     --  rule "cfp->rp" if the lookahead symbol is "lemp->symbols[j]"
+                     --  Add a reduce action to the state "stp" which will
+                     --  reduce by the rule "cfp->rp" if the lookahead symbol
+                     --  is "lemp->symbols[j]"
                      Action_Lists.Append (State.Action, Reduce,
                                           Element_At (J),
                                           State => null,
@@ -476,7 +480,8 @@ package body Builds is
          then
 
             Config_Lists.Reset;  -- Reset the new config set
-            Symbol := Symbol_Access (Config.Rule.RHS.Element (Config.Dot)); -- Symbol after the dot
+            Symbol := Symbol_Access (Config.Rule.RHS.Element (Config.Dot));
+            --  Symbol after the dot
 
             --  For every configuration in the state "stp" which has the symbol "sp"
             --  following its dot, add the same configuration to the basis set under
@@ -495,7 +500,11 @@ package body Builds is
                   if Same_Symbol (B_Symbol, Symbol) then
 
                      B_Config.Status := Complete;  --  Mark this config as used
-                     New_Config := Config_Lists.Add_Basis (B_Config.Rule, B_Config.Dot + 1);
+
+                     New_Config := Config_Lists.Add_Basis
+                       (B_Config.Rule,
+                        B_Config.Dot + 1);
+
                      Prop_Links.Append (New_Config.Backward_PL, B_Config);
                   end if;
                end if;
@@ -747,7 +756,7 @@ package body Builds is
    is
       use Ada.Strings.Unbounded;
       use Symbols;
-      use Rules.Rule_Lists;
+      use Rule_Lists.Lists;
    begin
       if Session.Names.Start = "" then
          Symbol := Symbol_Access (Element (Session.Start_Rule).LHS);
