@@ -300,6 +300,10 @@ package body Reports is
    --
    --
 
+   procedure Emit_SQL (File    : File_Type;
+                       Session : Session_Type);
+   --
+
    type AX_Set_Record is
       record
          Token        : AX_Record;
@@ -581,6 +585,94 @@ package body Reports is
       Close (File);
    end Report_Output;
 
+   --------------
+   -- Emit_SQL --
+   --------------
+
+   procedure Emit_SQL (File    : File_Type;
+                       Session : Session_Type)
+   is
+      subtype Rule_Number is Rules.Rule_Number;
+      use type Rule_Number;
+      --  use type Ada.Containers.Count_Type;
+      use type Symbol_Index;
+      use type Symbols.Symbol_Kind;
+
+      I : Rule_Number;
+      J : Symbol_Index;
+   begin
+      Put_Line (File, "BEGIN;");
+      Put_Line (File, "CREATE TABLE symbol(");
+      Put_Line (File, "  id INTEGER PRIMARY KEY,");
+      Put_Line (File, "  name TEXT NOT NULL,");
+      Put_Line (File, "  isTerminal BOOLEAN NOT NULL,");
+      Put_Line (File, "  fallback INTEGER REFERENCES symbol"
+                  & " DEFERRABLE INITIALLY DEFERRED");
+      Put_Line (File, ");");
+
+      for I in 0 .. Session.N_Symbol - 1 loop
+         Put (File,  "INSERT INTO symbol(id,name,isTerminal,fallback) ");
+         Put (File, " VALUES(");
+         Put (File, I'Image);  Put (File, ",'");
+         Put (File, Symbols.Name_Of (Symbols.Element_At (I))); Put (File, "',");
+         Put (File, (if I < Session.N_Terminal then "TRUE" else "FALSE"));
+         Put (File, ",");
+
+         if Symbols.Element_At (I).Fallback /= null then
+            Put (File, Symbols.Element_At (I).Fallback.Index'Image);
+            Put_Line (File, ");");
+         else
+            Put_Line (File, "NULL);");
+         end if;
+      end loop;
+
+      Put_Line (File, "CREATE TABLE rule(");
+      Put_Line (File, "  ruleid INTEGER PRIMARY KEY,");
+      Put_Line (File, "  lhs INTEGER REFERENCES symbol(id),");
+      Put_Line (File, "  txt TEXT");
+      Put_Line (File, ");");
+      Put_Line (File, "CREATE TABLE rulerhs(");
+      Put_Line (File, "  ruleid INTEGER REFERENCES rule(ruleid),");
+      Put_Line (File, "  pos INTEGER,");
+      Put_Line (File, "  sym INTEGER REFERENCES symbol(id)");
+      Put_Line (File, ");");
+
+      I := 0;
+      for Rule of Session.Rule loop
+         pragma Assert (I = Rule.Number);
+
+         Put (File, "INSERT INTO rule(ruleid,lhs,txt) VALUES(");
+         Put (File, Rule.Number'Image);     Put (File, ",");
+         Put (File, Rule.LHS.Index'Image);  Put (File, ",'");
+
+         Write_Rule_Text (File, Rule);
+         Put_Line (File, "');");
+
+         J := 0;
+         for Symbol of Rule.RHS loop
+            if Symbol.Kind /= Symbols.Multi_Terminal then
+               Put (File, "INSERT INTO rulerhs(ruleid,pos,sym)VALUES(");
+               Put (File, I'Image);      Put (File, ",");
+               Put (File, J'Image);      Put (File, ",");
+               Put (File, Symbol.Index'Image); Put (File, ");");
+               Put_Line (File, "");
+            else
+               for Sub_Symbol of Symbol.Sub_Symbol loop
+                  Put (File, "INSERT INTO rulerhs(ruleid,pos,sym)VALUES(");
+                  Put (File, I'Image);      Put (File, ",");
+                  Put (File, J'Image);      Put (File, ",");
+                  Put (File, Sub_Symbol.Index'Image); Put (File, ");");
+                  Put_Line (File, "");
+               end loop;
+            end if;
+            J := J + 1;
+         end loop;
+
+         I := I + 1;
+      end loop;
+      Put_Line (File, "COMMIT;");
+   end Emit_SQL;
+
    ------------------
    -- Report_Table --
    ------------------
@@ -644,6 +736,22 @@ package body Reports is
       Auxiliary.Recreate (File, Ada.Text_IO.Out_File,
                           File_Name => File_Makename (Session, ".c"));
 
+      if Generate_SQL then
+         declare
+            use Ada.Text_IO;
+         begin
+            Open (SQL_File, Ada.Text_IO.Out_File, "XXX" & ".sql");
+
+         exception
+            when others =>
+               --               Close (Input_File);
+               Close (Out_File);
+               return;
+         end;
+
+         Emit_SQL (SQL_File, Session);
+
+      end if;
   --  if( sqlFlag==0 ){
   --    sql = 0;
   --  }else{
@@ -653,68 +761,6 @@ package body Reports is
   --      fclose(out);
   --      return;
   --    }
-  --    fprintf(sql,
-  --       "BEGIN;\n"
-  --       "CREATE TABLE symbol(\n"
-  --       "  id INTEGER PRIMARY KEY,\n"
-  --       "  name TEXT NOT NULL,\n"
-  --       "  isTerminal BOOLEAN NOT NULL,\n"
-  --       "  fallback INTEGER REFERENCES symbol"
-  --               " DEFERRABLE INITIALLY DEFERRED\n"
-  --       ");\n"
-  --    );
-  --    for(i=0; i<lemp->nsymbol; i++){
-  --      fprintf(sql,
-  --         "INSERT INTO symbol(id,name,isTerminal,fallback)"
-  --         "VALUES(%d,'%s',%s",
-  --         i, lemp->symbols[i]->name,
-  --         i<lemp->nterminal ? "TRUE" : "FALSE"
-  --      );
-  --      if( lemp->symbols[i]->fallback ){
-  --        fprintf(sql, ",%d);\n", lemp->symbols[i]->fallback->index);
-  --      }else{
-  --        fprintf(sql, ",NULL);\n");
-  --      }
-  --    }
-  --    fprintf(sql,
-  --      "CREATE TABLE rule(\n"
-  --      "  ruleid INTEGER PRIMARY KEY,\n"
-  --      "  lhs INTEGER REFERENCES symbol(id),\n"
-  --      "  txt TEXT\n"
-  --      ");\n"
-  --      "CREATE TABLE rulerhs(\n"
-  --      "  ruleid INTEGER REFERENCES rule(ruleid),\n"
-  --      "  pos INTEGER,\n"
-  --      "  sym INTEGER REFERENCES symbol(id)\n"
-  --      ");\n"
-  --    );
-  --    for(i=0, rp=lemp->rule; rp; rp=rp->next, i++){
-  --      assert( i==rp->iRule );
-  --      fprintf(sql,
-  --        "INSERT INTO rule(ruleid,lhs,txt)VALUES(%d,%d,'",
-  --        rp->iRule, rp->lhs->index
-  --      );
-  --      writeRuleText(sql, rp);
-  --      fprintf(sql,"');\n");
-  --      for(j=0; j<rp->nrhs; j++){
-  --        struct symbol *sp = rp->rhs[j];
-  --        if( sp->type!=MULTITERMINAL ){
-  --          fprintf(sql,
-  --            "INSERT INTO rulerhs(ruleid,pos,sym)VALUES(%d,%d,%d);\n",
-  --            i,j,sp->index
-  --          );
-  --        }else{
-  --          int k;
-  --          for(k=0; k<sp->nsubsym; k++){
-  --            fprintf(sql,
-  --              "INSERT INTO rulerhs(ruleid,pos,sym)VALUES(%d,%d,%d);\n",
-  --              i,j,sp->subsym[k]->index
-  --            );
-  --          }
-  --        }
-  --      }
-  --    }
-  --    fprintf(sql, "COMMIT;\n");
   --  }
   --  lineno = 1;
 
