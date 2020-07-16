@@ -25,5 +25,5 @@ jobs:
     - name: Setup
       run: mkdir binary
 
-    - name: Build Lemon
+    - name: Build Lemon (Debug)
       run: gcc debug/lemon_debug_3320300.c -o binary/dlemon
