@@ -4,3 +4,4 @@ source/setup.adb
 *.h
 *.c
 *.out
+debug/dlemon

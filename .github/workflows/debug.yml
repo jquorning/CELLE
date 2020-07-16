@@ -6,9 +6,9 @@ name: Build
 # events but only for the master branch
 on:
   push:
-    branches: [ master ]
+    branches: [ debug ]
   pull_request:
-    branches: [ master ]
+    branches: [ debug ]
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -25,11 +25,5 @@ jobs:
     - name: Install GNAT and gprbuild
       run: sudo apt-get install gnat gprbuild
 
-    - name: Setup Cherry
-      run: make setup
-
-    - name: Build Cherry
-      run: gprbuild cherry.gpr -j0 -k
-
     - name: Build Lemon
-      run: gcc original/lemon_3320300.c -o lemon
+      run: gcc debug/lemon_3320300.c -o dlemon
