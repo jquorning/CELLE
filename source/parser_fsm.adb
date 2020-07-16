@@ -16,7 +16,10 @@ with Rules;
 
 package body Parser_FSM is
 
-   use Sessions;
+   subtype Session_Type   is Sessions.Session_Type;
+   subtype Scanner_Record is Parser_Data.Scanner_Record;
+   subtype Symbol_Record  is Symbols.Symbol_Record;
+
    use Parser_Data;
 
    procedure Do_State_Waiting_For_Decl_Or_Rule (Session : in out Session_Type;

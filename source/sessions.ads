@@ -16,8 +16,9 @@
 with Ada.Strings.Unbounded;
 with Ada.Containers.Vectors;
 
+limited with Symbols;
+
 with Rules;
-with Symbols;
 with Report_Parsers;
 with States;
 with Types;
@@ -25,11 +26,14 @@ with Action_Tables;
 
 package Sessions is
 
-   use Symbols;
-   use Ada.Strings.Unbounded;
+   subtype UString is Ada.Strings.Unbounded.Unbounded_String;
 
-   subtype Action_Value is Action_Tables.Action_Value;
-   subtype Offset_Type  is Types.Offset_Type;
+   subtype Symbol_Record is Symbols.Symbol_Record;
+   subtype Action_Value  is Action_Tables.Action_Value;
+   subtype Offset_Type   is Types.Offset_Type;
+
+   Null_UString : UString
+     renames Ada.Strings.Unbounded.Null_Unbounded_String;
 
    --  Symbols (terminals and nonterminals) of the grammar are stored
    --  in the following:
@@ -66,61 +70,61 @@ package Sessions is
    --  static variables.  Fields in the following structure can be thought
    --  of as begin global variables in the program.)
 
-   E : Unbounded_String renames Null_Unbounded_String;
+   type Parser_Names_Record is
+      record
 
-   type Parser_Names_Record is record
-      Name       : aliased Unbounded_String := E;
-      --  Name of the generated parser
+         Name : aliased UString := Null_UString;
+         --  Name of the generated parser
 
-      ARG2       : aliased Unbounded_String := E;
-      --  Declaration of the 3th argument to parser
+         ARG2 : aliased UString := Null_UString;
+         --  Declaration of the 3th argument to parser
 
-      CTX2       : aliased Unbounded_String := E;
-      --  Declaration of 2nd argument to constructor
+         CTX2 : aliased UString := Null_UString;
+         --  Declaration of 2nd argument to constructor
 
-      Token_Type : aliased Unbounded_String := E;
-      --  Type of terminal symbols in the parser stack
+         Token_Type : aliased UString := Null_UString;
+         --  Type of terminal symbols in the parser stack
 
-      Var_Type   : aliased Unbounded_String := E;
-      --  The default type of non-terminal symbols
+         Var_Type : aliased UString := Null_UString;
+         --  The default type of non-terminal symbols
 
-      Start      : aliased Unbounded_String := E;
-      --  Name of the start symbol for the grammar
+         Start : aliased UString := Null_UString;
+         --  Name of the start symbol for the grammar
 
-      Stack_Size : aliased Unbounded_String := E;
-      --  Size of the parser stack
+         Stack_Size : aliased UString := Null_UString;
+         --  Size of the parser stack
 
-      Include    : aliased Unbounded_String := E;
-      --  Code to put at the start of the C file
+         Include : aliased UString := Null_UString;
+         --  Code to put at the start of the C file
 
-      Error      : aliased Unbounded_String := E;
-      --  Code to execute when an error is seen
+         Error : aliased UString := Null_UString;
+         --  Code to execute when an error is seen
 
-      Overflow   : aliased Unbounded_String := E;
-      --  Code to execute on a stack overflow
+         Overflow : aliased UString := Null_UString;
+         --  Code to execute on a stack overflow
 
-      Failure    : aliased Unbounded_String := E;
-      --  Code to execute on parser failure
+         Failure : aliased UString := Null_UString;
+         --  Code to execute on parser failure
 
-      C_Accept   : aliased Unbounded_String := E;
-      --  Code to execute when the parser excepts
+         C_Accept : aliased UString := Null_UString;
+         --  Code to execute when the parser excepts
 
-      Extra_Code : aliased Unbounded_String := E;
-      --  Code appended to the generated file
+         Extra_Code : aliased UString := Null_UString;
+         --  Code appended to the generated file
 
-      Token_Dest : aliased Unbounded_String := E;
-      --  Code to execute to destroy token data
+         Token_Dest : aliased UString := Null_UString;
+         --  Code to execute to destroy token data
 
-      Var_Dest   : aliased Unbounded_String := E;
-      --  Code for the default non-terminal destructor
+         Var_Dest : aliased UString := Null_UString;
+         --  Code for the default non-terminal destructor
 
-      Token_Prefix : aliased Unbounded_String := E;
-      --  A prefix added to token names in the .h file
+         Token_Prefix : aliased UString := Null_UString;
+         --  A prefix added to token names in the .h file
 
-   end record;
+      end record;
 
    Parser_Names : aliased Parser_Names_Record :=
-     (others => Null_Unbounded_String);
+     (others => Null_UString);
 
    subtype State_Index is Types.Symbol_Index;
    package State_Vectors is
@@ -176,18 +180,18 @@ package Sessions is
          Error_Cnt : Integer;
          --  Number of errors
 
-         Error_Symbol : Symbol_Access;
+         Error_Symbol : access Symbol_Record;
          --  The error symbol
 
-         Wildcard : Symbol_Access;
+         Wildcard : access Symbol_Record;
          --  Token that matches anything
 
          Names : access Parser_Names_Record;
 
-         File_Name : Unbounded_String;
+         File_Name : UString;
          --  Name of the input file
 
-         Out_Name : Unbounded_String;
+         Out_Name : UString;
          --  Name of the current output file
 
          --         Token_Prefix     : aliased chars_ptr;
@@ -214,7 +218,7 @@ package Sessions is
          No_Linenos_Flag : Boolean;
          --  True if #line statements should not be printed
 
-         Argv0 : Unbounded_String;
+         Argv0 : UString;
          --  Name of the program
 
          Parser : Report_Parsers.Context_Access;
@@ -233,8 +237,8 @@ package Sessions is
                    Error_Cnt    => 0,          Error_Symbol => null,
                    Wildcard         => null,
                    Names        => Parser_Names'Access,
-                   File_Name    => Null_Unbounded_String,
-                   Out_Name     => Null_Unbounded_String,
+                   File_Name    => Null_UString,
+                   Out_Name     => Null_UString,
                    Num_Conflict      => 0,
                    Num_Action_Tab    => 0,
                    Num_Lookahead_Tab => 0,
@@ -242,7 +246,7 @@ package Sessions is
                    Basis_Flag      => False,
                    Has_Fallback    => False,
                    No_Linenos_Flag => False,
-                   Argv0           => Null_Unbounded_String,
+                   Argv0           => Null_UString,
                    Parser          => Report_Parsers.Get_Context,
                    Num_Rule_With_Action => 0);
 
