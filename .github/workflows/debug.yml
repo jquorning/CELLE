@@ -32,4 +32,4 @@ jobs:
       run: |
            export PATH=binary/:$PATH
            cd test/sqlite
-           dlemon -z=1 parse.y
+           ../../binary/dlemon -z=1 parse.y
