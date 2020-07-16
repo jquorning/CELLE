@@ -10,7 +10,7 @@
 package body Rules is
 
 
-   procedure Assing_Sequential_Rule_Numbers (Rule_List : in out Rule_Lists.Lists.List)
+   procedure Assing_Sequential_Rule_Numbers (List : in out Rule_List)
    is
       use Types;
 
@@ -20,7 +20,7 @@ package body Rules is
       --  Assing .Rule
 
       Index := 0;
-      for Rule of Rule_List loop
+      for Rule of List loop
          if Rule.Code = Null_Code then
             Rule.Number := -1;
          else
@@ -31,7 +31,7 @@ package body Rules is
 
       --  Assign Rule numbers when Rule < 0 stop when Rule = 0.
 
-      for Rule of Rule_List loop
+      for Rule of List loop
          if Rule.Number < 0 then
             Rule.Number := Rule_Number (Index);
             Index := Index + 1;
@@ -47,12 +47,12 @@ package body Rules is
       (Left.Number < Right.Number);
 
 
-   procedure Rule_Sort (Rule_List : in out Rule_Lists.Lists.List)
+   procedure Rule_Sort (List : in out Rule_List)
    is
       package Rule_List_Sorting is
          new Rule_Lists.Lists.Generic_Sorting ("<" => Less_Than);
    begin
-      Rule_List_Sorting.Sort (Rule_List);
+      Rule_List_Sorting.Sort (List);
    end Rule_Sort;
 
 

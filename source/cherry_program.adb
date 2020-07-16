@@ -224,7 +224,7 @@ begin
       --  Assign sequential rule numbers.  Start with 0.  Put rules that have no
       --  reduce action C-code associated with them last, so that the switch()
       --  statement that selects reduction actions will have a smaller jump table.
-      Rules.Assing_Sequential_Rule_Numbers (Rule_List => Session.Rule);
+      Rules.Assing_Sequential_Rule_Numbers (List => Session.Rule);
 
       --  Session.Num_Rule_With_Action := i;
       --  lem.nruleWithAction = i;

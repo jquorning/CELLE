@@ -16,6 +16,9 @@ with Rule_Lists;
 
 package Rules is
 
+   subtype Rule_Access is Rule_Lists.Rule_Access;
+   subtype Rule_List   is Rule_Lists.Lists.List;
+
    type Dot_Type is new Natural;
    Ignore : constant Dot_Type := Dot_Type'Last;
 
@@ -46,45 +49,47 @@ package Rules is
 
    --  Each production rule in the grammar is stored in the following
    --  structure.
-   type Rule_Record;
-   type Rule_Access is access all Rule_Record;
-
    type Index_Number is new Integer;
    type Rule_Number  is new Integer;
 
    type Rule_Record is
       record
-         LHS          : Rule_Symbol_Access := null;
-         LHS_Alias    : Unbounded_String   := Null_Unbounded_String;
+
+         LHS       : Rule_Symbol_Access := null;
+         LHS_Alias : Unbounded_String   := Null_Unbounded_String;
          --  Alias for the LHS (NULL if none)
 
-         LHS_Start    : Boolean            := False; -- True if left-hand side is the start symbol
-         Rule_Line    : Line_Number        := 0;     -- Line number for the rule
-         RHS          : RHS_Vectors.Vector := RHS_Vectors.Empty_Vector;
+         LHS_Start : Boolean            := False;
+         --  True if left-hand side is the start symbol
+
+         Rule_Line : Line_Number        := 0;
+         --  Line number for the rule
+
+         RHS : RHS_Vectors.Vector := RHS_Vectors.Empty_Vector;
          --  The RHS symbols
 
-         RHS_Alias    : Alias_Vectors.Vector := Alias_Vectors.Empty_Vector;
+         RHS_Alias : Alias_Vectors.Vector := Alias_Vectors.Empty_Vector;
          --  An alias for each RHS symbol (NULL if none)
 
-         Line         : Line_Number := 0;
+         Line : Line_Number := 0;
          --  Line number at which code begins
 
-         Code         : T_Code  := Null_Unbounded_String;
+         Code : T_Code  := Null_Unbounded_String;
          --  The code executed when this rule is reduced
 
-         Code_Prefix  : T_Code  := Null_Unbounded_String;
+         Code_Prefix : T_Code  := Null_Unbounded_String;
          --  Setup code before code[] above
 
-         Code_Suffix  : T_Code  := Null_Unbounded_String;
+         Code_Suffix : T_Code  := Null_Unbounded_String;
          --  Breakdown code after code[] above
 
-         No_Code      : Boolean := False;
+         No_Code : Boolean := False;
          --  True if this rule has no associated C code
 
          Code_Emitted : Boolean := False;
          --  True if the code has been emitted already
 
-         Prec_Symbol  : Rule_Symbol_Access := null;
+         Prec_Symbol : Rule_Symbol_Access := null;
          --  Precedence symbol for this rule
 
          Index : Index_Number := 0;
@@ -103,15 +108,14 @@ package Rules is
          --  Reduce is theoretically possible, but prevented
          --  by actions or other outside implementation
 
-         Next_LHS     : Rule_Access := null;   -- Next rule with the same LHS
+         Next_LHS : Rule_Access := null;
+         --  Next rule with the same LHS
+
       end record;
 
---   package Rule_Lists is
---      new Ada.Containers.Doubly_Linked_Lists (Element_Type => Rule_Access);
-
-   procedure Rule_Sort (Rule_List : in out Rule_Lists.Lists.List);
+   procedure Rule_Sort (List : in out Rule_List);
    --  Sort a list of rules in order of increasing iRule Value
 
-   procedure Assing_Sequential_Rule_Numbers (Rule_List : in out Rule_Lists.Lists.List);
+   procedure Assing_Sequential_Rule_Numbers (List : in out Rule_List);
 
 end Rules;
