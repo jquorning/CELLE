@@ -635,7 +635,7 @@ package body Builds is
 
       --  Find the precedence for every production rule (that has one)
       Builds.Find_Rule_Precedences (Session);
-      if Options.Emit_Debug_Info then
+      if Options.Debug_Level > 0 then
          Ada.Text_IO.Put_Line ("16 dump_symbols");
          Symbols.IO.JQ_Dump_Symbols (Session, Mode => 1);
       end if;
@@ -644,13 +644,13 @@ package body Builds is
       --  nonterminal
       Builds.Find_First_Sets (Session);
 
-      if Options.Emit_Debug_Info then
+      if Options.Debug_Level > 0 then
          Ada.Text_IO.Put_Line ("17 dump_symbols");
          Symbols.IO.JQ_Dump_Symbols (Session, Mode => 1);
       end if;
 --        Ada.Text_IO.Put_Line ("17 dump_rules");
 --        Debugs.JQ_Dump_Rules (Session, Mode => 1);
-      if Options.Emit_Debug_Info then
+      if Options.Debug_Level > 0 then
          Ada.Text_IO.Put_Line ("17 dump_states");
          Debugs.Put_States (Session, Mode => 1);
       end if;

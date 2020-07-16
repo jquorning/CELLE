@@ -111,8 +111,10 @@ package body Command_Line is
       Define_Switch (Config, Options.Placeholder_Dummy'Access, "-W=",
                      Help     => "Placeholder for '-W' compiler options. Ignored.",
                      Argument => "IGNORE");
-      Define_Switch (Config, Options.Emit_Debug_Info'Access, "-z",
-                     Help     => "Emit debug info (dump of tables etc).");
+      Define_Switch (Config, Options.Debug_Level'Access, "-z=",
+                     Help     => "Emit debug info (dump of tables etc). "
+                       & "(Default LEVEL= 0)",
+                     Argument => "LEVEL");
       Define_Switch (Config, "*", Help => "File to Parse (Typically parse.y).");
 
       --  Do the whole parsing business.
