@@ -390,12 +390,12 @@ package body Reports is
       end if;
 
       --  Print symbol list
-      Skip := (Integer (Session.N_Symbol) + N_Columns - 1) / N_Columns;
+      Skip := (Integer (Session.Num_Symbol) + N_Columns - 1) / N_Columns;
       for I in 0 .. Skip - 1 loop
          Put (File, "//");
          J := Types.Symbol_Index (I);
          Column := 0;
-         while J < Session.N_Symbol loop
+         while J < Session.Num_Symbol loop
             Symbol := Symbols.Element_At (J);
             pragma Assert (Symbol.Index = J);
 
@@ -515,7 +515,7 @@ package body Reports is
                if Symbol.Lambda then
                   Put (File, " <lambda>");
                end if;
-               for J in 0 .. Session.N_Terminal - 1 loop
+               for J in 0 .. Session.Num_Terminal - 1 loop
                   if
                     Symbol.First_Set /= Symbol_Sets.Null_Set and then
                     Symbol_Sets.Set_Find (Symbol.First_Set, J)
@@ -610,12 +610,12 @@ package body Reports is
                   & " DEFERRABLE INITIALLY DEFERRED");
       Put_Line (File, ");");
 
-      for I in 0 .. Session.N_Symbol - 1 loop
+      for I in 0 .. Session.Num_Symbol - 1 loop
          Put (File,  "INSERT INTO symbol(id,name,isTerminal,fallback) ");
          Put (File, " VALUES(");
          Put (File, I'Image);  Put (File, ",'");
          Put (File, Symbols.Name_Of (Symbols.Element_At (I))); Put (File, "',");
-         Put (File, (if I < Session.N_Terminal then "TRUE" else "FALSE"));
+         Put (File, (if I < Session.Num_Terminal then "TRUE" else "FALSE"));
          Put (File, ",");
 
          if Symbols.Element_At (I).Fallback /= null then
@@ -781,7 +781,7 @@ package body Reports is
 --  XXX    Sessions_Session_Copy := Session;
       --  lime_generate_tokens (lime_get_mh_flag(), lemp->tokenprefix, 1, lemp->nterminal);
       Generate_Tokens (Session, To_String (Session.Names.Token_Prefix),
-                       1, Integer (Session.N_Terminal));
+                       1, Integer (Session.Num_Terminal));
 
       Templates.Transfer (File, Session_Name, Lineno);
 
@@ -911,7 +911,8 @@ package body Reports is
       --  of placing the largest action sets first
 --    for(i=0; i<lemp->nxstate*2; i++) ax[i].iOrder = i;
 --    qsort(ax, lemp->nxstate*2, sizeof(ax[0]), axset_compare);
-      Act_Tab := Action_Tables.Alloc (Integer (Symbols.Last_Index), Integer (Session.N_Terminal));
+      Act_Tab := Action_Tables.Alloc (Integer (Symbols.Last_Index),
+                                      Integer (Session.Num_Terminal));
 --    for(i=0; i<lemp->nxstate*2 && ax[i].nAction>0; i++){
 --      stp = ax[i].stp;
 --      if( ax[i].isTkn ){
@@ -971,7 +972,7 @@ package body Reports is
          Render =>
            (Nx_State         => Natural (Session.Nx_State),
             N_Rule           => Integer (Session.Rule.Length),
-            N_Terminal       => Integer (Session.N_Terminal),
+            N_Terminal       => Integer (Session.Num_Terminal),
             Min_Shift_Reduce => Session.Min_Shift_Reduce,
             Err_Action       => Session.Err_Action,
             Acc_Action       => Session.Acc_Action,
@@ -1034,7 +1035,7 @@ package body Reports is
 
             Look_Action := Act_Tab.Action (Index).Lookahead;
             if Look_Action < 0 then
-               Look_Action := Action_Value (Session.N_Symbol);
+               Look_Action := Action_Value (Session.Num_Symbol);
             end if;
 
             if Column = Column_Number'First then
@@ -1059,7 +1060,7 @@ package body Reports is
          --  Add extra entries to the end of the yy_lookahead[] table so that
          --  yy_shift_ofst[]+iToken will always be a valid index into the array,
          --  even for the largest possible value of yy_shift_ofst[] and iToken.
-         Num_Look_Ahead := Natural (Session.N_Terminal) + Session.N_Action_Tab;
+         Num_Look_Ahead := Natural (Session.Num_Terminal) + Session.N_Action_Tab;
 
          while Index < Num_Look_Ahead loop
 
@@ -1070,7 +1071,7 @@ package body Reports is
             end if;
 
             Put (File, " ");
-            Put (File, Session.N_Terminal, Width => 4);
+            Put (File, Session.Num_Terminal, Width => 4);
             Put (File, ",");
 
             if Column = Column_Number'Last then
@@ -1099,7 +1100,7 @@ package body Reports is
 --    lime_lemp = lemp;
       declare
          use type Offset_Type;
-         Num_Terminal : constant Offset_Type := Offset_Type (Session.N_Terminal);
+         Num_Terminal : constant Offset_Type := Offset_Type (Session.Num_Terminal);
          Num_Actions  : constant Offset_Type := Offset_Type (Session.N_Action_Tab);
          Upper        : constant Offset_Type := Num_Terminal + Num_Actions;
          Data_Type    : constant String      := Minimum_Size_Type (Mn_Tkn_Ofst,
@@ -1158,7 +1159,7 @@ package body Reports is
             use Symbols;
             use Types;
 
-            MX : Symbol_Index := Session.N_Terminal - 1;
+            MX : Symbol_Index := Session.Num_Terminal - 1;
          begin
             --  while MX > 0 and Session.Symbols (MX).Fallback = 0 loop
             while
@@ -1680,7 +1681,7 @@ package body Reports is
                --  Only apply this optimization to non-terminals.  It would be OK to
                --  apply it to terminal symbols too, but that makes the parser tables
                --  larger.
-               if Action.Symbol.Index < Session.N_Terminal then goto Looper; end if;
+               if Action.Symbol.Index < Session.Num_Terminal then goto Looper; end if;
                --  #endif
 
                --  If we reach this point, it means the optimization can be applied
@@ -1749,10 +1750,10 @@ package body Reports is
             begin
                if I_Action >= 0 then
 
-                  if Action.Symbol.Index < Session.N_Terminal then
+                  if Action.Symbol.Index < Session.Num_Terminal then
                      State.Num_Token := State.Num_Token + 1;
 
-                  elsif Action.Symbol.Index < Session.N_Symbol then
+                  elsif Action.Symbol.Index < Session.Num_Symbol then
                      State.Num_Nonterminal := State.Num_Nonterminal + 1;
 
                   else
@@ -2416,7 +2417,7 @@ package body Reports is
       Hash   : Long_Integer;     --  For hashing the name of a type
    begin
       --  Allocate and initialize types[] and allocate stddt[]
-      Array_Size := Long_Integer (Session.N_Symbol * 2);
+      Array_Size := Long_Integer (Session.Num_Symbol * 2);
       Types      := new Type_Array'(0 .. Array_Size - 1 => null);
 
       Max_DT_Length := 0;
@@ -2425,7 +2426,7 @@ package body Reports is
          Max_DT_Length := Length (Session.Names.Var_Type);
       end if;
 
-      for I in 0 .. Session.N_Symbol - 1 loop
+      for I in 0 .. Session.Num_Symbol - 1 loop
          declare
             Symbol : constant Symbol_Access := Symbols.Element_At (I);
          begin
@@ -2444,7 +2445,7 @@ package body Reports is
       --  then 0 is also used as the .dtnum value for nonterminals which do
       --  not specify a datatype using the %type directive.
 
-      for I in 0 .. Session.N_Symbol - 1 loop
+      for I in 0 .. Session.Num_Symbol - 1 loop
          declare
             Symbol : constant Symbol_Access := Symbols.Element_At (I);
          begin

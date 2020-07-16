@@ -63,8 +63,9 @@ package body Builds is
 
       Progress : Boolean;
    begin
-      Symbols.Set_Lambda_False_And_Set_Firstset (First => Natural (Session.N_Terminal),
-                                                 Last  => Natural (Session.N_Symbol - 1));
+      Symbols.Set_Lambda_False_And_Set_Firstset
+        (First => Natural (Session.Num_Terminal),
+         Last  => Natural (Session.Num_Symbol - 1));
 
       --  First compute all lambdas
 
@@ -237,7 +238,7 @@ package body Builds is
 
             --  Is dot at extreme right?
             if Dot_Type (Config.Rule.RHS.Length) = Config.Dot then
-               for J in 0 .. Session.N_Terminal - 1 loop
+               for J in 0 .. Session.Num_Terminal - 1 loop
                   if Symbol_Sets.Set_Find (Config.Follow_Set, J) then
                      --  Add a reduce action to the state "stp" which will reduce by the
                      --  rule "cfp->rp" if the lookahead symbol is "lemp->symbols[j]"

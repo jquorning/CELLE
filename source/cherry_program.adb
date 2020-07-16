@@ -92,12 +92,16 @@ procedure Cherry_Program is
          New_Line;
       end Stats_Line;
 
-      use type Types.Symbol_Index;
+      subtype Symbol_Index is Types.Symbol_Index;
+      use type Symbol_Index;
+
+      Num_Non_Terminal : constant Symbol_Index :=
+        Session.Num_Symbol - Session.Num_Terminal;
    begin
       Ada.Text_IO.Put_Line ("Parser statistics:");
-      Stats_Line ("terminal symbols", Integer (Session.N_Terminal));
-      Stats_Line ("non-terminal symbols", Integer (Session.N_Symbol - Session.N_Terminal));
-      Stats_Line ("total symbols", Integer (Session.N_Symbol));
+      Stats_Line ("terminal symbols", Integer (Session.Num_Terminal));
+      Stats_Line ("non-terminal symbols", Integer (Num_Non_Terminal));
+      Stats_Line ("total symbols", Integer (Session.Num_Symbol));
       Stats_Line ("rules", Integer (Session.Rule.Length));
       Stats_Line ("states", Integer (Session.Nx_State));
       Stats_Line ("conflicts", Session.N_Conflict);
@@ -203,8 +207,8 @@ begin
       begin
          Symbols.Count_Symbols_And_Terminals (Symbol_Count   => Symbol_Count,
                                               Terminal_Count => Terminal_Count);
-         Session.N_Symbol   := Types.Symbol_Index (Symbol_Count);
-         Session.N_Terminal := Types.Symbol_Index (Terminal_Count);
+         Session.Num_Symbol   := Types.Symbol_Index (Symbol_Count);
+         Session.Num_Terminal := Types.Symbol_Index (Terminal_Count);
          if Options.Emit_Debug_Info then
             Ada.Text_IO.Put ("nsymbol:" & Natural'Image (Symbol_Count));
             Ada.Text_IO.Put ("  nterminal:" & Natural'Image (Terminal_Count));

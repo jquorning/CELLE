@@ -146,10 +146,10 @@ package Sessions is
          Num_Rule_With_Action : Integer;
          --  Number of rules with actions
 
-         N_Symbol : Types.Symbol_Index;
+         Num_Symbol : Types.Symbol_Index;
          --  Number of terminal and nonterminal symbols
 
-         N_Terminal : Types.Symbol_Index;
+         Num_Terminal : Types.Symbol_Index;
          --  Number of terminal symbols
 
          Min_Shift_Reduce : Action_Value;
@@ -224,16 +224,22 @@ package Sessions is
                    Rule         => Rules.Rule_Lists.Empty_List,
                    Start_Rule   => Rules.Rule_Lists.No_Element,
                    Nx_State     => 0,
-                   N_Symbol     => 0,          N_Terminal   => 0,         Min_Shift_Reduce => 0,
-                   Err_Action   => 0,          Acc_Action   => 0,         No_Action        => 0,
-                   Min_Reduce   => 0,          Max_Action   => 0,         Symbols2         => 999,
-                   Error_Cnt    => 0,          Error_Symbol => null,      Wildcard         => null,
+                   Num_Symbol   => 0,          Num_Terminal   => 0,
+                   Min_Shift_Reduce => 0,      Err_Action   => 0,
+                   Acc_Action   => 0,         No_Action        => 0,
+                   Min_Reduce   => 0,          Max_Action   => 0,
+                   Symbols2         => 999,
+                   Error_Cnt    => 0,          Error_Symbol => null,
+                   Wildcard         => null,
                    Names        => Parser_Names'Access,
                    File_Name    => Null_Unbounded_String,
                    Out_Name     => Null_Unbounded_String,
-                   N_Conflict   => 0,        N_Action_Tab => 0,         N_Lookahead_Tab  => 0,
-                   Table_Size   => 0,        Basis_Flag   => False,     Has_Fallback     => False,
-                   No_Linenos_Flag => False, Argv0        => Null_Unbounded_String,
+                   N_Conflict   => 0,        N_Action_Tab => 0,
+                   N_Lookahead_Tab  => 0,
+                   Table_Size      => 0,     Basis_Flag   => False,
+                   Has_Fallback    => False,
+                   No_Linenos_Flag => False,
+                   Argv0           => Null_Unbounded_String,
                    Parser          => Report_Parsers.Get_Context,
                    Num_Rule_With_Action => 0);
 

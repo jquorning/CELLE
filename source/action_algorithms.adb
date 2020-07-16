@@ -27,7 +27,7 @@ package body Action_Algorithms is
             --  Since a SHIFT is inherient after a prior REDUCE, convert any
             --  SHIFTREDUCE action with a nonterminal on the LHS into a simple
             --  REDUCE action:
-            if Action.Symbol.Index >= Session.N_Terminal then
+            if Action.Symbol.Index >= Session.Num_Terminal then
                return Min_Reduce + Rule_Number;
             else
                return Min_SR + Rule_Number;
