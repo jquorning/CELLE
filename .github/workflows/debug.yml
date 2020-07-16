@@ -22,8 +22,8 @@ jobs:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
 
-    - name: Install GNAT and gprbuild
-      run: sudo apt-get install gnat gprbuild
+#    - name: Install GNAT and gprbuild
+#      run: sudo apt-get install gnat gprbuild
 
     - name: Build Lemon
       run: gcc debug/lemon_3320300.c -o dlemon
