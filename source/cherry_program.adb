@@ -190,14 +190,14 @@ begin
       end;
 
       if Options.Debug_Level > 0 then
-         Ada.Text_IO.Put_Line ("jq_dump_symbols before sort");
+         Ada.Text_IO.Put_Line ("debug_dump_symbols before sort");
          Symbols.IO.JQ_Dump_Symbols (Session, Mode => 0);
       end if;
 
       Symbols.Sort;
 
       if Options.Debug_Level > 0 then
-         Ada.Text_IO.Put_Line ("jq_dump_symbols after sort");
+         Ada.Text_IO.Put_Line ("debug_dump_symbols after sort");
          Symbols.IO.JQ_Dump_Symbols (Session, 0);
       end if;
 
@@ -217,7 +217,7 @@ begin
       end;
 
       if Options.Debug_Level > 0 then
-         Ada.Text_IO.Put_Line ("jq_dump_rules first");
+         Ada.Text_IO.Put_Line ("debug_dump_rules first");
          Debugs.JQ_Dump_Rules (Session, 0);
       end if;
 
@@ -232,7 +232,7 @@ begin
       --  Not sure is should go into Assing_Sequential_Rule_Numbers
 
       if Options.Debug_Level > 0 then
-         Ada.Text_IO.Put_Line ("jq_dump_rules second");
+         Ada.Text_IO.Put_Line ("debug_dump_rules second");
          Debugs.JQ_Dump_Rules (Session, 0);
       end if;
 
@@ -240,7 +240,7 @@ begin
       Rule_Sort (Session.Rule);
 
       if Options.Debug_Level > 0 then
-         Ada.Text_IO.Put_Line ("jq_dump_rules third");
+         Ada.Text_IO.Put_Line ("debug_dump_rules third");
          Debugs.JQ_Dump_Rules (Session, 0);
       end if;
 
