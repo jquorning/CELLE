@@ -32,17 +32,20 @@ jobs:
       run: |
            cd test/sqlite
            mkdir debug original
-           ln -s ../../binary/lemon .
-           ln -s ../../binary/dlemon .
-           ls -l
            ../../binary/lemon  parse.y -T../../original/lempar_3320300.c -doriginal
            ../../binary/dlemon parse.y -T../../original/lempar_3320300.c -ddebug
 
     - name: Compare Header
-      run: diff -y original/parse.h debug/parse.h
+      run: |
+           cd test/sqlite
+           diff -y original/parse.h debug/parse.h
 
     - name: Compare Output
-      run: diff -y original/parse.out debug/parse.out
+      run: |
+           cd test/sqlite
+           diff -y original/parse.out debug/parse.out
 
     - name: Compare Body
-      run: diff -y original/parse.c debug/parse.c | grep -v "#line"
+      run: |
+           cd test/sqlite
+           diff -y original/parse.c debug/parse.c | grep -v "#line"
