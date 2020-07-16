@@ -1,0 +1,47 @@
+# This is a basic workflow to help you get started with Actions
+
+name: Test
+
+# Controls when the action will run. Triggers the workflow on push or pull request
+# events but only for the master branch
+on:
+  push:
+    branches: [ debug ]
+  pull_request:
+    branches: [ debug ]
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+    - uses: actions/checkout@v2
+
+    - name: Setup
+      run: |
+           mkdir binary
+           gcc original/lemon_3320300.c    -o binary/lemon
+           gcc debug/lemon_debug_3320300.c -o binary/dlemon
+           cd test/sqlite
+           mkdir debug original
+
+    - name: Parse with Lemon (Debug and Original)
+      run: |
+           ln -s ../../binary/lemon .
+           ln -s ../../binary/dlemon .
+           lemon  parse.y -T../../original/lempar_3320300.c -doriginal
+           dlemon parse.y -T../../original/lempar_3320300.c -ddebug
+
+    - name: Compare Header
+      run: diff -y original/parse.h debug/parse.h
+
+    - name: Compare Output
+      run: diff -y original/parse.out debug/parse.out
+
+    - name: Compare Body
+      run: diff -y original/parse.c debug/parse.c | grep -v "#line"
