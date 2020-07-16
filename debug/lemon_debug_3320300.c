@@ -1563,6 +1563,14 @@ static void handle_T_option(char *z){
   lemon_strcpy(user_templatename, z);
 }
 
+static int debug_dump_level = 0;
+static void handle_z_option (char *z)
+{
+  printf("extra:#%s#\n", z);
+  debug_dump_level = atoi (z);
+  printf("level:%d\n",debug_dump_level);
+}
+
 /* Merge together to lists of rules ordered by rule.iRule */
 static struct rule *Rule_merge(struct rule *pA, struct rule *pB){
   struct rule *pFirst = 0;
@@ -1647,7 +1655,8 @@ int main(int argc, char **argv)
   static int nolinenosflag = 0;
   static int noResort = 0;
   static int sqlFlag = 0;
-  
+  static int dumpLevel = 0;
+
   static struct s_options options[] = {
     {OPT_FLAG, "b", (char*)&basisflag, "Print only the basis in report."},
     {OPT_FLAG, "c", (char*)&compress, "Don't compress the action table."},
@@ -1669,6 +1678,7 @@ int main(int argc, char **argv)
                     "Generate the *.sql file describing the parser tables."},
     {OPT_FLAG, "x", (char*)&version, "Print the version number."},
     {OPT_FSTR, "T", (char*)handle_T_option, "Specify a template file."},
+    {OPT_FSTR, "z", (char*)handle_z_option, "Emit dump. Default level is 0."},
     {OPT_FSTR, "W", 0, "Ignored.  (Placeholder for '-W' compiler options.)"},
     {OPT_FLAG,0,0,0}
   };
@@ -1686,6 +1696,9 @@ int main(int argc, char **argv)
     fprintf(stderr,"Exactly one filename argument is required.\n");
     exit(1);
   }
+
+  dumpLevel = debug_dump_level;
+
   memset(&lem, 0, sizeof(lem));
   lem.errorcnt = 0;
 
