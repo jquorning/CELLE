@@ -1566,9 +1566,7 @@ static void handle_T_option(char *z){
 static int debug_dump_level = 0;
 static void handle_z_option (char *z)
 {
-  printf("extra:#%s#\n", z);
   debug_dump_level = atoi (z);
-  printf("level:%d\n",debug_dump_level);
 }
 
 /* Merge together to lists of rules ordered by rule.iRule */
@@ -1726,14 +1724,18 @@ int main(int argc, char **argv)
   lem.nsymbol = Symbol_count();
   lem.symbols = Symbol_arrayof();
 
-  printf ("debug_dump_symbols before sort\n");
-  debug_dump_symbols (&lem, 0);
+  if (dumpLevel > 0) {
+    printf ("debug_dump_symbols before sort\n");
+    debug_dump_symbols (&lem, 0);
+  }
 
   for(i=0; i<lem.nsymbol; i++) lem.symbols[i]->index = i;
   qsort(lem.symbols,lem.nsymbol,sizeof(struct symbol*), Symbolcmpp);
 
-  printf ("debug_dump_symbols after sort\n");
-  debug_dump_symbols (&lem, 0);
+  if (dumpLevel > 0) {
+    printf ("debug_dump_symbols after sort\n");
+    debug_dump_symbols (&lem, 0);
+  }
 
   for(i=0; i<lem.nsymbol; i++) lem.symbols[i]->index = i;
   while( lem.symbols[i-1]->type==MULTITERMINAL ){ i--; }
@@ -1742,19 +1744,22 @@ int main(int argc, char **argv)
   for(i=1; ISUPPER(lem.symbols[i]->name[0]); i++);
   lem.nterminal = i;
 
-  //  debug
-  printf ("nsymbol: %d  nterminal: %d \n", lem.nsymbol, lem.nterminal);
+  if (dumpLevel > 0) {  
+    //  debug
+    printf ("nsymbol: %d  nterminal: %d \n", lem.nsymbol, lem.nterminal);
 
-  //  printf ("debug_dump_symbols after sort 2\n");
-  //  debug_dump_symbols (&lem);
+    //  printf ("debug_dump_symbols after sort 2\n");
+    //  debug_dump_symbols (&lem);
+  }
 
   /* Assign sequential rule numbers.  Start with 0.  Put rules that have no
   ** reduce action C-code associated with them last, so that the switch()
   ** statement that selects reduction actions will have a smaller jump table.
   */
-
-  printf ("debug_dump_rules first\n");
-  debug_dump_rules (&lem, 0);
+  if (dumpLevel > 0) {  
+    printf ("debug_dump_rules first\n");
+    debug_dump_rules (&lem, 0);
+  }
 
   for(i=0, rp=lem.rule; rp; rp=rp->next){
     rp->iRule = rp->code ? i++ : -1;
@@ -1764,14 +1769,18 @@ int main(int argc, char **argv)
     if( rp->iRule<0 ) rp->iRule = i++;
   }
 
-  printf ("debug_dump_rules second\n");
-  debug_dump_rules (&lem, 0);
+  if (dumpLevel > 0) {  
+    printf ("debug_dump_rules second\n");
+    debug_dump_rules (&lem, 0);
+  }
 
   lem.startRule = lem.rule;
   lem.rule = Rule_sort(lem.rule);
 
-  printf ("debug_dump_rules third\n");
-  debug_dump_rules (&lem, 0);
+  if (dumpLevel > 0) {  
+    printf ("debug_dump_rules third\n");
+    debug_dump_rules (&lem, 0);
+  }
 
   /* Generate a reprint of the grammar, if requested on the command line */
   if( rpflag ){
@@ -1782,32 +1791,51 @@ int main(int argc, char **argv)
 
     /* Find the precedence for every production rule (that has one) */
     FindRulePrecedences(&lem);
-    printf ("16 dump_symbols\n");
-    debug_dump_symbols (&lem, 1);
+
+    if (dumpLevel > 0) {  
+      printf ("16 dump_symbols\n");
+      debug_dump_symbols (&lem, 1);
+    }
 
     /* Compute the lambda-nonterminals and the first-sets for every
     ** nonterminal */
     FindFirstSets(&lem);
 
-    printf ("17 dump_symbols\n");
-    debug_dump_symbols (&lem, 1);
-/*     printf ("17 dump_rules\n"); */
-/*     debug_dump_rules (&lem, 1); */
-    printf ("17 dump_states\n");
-    debug_dump_states (&lem, 1);
+    if (dumpLevel > 0) {  
+      printf ("17 dump_symbols\n");
+      debug_dump_symbols (&lem, 1);
+    }
+
+    if (dumpLevel > 0) {
+      /*     printf ("17 dump_rules\n"); */
+      /*     debug_dump_rules (&lem, 1); */
+    }
+
+    if (dumpLevel > 0) {  
+      printf ("17 dump_states\n");
+      debug_dump_states (&lem, 1);
+    }
 
     /* Compute all LR(0) states.  Also record follow-set propagation
     ** links so that the follow-set can be computed later */
-    printf ("### 2-5\n");
+    if (dumpLevel > 0) {  
+      printf ("### 2-5\n");
+    }
+
     lem.nstate = 0;
     FindStates(&lem);
-    printf ("### 2-5-2\n");
-    //    debug_dump_states (&lem, 1);
+
+    if (dumpLevel > 0) {  
+      printf ("### 2-5-2\n");
+      //    debug_dump_states (&lem, 1);
+    }
 
     lem.sorted = State_arrayof();
 
-    printf ("2-5-2 dump_states\n");
-    debug_dump_states (&lem, 1);
+    if (dumpLevel > 0) {  
+      printf ("2-5-2 dump_states\n");
+      debug_dump_states (&lem, 1);
+    }
 
     /* Tie up loose ends on the propagation links */
     FindLinks(&lem);
@@ -1815,13 +1843,14 @@ int main(int argc, char **argv)
     /* Compute the follow set of every reducible configuration */
     FindFollowSets(&lem);
 
-/*     printf ("2-7 dump_symbols\n"); */
-/*     debug_dump_symbols (&lem, 1); */
-/*     printf ("2-7 dump_rules\n"); */
-/*     debug_dump_rules (&lem, 1); */
-//    printf ("2-7 dump_states\n");
-//    debug_dump_states (&lem, 1);
-
+    if (dumpLevel > 0) {  
+      /*     printf ("2-7 dump_symbols\n"); */
+      /*     debug_dump_symbols (&lem, 1); */
+      /*     printf ("2-7 dump_rules\n"); */
+      /*     debug_dump_rules (&lem, 1); */
+      //    printf ("2-7 dump_states\n");
+      //    debug_dump_states (&lem, 1);
+    }
 
     /* Compute the action tables */
     FindActions(&lem);
