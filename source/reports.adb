@@ -999,8 +999,8 @@ package body Reports is
       --
       --  Output the yy_action table
       --
-      Session.N_Action_Tab := Action_Tables.Action_Size (Act_Tab.all);
-      N := Session.N_Action_Tab;
+      Session.Num_Action_Tab := Action_Tables.Action_Size (Act_Tab.all);
+      N := Session.Num_Action_Tab;
       Session.Table_Size := Session.Table_Size + N * Size_Of_Action_Type;
 
       Output_Action_Table (File, Act_Tab.all, N, Session.No_Action, Lineno);
@@ -1024,9 +1024,9 @@ package body Reports is
          Look_Action    : Action_Value;
          Num_Look_Ahead : Natural;
       begin
-         Session.N_Lookahead_Tab := Action_Tables.Lookahead_Size (Act_Tab.all);
-         N                       := Session.N_Lookahead_Tab;
-         Session.Table_Size      := Session.Table_Size + N * Size_Of_Code_Type;
+         Session.Num_Lookahead_Tab := Action_Tables.Lookahead_Size (Act_Tab.all);
+         N                         := Session.Num_Lookahead_Tab;
+         Session.Table_Size        := Session.Table_Size + N * Size_Of_Code_Type;
 
          Put_Line (File, "static const YYCODETYPE yy_lookahead[] = {");
          Increment_Line;
@@ -1060,7 +1060,7 @@ package body Reports is
          --  Add extra entries to the end of the yy_lookahead[] table so that
          --  yy_shift_ofst[]+iToken will always be a valid index into the array,
          --  even for the largest possible value of yy_shift_ofst[] and iToken.
-         Num_Look_Ahead := Natural (Session.Num_Terminal) + Session.N_Action_Tab;
+         Num_Look_Ahead := Natural (Session.Num_Terminal) + Session.Num_Action_Tab;
 
          while Index < Num_Look_Ahead loop
 
@@ -1101,7 +1101,7 @@ package body Reports is
       declare
          use type Offset_Type;
          Num_Terminal : constant Offset_Type := Offset_Type (Session.Num_Terminal);
-         Num_Actions  : constant Offset_Type := Offset_Type (Session.N_Action_Tab);
+         Num_Actions  : constant Offset_Type := Offset_Type (Session.Num_Action_Tab);
          Upper        : constant Offset_Type := Num_Terminal + Num_Actions;
          Data_Type    : constant String      := Minimum_Size_Type (Mn_Tkn_Ofst,
                                                                    Upper, SZ);
@@ -1112,7 +1112,7 @@ package body Reports is
             Mn_Tkn_Ofst,
             Mx_Tkn_Ofst,
             Data_Type,
-            Session.N_Action_Tab,
+            Session.Num_Action_Tab,
             No_Offset,
             Lineno);
       end;

@@ -294,7 +294,7 @@ package body Builds is
                      First_Element  : Action_Record := Element (First_Action);
                      Next_Element : Action_Record := Element (Next_Action);
                   begin
-                     Session.N_Conflict := Session.N_Conflict +
+                     Session.Num_Conflict := Session.Num_Conflict +
                        Resolve_Conflict (First_Element, Next_Element);
                      Replace_Element (State.Action, First_Action, First_Element);
                      Replace_Element (State.Action, Next_Action,  Next_Element);

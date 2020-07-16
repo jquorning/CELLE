@@ -99,14 +99,14 @@ procedure Cherry_Program is
         Session.Num_Symbol - Session.Num_Terminal;
    begin
       Ada.Text_IO.Put_Line ("Parser statistics:");
-      Stats_Line ("terminal symbols", Integer (Session.Num_Terminal));
-      Stats_Line ("non-terminal symbols", Integer (Num_Non_Terminal));
-      Stats_Line ("total symbols", Integer (Session.Num_Symbol));
-      Stats_Line ("rules", Integer (Session.Rule.Length));
-      Stats_Line ("states", Integer (Session.Nx_State));
-      Stats_Line ("conflicts", Session.N_Conflict);
-      Stats_Line ("action table entries", Session.N_Action_Tab);
-      Stats_Line ("lookahead table entries", Session.N_Lookahead_Tab);
+      Stats_Line ("terminal symbols",         Integer (Session.Num_Terminal));
+      Stats_Line ("non-terminal symbols",     Integer (Num_Non_Terminal));
+      Stats_Line ("total symbols",            Integer (Session.Num_Symbol));
+      Stats_Line ("rules",                    Integer (Session.Rule.Length));
+      Stats_Line ("states",                   Integer (Session.Nx_State));
+      Stats_Line ("conflicts",                Session.Num_Conflict);
+      Stats_Line ("action table entries",     Session.Num_Action_Tab);
+      Stats_Line ("lookahead table entries",  Session.Num_Lookahead_Tab);
       Stats_Line ("total table size (bytes)", Session.Table_Size);
    end Put_Statistics;
 
@@ -260,15 +260,15 @@ begin
          Put_Statistics (Session);
       end if;
 
-      if Session.N_Conflict > 0 then
+      if Session.Num_Conflict > 0 then
          Put_Line
            (Standard_Error,
-            Integer'Image (Session.N_Conflict) & " parsing conflicts.");
+            Integer'Image (Session.Num_Conflict) & " parsing conflicts.");
       end if;
 
       if
         Session.Error_Cnt  > 0 or
-        Session.N_Conflict > 0
+        Session.Num_Conflict > 0
       then
          Ada.Command_Line.Set_Exit_Status (Failure);
          return;

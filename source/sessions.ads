@@ -190,15 +190,16 @@ package Sessions is
          Out_Name : Unbounded_String;
          --  Name of the current output file
 
---         Token_Prefix     : aliased chars_ptr;  --  A prefix added to token names in the .h file
+         --         Token_Prefix     : aliased chars_ptr;
+         --  A prefix added to token names in the .h file
 
-         N_Conflict : Integer;
+         Num_Conflict : Integer;
          --  Number of parsing conflicts
 
-         N_Action_Tab : Integer;
+         Num_Action_Tab : Integer;
          --  Number of entries in the yy_action[] table
 
-         N_Lookahead_Tab : Integer;
+         Num_Lookahead_Tab : Integer;
          --  Number of entries in yy_lookahead[]
 
          Table_Size : Integer;
@@ -234,9 +235,11 @@ package Sessions is
                    Names        => Parser_Names'Access,
                    File_Name    => Null_Unbounded_String,
                    Out_Name     => Null_Unbounded_String,
-                   N_Conflict   => 0,        N_Action_Tab => 0,
-                   N_Lookahead_Tab  => 0,
-                   Table_Size      => 0,     Basis_Flag   => False,
+                   Num_Conflict      => 0,
+                   Num_Action_Tab    => 0,
+                   Num_Lookahead_Tab => 0,
+                   Table_Size      => 0,
+                   Basis_Flag      => False,
                    Has_Fallback    => False,
                    No_Linenos_Flag => False,
                    Argv0           => Null_Unbounded_String,
