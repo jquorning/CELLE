@@ -35,4 +35,4 @@ jobs:
       run: gcc original/lemon_3320300.c -o lemon
 
     - name: Build Lemon (Debug)
-      run: gcc debug/lemon_3320300.c -o dlemon
+      run: gcc debug/lemon_debug_3320300.c -o dlemon
