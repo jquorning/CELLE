@@ -22,5 +22,8 @@ jobs:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
 
+    - name: Setup
+      run: mkdir binary
+
     - name: Build Lemon
       run: gcc debug/lemon_debug_3320300.c -o binary/dlemon
