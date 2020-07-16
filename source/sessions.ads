@@ -29,6 +29,7 @@ package Sessions is
    subtype UString is Ada.Strings.Unbounded.Unbounded_String;
 
    subtype Symbol_Record is Symbols.Symbol_Record;
+   subtype Symbol_Index  is Types.Symbol_Index;
    subtype Action_Value  is Action_Tables.Action_Value;
    subtype Offset_Type   is Types.Offset_Type;
 
@@ -150,10 +151,10 @@ package Sessions is
          Num_Rule_With_Action : Integer;
          --  Number of rules with actions
 
-         Num_Symbol : Types.Symbol_Index;
+         Num_Symbol : Symbol_Index;
          --  Number of terminal and nonterminal symbols
 
-         Num_Terminal : Types.Symbol_Index;
+         Num_Terminal : Symbol_Index;
          --  Number of terminal symbols
 
          Min_Shift_Reduce : Action_Value;
